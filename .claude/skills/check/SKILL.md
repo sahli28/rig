@@ -26,7 +26,13 @@ en expliquant la cause avant de corriger.
 10. **Idempotence** : toute nouvelle route d'écriture financière ou de réservation
     exige et persiste une `Idempotency-Key`.
 11. **Secrets** : aucune clé, token ou URL de connexion dans le diff.
-12. **Santé et PII** : aucune donnée de santé dans un log, un événement analytics
+12. **Clé de service** : `SUPABASE_SERVICE_ROLE_KEY` (et tout `service_role`)
+    contourne l'intégralité de la RLS. Cherche-la dans tout le dépôt : elle ne
+    doit apparaître que dans `apps/web/**/server/**` ou un fichier serveur
+    explicitement commenté comme tel. Toute occurrence dans `apps/mobile/**`,
+    dans un composant `'use client'`, ou dans `packages/**` est un **échec
+    bloquant** — une règle qu'on ne peut pas oublier vaut mieux qu'une règle écrite.
+13. **Santé et PII** : aucune donnée de santé dans un log, un événement analytics
     ou un payload cross-box.
 
 ## Sortie

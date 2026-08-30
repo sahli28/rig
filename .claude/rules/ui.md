@@ -7,12 +7,29 @@ paths:
 
 # Règles UI
 
+## Deux plateformes, deux façons d'accéder au même thème
+
+Décision d'architecture : **le kit de composants est React Native, le web
+consomme les tokens en CSS** (ADR 0003). Il n'y a pas de composant partagé.
+
+| | mobile (`apps/mobile`) | web (`apps/web`) |
+| --- | --- | --- |
+| Composants | `@rig/ui/native` | les siens, base accessible (Radix/shadcn) |
+| Accès aux tokens | `useTheme()` | variables CSS `var(--rig-color-primary)` |
+| Source des tokens | `@rig/ui/theme` | `@rig/ui/theme` via `themeToCssRule()` |
+
+**Ne jamais importer `@rig/ui/native` depuis `apps/web`** : cela embarquerait
+React Native dans le bundle Next et casserait le build.
+
 ## White-label
 
-- **Aucune couleur littérale** (`#E4572E`, `rgb(...)`, `red`) dans un composant.
-  Uniquement des tokens : `colors.primary`, `colors.surface`, `colors.textMuted`…
-- Les tokens viennent du thème du tenant, résolu au démarrage et fourni par
-  `useTheme()`. Un composant qui ne peut pas être thémé est un composant mal conçu.
+- **Aucune couleur littérale** (`#E4572E`, `rgb(...)`, `red`) dans un composant,
+  ni dans une feuille de style web. Uniquement des tokens.
+- Sur mobile : `colors.primary`, `colors.surface`, `colors.textMuted`… via
+  `useTheme()`. Un composant qui ne peut pas être thémé est mal conçu.
+- Sur le web : `var(--rig-color-primary)`, `var(--rig-radius-md)`,
+  `var(--rig-text-body)`… Les variables sont injectées en SSR par `<ThemeStyle/>`,
+  ce qui évite tout flash de thème.
 - Tester chaque écran avec deux thèmes contrastés (clair/sombre, primaire chaude/froide).
 
 ## i18n
