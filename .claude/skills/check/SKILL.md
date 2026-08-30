@@ -1,0 +1,36 @@
+---
+name: check
+description: Porte de vérification avant commit — types, lint, tests, isolation multi-tenant, i18n, tokens de thème.
+disable-model-invocation: false
+---
+
+Exécute la porte de vérification, dans cet ordre, et arrête-toi au premier échec
+en expliquant la cause avant de corriger.
+
+## Automatique
+
+1. `pnpm typecheck`
+2. `pnpm lint`
+3. `pnpm test`
+4. `pnpm test:db` — inclut le test anti-fuite inter-tenant. **Échec ici = blocage absolu.**
+
+## Manuel — sur le diff courant uniquement (`git diff`)
+
+5. **Couleurs en dur** : cherche `#[0-9a-fA-F]{3,8}`, `rgb(`, `rgba(` dans
+   `apps/**` et `packages/ui/**`. Toute occurrence hors fichier de thème est un échec.
+6. **Chaînes en dur** : tout texte visible dans un composant qui ne passe pas par `t(`.
+7. **Parité i18n** : toute clé ajoutée dans `fr.json` existe dans `en.json`, et l'inverse.
+8. **Argent** : aucun `parseFloat`, `toFixed`, `*100` ou `/100` sur un montant
+   dans le diff. Les montants sont des entiers de centimes.
+9. **Tenant** : toute nouvelle table a `tenant_id`, RLS forcée, policies et index.
+10. **Idempotence** : toute nouvelle route d'écriture financière ou de réservation
+    exige et persiste une `Idempotency-Key`.
+11. **Secrets** : aucune clé, token ou URL de connexion dans le diff.
+12. **Santé et PII** : aucune donnée de santé dans un log, un événement analytics
+    ou un payload cross-box.
+
+## Sortie
+
+Un tableau `contrôle | résultat | détail`. Puis `CHECK: PASS` ou `CHECK: FAIL`
+avec la liste ordonnée de ce qu'il faut corriger. En cas de `FAIL`, ne propose
+pas de commit.

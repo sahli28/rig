@@ -1,0 +1,8 @@
+# Le dépôt est écrit sous Windows mais la CI tourne sous Linux :
+# on normalise tout en LF dans l'objet git, quelle que soit la machine.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.hbc binary
