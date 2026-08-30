@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: lint · typecheck · test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Tests unitaires
+        run: pnpm test
+
+      - name: Format
+        run: pnpm format:check
+
+  database:
+    name: test:db (isolation multi-tenant)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Les tests pgTAP arrivent avec le premier schéma (ticket P0-004).
+      # Tant qu'aucun n'existe, le job passe en annonçant qu'il n'a rien exécuté —
+      # il ne doit jamais passer *silencieusement* une fois les tests écrits.
+      - name: Détecter les tests pgTAP
+        id: detect
+        run: |
+          if compgen -G "supabase/tests/*.sql" > /dev/null; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Aucun test pgTAP — attendu jusqu'au ticket P0-004."
+          fi
+
+      - name: Démarrer Supabase
+        if: steps.detect.outputs.found == 'true'
+        run: pnpm exec supabase start
+
+      - name: Tests base et anti-fuite inter-tenant
+        if: steps.detect.outputs.found == 'true'
+        run: pnpm test:db

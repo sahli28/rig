@@ -1,0 +1,15 @@
+node_modules
+.next
+.expo
+dist
+build
+coverage
+.turbo
+pnpm-lock.yaml
+supabase/.temp
+supabase/.branches
+
+# Prose et configuration rédigées à la main : Prettier réaligne les tableaux
+# markdown sans rien apporter, et pollue les diffs des tickets.
+docs/
+.claude/
