@@ -56,22 +56,40 @@ Pour la base locale (nécessite Docker Desktop démarré) :
 pnpm exec supabase start
 ```
 
+⚠️ **Les ports ne sont pas ceux par défaut de Supabase.** Windows réserve la plage
+TCP 53979–54478 (exclusions Hyper-V / WinNAT), qui avale les six ports habituels.
+Tout a été décalé de 543xx vers 553xx dans `supabase/config.toml` :
+
+| Service | Port  | URL                                                       |
+| ------- | ----- | --------------------------------------------------------- |
+| API     | 55321 | <http://127.0.0.1:55321>                                  |
+| Base    | 55322 | `postgresql://postgres:postgres@127.0.0.1:55322/postgres` |
+| Studio  | 55323 | <http://127.0.0.1:55323>                                  |
+| Mailpit | 55324 | <http://127.0.0.1:55324>                                  |
+
+Pour vérifier les plages réservées sur une autre machine :
+`netsh interface ipv4 show excludedportrange protocol=tcp`.
+
+Note : Docker Desktop s'installe **par utilisateur** sous Windows. S'il vient
+d'être installé, un terminal déjà ouvert ne le verra pas — son PATH est figé au
+démarrage. Ouvrir un nouveau terminal suffit.
+
 ## Vérifier
 
 ```bash
 pnpm typecheck && pnpm lint && pnpm test && pnpm format:check
 ```
 
-| Commande            | Ce qu'elle fait                                       |
-| ------------------- | ----------------------------------------------------- |
-| `pnpm dev`          | web + mobile en parallèle                             |
-| `pnpm typecheck`    | `tsc --noEmit` sur les 4 packages                     |
-| `pnpm lint`         | ESLint (flat config, TypeScript strict)               |
-| `pnpm test`         | Vitest                                                |
-| `pnpm test:db`      | tests pgTAP, dont le test anti-fuite inter-tenant     |
-| `pnpm format`       | Prettier — la prose de `docs/` et `.claude/` est exclue |
-| `pnpm db:migrate`   | applique les migrations Supabase en local             |
-| `pnpm db:reset`     | reset + seed local                                    |
+| Commande          | Ce qu'elle fait                                         |
+| ----------------- | ------------------------------------------------------- |
+| `pnpm dev`        | web + mobile en parallèle                               |
+| `pnpm typecheck`  | `tsc --noEmit` sur les 4 packages                       |
+| `pnpm lint`       | ESLint (flat config, TypeScript strict)                 |
+| `pnpm test`       | Vitest                                                  |
+| `pnpm test:db`    | tests pgTAP, dont le test anti-fuite inter-tenant       |
+| `pnpm format`     | Prettier — la prose de `docs/` et `.claude/` est exclue |
+| `pnpm db:migrate` | applique les migrations Supabase en local               |
+| `pnpm db:reset`   | reset + seed local                                      |
 
 ## Travailler avec Claude Code
 

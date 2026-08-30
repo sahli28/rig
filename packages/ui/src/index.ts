@@ -1,4 +1,7 @@
-// Kit de composants partagé mobile / web.
-// Rempli par le ticket P0-002 (design tokens et thème du tenant).
-// Aucune couleur littérale ne doit apparaître ici : uniquement des tokens.
-export {};
+/**
+ * Entrée par défaut de `@rig/ui` : le thème seul, sans dépendance plateforme.
+ *
+ * Le kit de composants React Native vit derrière `@rig/ui/native`, pour que le
+ * web puisse importer les tokens sans embarquer React Native.
+ */
+export * from './theme/index';

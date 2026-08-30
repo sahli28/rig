@@ -1,0 +1,47 @@
+/*
+ * Aucune couleur littérale ici : tout vient des variables injectées par
+ * <ThemeStyle/>, elles-mêmes dérivées du thème de la box.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--rig-color-surface);
+  color: var(--rig-color-text);
+  font-family: var(--rig-font-family), system-ui, sans-serif;
+  font-size: var(--rig-text-body);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--rig-color-primary);
+}
+
+/* Cible tactile minimale, y compris à la souris : les mêmes règles que le mobile. */
+button,
+[role='button'] {
+  min-height: var(--rig-touch-target);
+  min-width: var(--rig-touch-target);
+  border-radius: var(--rig-radius-md);
+  font-family: inherit;
+  font-size: var(--rig-text-body);
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--rig-color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

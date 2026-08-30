@@ -25,14 +25,49 @@ irréversible : une couleur en dur écrite maintenant coûtera des semaines plus
 
 ## Critères d'acceptation
 
-- [ ] Aucune couleur littérale hors du fichier de thème (vérifiable par grep)
-- [ ] Changer la couleur primaire dans un seul objet change toute l'app
-- [ ] Les 16 composants s'affichent correctement en clair et en sombre
-- [ ] Une couleur primaire à contraste insuffisant est détectée et corrigée automatiquement
-- [ ] Toutes les cibles tactiles font au moins 44 pt / 48 dp
-- [ ] Le texte dynamique à 200 % ne casse aucun composant
+- [x] Aucune couleur littérale hors du fichier de thème (vérifiable par grep)
+      — grep sur `apps/**` et `packages/**` : seules occurrences dans
+      `theme/tokens.ts`, `theme/build-theme.ts` et l'écran de démonstration
+      (presets de marque). Plus l'exception `app.json` héritée de P0-001.
+- [x] Changer la couleur primaire dans un seul objet change toute l'app
+      — `buildTheme(brand, scheme)` dérive tout de `TenantBrand` ; testé, et
+      manipulable en direct sur l'écran de démonstration.
+- [~] Les 16 composants s'affichent correctement en clair et en sombre
+      — les 16 existent, typent, passent le lint et **bundlent** ; le rendu
+      visuel n'a pas été observé (ni émulateur ni appareil sur cette machine).
+      À valider à la main : `pnpm dev`, écran « Système de design ».
+- [x] Une couleur primaire à contraste insuffisant est détectée et corrigée automatiquement
+      — `ensureContrast` ; 12 tests, dont un échantillon hostile (jaune fluo,
+      blanc, noir, pastel, fuchsia, gris moyen) sur les deux schémas.
+- [x] Toutes les cibles tactiles font au moins 44 pt / 48 dp
+      — `minTouchTarget` = 48 sur tous les composants interactifs, vérifié par
+      audit. Deux écarts trouvés et corrigés pendant le ticket : `SegmentedControl`
+      (40 pt) et `Card` actionnable (hauteur laissée au contenu).
+- [~] Le texte dynamique à 200 % ne casse aucun composant
+      — aucune hauteur fixe, aucun `numberOfLines`, aucune police non scalable :
+      le kit est écrit pour tenir. **Non vérifié à l'exécution**, pour la même
+      raison que le critère 3.
 
 ## Notes
 
 Un composant qui ne peut pas être thémé est un composant mal conçu : le refaire
 plutôt que de contourner.
+
+### Écart avec le ticket, assumé
+
+Le ticket demandait un kit « partagé mobile et web ». La spec §12.2 dit l'inverse
+pour le web (« ne recodez jamais un `<Select>` accessible » — s'appuyer sur Radix
+ou shadcn). J'ai suivi la spec : le **thème** est partagé et sans dépendance
+plateforme, le **kit de composants** est React Native. Le web consomme les mêmes
+tokens via les variables CSS de `themeToCssRule`, ce qui préserve la promesse
+white-label sans imposer `react-native-web` à Next.
+
+### Dette laissée par ce ticket
+
+- Toutes les chaînes visibles sont en dur (galerie, écrans d'accueil, page web).
+  L'i18n arrive au ticket suivant, P0-003 : c'est l'ordre du backlog qui l'impose.
+- Le `Switch` s'appuie sur le contrôle natif de la plateforme, dont la hauteur
+  propre (~31 pt sur iOS) est inférieure au plancher. La ligne entière fait 48 pt.
+  Convention de plateforme, laissée telle quelle.
+- Le rendu visuel et le comportement à 200 % de taille de texte restent à
+  observer sur appareil ou émulateur.

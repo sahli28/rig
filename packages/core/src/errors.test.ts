@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { API_ERROR_CODES, apiError } from './errors.js';
+import { API_ERROR_CODES, apiError } from './errors';
 
 describe('apiError', () => {
   it('produit la forme exacte attendue par le client', () => {
