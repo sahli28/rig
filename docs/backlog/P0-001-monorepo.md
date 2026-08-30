@@ -30,9 +30,13 @@ Aucun écran, aucune table métier, aucun déploiement.
       — câblage vérifié (`turbo run dev --dry` : `next dev` + `expo start`),
       `next build` et `expo export --platform android` réussissent. Le double
       lancement en conditions réelles reste à faire à la main.
-- [ ] `npx supabase start` démarre une base locale
-      — **bloqué : Docker Desktop n'est pas installé sur la machine.**
-      `supabase init` est fait, la configuration est versionnée.
+- [x] `npx supabase start` démarre une base locale
+      — 12 conteneurs démarrés, base saine sur le port 55322.
+      A nécessité de **décaler tous les ports de 543xx vers 553xx** : Windows
+      réserve la plage TCP 53979–54478 (exclusions Hyper-V / WinNAT), qui
+      couvre l'intégralité des ports Supabase par défaut. Documenté au README.
+      Réserve : le conteneur `supabase_vector` (logs) redémarre en boucle ;
+      sans effet sur la base, à regarder si les logs deviennent utiles.
 - [ ] Le workflow CI est vert sur une PR de test
       — **bloqué : pas de remote GitHub.** Le workflow est écrit et versionné.
 - [x] Le README explique comment démarrer en moins de 10 minutes
