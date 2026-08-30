@@ -1,0 +1,34 @@
+{
+  "common.cancel": "Annuler",
+  "common.close": "Fermer",
+  "common.loading": "Chargement",
+
+  "home.placeholder": "Socle en place. Le planning et la réservation arrivent en P1.",
+  "home.placeholder_web": "Socle en place. Le back-office arrive en P1.",
+  "home.design_system_cta": "Voir le système de design",
+
+  "design_system.title": "Système de design",
+  "design_system.intro": "Les mêmes tokens que l'app mobile, exposés en variables CSS. Basculez le thème de votre système pour voir le schéma sombre.",
+  "design_system.scheme_label": "Schéma de couleurs",
+  "design_system.scheme_light": "Clair",
+  "design_system.scheme_dark": "Sombre",
+  "design_system.brand_label": "Couleur de marque",
+  "design_system.brand_coral": "Corail",
+  "design_system.brand_navy": "Marine",
+  "design_system.brand_green": "Vert",
+  "design_system.brand_yellow": "Jaune ⚠",
+  "design_system.contrast_heading": "Contraste de la couleur de marque",
+  "design_system.contrast_adjusted": "Couleur demandée {requested} ({requestedRatio}:1) — corrigée en {applied} ({appliedRatio}:1).",
+  "design_system.contrast_ok": "Couleur {applied} conforme : {appliedRatio}:1.",
+
+  "datetime.day_at_time": "{day} à {time}",
+
+  "language.label": "Langue",
+  "language.fr": "Français",
+  "language.en": "English",
+
+  "waitlist.position_one": "Tu es {position}ᵉ sur la liste. On te prévient dès qu'une place se libère.",
+  "waitlist.position_other": "Tu es {position}ᵉ sur la liste, sur {total} personnes en attente.",
+  "class.spots_left_one": "{count} place restante",
+  "class.spots_left_other": "{count} places restantes"
+}

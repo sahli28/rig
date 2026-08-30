@@ -34,10 +34,10 @@ export default tseslint.config(
     },
   },
   {
-    // Les hooks Claude Code sont des scripts Node autonomes, hors monorepo.
-    files: ['.claude/hooks/*.mjs'],
+    // Scripts Node autonomes, hors monorepo : hooks Claude Code et outillage.
+    files: ['.claude/hooks/*.mjs', 'scripts/*.mjs'],
     languageOptions: {
-      globals: { process: 'readonly', console: 'readonly' },
+      globals: { process: 'readonly', console: 'readonly', URL: 'readonly' },
     },
   },
   {

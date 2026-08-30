@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, type DimensionValue } from 'react-native';
 import { useTheme } from '../theme/index';
+import { useI18n } from '../i18n/index';
 import { useReducedMotion } from './use-reduced-motion';
 
 export interface SkeletonProps {
@@ -13,6 +14,7 @@ export interface SkeletonProps {
 /** Bloc de chargement. Pulsation désactivée si la personne a réduit les animations. */
 export function Skeleton({ width = '100%', height = 16, radius }: SkeletonProps) {
   const theme = useTheme();
+  const { t } = useI18n();
   const reducedMotion = useReducedMotion();
   const pulse = useRef(new Animated.Value(0.4)).current;
 
@@ -46,7 +48,7 @@ export function Skeleton({ width = '100%', height = 16, radius }: SkeletonProps)
   return (
     <Animated.View
       accessibilityRole="progressbar"
-      accessibilityLabel="Chargement"
+      accessibilityLabel={t('common.loading')}
       style={{
         width,
         height,

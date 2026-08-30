@@ -41,7 +41,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-/** Galerie des 16 composants du kit. Sert de preuve visuelle du thème. */
+/**
+ * Galerie des 16 composants du kit. Sert de preuve visuelle du thème.
+ *
+ * Les textes affichés ici sont des **données d'exemple**, pas de la copie
+ * produit : « WOD — 18h30 », « Sarah D. », « Complet » remplissent les
+ * composants pour qu'on juge leur rendu. Ils ne passent volontairement pas par
+ * l'i18n — traduire un jeu de fixtures gonflerait le dictionnaire de clés que
+ * personne n'affichera jamais à un membre. Les vrais écrans, eux, y passent.
+ */
 export function Gallery() {
   const theme = useTheme();
   const [tab, setTab] = useState('planning');

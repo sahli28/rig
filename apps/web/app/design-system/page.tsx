@@ -1,4 +1,7 @@
+'use client';
+
 import { buildTheme, DEFAULT_BRAND } from '@rig/ui/theme';
+import { useI18n } from '@rig/ui/i18n';
 
 /**
  * Preuve que le web porte les mêmes tokens que le mobile, sans embarquer
@@ -15,17 +18,15 @@ const SWATCHES = [
 ] as const;
 
 export default function DesignSystemPage() {
-  // Rapport de contraste calculé au rendu : c'est ce que verra la box dans ses
-  // réglages quand elle choisira sa couleur (ticket P1-001).
+  const { t } = useI18n();
+  // Rapport de contraste : c'est ce que verra la box dans ses réglages
+  // quand elle choisira sa couleur (ticket P1-001).
   const report = buildTheme(DEFAULT_BRAND, 'light').contrast;
 
   return (
     <main style={{ maxWidth: 880, margin: '0 auto', padding: 24 }}>
-      <h1 style={{ fontSize: 'var(--rig-text-display)' }}>Système de design</h1>
-      <p style={{ color: 'var(--rig-color-text-muted)' }}>
-        Les mêmes tokens que l’app mobile, exposés en variables CSS. Basculez le thème de votre
-        système pour voir le schéma sombre.
-      </p>
+      <h1 style={{ fontSize: 'var(--rig-text-display)' }}>{t('design_system.title')}</h1>
+      <p style={{ color: 'var(--rig-color-text-muted)' }}>{t('design_system.intro')}</p>
 
       <section
         style={{
@@ -47,6 +48,7 @@ export default function DesignSystemPage() {
               minHeight: 88,
             }}
           >
+            {/* Noms des tokens : identifiants techniques, pas de la copie produit. */}
             <strong>{label}</strong>
             <div style={{ fontSize: 'var(--rig-text-caption)' }}>{background}</div>
           </div>
@@ -54,11 +56,19 @@ export default function DesignSystemPage() {
       </section>
 
       <section style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 'var(--rig-text-title)' }}>Contraste de la couleur de marque</h2>
+        <h2 style={{ fontSize: 'var(--rig-text-title)' }}>{t('design_system.contrast_heading')}</h2>
         <p style={{ color: 'var(--rig-color-text-muted)' }}>
           {report.adjusted
-            ? `Couleur demandée ${report.requestedPrimary} (${report.requestedRatio.toFixed(2)}:1) — corrigée en ${report.appliedPrimary} (${report.appliedRatio.toFixed(2)}:1).`
-            : `Couleur ${report.appliedPrimary} conforme : ${report.appliedRatio.toFixed(2)}:1.`}
+            ? t('design_system.contrast_adjusted', {
+                requested: report.requestedPrimary,
+                requestedRatio: report.requestedRatio.toFixed(2),
+                applied: report.appliedPrimary,
+                appliedRatio: report.appliedRatio.toFixed(2),
+              })
+            : t('design_system.contrast_ok', {
+                applied: report.appliedPrimary,
+                appliedRatio: report.appliedRatio.toFixed(2),
+              })}
         </p>
       </section>
     </main>
