@@ -1,13 +1,14 @@
 import { Link } from 'expo-router';
 import { Text, View } from 'react-native';
 import { useTheme } from '@rig/ui/theme';
-import { Button, Card } from '@rig/ui/native';
+import { useI18n } from '@rig/ui/i18n';
+import { Button, Card, SegmentedControl } from '@rig/ui/native';
 
 export default function HomeScreen() {
   const theme = useTheme();
+  const { t, locale, setLocale } = useI18n();
 
-  // Écran d'accueil provisoire : il n'a pas encore de contenu produit.
-  // Les chaînes visibles passeront par i18n au ticket P0-003.
+  // Écran d'accueil provisoire : le planning et la réservation arrivent en P1.
   return (
     <View
       style={{
@@ -37,12 +38,24 @@ export default function HomeScreen() {
             fontFamily: theme.fontFamily,
           }}
         >
-          Socle en place. Le planning et la réservation arrivent en P1.
+          {t('home.placeholder')}
         </Text>
       </Card>
 
+      {/* Le sélecteur de langue est ici pour prouver le critère du ticket :
+          l'interface bascule sans redémarrage. Il rejoindra les réglages. */}
+      <SegmentedControl
+        accessibilityLabel={t('language.label')}
+        value={locale}
+        onChange={(value) => setLocale(value === 'fr' ? 'fr' : 'en')}
+        options={[
+          { value: 'fr', label: t('language.fr') },
+          { value: 'en', label: t('language.en') },
+        ]}
+      />
+
       <Link href="/design-system" asChild>
-        <Button label="Voir le système de design" onPress={() => {}} fullWidth />
+        <Button label={t('home.design_system_cta')} onPress={() => {}} fullWidth />
       </Link>
     </View>
   );

@@ -6,7 +6,11 @@
   "exports": {
     ".": "./src/index.ts",
     "./theme": "./src/theme/index.ts",
+    "./i18n": "./src/i18n/index.ts",
     "./native": "./src/native/index.ts"
+  },
+  "dependencies": {
+    "@rig/core": "workspace:*"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

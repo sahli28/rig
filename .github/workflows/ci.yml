@@ -34,6 +34,9 @@ jobs:
       - name: Tests unitaires
         run: pnpm test
 
+      - name: Parité des traductions
+        run: pnpm i18n:check
+
       - name: Format
         run: pnpm format:check
 

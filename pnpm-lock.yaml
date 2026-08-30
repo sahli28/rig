@@ -122,6 +122,10 @@ importers:
         version: 2.1.9(@types/node@22.20.1)(lightningcss@1.33.0)(terser@5.51.2)
 
   packages/ui:
+    dependencies:
+      '@rig/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       '@types/react':
         specifier: ~19.2.2

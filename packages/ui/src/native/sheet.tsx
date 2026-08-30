@@ -1,6 +1,7 @@
 import { Modal, Pressable, Text, View } from 'react-native';
 import type { ReactNode } from 'react';
 import { useTheme } from '../theme/index';
+import { useI18n } from '../i18n/index';
 
 export interface SheetProps {
   visible: boolean;
@@ -15,6 +16,7 @@ export interface SheetProps {
  */
 export function Sheet({ visible, onClose, title, children }: SheetProps) {
   const theme = useTheme();
+  const { t } = useI18n();
 
   return (
     <Modal
@@ -27,7 +29,7 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
       <Pressable
         onPress={onClose}
         accessibilityRole="button"
-        accessibilityLabel="Fermer"
+        accessibilityLabel={t('common.close')}
         style={{ flex: 1, backgroundColor: theme.colors.overlay, justifyContent: 'flex-end' }}
       >
         {/* Le contenu absorbe le tap : seul le voile ferme la feuille. */}
