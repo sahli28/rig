@@ -9,6 +9,8 @@ coverage/
 .env.local
 .env.*.local
 .turbo/
+*.tsbuildinfo
+next-env.d.ts
 .DS_Store
 CLAUDE.local.md
 supabase/.temp/

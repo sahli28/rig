@@ -22,14 +22,38 @@ Aucun écran, aucune table métier, aucun déploiement.
 
 ## Critères d'acceptation
 
-- [ ] `pnpm install` fonctionne à partir d'un clone vierge
-- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm test` passent sur le squelette
-- [ ] `pnpm dev` lance le web et le mobile
-- [ ] `npx supabase start` démarre une base locale
+- [x] `pnpm install` fonctionne à partir d'un clone vierge
+      — vérifié sur un clone réel avec `--frozen-lockfile`
+- [x] `pnpm typecheck`, `pnpm lint`, `pnpm test` passent sur le squelette
+      — 4 packages typés, 0 erreur ESLint, 3 tests verts, `format:check` vert
+- [~] `pnpm dev` lance le web et le mobile
+      — câblage vérifié (`turbo run dev --dry` : `next dev` + `expo start`),
+      `next build` et `expo export --platform android` réussissent. Le double
+      lancement en conditions réelles reste à faire à la main.
+- [x] `npx supabase start` démarre une base locale
+      — 12 conteneurs démarrés, base saine sur le port 55322.
+      A nécessité de **décaler tous les ports de 543xx vers 553xx** : Windows
+      réserve la plage TCP 53979–54478 (exclusions Hyper-V / WinNAT), qui
+      couvre l'intégralité des ports Supabase par défaut. Documenté au README.
+      Réserve : le conteneur `supabase_vector` (logs) redémarre en boucle ;
+      sans effet sur la base, à regarder si les logs deviennent utiles.
 - [ ] Le workflow CI est vert sur une PR de test
-- [ ] Le README explique comment démarrer en moins de 10 minutes
+      — **bloqué : pas de remote GitHub.** Le workflow est écrit et versionné.
+- [x] Le README explique comment démarrer en moins de 10 minutes
 
 ## Notes
 
 Ne pas ajouter de bibliothèque « au cas où ». Chaque dépendance sera justifiée
 au commit. Version Node figée dans `.nvmrc` et dans la CI.
+
+### Dette laissée par ce ticket
+
+- `apps/mobile/app.json` contient `"backgroundColor": "#E6F4FE"` (fond de l'icône
+  adaptative Android, hérité du template Expo). C'est de la configuration native
+  de build, pas un composant : elle échappe légitimement à la règle « zéro couleur
+  en dur », mais devra devenir paramétrable au white-label N2.
+- Aucune app n'importe encore `@rig/core` ni `@rig/ui`. La résolution des packages
+  du workspace par Metro est donc vérifiée pour les dépendances tierces, pas pour
+  les packages internes. Premier vrai test au ticket P0-002.
+- `node-linker=hoisted` affaiblit l'isolation des dépendances : une app peut
+  importer un module qu'elle n'a pas déclaré sans que rien ne proteste.

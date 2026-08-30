@@ -64,6 +64,18 @@ pnpm db:reset           # reset + seed local
 - Les erreurs API sortent en `{ error: { code, message_i18n, details } }`. Le client réagit au `code`, jamais au texte.
 - Toute fonction PLpgSQL a un test pgTAP correspondant dans `supabase/tests/`.
 - Les composants UI vivent dans `packages/ui` s'ils sont partagés, sinon dans l'app.
+- **Imports relatifs sans extension** (`from './contrast'`, jamais `'./contrast.js'`).
+  TypeScript et Vite acceptent les deux, Metro non : il cherche littéralement un
+  fichier `.js` et échoue au bundling, pas au typecheck.
+- **Une seule copie de React** dans le dépôt, épinglée par `pnpm.overrides` à la
+  version qu'Expo impose. Deux copies produisent un `Cannot read properties of
+null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la cause.
+- Un module React partagé importé côté serveur Next (`createContext`, hooks) porte
+  `'use client'` en première ligne. React Native ignore la directive.
+- `packages/ui` a deux entrées : `@rig/ui/theme` (sans dépendance plateforme,
+  importable par Next) et `@rig/ui/native` (kit React Native, réservé au mobile).
+  La logique testable ne vit jamais dans un `.tsx` qui importe `react-native` :
+  Vitest ne sait pas parser les sources Flow de RN.
 
 ## Workflow attendu de Claude Code
 
