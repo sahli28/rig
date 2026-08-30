@@ -62,16 +62,16 @@ pnpm exec supabase start
 pnpm typecheck && pnpm lint && pnpm test && pnpm format:check
 ```
 
-| Commande            | Ce qu'elle fait                                       |
-| ------------------- | ----------------------------------------------------- |
-| `pnpm dev`          | web + mobile en parallèle                             |
-| `pnpm typecheck`    | `tsc --noEmit` sur les 4 packages                     |
-| `pnpm lint`         | ESLint (flat config, TypeScript strict)               |
-| `pnpm test`         | Vitest                                                |
-| `pnpm test:db`      | tests pgTAP, dont le test anti-fuite inter-tenant     |
-| `pnpm format`       | Prettier — la prose de `docs/` et `.claude/` est exclue |
-| `pnpm db:migrate`   | applique les migrations Supabase en local             |
-| `pnpm db:reset`     | reset + seed local                                    |
+| Commande          | Ce qu'elle fait                                         |
+| ----------------- | ------------------------------------------------------- |
+| `pnpm dev`        | web + mobile en parallèle                               |
+| `pnpm typecheck`  | `tsc --noEmit` sur les 4 packages                       |
+| `pnpm lint`       | ESLint (flat config, TypeScript strict)                 |
+| `pnpm test`       | Vitest                                                  |
+| `pnpm test:db`    | tests pgTAP, dont le test anti-fuite inter-tenant       |
+| `pnpm format`     | Prettier — la prose de `docs/` et `.claude/` est exclue |
+| `pnpm db:migrate` | applique les migrations Supabase en local               |
+| `pnpm db:reset`   | reset + seed local                                      |
 
 ## Travailler avec Claude Code
 
