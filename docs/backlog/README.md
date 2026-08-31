@@ -41,8 +41,8 @@ mieux qu'un MVP parfait au mois 13.
 | P0-001 | Monorepo, CI, outillage              |      3 | ✅ fusionné (PR #2)  |
 | P0-002 | Design tokens et thème tenant        |      4 | ✅ fusionné (PR #1)  |
 | P0-003 | i18n FR/EN                           |      2 | ✅ fusionné (PR #3)  |
-| P0-004 | Schéma de base, RLS, test anti-fuite |      6 | ✅ PR #4 ouverte     |
-| P0-005a | Se connecter — magic link, session, `me()` |  6 | 🔨 en cours       |
+| P0-004 | Schéma de base, RLS, test anti-fuite |      6 | ✅ fusionné (PR #4)  |
+| P0-005a | Se connecter — code, session, `me()` |      6 | ✅ fusionné (PR #6) — reste la passe sur appareil |
 | P0-005b | SSO Google et linking d'identités    |      4 | à faire              |
 | P1-001 | Réglages box, salles, types de cours |      4 | à faire              |
 | P1-002 | Planning récurrent (RRULE)           |      7 | à faire              |

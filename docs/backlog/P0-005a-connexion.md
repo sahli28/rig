@@ -62,7 +62,9 @@ inter-box), gestion des invitations côté OWNER (P1-001 avec les réglages).
       distingue pas « inconnue » de « fermée »
 - [x] Les quatre consentements sont des cases distinctes, sans dark pattern
 - [ ] Le parcours complet tient sous 3 minutes, montre en main — **reste à
-      valider sur appareil** : ni émulateur ni téléphone sur cette machine
+      valider sur appareil**. L'app mobile n'a jamais démarré : elle typecheck
+      et elle lint, les écrans n'ont jamais exécuté une ligne. Préalable :
+      créer les deux `.env.local` (README, « Variables d'environnement »)
 
 ## Notes
 
