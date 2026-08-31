@@ -14,11 +14,21 @@ P0-005a sera livré.
 
 ## Ce qui bloque, et qui n'est pas de mon ressort
 
-1. **Pousser.** `git push` est en `deny` dans `.claude/settings.json`, volontairement.
+1. **Pousser — deux branches, dans cet ordre.** `git push` est en `deny` dans
+   `.claude/settings.json`, volontairement.
+
+   **La PR #4 a un commit de retard** (`cce2500`, les dettes D-006/D-007 et la
+   fermeture du ticket) :
    ```
-   git -C C:/Users/sahli/imys push
+   git -C C:/Users/sahli/imys push origin feat/P0-004-schema-rls
    ```
-2. **Fusionner la PR #4.** Elle est verte et auditée six fois. P0-005a en dépend.
+   Puis la branche courante, 7 commits en avance sur `main` :
+   ```
+   git -C C:/Users/sahli/imys push -u origin feat/P0-005a-connexion
+   ```
+2. **Fusionner la PR #4** une fois à jour. Elle est verte et auditée six fois.
+   P0-005a en dépend. Garder le **merge commit** — la PR #3 avait été squashée,
+   ce qui casse l'empilement des branches suivantes.
 3. **`.env.local`** — à créer à la main pour la suite de P0-005a (clé anon locale,
    donnée par `pnpm exec supabase status`). Couvert par `.gitignore` et par la
    règle `deny`.
