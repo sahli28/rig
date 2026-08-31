@@ -37,13 +37,13 @@ Tables : `tenants`, `tenant_settings`, `locations`, `rooms`, `themes`, `users`,
 - [x] `pnpm test:db` échoue si on ajoute une table sans policy
       — **démontré** : table sans policy ajoutée en base, les 4 contrôles du test
       structurel échouent en la nommant, table retirée, suite de nouveau verte
-- [ ] Le sous-agent `rls-auditor` rend `VERDICT: SAFE` — **non atteint après cinq passes.**
-      Les deux dernières ne trouvent plus aucune fuite inter-tenant ni élévation
-      de privilège : l'isolation est confirmée intacte et re-testée en profondeur.
-      Ce qu'elles trouvent, ce sont des **régressions fonctionnelles introduites
-      par mes propres correctifs** (inscription impossible, rectification d'adresse
-      bloquée, preuve de consentement détruite par cascade) — toutes corrigées et
-      couvertes par des tests. Une sixième passe reste à lancer pour statuer.
+- [x] Le sous-agent `rls-auditor` rend `VERDICT: SAFE` — **atteint à la sixième passe.**
+      Six passes, 20 problèmes, 8 failles exploitables. Quatre avaient été
+      introduites par mes propres correctifs. La plus instructive — `tenants`
+      sans garde de rôle — n'a été trouvée ni par les tests ni par l'auditeur,
+      mais **en relisant** : elle ne concernait pas l'isolation inter-tenant,
+      mais la matrice de permissions de la spec §5.2, qu'aucun des deux ne
+      confrontait au schéma.
 - [x] Les fonctions `security definer` fixent `search_path` — les 8, vérifié par l'auditeur
 
 ## Notes

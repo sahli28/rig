@@ -7,7 +7,7 @@
 -- fenêtre d'annulation de tout le monde.
 
 begin;
-select plan(13);
+select plan(18);
 
 -- ---------------------------------------------------------------------------
 -- Session de Léa — simple MEMBER de la box A
@@ -163,6 +163,73 @@ select is(
    where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'),
   120,
   'un MANAGER règle bien la fenêtre d''annulation'
+);
+
+reset role;
+
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- Colonnes de gouvernance : la policy dit quelles lignes, le grant quelles colonnes
+-- ---------------------------------------------------------------------------
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
+
+-- `deleted_at` est le drapeau du parcours RGPD de P0-005 : le poser ou l'effacer
+-- soi-même déclencherait ou annulerait sa propre anonymisation. Ici l'écriture
+-- est refusée au niveau **colonne**, donc elle lève, contrairement à un refus
+-- par policy qui se contente de n'affecter aucune ligne.
+select throws_ok(
+  $$update public.users set deleted_at = now()
+    where id = '33333333-0000-4000-8000-000000000001'$$,
+  '42501',
+  null,
+  'un utilisateur ne pose pas lui-même son propre deleted_at'
+);
+
+select throws_ok(
+  $$update public.users set created_at = '2000-01-01'
+    where id = '33333333-0000-4000-8000-000000000001'$$,
+  '42501',
+  null,
+  'un utilisateur ne réécrit pas created_at, qui porte les échéances de rétention'
+);
+
+-- En revanche il édite bien son profil.
+select lives_ok(
+  $$update public.users set first_name = 'Léa-Marie'
+    where id = '33333333-0000-4000-8000-000000000001'$$,
+  'un utilisateur édite bien son propre profil'
+);
+
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- Un MANAGER ne révoque pas une invitation OWNER
+-- ---------------------------------------------------------------------------
+
+insert into public.invitations (tenant_id, email, role, token, expires_at) values
+  ('aaaaaaaa-0000-4000-8000-000000000001', 'futur.proprio@example.com', 'OWNER',
+   'inv-owner-a', now() + interval '7 days');
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"44444444-0000-4000-8000-000000000001","role":"authenticated","email":"sarah@example.com"}';
+
+delete from public.invitations where token = 'inv-owner-a';
+
+select is(
+  (select count(*) from public.invitations where token = 'inv-owner-a')::int,
+  1,
+  'un MANAGER ne supprime pas une invitation OWNER'
+);
+
+update public.invitations set role = 'MEMBER' where token = 'inv-owner-a';
+
+select is(
+  (select role::text from public.invitations where token = 'inv-owner-a'),
+  'OWNER',
+  'un MANAGER ne rétrograde pas une invitation OWNER'
 );
 
 reset role;

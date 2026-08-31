@@ -141,6 +141,29 @@ que dans le ticket parce qu'un ticket clos ne se relit jamais.
     `cancel_window_minutes`. Après avoir gardé une table, faire l'inventaire de
     celles qui portent la même donnée sous un autre nom.
 
+### La RLS ne borne pas les colonnes
+
+Une policy dit **quelles lignes**, jamais quelles colonnes. Dès qu'une ligne
+contient à la fois des champs éditables et des champs de gouvernance —
+`deleted_at`, `created_at`, `status`, `currency` — la policy seule ne suffit pas.
+
+L'outil est le droit au niveau colonne, qui s'ajoute à la policy :
+
+```sql
+revoke update on public.users from authenticated;
+grant update (first_name, last_name, birthdate, gender, locale, avatar_url)
+  on public.users to authenticated;
+```
+
+Différence visible en test : un refus par **policy** n'affecte aucune ligne et ne
+lève pas ; un refus par **grant de colonne** lève `42501`. Le second est donc
+plus facile à tester — et plus explicite pour l'appelant.
+
+Ce piège s'est présenté trois fois dans P0-004 : `tenants` (tout membre pouvait
+changer le fuseau), `tenants` de nouveau (un MANAGER pouvait fermer la box), puis
+`users` (chacun pouvait poser son propre `deleted_at`). Trois fois le même
+raisonnement manquant.
+
 ### Ce que les tests d'isolation ne voient pas
 
 Une suite qui teste **le tenant A contre le tenant B** ne peut pas voir une
