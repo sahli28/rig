@@ -23,6 +23,17 @@ en expliquant la cause avant de corriger.
 8. **Argent** : aucun `parseFloat`, `toFixed`, `*100` ou `/100` sur un montant
    dans le diff. Les montants sont des entiers de centimes.
 9. **Tenant** : toute nouvelle table a `tenant_id`, RLS forcée, policies et index.
+9bis. **Box active** : `pnpm lint` refuse déjà tout `.from('<table de box>')` hors
+    `packages/core/src/supabase/` (règle `no-restricted-syntax` dans
+    `eslint.config.mjs`). Ce qu'il reste à faire à la main, parce qu'aucune règle
+    ne le voit : quand le diff **ajoute une fonction** dans ce dossier, vérifier
+    qu'elle filtre bien sur la box active. La règle garantit le passage par la
+    porte, pas ce qu'on fait une fois entré. Rappel : la RLS ne garde pas dans la
+    box active, et aucun test pgTAP ne peut attraper cette confusion.
+9ter. **Opérations sœurs** : voir `.claude/rules/database.md`. Toute protection
+    ajoutée sur une opération doit être confrontée à ses jumelles —
+    `insert`/`update`/`delete`, la table et sa jointure, la fonction et le
+    trigger qui l'appelle. Trois trous sur trois depuis P0-004 avaient cette forme.
 10. **Idempotence** : toute nouvelle route d'écriture financière ou de réservation
     exige et persiste une `Idempotency-Key`.
 11. **Secrets** : aucune clé, token ou URL de connexion dans le diff.

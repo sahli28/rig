@@ -18,7 +18,8 @@
     "i18n:check": "node scripts/i18n-check.mjs",
     "test:db": "supabase test db",
     "db:migrate": "supabase migration up",
-    "db:reset": "supabase db reset"
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --local > packages/core/src/supabase/types.gen.ts && prettier --write packages/core/src/supabase/types.gen.ts"
   },
   "pnpm": {
     "overrides": {

@@ -2,9 +2,16 @@
 paths:
   - 'apps/web/app/api/**/*.ts'
   - 'packages/core/src/api/**/*.ts'
+  - 'packages/core/src/supabase/**/*.ts'
 ---
 
 # Règles API
+
+> **Il n'y a pas encore de route handler** (ADR 0004) : les opérations livrées
+> sont des fonctions Postgres appelées en RPC depuis le client. Ce fichier
+> décrit donc deux choses — la forme que prendront les routes quand P1-003 les
+> imposera, et **la règle du tenant actif, qui s'applique dès aujourd'hui aux
+> appels directs**.
 
 ## Structure d'un endpoint
 
@@ -49,6 +56,43 @@ const { data } = await supabase.from('classes').select();
 // ✓
 const { data } = await supabase.from('classes').select().eq('tenant_id', activeTenantId);
 ```
+
+**Le filtre ne se laisse pas à la discipline de chaque appelant.** Il vit dans
+`tenantScope()` (`packages/core/src/supabase/active-tenant.ts`), que tout accès
+à une table de box doit traverser — route handler comme appel direct :
+
+```ts
+const scope = tenantScope(supabase, activeTenantId);
+const { data } = await scope.select('classes'); // .eq('tenant_id', …) est posé
+await scope.insert('classes', row); // tenant_id imposé, pas seulement suggéré
+```
+
+Le type n'accepte que les tables portant un `tenant_id` : `scope.select('users')`
+ne compile pas, parce qu'il n'y aurait rien à filtrer. Un `supabase.from(…)` en
+direct sur une table de box est à considérer comme un oubli de filtre jusqu'à
+preuve du contraire.
+
+## Erreurs venues de la base
+
+Les fonctions SQL lèvent leur erreur avec un **code applicatif** dans le champ
+`detail`, que PostgREST expose sous `details` (migration `app_error_codes`).
+C'est nécessaire parce que le SQLSTATE ne discrimine pas : `check_violation`
+couvre à lui seul l'invitation expirée, l'invitation déjà utilisée, la box
+fermée, le dernier propriétaire et le quota atteint.
+
+Côté client, un seul chemin correct :
+
+```ts
+try {
+  await acceptInvitation(supabase, token);
+} catch (error) {
+  setErrorKey(errorMessageKeyOf(error)); // clé i18n, jamais le message brut
+}
+```
+
+`packages/core/src/errors.ts` tient la table `code → clé i18n`, et un test relit
+les migrations : un `app_error()` ajouté en SQL sans message côté client fait
+échouer `pnpm test`.
 
 ## Erreurs
 

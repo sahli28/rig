@@ -5,6 +5,10 @@ Spécification produit complète : `docs/spec/RIG-spec-produit-technique.md`
 (~156 Ko : à ouvrir section par section quand un ticket la référence, jamais en entier).
 Backlog exécutable : `docs/backlog/` — un fichier par ticket.
 
+> **Reprise de session : lire `docs/REPRISE.md` en premier.** Il porte l'état
+> exact, les actions en attente et les pièges d'environnement (Docker hors PATH,
+> ports Supabase décalés). Supprimer ce paragraphe quand le fichier disparaîtra.
+
 ## Contexte de développement
 
 - **Développeuse solo**, ~15–20 h/semaine. Optimise pour la maintenabilité par une seule personne, jamais pour l'élégance architecturale.
@@ -84,6 +88,13 @@ null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la 
 3. Écrire le test avant l'implémentation quand une règle métier est en jeu (règles 1 à 6 ci-dessus).
 4. Lancer `/check` avant de proposer un commit.
 5. Une branche par ticket : `feat/P0-003-rls-policies`. Jamais de commit direct sur `main`.
+   **Fusionner avec un merge commit, jamais en squash.** Le squash réécrit
+   l'histoire : `main` reçoit un commit sans lien d'ascendance avec la branche,
+   donc toute branche empilée dessus part en conflit sur chaque fichier commun,
+   alors que le contenu est déjà fusionné. Arrivé trois fois (PR #3, #4, #5). Si
+   c'est arrivé quand même, ne pas résoudre les conflits à la main :
+   `git rebase --onto origin/main <dernier-commit-déjà-dans-main>` rejoue les
+   seuls commits réellement absents.
 6. Si un choix contredit la spec, **le signaler** au lieu de l'appliquer silencieusement.
 
 ## Ce qu'il ne faut pas faire

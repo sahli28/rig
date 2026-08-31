@@ -1,0 +1,18 @@
+<!--
+  Gabarit de première connexion.
+
+  Une personne qui n'a pas encore de compte reçoit ce gabarit-là, pas
+  `magic-link.html` — même parcours côté app, deux gabarits côté Supabase. Le
+  code doit donc figurer dans les deux, faute de quoi l'inscription marche et
+  la reconnexion échoue (ou l'inverse), pour une raison invisible dans le code.
+-->
+<h2>RIG</h2>
+
+<p>Bienvenue. Ton code de connexion / Welcome. Your sign-in code:</p>
+
+<p style="font-size: 28px; letter-spacing: 6px; font-weight: 700">{{ .Token }}</p>
+
+<p>
+  Il expire dans une heure. Si tu n'as rien demandé, ignore cet e-mail.<br />
+  It expires in one hour. If you didn't ask for it, ignore this email.
+</p>

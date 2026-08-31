@@ -25,6 +25,13 @@ export {
 } from './contrast';
 
 export { buildTheme } from './build-theme';
+export {
+  brandFromPublicProfile,
+  brandFromTheme,
+  brandOrDefault,
+  type TenantPublicProfileRow,
+  type TenantThemeRow,
+} from './tenant-brand';
 export { ThemeProvider, useTheme, type ThemeProviderProps } from './theme-provider';
 export { themeToCssVars, themeToCssRule } from './css-vars';
 

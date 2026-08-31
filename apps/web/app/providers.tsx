@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { I18nProvider, type LocaleStorage } from '@rig/ui/i18n';
 import { localeFromTag, type Locale } from '@rig/core';
+import { WebSessionProvider } from '../lib/session';
 
 /**
  * Fuseau de la box. Provisoirement figé : il viendra du tenant résolu par
@@ -37,8 +38,10 @@ export function Providers({ children }: { children: ReactNode }) {
   const initialLocale = typeof navigator === 'undefined' ? 'fr' : localeFromTag(navigator.language);
 
   return (
-    <I18nProvider initialLocale={initialLocale} timeZone={BOX_TIME_ZONE} storage={localeStorage}>
-      {children}
-    </I18nProvider>
+    <WebSessionProvider>
+      <I18nProvider initialLocale={initialLocale} timeZone={BOX_TIME_ZONE} storage={localeStorage}>
+        {children}
+      </I18nProvider>
+    </WebSessionProvider>
   );
 }
