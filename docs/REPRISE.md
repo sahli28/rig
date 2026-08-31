@@ -14,21 +14,23 @@ P0-005a sera livré.
 
 ## Ce qui bloque, et qui n'est pas de mon ressort
 
-1. **Pousser — deux branches, dans cet ordre.** `git push` est en `deny` dans
-   `.claude/settings.json`, volontairement.
+1. **Fermer la PR #5 sans la fusionner.** Son contenu est **déjà dans `main`** :
+   la PR #4 a été fusionnée en squash jusqu'à `c49190a`, ce qui couvre les
+   migrations, les tests et les corrections d'audit. PR #5 tentait de refusionner
+   une soixantaine de fichiers identiques — d'où les conflits. Le seul commit
+   réellement absent (`cce2500`, 5 fichiers de documentation) a été rebasé sur la
+   branche de travail.
 
-   **La PR #4 a un commit de retard** (`cce2500`, les dettes D-006/D-007 et la
-   fermeture du ticket) :
-   ```
-   git -C C:/Users/sahli/imys push origin feat/P0-004-schema-rls
-   ```
-   Puis la branche courante, 7 commits en avance sur `main` :
+2. **Pousser la branche de travail**, rebasée sur `main` et sans conflit.
+   `git push` est en `deny` dans `.claude/settings.json`, volontairement.
    ```
    git -C C:/Users/sahli/imys push -u origin feat/P0-005a-connexion
    ```
-2. **Fusionner la PR #4** une fois à jour. Elle est verte et auditée six fois.
-   P0-005a en dépend. Garder le **merge commit** — la PR #3 avait été squashée,
-   ce qui casse l'empilement des branches suivantes.
+
+3. **Fusionner avec un merge commit, jamais en squash.** C'est ce qui a créé le
+   problème trois fois (PR #3, #4, #5) : le squash coupe le lien d'ascendance, et
+   toute branche empilée part en conflit sur des fichiers pourtant identiques.
+   La règle est désormais dans `CLAUDE.md`, point 5 du workflow.
 3. **`.env.local`** — à créer à la main pour la suite de P0-005a (clé anon locale,
    donnée par `pnpm exec supabase status`). Couvert par `.gitignore` et par la
    règle `deny`.
