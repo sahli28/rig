@@ -1,48 +1,34 @@
-# P0-005 — Authentification et session
+# P0-005 — Authentification et session · **découpé**
 
-**Phase** P0 · **Estimation** 5 j·h · **Dépend de** P0-004, P0-002 · **Spec** §4-P1, §7.6a
+Ce ticket annonçait 5 j·h. L'inventaire mené avant de l'attaquer en a montré ~17 :
+il fallait poser les clients Supabase, la couche d'accès aux données, trois
+fournisseurs d'authentification, cinq écrans, l'export et la suppression RGPD.
 
-## Objectif
+Il est découpé selon une ligne nette — **ce qui dépend d'un tiers, et ce qui n'en
+dépend pas** :
 
-Se connecter, résoudre son tenant, récupérer son thème. Fin du socle.
+| Ticket | Contenu | j·h |
+| --- | --- | ---: |
+| [P0-005a](P0-005a-connexion.md) | Clients, magic link, session, `me()`, profil public de la box, invitation, écrans | 6 |
+| [P0-005b](P0-005b-sso-google.md) | SSO Google sur trois plateformes + linking d'identités | 4 |
+| [P2-002](P2-002-rgpd-self-service.md) | Export, suppression de compte, anonymisation J+30 | 5 |
+| [P2-003](P2-003-sign-in-apple.md) | Sign in with Apple — **bloquant de publication** | 3 |
 
-## Périmètre
+## Ce qui sort du périmètre au passage
 
-- Supabase Auth : Sign in with Apple (**obligatoire pour publier sur l'App Store**
-  dès qu'un autre SSO existe), Google, magic link e-mail.
-- `POST /v1/auth/social`, `POST /v1/auth/magic-link`, `POST /v1/auth/refresh`,
-  `POST /v1/auth/logout`.
-- `GET /v1/me` → profil, memberships, tenant courant avec son thème et ses règles
-  de réservation, plus `required_actions`.
-- `GET /v1/tenants/{slug}/public` → branding avant connexion, pour que l'écran
-  d'accueil soit déjà aux couleurs de la box.
-- Invitations : génération de lien nominatif (30 j, usage unique) et QR d'affiliation
-  permanent de la box.
-- Écrans mobile : Welcome brandé, Auth, Profile Setup, Consents, Box Switcher.
-- Consentements écrits dans `consents` avec version de politique et horodatage.
-- `DELETE /v1/me` (suppression logique + anonymisation à J+30) et `GET /v1/me/export`.
+- **Box Switcher** — une box pilote est une box. L'interface multi-box part avec
+  le réseau inter-box, où elle a un sens.
+- **Gestion des invitations côté OWNER** — part en P1-001 avec les réglages de la
+  box. Seul le chemin d'**acceptation** reste en P0-005a.
 
-## Critères d'acceptation
+## Ce que le découpage préserve
 
-- [ ] Connexion Apple, Google et magic link fonctionnelles sur iOS et Android
-- [ ] Le même e-mail dans deux boxes ne crée qu'un seul compte
-- [ ] **Un compte créé avec Google qui se reconnecte avec Apple ne casse pas.**
-      P0-004 a posé un trigger `handle_new_user` qui refuse un e-mail déjà pris,
-      ce qui est défendable mais transfère la charge à la configuration Auth :
-      sans **linking d'identités** activé côté GoTrue, la seconde connexion
-      échoue en **500 GoTrue**, et non en `EMAIL_ALREADY_LINKED_TO_OTHER_PROVIDER`
-      comme le promet l'exemple JSON de la spec §7.6a. Activer le linking, ou
-      mapper l'erreur — mais ne pas le découvrir sur un vrai membre.
-- [ ] L'écran de bienvenue affiche le logo et la couleur de la box **avant** connexion
-- [ ] Un lien d'invitation expiré est refusé avec un message clair
-- [ ] Refuser les notifications n'interrompt pas l'inscription
-- [ ] La suppression de compte est atteignable en 3 taps depuis les réglages
-- [ ] L'export RGPD produit une archive lisible en moins de 30 secondes
-- [ ] Le token d'accès expire en 15 min et se rafraîchit sans déconnexion visible
-- [ ] Un `X-Tenant-Id` sans membership correspondante renvoie `404`, pas `403`
+Google est câblé **dès P0-005b**, et non repoussé. La raison n'est pas le confort
+d'inscription : c'est que `handle_new_user`, durci en P0-004, refuse désormais une
+adresse déjà prise. Sans un second fournisseur, ce comportement n'est jamais
+exercé — et se découvrirait au mois 6, sur une vraie adhérente, avec une erreur
+GoTrue opaque.
 
-## Notes
-
-Le deferred deep link (ouvrir une invitation sans l'app installée, puis retrouver
-le contexte après installation) peut être reporté si le temps manque — le noter
-comme dette dans le commit.
+Le report de P2-002 est conditionné à
+[`docs/procedures/effacement-manuel.md`](../procedures/effacement-manuel.md) :
+reporter l'outillage ne reporte pas l'obligation légale.

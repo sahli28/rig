@@ -16,12 +16,20 @@ Estimations en **jours-homme de 7 h effectives**. À 15–20 h/semaine, compter
 ## Ordre recommandé
 
 ```
-P0-001 → P0-002 → P0-003 → P0-004 → P0-005        (socle, rien de visible)
+P0-001 → P0-002 → P0-003 → P0-004                 (socle, rien de visible)
+P0-005a → P0-005b                                 (connexion, puis SSO)
 P1-001 → P1-002 → P1-003 → P1-004 → P1-005        (planning et réservation)
 P1-007 → P1-006 → P1-008                          (push, waitlist, check-in)
                      ↓
         ═══ JALON : mise en production chez la box pilote ═══
+                     ↓
+P2-002 → P2-003                                   (RGPD, Apple — avant les stores)
 ```
+
+**P2-003 (Sign in with Apple) bloque la publication**, pas le pilote. Son prérequis
+est administratif — compte développeur Apple, 99 $/an, délai d'enrôlement variable —
+et c'est le seul élément du chemin critique dont le délai ne se rattrape pas :
+l'inscription se lance dès maintenant, pas au moment du ticket.
 
 Le jalon compte plus que la complétude. Une v0 imparfaite en production vaut
 mieux qu'un MVP parfait au mois 13.
@@ -34,7 +42,8 @@ mieux qu'un MVP parfait au mois 13.
 | P0-002 | Design tokens et thème tenant        |      4 | ✅ fusionné (PR #1)  |
 | P0-003 | i18n FR/EN                           |      2 | ✅ fusionné (PR #3)  |
 | P0-004 | Schéma de base, RLS, test anti-fuite |      6 | ✅ PR #4 ouverte     |
-| P0-005 | Authentification et session          |      5 | 🔨 en cours          |
+| P0-005a | Se connecter — magic link, session, `me()` |  6 | 🔨 en cours       |
+| P0-005b | SSO Google et linking d'identités    |      4 | à faire              |
 | P1-001 | Réglages box, salles, types de cours |      4 | à faire              |
 | P1-002 | Planning récurrent (RRULE)           |      7 | à faire              |
 | P1-003 | Réservation transactionnelle         |      8 | à faire              |
@@ -43,7 +52,17 @@ mieux qu'un MVP parfait au mois 13.
 | P1-006 | Liste d'attente et promotion         |      6 | à faire              |
 | P1-007 | Notifications push                   |      4 | à faire              |
 | P1-008 | Check-in QR et mode kiosque          |      6 | à faire              |
-|        | **Total jusqu'au jalon pilote**      | **62** |                      |
+|        | **Total jusqu'au jalon pilote**      | **67** |                      |
+
+Le total passe de 62 à 67 j·h : P0-005 était estimé 5, l'inventaire en a montré
+~17, dont 8 déplacés en P2. Ce qui reste avant le jalon pilote est donc 10, pas 5.
+
+### Avant la publication sur les stores
+
+| Ticket | Titre                                   | j·h | Pourquoi pas avant |
+| ------ | --------------------------------------- | --: | ------------------ |
+| P2-002 | Droits RGPD en self-service             |   5 | Obligation légale, pas préalable à la connexion. Conditionné à `docs/procedures/effacement-manuel.md` pendant le pilote. |
+| P2-003 | Sign in with Apple                      |   3 | Bloquant de publication. Prérequis administratif à lancer dès maintenant. |
 
 ### Dette convertie en tickets
 
