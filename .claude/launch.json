@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@rig/web", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "supabase-studio",
+      "url": "http://127.0.0.1:55323"
+    }
+  ]
+}

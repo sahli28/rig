@@ -33,8 +33,8 @@ mieux qu'un MVP parfait au mois 13.
 | P0-001 | Monorepo, CI, outillage              |      3 | ✅ fusionné (PR #2)  |
 | P0-002 | Design tokens et thème tenant        |      4 | ✅ fusionné (PR #1)  |
 | P0-003 | i18n FR/EN                           |      2 | ✅ fusionné (PR #3)  |
-| P0-004 | Schéma de base, RLS, test anti-fuite |      6 | 🔨 en cours          |
-| P0-005 | Authentification et session          |      5 | à faire              |
+| P0-004 | Schéma de base, RLS, test anti-fuite |      6 | ✅ PR #4 ouverte     |
+| P0-005 | Authentification et session          |      5 | 🔨 en cours          |
 | P1-001 | Réglages box, salles, types de cours |      4 | à faire              |
 | P1-002 | Planning récurrent (RRULE)           |      7 | à faire              |
 | P1-003 | Réservation transactionnelle         |      8 | à faire              |
@@ -57,3 +57,5 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-003  | SSR de l'i18n pour les pages publiques         |   2 | P0-003  |
 | D-004  | Persistance mobile de la langue                |   1 | P0-003  |
 | D-005  | Empreintes des jetons d'invitation             |   1 | PR #4   |
+| D-006  | Défense en profondeur sur `public.users`       | 0,5 | P0-004  |
+| D-007  | Contraste de la page de démo                   | 0,25 | P0-002 |
