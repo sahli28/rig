@@ -141,3 +141,4 @@ et on repart : `CLAUDE.md` et les règles se rechargent seuls.
 | Comment code-t-on ici ?        | `CLAUDE.md` et `.claude/rules/`           |
 | Pourquoi ce choix technique ?  | `docs/adr/`                               |
 | Quoi faire maintenant ?        | `docs/backlog/README.md`                  |
+| Où en était-on ?               | `docs/REPRISE.md`                         |

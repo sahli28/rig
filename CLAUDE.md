@@ -5,6 +5,10 @@ Spécification produit complète : `docs/spec/RIG-spec-produit-technique.md`
 (~156 Ko : à ouvrir section par section quand un ticket la référence, jamais en entier).
 Backlog exécutable : `docs/backlog/` — un fichier par ticket.
 
+> **Reprise de session : lire `docs/REPRISE.md` en premier.** Il porte l'état
+> exact, les actions en attente et les pièges d'environnement (Docker hors PATH,
+> ports Supabase décalés). Supprimer ce paragraphe quand le fichier disparaîtra.
+
 ## Contexte de développement
 
 - **Développeuse solo**, ~15–20 h/semaine. Optimise pour la maintenabilité par une seule personne, jamais pour l'élégance architecturale.
