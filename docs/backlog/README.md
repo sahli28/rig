@@ -56,3 +56,4 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-002  | Tests de rendu des composants                  |   2 | P0-002  |
 | D-003  | SSR de l'i18n pour les pages publiques         |   2 | P0-003  |
 | D-004  | Persistance mobile de la langue                |   1 | P0-003  |
+| D-005  | Empreintes des jetons d'invitation             |   1 | PR #4   |

@@ -7,7 +7,7 @@
 --    personne l'ait décidé. Le comportement est désormais explicite.
 
 begin;
-select plan(10);
+select plan(12);
 
 -- Marc est le seul propriétaire de la box A, et il a invité et journalisé.
 update public.invitations
@@ -25,6 +25,41 @@ select is(
 -- ---------------------------------------------------------------------------
 -- Le propriétaire unique ne peut pas partir en laissant sa box derrière lui
 -- ---------------------------------------------------------------------------
+
+-- Le trigger lit `memberships` et `tenants`, toutes deux en RLS `force`, et
+-- s'exécute sous le rôle qui supprime réellement `auth.users` —
+-- `supabase_auth_admin`, qui **n'a pas `bypassrls`** (vérifié). Sans
+-- `security definer`, son `select` ne verrait aucune ligne, `v_orphaned`
+-- vaudrait null, et le garde passerait en silence dans le cas exact qu'il doit
+-- empêcher.
+--
+-- `postgres` ne peut pas endosser `supabase_auth_admin` (« permission denied to
+-- set role »), donc ce scénario n'est pas rejouable ici. On assertit à la place
+-- la **propriété qui rend le trigger sûr** — c'est elle qui compte, et elle est
+-- vérifiable directement dans le catalogue.
+select is(
+  (select p.prosecdef from pg_proc p
+   join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'forbid_orphaning_tenant'),
+  true,
+  'forbid_orphaning_tenant est security definer, sinon la RLS le rendrait inerte'
+);
+
+-- Et le corollaire : toute fonction security definer fixe son search_path,
+-- sans quoi elle devient le contournement de RLS le plus courant.
+select is(
+  (select coalesce(string_agg(p.proname, ', ' order by p.proname), '')
+   from pg_proc p
+   join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public'
+     and p.prosecdef
+     and not exists (
+       select 1 from unnest(coalesce(p.proconfig, array[]::text[])) c
+       where c like 'search_path=%'
+     )),
+  '',
+  'toutes les fonctions security definer fixent search_path'
+);
 
 select throws_ok(
   $$delete from auth.users where id = '11111111-0000-4000-8000-000000000001'$$,

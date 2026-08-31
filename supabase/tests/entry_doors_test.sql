@@ -6,7 +6,7 @@
 -- des scénarios ci-dessous **réussissait** avant l'audit du ticket P0-004.
 
 begin;
-select plan(22);
+select plan(24);
 
 -- Un utilisateur tout neuf, membre d'aucune box.
 insert into auth.users (
@@ -137,6 +137,33 @@ select lives_ok(
 );
 
 reset role;
+
+reset role;
+
+-- Le cas réel : une adhérente devient coach, la box lui envoie une invitation
+-- nominative COACH. Sans refus explicite, elle cliquait, voyait « bienvenue »,
+-- restait MEMBER, et le jeton était brûlé — un succès silencieux.
+insert into public.invitations (tenant_id, email, role, token, expires_at) values
+  ('bbbbbbbb-0000-4000-8000-000000000001', 'nouveau@example.com', 'COACH',
+   'tok-promotion', now() + interval '7 days');
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"99999999-0000-4000-8000-000000000001","role":"authenticated","email":"nouveau@example.com"}';
+
+select throws_ok(
+  $$select public.accept_invitation('tok-promotion')$$,
+  '23505',
+  null,
+  'accepter une invitation quand on est déjà membre actif lève au lieu de ne rien faire'
+);
+
+reset role;
+
+select is(
+  (select status::text from public.invitations where token = 'tok-promotion'),
+  'PENDING',
+  'le jeton n''est pas consommé par une acceptation refusée'
+);
 
 -- Le gel de l'e-mail ne doit pas interdire la **rectification**, qui est un
 -- droit RGPD. Le chemin légitime passe par le fournisseur d'identité, puis se

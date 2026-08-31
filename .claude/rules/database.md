@@ -75,7 +75,7 @@ create policy <table>_tenant_write on <table> for all to authenticated
 Le `(select …)` autour de l'appel n'est pas cosmétique : il permet à Postgres de
 mettre le résultat en cache d'initplan au lieu de le réévaluer à chaque ligne.
 
-### Neuf pièges déjà payés, à ne pas repayer
+### Onze pièges déjà payés, à ne pas repayer
 
 Chacun a coûté un aller-retour d'audit sur le ticket P0-004. Ils sont ici plutôt
 que dans le ticket parce qu'un ticket clos ne se relit jamais.
@@ -127,6 +127,32 @@ que dans le ticket parce qu'un ticket clos ne se relit jamais.
    superutilisateur, masquaient la panne. Corollaire : **un test qui court-circuite
    le vrai chemin ne teste rien** — le seed exerce désormais le trigger
    `on_auth_user_created` au lieu d'écrire directement dans `public.users`.
+10. **Un contrôle de sécurité qui lit des tables protégées doit être
+    `security definer`.** `forbid_orphaning_tenant` lit `memberships` et
+    `tenants` en RLS `force`, sous le rôle qui supprime `auth.users` — lequel n'a
+    pas `bypassrls`. Sans `security definer`, son `select` ne voyait rien, le
+    garde passait, et la box devenait orpheline dans le cas même qu'il devait
+    empêcher. C'est le piège de la récursion en miroir : la RLS qui **vide en
+    silence** le résultat d'un contrôle.
+11. **Durcir une table sans durcir ses voisines laisse la porte la plus large
+    ouverte.** `tenant_settings`, `themes`, `locations` et `rooms` ont reçu une
+    garde de rôle ; `tenants` non. Or `tenants.timezone` gouverne la fenêtre
+    d'annulation : un MEMBER faisait pire en changeant le fuseau qu'en touchant
+    `cancel_window_minutes`. Après avoir gardé une table, faire l'inventaire de
+    celles qui portent la même donnée sous un autre nom.
+
+### Ce que les tests d'isolation ne voient pas
+
+Une suite qui teste **le tenant A contre le tenant B** ne peut pas voir une
+élévation de privilège entre un `MEMBER` et un `OWNER` de la **même** box. C'est
+là que s'était logée `tenants_member_update`, et aucun des tests inter-tenant ne
+pouvait la détecter.
+
+Toute table portant une garde de rôle a donc besoin de son cas dans
+`supabase/tests/role_isolation_test.sql` : un MEMBER qui tente, un OWNER qui
+réussit. La policy `using` masquant la ligne, l'`UPDATE` refusé **ne lève pas** —
+il n'affecte aucune ligne. C'est la valeur inchangée qui prouve la garde, jamais
+une exception.
 
 ### `service_role` contourne tout
 
