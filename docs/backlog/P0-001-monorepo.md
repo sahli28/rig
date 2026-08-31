@@ -37,8 +37,11 @@ Aucun écran, aucune table métier, aucun déploiement.
       couvre l'intégralité des ports Supabase par défaut. Documenté au README.
       Réserve : le conteneur `supabase_vector` (logs) redémarre en boucle ;
       sans effet sur la base, à regarder si les logs deviennent utiles.
-- [ ] Le workflow CI est vert sur une PR de test
-      — **bloqué : pas de remote GitHub.** Le workflow est écrit et versionné.
+- [x] Le workflow CI est vert sur une PR de test
+      — PR #2 vers `main`, fusionnée. La CI a d'ailleurs attrapé un vrai défaut
+      au passage : `README.md` n'était pas formaté, parce que `format:check`
+      avait été lancé **avant** la dernière modification du fichier et jamais
+      relancé après. D'où la règle : `/check` en dernier, toujours.
 - [x] Le README explique comment démarrer en moins de 10 minutes
 
 ## Notes

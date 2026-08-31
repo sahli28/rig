@@ -18,8 +18,37 @@ Chaque route suit le même ordre, sans exception :
 4. Vérifier le rôle requis (`OWNER` / `MANAGER` / `COACH` / `MEMBER`).
 5. Pour toute écriture financière ou de réservation : exiger `Idempotency-Key`,
    rejeter en `400` si absent, rejouer la réponse d'origine si la clé est connue.
-6. Appeler la fonction SQL ou le repository. Pas de logique métier dans la route.
-7. Journaliser dans `audit_logs` toute action sensible (rôles, argent, données membres).
+6. **Filtrer explicitement sur le tenant actif** — voir ci-dessous, c'est la règle
+   la plus facile à oublier et la plus coûteuse.
+7. Appeler la fonction SQL ou le repository. Pas de logique métier dans la route.
+8. Journaliser toute action sensible via `public.log_audit(...)` — jamais un
+   `insert` direct dans `audit_logs`, qui n'a pas de policy d'écriture. La
+   fonction déduit l'acteur de `auth.uid()` : il n'y a pas de paramètre d'acteur,
+   et c'est volontaire.
+   **Le `diff` n'est pas filtré par la base** : n'y mettre ni donnée de santé, ni
+   e-mail, ni rien que `privacy.md` interdise de journaliser. Le tri se fait ici.
+
+## La RLS ne vous garde pas dans la box active
+
+**Toute requête doit ajouter `.eq('tenant_id', activeTenantId)`.**
+
+La RLS garantit que vous ne sortez pas des boxes **de l'utilisateur** ; elle ne
+garantit pas que vous restez dans **la box active**. Un membre inscrit dans deux
+boxes est un cas nominal du produit (ADR 0002) : sans ce filtre, les données de la
+box A s'affichent dans l'interface de la box B.
+
+Ce n'est pas une fuite inter-utilisateur, donc **aucun test pgTAP ne l'attrapera** —
+tous les tests d'isolation passeront au vert pendant que l'écran ment. C'est la
+classe de bug la plus probable de tout P1. Chaque route qui lit des données
+tenant-scopées mérite un test avec un utilisateur multi-box.
+
+```ts
+// ✗ compile, passe la RLS, affiche les cours de l'autre box
+const { data } = await supabase.from('classes').select();
+
+// ✓
+const { data } = await supabase.from('classes').select().eq('tenant_id', activeTenantId);
+```
 
 ## Erreurs
 
