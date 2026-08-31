@@ -41,21 +41,39 @@ inter-box), gestion des invitations côté OWNER (P1-001 avec les réglages).
 
 ## Critères d'acceptation
 
-- [ ] Un lien d'invitation ouvre un écran de bienvenue **aux couleurs de la box,
-      avant toute connexion**
-- [ ] Le magic link arrive dans Mailpit et connecte
-- [ ] Le jeton d'accès expire en 15 min et se rafraîchit sans déconnexion visible
-- [ ] `me()` retourne le tenant courant, son thème et ses règles en un aller-retour
-- [ ] Refuser les notifications n'interrompt pas l'inscription
-- [ ] Un lien d'invitation expiré donne un message clair, jamais une erreur brute
-- [ ] Un `slug` inconnu ne divulgue rien
-- [ ] Les quatre consentements sont des cases distinctes, sans dark pattern
-- [ ] Le parcours complet tient sous 3 minutes, montre en main
+- [x] Un lien d'invitation ouvre un écran de bienvenue **aux couleurs de la box,
+      avant toute connexion** — `tenant_public_profile` en clé `anon`, vérifié
+- [x] **Mobile** : le code à six chiffres arrive dans Mailpit et connecte —
+      vérifié de bout en bout par appels HTTP réels (gabarits `supabase/templates/`)
+- [ ] **Web** : le **lien** du même e-mail connecte aussi — `detectSessionInUrl`
+      reste actif côté web, et le middleware pose la session en cookies.
+      **Deux chemins d'authentification, donc deux à tester** : sans cette
+      ligne, seul celui qu'on utilise au quotidien serait vérifié, et l'autre
+      casserait en silence
+- [x] Le jeton d'accès expire en 15 min et se rafraîchit sans déconnexion
+      visible — `jwt_expiry = 900`, `expires_in: 900` relevé sur la réponse
+- [x] `me()` retourne le tenant courant, son thème et ses règles en un
+      aller-retour — vérifié, schéma Zod aligné
+- [x] Refuser les notifications n'interrompt pas l'inscription — le refus s'écrit
+      comme ligne `granted = false`, il ne bloque rien
+- [x] Un lien d'invitation expiré donne un message clair, jamais une erreur brute
+      — `INVITATION_EXPIRED` → `errors.invitation_expired`
+- [x] Un `slug` inconnu ne divulgue rien — la fonction rend `[]`, l'écran ne
+      distingue pas « inconnue » de « fermée »
+- [x] Les quatre consentements sont des cases distinctes, sans dark pattern
+- [ ] Le parcours complet tient sous 3 minutes, montre en main — **reste à
+      valider sur appareil** : ni émulateur ni téléphone sur cette machine
 
 ## Notes
 
 Le deferred deep link (ouvrir une invitation sans l'app installée, retrouver le
-contexte après installation) peut être reporté — le noter comme dette au commit.
+contexte après installation) est reporté : **D-008**.
+
+Écart assumé avec le titre du ticket : la connexion mobile se fait au **code à
+six chiffres**, pas au lien. Le lien impose du deep linking dont la configuration
+diffère entre Expo Go et un build de développement, et six chiffres se tapent
+plus vite à l'accueil d'une box qu'un aller-retour entre l'app mail et l'app. Le
+lien reste sur le web.
 
 `.env.local` est créé **par la développeuse**, jamais par Claude : il est couvert
 par `.gitignore` et par la règle `deny` de `settings.json`.

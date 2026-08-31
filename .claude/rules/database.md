@@ -265,3 +265,37 @@ Contraintes qui doivent exister et ne jamais être retirées :
 - `amount_cents integer`, `currency char(3)`. Jamais `numeric`, jamais `float`.
 - `ledger_entries` est append-only : un trigger `before update or delete` lève une exception.
 - Une correction se fait par contre-écriture, jamais par modification.
+
+## Énumérer les sœurs
+
+C'est le douzième piège, et le plus rentable : **trois des trois trous trouvés
+depuis P0-004 ont la même forme — un chemin bien gardé, et son jumeau oublié.**
+
+| Gardé | Oublié | Ce que ça donnait |
+| --- | --- | --- |
+| `tenant_settings` protégé par une garde de rôle | `tenants` ne l'était pas | n'importe quel membre changeait le fuseau de sa box, donc la fenêtre d'annulation de tout le monde |
+| `create_tenant` vérifiait le quota de boxes | ni `accept_invitation`, ni `set_member_role` | le plafond se contournait par une invitation `OWNER` |
+| `tenantScope.insert()` imposait le `tenant_id` | `update()` se contentait de filtrer | un patch déplaçait la ligne dans une autre box, et la RLS laissait passer |
+
+Aucun n'a été trouvé par les tests ni par `rls-auditor` : ils vérifient ce qui
+est écrit, pas ce qui manque. Seule la relecture les a vus, et seulement en
+cherchant explicitement le jumeau.
+
+**Avant de considérer une protection comme posée, énumérer ses sœurs :**
+
+- l'opération : `insert`, `update`, **et** `delete` — protéger l'une ne dit rien
+  des autres, et `update` est presque toujours celle qu'on oublie ;
+- la ligne **et** la colonne : une policy dit *quelles lignes*, un `grant (col)`
+  dit *quelles colonnes*. Autoriser l'écriture d'une ligne autorise l'écriture
+  de toutes ses colonnes ;
+- la table **et** sa jointure : `memberships` et `tenants`, `consents` et
+  `users` ;
+- la fonction **et** le trigger qui l'appelle : rendre l'une `security definer`
+  ne fait rien pour l'autre, qui lit pourtant les mêmes tables ;
+- le contrôle porté par **une** fonction n'est pas un invariant. Un invariant
+  vit sur la table, là où l'état change — il couvre alors aussi les chemins
+  qu'on écrira plus tard.
+
+Formulé autrement : la question utile n'est pas « ce que je viens d'écrire
+est-il correct ? » mais « qu'est-ce qui, ailleurs, fait la même chose et n'a pas
+été touché ? »

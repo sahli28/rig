@@ -1,0 +1,27 @@
+<!--
+  Gabarit du code de connexion.
+
+  Le mobile se connecte par **code à six chiffres**, pas par lien : le gabarit
+  par défaut de Supabase ne porte que `{{ .ConfirmationURL }}`, il faut donc y
+  mettre `{{ .Token }}` explicitement, sans quoi l'écran de saisie du code
+  n'aurait rien à saisir.
+
+  Bilingue dans un seul envoi : Supabase ne connaît pas la langue de la
+  personne au moment où il envoie, et deux e-mails coûteraient plus cher que
+  six lignes de texte.
+-->
+<h2>RIG</h2>
+
+<p>Ton code de connexion / Your sign-in code:</p>
+
+<p style="font-size: 28px; letter-spacing: 6px; font-weight: 700">{{ .Token }}</p>
+
+<p>
+  Il expire dans une heure. Si tu n'as rien demandé, ignore cet e-mail.<br />
+  It expires in one hour. If you didn't ask for it, ignore this email.
+</p>
+
+<p style="color: #5b6472; font-size: 12px">
+  Tu peux aussi te connecter depuis un navigateur :
+  <a href="{{ .ConfirmationURL }}">ouvrir le lien</a>.
+</p>

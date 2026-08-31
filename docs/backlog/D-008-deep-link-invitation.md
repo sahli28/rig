@@ -1,0 +1,43 @@
+# D-008 — Lien d'invitation qui survit à l'installation
+
+**Phase** dette · **Estimation** 1,5 j·h · **Origine** P0-005a · **Dépend de** P0-005a
+
+## Pourquoi
+
+P0-005a livre l'écran de bienvenue brandé : le `slug` et le `token` arrivent en
+paramètres de route, et `tenant_public_profile()` habille l'écran avant même la
+connexion. Ce chemin marche quand **l'app est déjà installée**.
+
+Il ne marche pas dans le cas le plus fréquent en vrai : une personne reçoit le
+lien de sa box, ne l'a pas installée, atterrit sur le store, installe, ouvre — et
+l'app démarre nue. Le `slug` et le `token` ont été perdus entre le navigateur et
+la première ouverture. Elle voit le thème RIG neutre et n'a aucun moyen de
+rejoindre sa box, alors qu'elle vient de cliquer sur son invitation.
+
+C'est le *deferred deep link*, explicitement reporté au commit de P0-005a.
+
+## Périmètre
+
+- Universal Links (iOS) et App Links (Android) : `apple-app-site-association` et
+  `assetlinks.json` servis par le web, sur le domaine des liens d'invitation.
+- Page web d'atterrissage qui, sans app installée, mémorise le contexte
+  (empreinte, presse-papiers ou paramètre de campagne du store) et redirige vers
+  le store.
+- Récupération du contexte à la première ouverture, puis effacement immédiat :
+  un jeton d'invitation qui traîne est un jeton réutilisable.
+
+## Critères d'acceptation
+
+- [ ] Cliquer une invitation sans l'app installée mène au store puis, après
+      installation, à l'écran de bienvenue **de la bonne box**
+- [ ] Le jeton n'est lisible qu'une fois et disparaît après usage
+- [ ] Le chemin « app déjà installée » de P0-005a continue de fonctionner
+
+## Notes
+
+À faire avec un vrai domaine et un compte développeur : les deux fichiers de
+vérification doivent être servis en HTTPS sur le domaine final. Donc pas avant
+P2-003 (programme développeur Apple) et le nom de domaine de production.
+
+Le repli qui existe aujourd'hui reste acceptable pour le pilote : la box envoie
+le lien à une personne qui a déjà l'app, ou l'installe puis rouvre le lien.

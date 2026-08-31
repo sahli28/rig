@@ -78,3 +78,8 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-005  | Empreintes des jetons d'invitation             |   1 | PR #4   |
 | D-006  | Défense en profondeur sur `public.users`       | 0,5 | P0-004  |
 | D-007  | Contraste de la page de démo                   | 0,25 | P0-002 |
+| D-008  | Lien d'invitation qui survit à l'installation  | 1,5 | P0-005a |
+
+D-004 n'est plus bloquée : elle attendait un profil serveur, que P0-005a livre.
+`users.locale` est désormais écrit à l'inscription ; ce qui manque est la lecture
+au démarrage.

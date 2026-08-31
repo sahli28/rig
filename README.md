@@ -70,6 +70,45 @@ Tout a été décalé de 543xx vers 553xx dans `supabase/config.toml` :
 Pour vérifier les plages réservées sur une autre machine :
 `netsh interface ipv4 show excludedportrange protocol=tcp`.
 
+### Variables d'environnement
+
+**À créer à la main.** Ni Claude ni le dépôt ne les écrivent : `.claude/settings.json`
+interdit à Claude de lire ou d'écrire tout fichier `.env*`, et `.gitignore` exclut
+les `.env.local`. Chaque framework lit le dossier de son app, pas la racine du
+monorepo — il faut donc **deux fichiers**.
+
+Les valeurs se lisent avec `pnpm exec supabase status`. La clé `anon` est publique
+par construction : elle part dans le bundle et ne donne accès qu'à ce que la RLS
+autorise. Ce n'est pas un secret.
+
+`apps/mobile/.env.local` :
+
+```
+EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:55321
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<clé anon>
+```
+
+`apps/web/.env.local` :
+
+```
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<clé anon>
+```
+
+Sur **appareil physique**, remplacer `127.0.0.1` par l'IP de la machine sur le
+réseau local (`http://192.168.x.x:55321`) : sur le téléphone, `127.0.0.1` désigne
+le téléphone.
+
+Le web sait vivre sans ces variables — la page publique et la galerie du système
+de design restent consultables, la session est simplement désactivée. Le mobile,
+lui, refuse de démarrer avec un message qui nomme le fichier à créer.
+
+Après toute migration, régénérer les types :
+
+```bash
+pnpm db:types
+```
+
 Note : Docker Desktop s'installe **par utilisateur** sous Windows. S'il vient
 d'être installé, un terminal déjà ouvert ne le verra pas — son PATH est figé au
 démarrage. Ouvrir un nouveau terminal suffit.
@@ -90,6 +129,7 @@ pnpm typecheck && pnpm lint && pnpm test && pnpm format:check
 | `pnpm format`     | Prettier — la prose de `docs/` et `.claude/` est exclue |
 | `pnpm db:migrate` | applique les migrations Supabase en local               |
 | `pnpm db:reset`   | reset + seed local                                      |
+| `pnpm db:types`   | régénère les types TypeScript depuis la base locale     |
 
 ## Travailler avec Claude Code
 

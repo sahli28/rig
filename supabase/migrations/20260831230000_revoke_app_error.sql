@@ -1,0 +1,25 @@
+-- Cohérence des droits sur `public.app_error()`.
+--
+-- Toutes les fonctions livrées jusqu'ici révoquent explicitement `public` avant
+-- d'accorder à qui de droit. `app_error()` était partie sans, par omission. Elle
+-- est inoffensive — elle ne fait que lever une exception — mais ce n'est pas le
+-- sujet : une migration se relit vite parce que ses fonctions se ressemblent, et
+-- une exception sans raison coûte à chaque relecture le temps de vérifier que
+-- c'en est bien une.
+--
+-- `service_role` figure dans le grant, et ce n'est pas décoratif. Deux triggers
+-- appellent `app_error()` **sans** être `security definer` — `forbid_mutation`
+-- (append-only) et `forbid_email_change` — donc sous le rôle qui écrit. Révoquer
+-- de `public` sans réaccorder à `service_role` ferait échouer ces gardes sur
+-- « permission denied for function app_error » au lieu de l'erreur métier
+-- attendue : un garde qui se plaint de ses propres droits au lieu de refuser
+-- l'écriture. Les fonctions `security definer`, elles, s'exécutent sous leur
+-- propriétaire et n'ont besoin de rien.
+-- `from public, anon` et pas seulement `from public` : Supabase pose des
+-- privilèges par défaut qui accordent explicitement `anon` sur toute nouvelle
+-- fonction du schéma `public`. Retirer le grant de `PUBLIC` laisse donc le grant
+-- nominatif d'`anon` intact — vérifié en base, `anon` appelait encore la
+-- fonction après un `revoke … from public` seul. C'est la forme qu'emploient
+-- les autres migrations, et c'est pour cette raison.
+revoke execute on function public.app_error(text, text, text) from public, anon;
+grant execute on function public.app_error(text, text, text) to authenticated, service_role;

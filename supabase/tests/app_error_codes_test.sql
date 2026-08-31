@@ -6,7 +6,7 @@
 -- le client n'aurait que le message français à inspecter.
 
 begin;
-select plan(9);
+select plan(11);
 
 -- Extrait le code applicatif du champ `detail`, celui que PostgREST expose.
 create or replace function pg_temp.code_of(p_sql text)
@@ -110,6 +110,34 @@ select is(
   pg_temp.code_of($$select public.log_audit('bbbbbbbb-0000-4000-8000-000000000001', 'x', 'y')$$),
   'NOT_TENANT_MEMBER',
   'journalisation hors de sa box'
+);
+
+-- ---------------------------------------------------------------------------
+-- Ce sur quoi reposent les 33 gardes
+-- ---------------------------------------------------------------------------
+
+-- `perform public.app_error(…)` n'interrompt l'exécution que parce que la
+-- fonction **lève**. Rien ne le dit à la lecture : `perform` a l'air d'un appel
+-- qui rend la main, et les 33 gardes du schéma ressemblent à des instructions
+-- ordinaires suivies d'un `return`.
+--
+-- Un refactor qui ferait retourner `app_error` sans lever — un `return` ajouté,
+-- une branche conditionnelle — transformerait les 33 en no-ops **le même jour**,
+-- sans qu'aucun test métier ne change de couleur : chaque fonction continuerait
+-- de s'exécuter, simplement sans son garde. Ces deux tests-ci sont le seul
+-- endroit où cette hypothèse est vérifiée plutôt que supposée.
+select throws_ok(
+  $$select public.app_error('X_TEST', 'message de garde')$$,
+  'P0001',
+  'message de garde',
+  'app_error lève toujours — c''est ce qui fait des 33 `perform` des gardes'
+);
+
+select throws_ok(
+  $$select public.app_error('X_TEST', 'refus', '42501')$$,
+  '42501',
+  'refus',
+  'et lève avec le SQLSTATE demandé, pas un seul par défaut'
 );
 
 reset role;
