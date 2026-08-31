@@ -7,7 +7,7 @@
 -- fenêtre d'annulation de tout le monde.
 
 begin;
-select plan(11);
+select plan(13);
 
 -- ---------------------------------------------------------------------------
 -- Session de Léa — simple MEMBER de la box A
@@ -133,7 +133,28 @@ select is(
   'un MANAGER ne touche pas au branding, réservé au propriétaire'
 );
 
--- En revanche il gère le quotidien.
+-- `tenants` est réservée au propriétaire. La RLS étant **row-level**, donner
+-- l'écriture au gestionnaire lui donnerait aussi `status` et `deleted_at`,
+-- c'est-à-dire la fermeture de la box — que la spec §5.2 lui interdit.
+update public.tenants set status = 'CLOSED', deleted_at = now()
+where id = 'aaaaaaaa-0000-4000-8000-000000000001';
+
+select is(
+  (select status::text from public.tenants where id = 'aaaaaaaa-0000-4000-8000-000000000001'),
+  'ACTIVE',
+  'un MANAGER ne ferme pas la box'
+);
+
+update public.tenants set timezone = 'Pacific/Auckland'
+where id = 'aaaaaaaa-0000-4000-8000-000000000001';
+
+select is(
+  (select timezone from public.tenants where id = 'aaaaaaaa-0000-4000-8000-000000000001'),
+  'Europe/Brussels',
+  'un MANAGER ne touche pas non plus au fuseau : tenants est réservée au propriétaire'
+);
+
+-- En revanche il gère le quotidien, dans `tenant_settings`.
 update public.tenant_settings set cancel_window_minutes = 120
 where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001';
 

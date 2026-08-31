@@ -1,7 +1,7 @@
 -- Le rôle applicatif ne doit jamais pouvoir contourner la RLS.
 
 begin;
-select plan(4);
+select plan(5);
 
 select is(
   (select rolbypassrls from pg_roles where rolname = 'authenticated'),
@@ -31,6 +31,25 @@ select is(
   (select rolbypassrls from pg_roles where rolname = 'service_role'),
   true,
   'service_role contourne la RLS — propriété connue, à ne jamais utiliser côté client'
+);
+
+-- Dépendance implicite du modèle, jusqu'ici assertée nulle part : les fonctions
+-- `security definer` ne brisent la récursion et ne voient `memberships` que
+-- parce que **leur propriétaire** contourne la RLS. Si ce n'était plus le cas,
+-- `current_tenant_ids()` retournerait un ensemble vide et toutes les policies
+-- refuseraient tout.
+--
+-- L'échec serait fermé, donc sans risque de fuite — mais le produit cesserait de
+-- fonctionner sans que rien n'explique pourquoi. Autant que ce soit un test qui
+-- le dise.
+select is(
+  (select r.rolbypassrls
+   from pg_proc p
+   join pg_roles r on r.oid = p.proowner
+   join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'current_tenant_ids'),
+  true,
+  'le propriétaire des fonctions security definer contourne bien la RLS'
 );
 
 select * from finish();

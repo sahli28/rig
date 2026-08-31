@@ -26,6 +26,13 @@ Se connecter, résoudre son tenant, récupérer son thème. Fin du socle.
 
 - [ ] Connexion Apple, Google et magic link fonctionnelles sur iOS et Android
 - [ ] Le même e-mail dans deux boxes ne crée qu'un seul compte
+- [ ] **Un compte créé avec Google qui se reconnecte avec Apple ne casse pas.**
+      P0-004 a posé un trigger `handle_new_user` qui refuse un e-mail déjà pris,
+      ce qui est défendable mais transfère la charge à la configuration Auth :
+      sans **linking d'identités** activé côté GoTrue, la seconde connexion
+      échoue en **500 GoTrue**, et non en `EMAIL_ALREADY_LINKED_TO_OTHER_PROVIDER`
+      comme le promet l'exemple JSON de la spec §7.6a. Activer le linking, ou
+      mapper l'erreur — mais ne pas le découvrir sur un vrai membre.
 - [ ] L'écran de bienvenue affiche le logo et la couleur de la box **avant** connexion
 - [ ] Un lien d'invitation expiré est refusé avec un message clair
 - [ ] Refuser les notifications n'interrompt pas l'inscription
