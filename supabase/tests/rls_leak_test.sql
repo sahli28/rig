@@ -109,7 +109,72 @@ begin
 end;
 $$;
 
-select plan(9);
+-- Droits de table et policies : deux couches qui doivent dire la même chose.
+--
+-- Ce contrôle est né de D-006, où `anon` et `authenticated` détenaient `arwdDxtm`
+-- sur les treize tables — dont `truncate`, **que la RLS n'intercepte pas** et que
+-- le trigger append-only ne voit pas non plus. Un simple MEMBER pouvait vider la
+-- comptabilité et le journal d'audit des deux boxes.
+--
+-- L'invariant est symétrique, et c'est ce qui le rend auto-entretenu :
+--   - un droit **sans** policy est un trou en attente. `truncate`, `references`,
+--     `trigger` et `maintain` n'ont jamais de policy : ils ne peuvent donc
+--     jamais être accordés ;
+--   - une policy **sans** droit est du code mort, qui échouera en
+--     « permission denied » le jour où un écran l'appellera.
+create or replace function pg_temp.grant_policy_mismatches()
+returns text
+language plpgsql
+as $$
+declare
+  t record;
+  p text;
+  granted boolean;
+  policied boolean;
+  bad text[] := array[]::text[];
+begin
+  for t in select table_name from business_tables loop
+    foreach p in array array['SELECT','INSERT','UPDATE','DELETE',
+                             'TRUNCATE','REFERENCES','TRIGGER','MAINTAIN'] loop
+      granted := has_table_privilege('authenticated', format('public.%I', t.table_name), p);
+
+      -- Les droits de **colonne** ne remontent pas dans `has_table_privilege` :
+      -- `users` n'accorde `update` que sur six colonnes nommées, et serait
+      -- signalée à tort sans ce repli.
+      if not granted and p in ('SELECT', 'INSERT', 'UPDATE', 'REFERENCES') then
+        granted := exists (
+          select 1 from information_schema.column_privileges
+          where table_schema = 'public' and table_name = t.table_name
+            and grantee = 'authenticated' and privilege_type = p
+        );
+      end if;
+
+      if p in ('SELECT', 'INSERT', 'UPDATE', 'DELETE') then
+        policied := exists (
+          select 1 from pg_policies
+          where schemaname = 'public' and tablename = t.table_name
+            and cmd in (p, 'ALL')
+        );
+      else
+        -- `truncate`, `references`, `trigger` et `maintain` ne sont gouvernés
+        -- par **aucune** policy, jamais — et une policy `for all` ne les couvre
+        -- pas davantage : son « all » désigne les quatre opérations sur les
+        -- lignes, pas tous les privilèges. C'est précisément ce qui rend
+        -- `truncate` dangereux, et la raison d'être de ce contrôle.
+        policied := false;
+      end if;
+
+      if granted <> policied then
+        bad := array_append(bad, format('%s.%s (droit=%s, policy=%s)',
+                                        t.table_name, p, granted, policied));
+      end if;
+    end loop;
+  end loop;
+  return array_to_string(bad, ' | ');
+end;
+$$;
+
+select plan(12);
 
 -- 1. tenant_id
 select is(
@@ -237,6 +302,45 @@ select is(
 );
 
 reset role;
+
+-- ---------------------------------------------------------------------------
+-- 10 à 12 — la couche des droits, muette jusqu'à D-006
+-- ---------------------------------------------------------------------------
+
+select is(
+  pg_temp.grant_policy_mismatches(),
+  '',
+  'sur chaque table, les droits accordés à authenticated correspondent exactement à ses policies'
+);
+
+-- `anon` n'a aucun besoin d'accès direct : le profil public d'une box passe par
+-- `tenant_public_profile()`, qui est `security definer`. Tout droit qu'il
+-- détiendrait serait donc, par construction, un droit dont personne ne se sert.
+select is(
+  (select coalesce(string_agg(distinct b.table_name, ', ' order by b.table_name), '')
+   from business_tables b
+   join information_schema.table_privileges p
+     on p.table_schema = 'public' and p.table_name = b.table_name and p.grantee = 'anon'),
+  '',
+  'anon ne détient aucun droit sur une table métier'
+);
+
+-- Sans ce dernier contrôle, les deux précédents seraient vrais aujourd'hui et
+-- faux à la prochaine table : les privilèges par défaut du schéma accordaient
+-- `arwdDxtm` à `anon` et `authenticated` sur tout ce qui s'y crée. C'est la
+-- source du problème, pas seulement son symptôme.
+select is(
+  (select coalesce(string_agg(pg_get_userbyid(d.defaclrole)::text, ', '), '')
+   from pg_default_acl d
+   join pg_namespace n on n.oid = d.defaclnamespace
+   where n.nspname = 'public'
+     and d.defaclobjtype = 'r'
+     and pg_get_userbyid(d.defaclrole) = 'postgres'
+     and (array_to_string(d.defaclacl, ',') like '%anon=%'
+       or array_to_string(d.defaclacl, ',') like '%authenticated=%')),
+  '',
+  'aucun privilège par défaut n''accordera de droits à anon ou authenticated sur une table future'
+);
 
 select * from finish();
 rollback;

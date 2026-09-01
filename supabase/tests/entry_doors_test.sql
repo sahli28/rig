@@ -206,16 +206,18 @@ reset role;
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
 
--- Chemin 1 : se promouvoir directement. La policy `using` masque la ligne, donc
--- l'UPDATE ne lève pas — il n'affecte simplement aucune ligne. C'est le rôle
--- inchangé qui prouve la garde, pas une exception.
-update public.memberships set role = 'OWNER'
-where user_id = '33333333-0000-4000-8000-000000000001';
-
-select is(
-  (select role::text from public.memberships
-   where user_id = '33333333-0000-4000-8000-000000000001'),
-  'MEMBER',
+-- Chemin 1 : se promouvoir directement.
+--
+-- Le refus a changé de couche avec D-006. Il venait de la policy `using`, qui
+-- masquait la ligne : l'UPDATE ne levait pas, il n'affectait rien, et c'était le
+-- rôle inchangé qui prouvait la garde. `memberships` n'accorde plus que
+-- `select`, donc l'ordre lève désormais avant même d'atteindre la policy — qui
+-- reste en place derrière, comme seconde couche.
+select throws_ok(
+  $$update public.memberships set role = 'OWNER'
+    where user_id = '33333333-0000-4000-8000-000000000001'$$,
+  '42501',
+  null,
   'un MEMBER ne peut pas se promouvoir OWNER'
 );
 

@@ -7,7 +7,7 @@
 -- fenêtre d'annulation de tout le monde.
 
 begin;
-select plan(26);
+select plan(28);
 
 -- ---------------------------------------------------------------------------
 -- Session de Léa — simple MEMBER de la box A
@@ -314,6 +314,62 @@ select is(
   (select count(*) from public.ledger_entries)::int,
   1,
   'et sa comptabilité'
+);
+
+-- ---------------------------------------------------------------------------
+-- TRUNCATE — l'ordre que la RLS ne voit pas
+-- ---------------------------------------------------------------------------
+--
+-- `TRUNCATE` n'est pas une opération ligne à ligne : il n'y a pas de ligne à
+-- filtrer, donc **aucune policy ne s'applique**. Et `forbid_mutation`, qui rend
+-- `ledger_entries` et `audit_logs` append-only, est un `before update or delete`
+-- qui ne se déclenche pas davantage. Les deux protections sur lesquelles
+-- reposent la comptabilité et le journal d'audit sont contournées d'un seul
+-- ordre — pour peu que le rôle en ait le droit.
+--
+-- Il l'avait. Avant D-006, cette fonction rendait les treize tables.
+-- La contrepartie exacte de la sonde qui a servi à établir le problème.
+
+reset role;
+
+create or replace function pg_temp.tables_tronquables()
+returns text
+language plpgsql
+as $$
+declare
+  t record;
+  passees text[] := array[]::text[];
+begin
+  for t in select c.relname from pg_class c
+           join pg_namespace n on n.oid = c.relnamespace
+           where n.nspname = 'public' and c.relkind = 'r'
+           order by c.relname loop
+    begin
+      execute format('truncate public.%I cascade', t.relname);
+      passees := array_append(passees, t.relname);
+    exception when others then
+      null;
+    end;
+  end loop;
+  return array_to_string(passees, ', ');
+end;
+$$;
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
+
+select is(
+  pg_temp.tables_tronquables(),
+  '',
+  'un MEMBER ne peut tronquer aucune table — la RLS ne l''aurait pas arrêté'
+);
+
+set local role anon;
+
+select is(
+  pg_temp.tables_tronquables(),
+  '',
+  'une session non authentifiée non plus'
 );
 
 reset role;

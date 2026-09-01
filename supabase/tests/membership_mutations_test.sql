@@ -6,7 +6,7 @@
 -- second rempart.
 
 begin;
-select plan(15);
+select plan(16);
 
 -- ---------------------------------------------------------------------------
 -- L'écriture directe est fermée, quel que soit le rôle
@@ -16,24 +16,34 @@ select plan(15);
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"11111111-0000-4000-8000-000000000001","role":"authenticated","email":"marc@rueil.example"}';
 
-update public.memberships set role = 'MEMBER'
-where id = 'a3000000-0000-4000-8000-000000000002';
-
-select is(
-  (select role::text from public.memberships where id = 'a3000000-0000-4000-8000-000000000002'),
-  'MEMBER',
-  'la ligne visée était déjà MEMBER — l''UPDATE direct n''affecte rien'
+-- Le refus a changé de couche avec D-006. `memberships` n'a jamais eu de policy
+-- d'écriture — l'ordre passait donc sans rien affecter, et c'était la valeur
+-- inchangée qui prouvait la garde. La table n'accorde plus que `select` :
+-- l'ordre lève avant d'atteindre la policy, qui reste derrière en seconde
+-- couche. Deux protections au lieu d'une, et un échec bruyant au lieu d'un
+-- succès trompeur — un client buggé croyait avoir écrit.
+select throws_ok(
+  $$update public.memberships set role = 'MEMBER'
+    where id = 'a3000000-0000-4000-8000-000000000002'$$,
+  '42501',
+  null,
+  'même un OWNER ne modifie pas une appartenance en direct'
 );
 
 -- Le scénario qui a motivé la fermeture : réécrire `user_id` d'une ligne OWNER
 -- pour évincer le propriétaire et greffer un tiers.
-update public.memberships set user_id = '55555555-0000-4000-8000-000000000001'
-where id = 'a3000000-0000-4000-8000-000000000001';
+select throws_ok(
+  $$update public.memberships set user_id = '55555555-0000-4000-8000-000000000001'
+    where id = 'a3000000-0000-4000-8000-000000000001'$$,
+  '42501',
+  null,
+  'user_id d''une appartenance est intouchable par UPDATE direct'
+);
 
 select is(
   (select user_id::text from public.memberships where id = 'a3000000-0000-4000-8000-000000000001'),
   '11111111-0000-4000-8000-000000000001',
-  'user_id d''une appartenance est intouchable par UPDATE direct'
+  'et le propriétaire est toujours en place'
 );
 
 reset role;

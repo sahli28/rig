@@ -268,7 +268,7 @@ Contraintes qui doivent exister et ne jamais être retirées :
 
 ## Énumérer les sœurs
 
-C'est le douzième piège, et le plus rentable : **quatre des quatre trous trouvés
+C'est le douzième piège, et le plus rentable : **cinq des cinq trous trouvés
 depuis P0-004 ont la même forme — un chemin bien gardé, et son jumeau oublié.**
 
 | Gardé | Oublié | Ce que ça donnait |
@@ -277,6 +277,31 @@ depuis P0-004 ont la même forme — un chemin bien gardé, et son jumeau oubli�
 | `create_tenant` vérifiait le quota de boxes | ni `accept_invitation`, ni `set_member_role` | le plafond se contournait par une invitation `OWNER` |
 | `tenantScope.insert()` imposait le `tenant_id` | `update()` se contentait de filtrer | un patch déplaçait la ligne dans une autre box, et la RLS laissait passer |
 | `users` passée en revue pour construire la vue restreinte | `audit_logs` et `ledger_entries`, ses voisines immédiates | protégées par tenant sans garde de rôle : un simple MEMBER lisait tout le journal d'audit de sa box — diffs des changements de rôle compris — et toutes les écritures comptables, dont la somme est le chiffre d'affaires |
+| Les **policies**, écrites avec soin sur les treize tables | les **droits de table**, jamais regardés | `anon` et `authenticated` détenaient `arwdDxtm` partout. Un simple MEMBER pouvait `TRUNCATE` les treize tables — comptabilité et journal d'audit des deux boxes compris |
+
+## `TRUNCATE` échappe à la RLS, et au trigger append-only
+
+Le cinquième cas mérite son paragraphe, parce que rien ne le laisse deviner.
+
+**Aucune policy ne s'applique à `TRUNCATE`** : ce n'est pas une opération ligne à
+ligne, il n'y a pas de ligne à filtrer. Une policy `for all` ne le couvre pas
+davantage — son « all » désigne `select`, `insert`, `update`, `delete`, pas tous
+les privilèges.
+
+**`forbid_mutation` ne le voit pas non plus** : c'est un `before update or
+delete`. Les deux protections sur lesquelles reposent `ledger_entries` et
+`audit_logs` sont donc contournées par un seul ordre, pour peu que le rôle en ait
+le droit — et il l'avait, par les privilèges par défaut de Supabase.
+
+Ce qui nous protégeait était **l'absence de chemin** : PostgREST n'expose aucun
+verbe qui produise un `TRUNCATE`, et `anon`/`authenticated` sont `NOLOGIN`. Une
+couche, là où le garde-fou n°6 de l'ADR 0002 en demande deux.
+
+**Toute nouvelle table pose donc ses `grant` dans la même migration que ses
+policies.** Les privilèges par défaut du schéma ont été retirés à `anon` et
+`authenticated` : sans grant explicite, une table neuve est inaccessible — ce qui
+est le bon défaut. `rls_leak_test.sql` confronte les deux listes et signale aussi
+bien un droit sans policy qu'une policy sans droit.
 
 Aucun n'a été trouvé par les tests ni par `rls-auditor` : ils vérifient ce qui
 est écrit, pas ce qui manque. Seule la relecture les a vus, et seulement en

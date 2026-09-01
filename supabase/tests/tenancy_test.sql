@@ -66,10 +66,15 @@ select is(
   'Léa ne voit qu''elle-même dans users'
 );
 
-select is(
-  (select count(*) from public.processed_webhook_events)::int,
-  0,
-  'la table d''infrastructure est invisible, RLS forcée sans policy'
+-- Depuis D-006, la table d'infrastructure n'est plus seulement **invisible**
+-- (RLS forcée sans policy) : elle est **inaccessible**, faute du moindre droit.
+-- Deux couches, et un refus explicite plutôt qu'un résultat vide qui
+-- ressemblait à une table simplement pas encore remplie.
+select throws_ok(
+  'select count(*) from public.processed_webhook_events',
+  '42501',
+  null,
+  'la table d''infrastructure est inaccessible : ni droit, ni policy'
 );
 
 -- Balayage exhaustif plutôt que quelques tables choisies : une fuite se loge

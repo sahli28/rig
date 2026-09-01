@@ -5,7 +5,7 @@
 -- modifiable ne prouve rien.
 
 begin;
-select plan(10);
+select plan(11);
 
 -- `restrict_violation` = SQLSTATE 23001. C'est le code que lève `forbid_mutation()`.
 select throws_ok(
@@ -81,21 +81,34 @@ select throws_ok(
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
 
-delete from public.consents where user_id = '33333333-0000-4000-8000-000000000001';
+-- Le refus a changé de couche avec D-006. Il venait de l'absence de policy —
+-- l'ordre passait, n'affectait aucune ligne, et c'était le compte inchangé qui
+-- prouvait la garde. Il vient maintenant d'abord du **droit de table**, qui
+-- n'est plus accordé : l'ordre lève, une couche plus tôt et plus bruyamment.
+--
+-- Ce que ces assertions ne prouvent donc plus, c'est la policy elle-même,
+-- devenue inatteignable depuis `authenticated`. C'est `rls_leak_test.sql` qui
+-- s'en charge : il vérifie que chaque table porte ses policies **et** que
+-- droits et policies se correspondent exactement.
+select throws_ok(
+  $$delete from public.consents where user_id = '33333333-0000-4000-8000-000000000001'$$,
+  '42501',
+  null,
+  'un membre ne peut pas effacer la preuve de son consentement'
+);
+
+select throws_ok(
+  $$update public.consents set granted = false, policy_version = 'FALSIFIÉ'
+    where user_id = '33333333-0000-4000-8000-000000000001'$$,
+  '42501',
+  null,
+  'un membre ne peut pas réécrire un consentement en place'
+);
 
 select is(
   (select count(*) from public.consents)::int,
   2,
-  'un membre ne peut pas effacer la preuve de son consentement'
-);
-
-update public.consents set granted = false, policy_version = 'FALSIFIÉ'
-where user_id = '33333333-0000-4000-8000-000000000001';
-
-select is(
-  (select count(*) from public.consents where policy_version = 'FALSIFIÉ')::int,
-  0,
-  'un membre ne peut pas réécrire un consentement en place'
+  'et la preuve est toujours là, intacte'
 );
 
 -- Se rétracter reste possible, et aussi simple que consentir : c'est une
