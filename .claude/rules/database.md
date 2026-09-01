@@ -302,6 +302,21 @@ cherchant explicitement le jumeau.
   candidat à relire — et c'est ainsi que se sont trouvés `tenants`,
   `audit_logs` et `ledger_entries`. `current_admin_tenant_ids()` existe pour ça.
 
+## Vues : deux décisions déjà prises
+
+- **`security_invoker = false` sur `member_admin_directory`, et l'alerte
+  Supabase qui va avec.** L'advisor la signale sous `security_definer_view` à
+  chaque passage sur le tableau de bord. C'est **voulu et définitif** : en
+  `security_invoker = true`, la policy `id = auth.uid()` de `users` s'applique à
+  l'appelant et la vue ne rend que lui-même. Supabase n'offre pas de
+  suppression par objet ; l'alerte reste donc allumée. Ne pas la re-litiger à
+  chaque ouverture du tableau de bord — la garantie est le `WHERE` de la vue,
+  et `rls_leak_test.sql` la vérifie de deux façons.
+- **Aucune vue matérialisée**, et un test le fige. La RLS **ne s'applique pas**
+  à une `matview` : c'est un instantané, servi identique à tout le monde. Le
+  jour où un cache de leaderboard en réclame une, ce sera une décision explicite,
+  pas un objet posé en passant.
+
 Formulé autrement : la question utile n'est pas « ce que je viens d'écrire
 est-il correct ? » mais « qu'est-ce qui, ailleurs, fait la même chose et n'a pas
 été touché ? »

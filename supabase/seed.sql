@@ -87,7 +87,15 @@ insert into public.memberships (id, tenant_id, user_id, role) values
   ('a3000000-0000-4000-8000-000000000005', 'aaaaaaaa-0000-4000-8000-000000000001', '77777777-0000-4000-8000-000000000001', 'MANAGER'),
   ('b3000000-0000-4000-8000-000000000001', 'bbbbbbbb-0000-4000-8000-000000000001', '22222222-0000-4000-8000-000000000001', 'OWNER'),
   ('b3000000-0000-4000-8000-000000000002', 'bbbbbbbb-0000-4000-8000-000000000001', '55555555-0000-4000-8000-000000000001', 'MEMBER'),
-  ('b3000000-0000-4000-8000-000000000003', 'bbbbbbbb-0000-4000-8000-000000000001', '66666666-0000-4000-8000-000000000001', 'MEMBER');
+  ('b3000000-0000-4000-8000-000000000003', 'bbbbbbbb-0000-4000-8000-000000000001', '66666666-0000-4000-8000-000000000001', 'MEMBER'),
+  -- Hugo administre Rueil et n'est **que membre** de Nanterre. C'est la fixture
+  -- qui distingue « autorisé quelque part » de « autorisé ici », dans une seule
+  -- requête. Julie (membre des deux, sans rôle) et Marc (propriétaire d'une
+  -- seule) ne peuvent pas la produire : chez eux, appartenance et rôle
+  -- coïncident. Une policy qui dirait `current_tenant_ids()` là où elle doit
+  -- dire `current_admin_tenant_ids()` passerait leurs deux cas et échouerait
+  -- sur celui-ci.
+  ('b3000000-0000-4000-8000-000000000004', 'bbbbbbbb-0000-4000-8000-000000000001', '77777777-0000-4000-8000-000000000001', 'MEMBER');
 
 insert into public.invitations (tenant_id, email, role, token, expires_at) values
   ('aaaaaaaa-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER', 'inv-rueil-0001',    now() + interval '30 days'),

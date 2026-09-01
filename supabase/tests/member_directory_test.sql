@@ -10,7 +10,7 @@
 -- compris au COACH, dont l'exclusion est un choix et non un oubli.
 
 begin;
-select plan(12);
+select plan(14);
 
 -- ---------------------------------------------------------------------------
 -- Marc — OWNER de la box A (Rueil)
@@ -52,6 +52,24 @@ select is(
   (select count(*) from public.member_admin_directory)::int,
   5,
   'un MANAGER voit le même annuaire : Staff & Roles est son écran'
+);
+
+-- Hugo administre Rueil et n'est que **membre** de Nanterre. C'est la seule
+-- fixture où « autorisé quelque part » et « autorisé ici » divergent dans une
+-- même requête — et donc le seul cas qui distingue `current_admin_tenant_ids()`
+-- de `current_tenant_ids()`. Chez Marc (propriétaire d'une seule box) et chez
+-- Julie (membre des deux, sans rôle), appartenance et rôle coïncident.
+select is(
+  (select count(*) from public.tenants)::int,
+  2,
+  'Hugo appartient bien aux deux boxes — sans quoi l''assertion suivante serait vide de sens'
+);
+
+select is(
+  (select count(*) from public.member_admin_directory
+   where tenant_id <> 'aaaaaaaa-0000-4000-8000-000000000001')::int,
+  0,
+  'mais il ne voit aucun membre de la box où il n''est que membre'
 );
 
 -- ---------------------------------------------------------------------------
