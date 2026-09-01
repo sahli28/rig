@@ -75,7 +75,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-002  | Tests de rendu des composants                  |   2 | P0-002  |
 | D-003  | SSR de l'i18n pour les pages publiques         |   2 | P0-003  |
 | D-004  | Persistance mobile de la langue                |   1 | P0-003  |
-| D-005  | Empreintes des jetons d'invitation             |   1 | PR #4   |
+| D-005  | Empreintes des jetons d'invitation             |   1 | PR #4 — ✅ fait, prérequis de P1-001 |
 | D-006  | Défense en profondeur sur `public.users`       | 0,5 | P0-004 — ✅ fait (périmètre réel : tout le schéma) |
 | D-007  | Contraste de la page de démo                   | 0,25 | P0-002 |
 | D-008  | Lien d'invitation qui survit à l'installation  | 1,5 | P0-005a |

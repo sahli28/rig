@@ -209,25 +209,25 @@ reset role;
 -- Un MANAGER ne révoque pas une invitation OWNER
 -- ---------------------------------------------------------------------------
 
-insert into public.invitations (tenant_id, email, role, token, expires_at) values
+insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
   ('aaaaaaaa-0000-4000-8000-000000000001', 'futur.proprio@example.com', 'OWNER',
-   'inv-owner-a', now() + interval '7 days');
+   encode(extensions.digest('inv-owner-a','sha256'),'hex'), now() + interval '7 days');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"44444444-0000-4000-8000-000000000001","role":"authenticated","email":"sarah@example.com"}';
 
-delete from public.invitations where token = 'inv-owner-a';
+delete from public.invitations where token_hash = encode(extensions.digest('inv-owner-a','sha256'),'hex');
 
 select is(
-  (select count(*) from public.invitations where token = 'inv-owner-a')::int,
+  (select count(*) from public.invitations where token_hash = encode(extensions.digest('inv-owner-a','sha256'),'hex'))::int,
   1,
   'un MANAGER ne supprime pas une invitation OWNER'
 );
 
-update public.invitations set role = 'MEMBER' where token = 'inv-owner-a';
+update public.invitations set role = 'MEMBER' where token_hash = encode(extensions.digest('inv-owner-a','sha256'),'hex');
 
 select is(
-  (select role::text from public.invitations where token = 'inv-owner-a'),
+  (select role::text from public.invitations where token_hash = encode(extensions.digest('inv-owner-a','sha256'),'hex')),
   'OWNER',
   'un MANAGER ne rétrograde pas une invitation OWNER'
 );

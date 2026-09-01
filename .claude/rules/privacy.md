@@ -51,6 +51,12 @@ chaque session.
   `audit_logs` est réservé à `OWNER`, `ledger_entries` à `OWNER` et `MANAGER`
   (spec §5.2). Les `diff jsonb` du journal portent les changements de rôle et
   les exclusions ; la somme des écritures est le chiffre d'affaires.
+- **Un jeton d'invitation ne se réaffiche pas, il se régénère** (D-005). La base
+  n'en garde que l'empreinte SHA-256 ; le clair n'existe qu'une fois, dans le
+  retour de `create_invitation()`. Vaut aussi pour le QR mural d'affiliation :
+  réimprimer une affiche, c'est émettre un nouveau QR et jeter les anciennes.
+  Un dump livrerait sinon la possibilité de rejoindre n'importe quelle box à
+  distance — ce que l'affiche physique, elle, n'autorise pas.
 - Tout consentement est écrit dans `consents` avec sa version de politique et son horodatage.
   Un consentement se retire aussi simplement qu'il se donne.
 - Une suppression de compte anonymise réellement à J+30 et conserve les écritures
