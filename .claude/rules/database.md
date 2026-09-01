@@ -268,7 +268,7 @@ Contraintes qui doivent exister et ne jamais être retirées :
 
 ## Énumérer les sœurs
 
-C'est le douzième piège, et le plus rentable : **trois des trois trous trouvés
+C'est le douzième piège, et le plus rentable : **quatre des quatre trous trouvés
 depuis P0-004 ont la même forme — un chemin bien gardé, et son jumeau oublié.**
 
 | Gardé | Oublié | Ce que ça donnait |
@@ -276,6 +276,7 @@ depuis P0-004 ont la même forme — un chemin bien gardé, et son jumeau oubli�
 | `tenant_settings` protégé par une garde de rôle | `tenants` ne l'était pas | n'importe quel membre changeait le fuseau de sa box, donc la fenêtre d'annulation de tout le monde |
 | `create_tenant` vérifiait le quota de boxes | ni `accept_invitation`, ni `set_member_role` | le plafond se contournait par une invitation `OWNER` |
 | `tenantScope.insert()` imposait le `tenant_id` | `update()` se contentait de filtrer | un patch déplaçait la ligne dans une autre box, et la RLS laissait passer |
+| `users` passée en revue pour construire la vue restreinte | `audit_logs` et `ledger_entries`, ses voisines immédiates | protégées par tenant sans garde de rôle : un simple MEMBER lisait tout le journal d'audit de sa box — diffs des changements de rôle compris — et toutes les écritures comptables, dont la somme est le chiffre d'affaires |
 
 Aucun n'a été trouvé par les tests ni par `rls-auditor` : ils vérifient ce qui
 est écrit, pas ce qui manque. Seule la relecture les a vus, et seulement en
@@ -294,7 +295,27 @@ cherchant explicitement le jumeau.
   ne fait rien pour l'autre, qui lit pourtant les mêmes tables ;
 - le contrôle porté par **une** fonction n'est pas un invariant. Un invariant
   vit sur la table, là où l'état change — il couvre alors aussi les chemins
-  qu'on écrira plus tard.
+  qu'on écrira plus tard ;
+- le tenant **et** le rôle : `tenant_id in (select current_tenant_ids())` dit
+  « c'est bien ta box ». Il ne dit pas « tu as le droit d'y voir ça ». Dans un
+  produit à quatre rôles, une policy qui ne mentionne que le tenant est un
+  candidat à relire — et c'est ainsi que se sont trouvés `tenants`,
+  `audit_logs` et `ledger_entries`. `current_admin_tenant_ids()` existe pour ça.
+
+## Vues : deux décisions déjà prises
+
+- **`security_invoker = false` sur `member_admin_directory`, et l'alerte
+  Supabase qui va avec.** L'advisor la signale sous `security_definer_view` à
+  chaque passage sur le tableau de bord. C'est **voulu et définitif** : en
+  `security_invoker = true`, la policy `id = auth.uid()` de `users` s'applique à
+  l'appelant et la vue ne rend que lui-même. Supabase n'offre pas de
+  suppression par objet ; l'alerte reste donc allumée. Ne pas la re-litiger à
+  chaque ouverture du tableau de bord — la garantie est le `WHERE` de la vue,
+  et `rls_leak_test.sql` la vérifie de deux façons.
+- **Aucune vue matérialisée**, et un test le fige. La RLS **ne s'applique pas**
+  à une `matview` : c'est un instantané, servi identique à tout le monde. Le
+  jour où un cache de leaderboard en réclame une, ce sera une décision explicite,
+  pas un objet posé en passant.
 
 Formulé autrement : la question utile n'est pas « ce que je viens d'écrire
 est-il correct ? » mais « qu'est-ce qui, ailleurs, fait la même chose et n'a pas

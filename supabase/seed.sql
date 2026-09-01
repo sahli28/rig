@@ -13,15 +13,25 @@
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, created_at, updated_at,
-  raw_app_meta_data, raw_user_meta_data, is_super_admin
+  raw_app_meta_data, raw_user_meta_data, is_super_admin,
+  -- GoTrue lit ces quatre colonnes dans des champs Go **non-nullables**. Les
+  -- laisser à NULL fait échouer toute recherche d'utilisateur sur un
+  -- « Database error finding user » en 500, et aucun compte du seed ne peut
+  -- alors se connecter. Le défaut est resté invisible tant que les essais
+  -- manuels créaient leur compte par l'API au lieu d'utiliser le seed.
+  confirmation_token, recovery_token, email_change, email_change_token_new
 )
 values
-  ('00000000-0000-0000-0000-000000000000', '11111111-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'marc@rueil.example',     '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false),
-  ('00000000-0000-0000-0000-000000000000', '22222222-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'claire@nanterre.example','', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false),
-  ('00000000-0000-0000-0000-000000000000', '33333333-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'lea@example.com',        '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false),
-  ('00000000-0000-0000-0000-000000000000', '44444444-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'sarah@example.com',      '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false),
-  ('00000000-0000-0000-0000-000000000000', '55555555-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'thomas@example.com',     '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false),
-  ('00000000-0000-0000-0000-000000000000', '66666666-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'julie@example.com',      '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false);
+  ('00000000-0000-0000-0000-000000000000', '11111111-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'marc@rueil.example',     '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', '22222222-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'claire@nanterre.example','', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', '33333333-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'lea@example.com',        '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', '44444444-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'sarah@example.com',      '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', '55555555-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'thomas@example.com',     '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', '66666666-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'julie@example.com',      '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, '', '', '', ''),
+  -- Hugo est MANAGER, un rôle qu'aucune fixture ne portait : sans lui, la
+  -- distinction OWNER / MANAGER que la spec §5.2 fait sur le journal d'audit et
+  -- sur la comptabilité n'était testable dans aucun sens.
+  ('00000000-0000-0000-0000-000000000000', '77777777-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'hugo@rueil.example',     '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false, '', '', '', '');
 
 -- Les fiches `public.users` sont créées par le trigger `on_auth_user_created`,
 -- déclenché par les insertions ci-dessus. Le seed exerce donc le vrai chemin
@@ -36,7 +46,8 @@ from (values
   ('33333333-0000-4000-8000-000000000001'::uuid, 'Léa',    'Martin',    'fr'),
   ('44444444-0000-4000-8000-000000000001'::uuid, 'Sarah',  'Dupont',    'fr'),
   ('55555555-0000-4000-8000-000000000001'::uuid, 'Thomas', 'Bernard',   'en'),
-  ('66666666-0000-4000-8000-000000000001'::uuid, 'Julie',  'Kaczmarek', 'fr')
+  ('66666666-0000-4000-8000-000000000001'::uuid, 'Julie',  'Kaczmarek', 'fr'),
+  ('77777777-0000-4000-8000-000000000001'::uuid, 'Hugo',   'Petit',     'fr')
 ) as v(id, first_name, last_name, locale)
 where u.id = v.id;
 
@@ -73,9 +84,18 @@ insert into public.memberships (id, tenant_id, user_id, role) values
   ('a3000000-0000-4000-8000-000000000002', 'aaaaaaaa-0000-4000-8000-000000000001', '33333333-0000-4000-8000-000000000001', 'MEMBER'),
   ('a3000000-0000-4000-8000-000000000003', 'aaaaaaaa-0000-4000-8000-000000000001', '44444444-0000-4000-8000-000000000001', 'COACH'),
   ('a3000000-0000-4000-8000-000000000004', 'aaaaaaaa-0000-4000-8000-000000000001', '66666666-0000-4000-8000-000000000001', 'MEMBER'),
+  ('a3000000-0000-4000-8000-000000000005', 'aaaaaaaa-0000-4000-8000-000000000001', '77777777-0000-4000-8000-000000000001', 'MANAGER'),
   ('b3000000-0000-4000-8000-000000000001', 'bbbbbbbb-0000-4000-8000-000000000001', '22222222-0000-4000-8000-000000000001', 'OWNER'),
   ('b3000000-0000-4000-8000-000000000002', 'bbbbbbbb-0000-4000-8000-000000000001', '55555555-0000-4000-8000-000000000001', 'MEMBER'),
-  ('b3000000-0000-4000-8000-000000000003', 'bbbbbbbb-0000-4000-8000-000000000001', '66666666-0000-4000-8000-000000000001', 'MEMBER');
+  ('b3000000-0000-4000-8000-000000000003', 'bbbbbbbb-0000-4000-8000-000000000001', '66666666-0000-4000-8000-000000000001', 'MEMBER'),
+  -- Hugo administre Rueil et n'est **que membre** de Nanterre. C'est la fixture
+  -- qui distingue « autorisé quelque part » de « autorisé ici », dans une seule
+  -- requête. Julie (membre des deux, sans rôle) et Marc (propriétaire d'une
+  -- seule) ne peuvent pas la produire : chez eux, appartenance et rôle
+  -- coïncident. Une policy qui dirait `current_tenant_ids()` là où elle doit
+  -- dire `current_admin_tenant_ids()` passerait leurs deux cas et échouerait
+  -- sur celui-ci.
+  ('b3000000-0000-4000-8000-000000000004', 'bbbbbbbb-0000-4000-8000-000000000001', '77777777-0000-4000-8000-000000000001', 'MEMBER');
 
 insert into public.invitations (tenant_id, email, role, token, expires_at) values
   ('aaaaaaaa-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER', 'inv-rueil-0001',    now() + interval '30 days'),

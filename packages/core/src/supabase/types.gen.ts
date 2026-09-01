@@ -155,6 +155,13 @@ export type Database = {
             foreignKeyName: 'devices_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['user_id'];
+          },
+          {
+            foreignKeyName: 'devices_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
             referencedRelation: 'users';
             referencedColumns: ['id'];
           },
@@ -201,6 +208,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: 'invitations_inviter_same_tenant';
+            columns: ['invited_by', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
           {
             foreignKeyName: 'invitations_inviter_same_tenant';
             columns: ['invited_by', 'tenant_id'];
@@ -352,6 +366,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'tenants';
             referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'memberships_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['user_id'];
           },
           {
             foreignKeyName: 'memberships_user_id_fkey';
@@ -593,7 +614,31 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      member_admin_directory: {
+        Row: {
+          avatar_url: string | null;
+          email: string | null;
+          first_name: string | null;
+          joined_at: string | null;
+          last_name: string | null;
+          left_at: string | null;
+          locale: string | null;
+          membership_id: string | null;
+          role: Database['public']['Enums']['membership_role'] | null;
+          status: Database['public']['Enums']['membership_status'] | null;
+          tenant_id: string | null;
+          user_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'memberships_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string };
@@ -605,6 +650,7 @@ export type Database = {
         Args: { p_name: string; p_slug: string };
         Returns: string;
       };
+      current_admin_tenant_ids: { Args: never; Returns: string[] };
       current_policy_version: { Args: never; Returns: string };
       current_tenant_ids: { Args: never; Returns: string[] };
       current_tenant_role: {

@@ -32,7 +32,84 @@ where n.nspname = 'public'
   and c.relkind = 'r'
   and c.relname not like 'pg_%';
 
-select plan(4);
+-- Les vues (`relkind = 'v'`), que les quatre contrôles ci-dessous ne voient pas.
+--
+-- Ce n'est pas un détail de complétude. Une vue **ne peut pas** porter de policy
+-- RLS : sa protection est son propre `WHERE`, et rien dans le catalogue ne dit
+-- si ce `WHERE` existe. Comme le parcours ci-dessus est restreint à `relkind =
+-- 'r'`, une vue posée sans filtre de tenant ne ferait pas rougir ce test et
+-- n'atterrirait dans aucune liste d'exceptions — elle serait simplement
+-- invisible. C'est pire qu'une exception : une exception se relit.
+-- `relkind in ('v', 'm')` : les vues **et** les vues matérialisées. Un cache de
+-- leaderboard en `matview` est très plausible en P1 ou P3, et c'est le pire cas
+-- de tous — voir le test 7.
+create temporary table business_views as
+select c.relname::text as view_name,
+       c.relkind,
+       pg_get_viewdef(c.oid) as definition
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public'
+  and c.relkind in ('v', 'm')
+  and c.relname not like 'pg_%';
+
+-- Les contrôles 8 et 9 interrogent cette table sous les rôles `authenticated` et
+-- `anon`, qui n'ont aucun droit sur un objet temporaire créé par `postgres`.
+grant select on business_views to authenticated, anon;
+
+-- Vues rendant des lignes hors des boxes de l'appelant. Le prédicat est le même
+-- pour toutes, donc le contrôle vaut pour les vues futures sans rien à écrire.
+-- Une erreur de privilège compte comme une absence de fuite : c'est le résultat
+-- recherché, pas un échec.
+create or replace function pg_temp.views_leaking_foreign()
+returns text
+language plpgsql
+as $$
+declare
+  v record;
+  n integer;
+  leaks text[] := array[]::text[];
+begin
+  for v in select view_name from business_views loop
+    begin
+      execute format(
+        'select count(*) from public.%I where tenant_id is not null
+           and tenant_id not in (select public.current_tenant_ids())', v.view_name
+      ) into n;
+      if n > 0 then leaks := array_append(leaks, v.view_name); end if;
+    exception when insufficient_privilege then
+      null;
+    end;
+  end loop;
+  return array_to_string(leaks, ', ');
+end;
+$$;
+
+-- Idem pour `anon`, qui n'a aucune box : toute ligne visible est une ligne de trop.
+-- On compte tout plutôt que de passer par `current_tenant_ids()`, dont l'exécution
+-- lui est révoquée — sans quoi le test se contenterait de constater ce refus-là.
+create or replace function pg_temp.views_visible_to_anon()
+returns text
+language plpgsql
+as $$
+declare
+  v record;
+  n integer;
+  leaks text[] := array[]::text[];
+begin
+  for v in select view_name from business_views loop
+    begin
+      execute format('select count(*) from public.%I', v.view_name) into n;
+      if n > 0 then leaks := array_append(leaks, v.view_name); end if;
+    exception when insufficient_privilege then
+      null;
+    end;
+  end loop;
+  return array_to_string(leaks, ', ');
+end;
+$$;
+
+select plan(9);
 
 -- 1. tenant_id
 select is(
@@ -83,6 +160,83 @@ select is(
   '',
   'toute table a au moins une policy (hors exceptions justifiées)'
 );
+
+-- 5. Toute vue porte un prédicat de tenant.
+--
+-- Contrôle grossier — il cherche l'appel dans la définition, pas sa correction —
+-- mais il attrape le cas qui compte : une vue posée sans **aucun** filtre de
+-- tenant. Comme le parcours porte sur le catalogue, toute vue ajoutée plus tard
+-- est couverte sans qu'on ait à tenir une liste.
+select is(
+  (select coalesce(string_agg(v.view_name, ', ' order by v.view_name), '')
+   from business_views v
+   where v.definition not like '%current_tenant_ids%'
+     and v.definition not like '%current_admin_tenant_ids%'),
+  '',
+  'toute vue dérive son tenant d''auth.uid(), jamais d''un paramètre'
+);
+
+-- 6. Une vue qui expose une colonne sensible porte un prédicat de **rôle**.
+--
+-- Un filtre de tenant dit « c'est bien ta box ». Il ne dit pas « tu as le droit
+-- d'y voir les adresses e-mail de tout le monde ». La minimisation vaut aussi à
+-- l'intérieur d'une box (`.claude/rules/privacy.md`) : les colonnes qui
+-- identifient une personne au-delà de son prénom exigent le rôle, pas seulement
+-- l'appartenance.
+select is(
+  (select coalesce(string_agg(v.view_name, ', ' order by v.view_name), '')
+   from business_views v
+   join information_schema.columns col
+     on col.table_schema = 'public' and col.table_name = v.view_name
+   where col.column_name in ('email', 'birthdate', 'gender')
+     and v.definition not like '%current_admin_tenant_ids%'),
+  '',
+  'une vue exposant e-mail, date de naissance ou sexe exige un rôle d''administration'
+);
+
+-- 7. Aucune vue matérialisée.
+--
+-- Une `matview` est un instantané : **la RLS ne s'y applique pas du tout**, et le
+-- contrôle 5 y serait trompeur — une définition contenant `current_tenant_ids()`
+-- signifierait qu'on a matérialisé la vue *d'une seule personne* et qu'on la sert
+-- à tout le monde. Le jour où un cache de leaderboard en réclame une, ce test
+-- oblige à en décider explicitement plutôt qu'à la poser en passant.
+select is(
+  (select coalesce(string_agg(v.view_name, ', ' order by v.view_name), '')
+   from business_views v where v.relkind = 'm'),
+  '',
+  'aucune vue matérialisée : la RLS ne s''y applique pas, c''est une décision à prendre'
+);
+
+-- ---------------------------------------------------------------------------
+-- 8 et 9 — le comportement, pas seulement la forme
+-- ---------------------------------------------------------------------------
+--
+-- Les contrôles 5 et 6 cherchent une chaîne dans `pg_get_viewdef()`. C'est un
+-- grep : la chaîne peut figurer dans un sous-select qui ne contraint pas la
+-- requête externe, et le test passerait au vert. Les deux contrôles suivants
+-- interrogent réellement chaque vue, sous deux sessions qui ne doivent rien
+-- voir — même paire structurel/comportemental que pour les tables, et même
+-- couverture automatique des vues futures.
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"55555555-0000-4000-8000-000000000001","role":"authenticated","email":"thomas@example.com"}';
+
+select is(
+  pg_temp.views_leaking_foreign(),
+  '',
+  'aucune vue ne rend à un membre une ligne appartenant à une box qui n''est pas la sienne'
+);
+
+set local role anon;
+
+select is(
+  pg_temp.views_visible_to_anon(),
+  '',
+  'aucune vue ne rend quoi que ce soit à une session non authentifiée'
+);
+
+reset role;
 
 select * from finish();
 rollback;

@@ -6,7 +6,7 @@
 -- seule box B, Julie dans les deux.
 
 begin;
-select plan(19);
+select plan(23);
 
 -- ---------------------------------------------------------------------------
 -- Session de Léa — membre de la box A uniquement
@@ -50,11 +50,14 @@ select is(
   'aucune salle de la box B ne fuit'
 );
 
+-- Ces deux tables ne sont plus lisibles par un MEMBER du tout, depuis que la
+-- garde de rôle a été posée (D-001). Les tester ici ne prouverait donc plus
+-- l'isolation entre boxes — l'assertion passerait même si la table était vide.
+-- Elles sont vérifiées plus bas, sous une session qui peut réellement les lire.
 select is(
-  (select count(*) from public.ledger_entries
-   where tenant_id = 'bbbbbbbb-0000-4000-8000-000000000001')::int,
+  (select count(*) from public.ledger_entries)::int,
   0,
-  'aucune écriture comptable de la box B ne fuit'
+  'un MEMBER ne lit aucune écriture comptable, pas même celles de sa propre box'
 );
 
 select is(
@@ -93,10 +96,9 @@ select is(
 );
 
 select is(
-  (select count(*) from public.audit_logs
-   where tenant_id = 'bbbbbbbb-0000-4000-8000-000000000001')::int,
+  (select count(*) from public.audit_logs)::int,
   0,
-  'aucune entrée d''audit de la box B ne fuit'
+  'un MEMBER ne lit aucune entrée d''audit, pas même celles de sa propre box'
 );
 
 select is(
@@ -166,6 +168,48 @@ select is(
   (select count(*) from public.tenants)::int,
   2,
   'un membre de deux boxes voit ses deux boxes'
+);
+
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- Session de Marc — OWNER de la box A
+-- ---------------------------------------------------------------------------
+--
+-- Le balayage de Léa ne peut plus rien dire du journal d'audit ni de la
+-- comptabilité : ces deux tables lui sont fermées par rôle. L'isolation entre
+-- boxes s'y vérifie donc sous quelqu'un qui a le droit de les lire — sinon on
+-- prouverait l'absence de fuite en n'ayant accès à rien, ce qui ne prouve rien.
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"11111111-0000-4000-8000-000000000001","role":"authenticated","email":"marc@rueil.example"}';
+
+select is(
+  (select count(*) from public.audit_logs
+   where tenant_id = 'bbbbbbbb-0000-4000-8000-000000000001')::int,
+  0,
+  'aucune entrée d''audit de la box B ne fuit vers le propriétaire de la box A'
+);
+
+select is(
+  (select count(*) from public.ledger_entries
+   where tenant_id = 'bbbbbbbb-0000-4000-8000-000000000001')::int,
+  0,
+  'aucune écriture comptable de la box B ne fuit vers le propriétaire de la box A'
+);
+
+-- Et il lit bien les siennes : sans cette paire, les deux assertions ci-dessus
+-- seraient vraies par simple absence de droits.
+select is(
+  (select count(*) from public.audit_logs)::int,
+  1,
+  'alors qu''il lit bien celles de sa propre box'
+);
+
+select is(
+  (select count(*) from public.ledger_entries)::int,
+  1,
+  'et ses propres écritures comptables'
 );
 
 reset role;

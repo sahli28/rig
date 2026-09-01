@@ -71,7 +71,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 
 | Ticket | Titre                                          | j·h | Origine |
 | ------ | ---------------------------------------------- | --: | ------- |
-| D-001  | Vue restreinte des membres d'une box           |   2 | P0-004  |
+| D-001  | Vue restreinte des membres d'une box           |   2 | P0-004 — ✅ fait, débloque P1-001 |
 | D-002  | Tests de rendu des composants                  |   2 | P0-002  |
 | D-003  | SSR de l'i18n pour les pages publiques         |   2 | P0-003  |
 | D-004  | Persistance mobile de la langue                |   1 | P0-003  |

@@ -7,7 +7,7 @@
 -- fenêtre d'annulation de tout le monde.
 
 begin;
-select plan(18);
+select plan(26);
 
 -- ---------------------------------------------------------------------------
 -- Session de Léa — simple MEMBER de la box A
@@ -230,6 +230,90 @@ select is(
   (select role::text from public.invitations where token = 'inv-owner-a'),
   'OWNER',
   'un MANAGER ne rétrograde pas une invitation OWNER'
+);
+
+-- ---------------------------------------------------------------------------
+-- Journal d'audit et comptabilité — deux tables protégées au niveau du tenant
+-- seulement, dans un système où le rôle compte
+-- ---------------------------------------------------------------------------
+--
+-- Même motif que `tenants_member_update` plus haut, et troisième occurrence de
+-- la même erreur : `tenant_id in (select current_tenant_ids())` sans garde de
+-- rôle. Un simple MEMBER lisait donc tout le journal de sa box — `diff jsonb`
+-- compris, soit les changements de rôle et les exclusions d'autres membres — et
+-- toutes les écritures comptables, dont la somme est le chiffre d'affaires.
+--
+-- Aucun test ne pouvait le voir : la suite d'isolation compare la box A à la
+-- box B, et ici la fuite est **à l'intérieur** d'une box.
+
+reset role;
+
+-- La section précédente a promu Sarah MANAGER pour éprouver le branding.
+-- On la remet COACH : c'est en tant que coach qu'elle nous intéresse ici.
+update public.memberships set role = 'COACH'
+where user_id = '44444444-0000-4000-8000-000000000001';
+
+set local role authenticated;
+
+-- Léa — MEMBER
+set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
+
+select is(
+  (select count(*) from public.audit_logs)::int,
+  0,
+  'un MEMBER ne lit pas le journal d''audit de sa box (spec §5.2)'
+);
+
+select is(
+  (select count(*) from public.ledger_entries)::int,
+  0,
+  'un MEMBER ne lit pas la comptabilité de sa box — leur somme est le CA'
+);
+
+-- Sarah — COACH
+set local request.jwt.claims = '{"sub":"44444444-0000-4000-8000-000000000001","role":"authenticated","email":"sarah@example.com"}';
+
+select is(
+  (select count(*) from public.audit_logs)::int,
+  0,
+  'un COACH non plus'
+);
+
+select is(
+  (select count(*) from public.ledger_entries)::int,
+  0,
+  'un COACH non plus pour la comptabilité'
+);
+
+-- Hugo — MANAGER. La spec §5.2 le traite différemment sur les deux tables, et
+-- c'est précisément ce que ces deux assertions figent.
+set local request.jwt.claims = '{"sub":"77777777-0000-4000-8000-000000000001","role":"authenticated","email":"hugo@rueil.example"}';
+
+select is(
+  (select count(*) from public.audit_logs)::int,
+  0,
+  'un MANAGER ne lit pas le journal d''audit : « Consulter le journal » est ❌ pour lui'
+);
+
+select is(
+  (select count(*) from public.ledger_entries)::int,
+  1,
+  'mais il lit la comptabilité : « Voir le CA » est 👁 pour lui'
+);
+
+-- Marc — OWNER
+set local request.jwt.claims = '{"sub":"11111111-0000-4000-8000-000000000001","role":"authenticated","email":"marc@rueil.example"}';
+
+select is(
+  (select count(*) from public.audit_logs)::int,
+  1,
+  'un OWNER lit le journal d''audit de sa box'
+);
+
+select is(
+  (select count(*) from public.ledger_entries)::int,
+  1,
+  'et sa comptabilité'
 );
 
 reset role;

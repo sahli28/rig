@@ -38,6 +38,19 @@ chaque session.
   C'est pour cette raison que la policy de `users` est `id = auth.uid()` et le
   restera : le `Class Roster` (P1-003, P1-008) et `Members List` (P1-001)
   devront construire cette vue, pas élargir la policy.
+- **`member_admin_directory` (D-001) est l'annuaire *administratif*, pas la vue
+  des pairs.** Réservée à `OWNER` et `MANAGER`, e-mail compris : la box est
+  responsable de traitement de ses membres. Un `COACH` n'y a pas accès, un
+  `MEMBER` non plus. La vue des pairs reste à construire en P1-003, et sa forme
+  juste est « les gens que je croise » — les inscrits d'un cours — pas
+  l'annuaire complet de la box. L'app ne montre pas ce que la salle montre :
+  elle transforme « les gens que je croise le mardi » en une liste consultable
+  de chez soi de qui s'entraîne quand. Ce n'est pas le même objet, et un
+  contrôle par la personne concernée est justifié.
+- **Le journal d'audit et la comptabilité ne sont pas publics dans leur box.**
+  `audit_logs` est réservé à `OWNER`, `ledger_entries` à `OWNER` et `MANAGER`
+  (spec §5.2). Les `diff jsonb` du journal portent les changements de rôle et
+  les exclusions ; la somme des écritures est le chiffre d'affaires.
 - Tout consentement est écrit dans `consents` avec sa version de politique et son horodatage.
   Un consentement se retire aussi simplement qu'il se donne.
 - Une suppression de compte anonymise réellement à J+30 et conserve les écritures

@@ -43,3 +43,36 @@ phase pilote les droits sont accordés à la main par la box.
 Écrire le test de concurrence **avant** la fonction. Le lancer avec `k6` ou
 un script `pg_bench`, pas seulement en unitaire : la concurrence ne se simule
 pas correctement en TypeScript.
+
+## La vue des pairs — trois décisions léguées par D-001
+
+D-001 a livré `member_admin_directory` (staff) et **délibérément pas** la vue des
+pairs : elle n'avait pas d'appelant, et la feuille d'inscrits qui la motive naît
+ici, avec `bookings`. Ce qui reste à trancher, écrit tant que le raisonnement
+était frais :
+
+1. **« Les gens que je croise », pas « toute la box ».** Exposer l'annuaire
+   complet d'une box à chacun de ses membres est plus large que ce que la spec
+   §5.2 décrit, et plus large que le besoin : la feuille d'inscrits d'un cours.
+2. **La case « leaderboard / visibilité » de l'écran de consentements (P0-005a)
+   gouverne l'avatar.** Elle existe déjà, elle a été acceptée par la personne, et
+   c'est le contrôle le plus proche de ce qu'on veut exprimer.
+3. **Rouvrir le « si consenti » de la spec §5.2.** Un opt-in sur une liste
+   d'inscrits a un taux de complétion médiocre, et une feuille à moitié anonyme
+   n'aide personne. La forme probablement plus juste est celle que la spec
+   applique déjà au partage inter-box : **intérêt légitime, information claire,
+   opt-out** — « ne pas apparaître dans la liste des inscrits ». Plus léger, et
+   cohérent avec le reste du produit.
+
+   L'argument qui tranche, et qu'il faut garder sous la main parce que « ils se
+   voient déjà en vrai » a l'air imparable : **l'app ne montre pas ce que la
+   salle montre.** Elle transforme « les gens que je croise le mardi » en une
+   liste consultable de chez soi de qui s'entraîne quand. Ce n'est pas le même
+   objet. Quelqu'un qui évite un ex, ou qui préfère simplement que ses horaires
+   ne soient pas lisibles par cent personnes, a un intérêt réel. Un contrôle est
+   justifié ; c'est sa forme — opt-in ou opt-out — qui se décide avec l'écran
+   sous les yeux.
+
+Contrainte technique héritée : une valeur d'enum **ne se retire pas**
+(`alter type … add value` est additif). Ajouter une finalité de consentement est
+une décision irréversible — à ne prendre qu'avec l'écran qui la motive.
