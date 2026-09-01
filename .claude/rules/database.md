@@ -345,3 +345,30 @@ cherchant explicitement le jumeau.
 Formulé autrement : la question utile n'est pas « ce que je viens d'écrire
 est-il correct ? » mais « qu'est-ce qui, ailleurs, fait la même chose et n'a pas
 été touché ? »
+
+## Un jeton stocké est un jeton compromis à terme
+
+`invitations.token` était en clair, avec un index unique dessus (D-005). Chaque
+ligne était un identifiant **vivant** : la présenter à `accept_invitation()`
+ouvrait une appartenance dans une box, au rôle inscrit dans la ligne.
+
+L'exposition était bornée — seuls `OWNER` et `MANAGER` lisaient la table — mais
+c'est exactement le raisonnement que D-006 a démonté quelques heures plus tôt.
+
+**La règle, pour tout secret qu'on doit seulement reconnaître :**
+
+- stocker `encode(extensions.digest(valeur, 'sha256'), 'hex')`, jamais la valeur ;
+- non salé, et c'est correct ici : la recherche se fait **par empreinte**, et un
+  jeton est une valeur aléatoire de 192 bits, pas un mot de passe à faible
+  entropie. Le sel sert contre les tables arc-en-ciel sur un espace devinable ;
+- nommer la colonne `_hash`. Une colonne qui ne contient plus ce que son nom
+  annonce est une invitation à s'en servir mal ;
+- la valeur en clair n'existe **qu'une fois**, dans le retour de la fonction qui
+  la crée. Le motif est celui des clés d'API : montrée une fois, perdue ensuite,
+  et « réafficher » n'existe pas — seulement « régénérer ».
+
+Corollaire d'interface, à ne pas oublier côté écran : si la valeur ne se rattrape
+pas, l'écran doit l'afficher immédiatement et le dire.
+
+Ce qui vaudra aussi pour les jetons de check-in QR (P1-008) et pour toute clé de
+webhook entrante.

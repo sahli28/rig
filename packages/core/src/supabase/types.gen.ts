@@ -178,7 +178,7 @@ export type Database = {
           role: Database['public']['Enums']['membership_role'];
           status: Database['public']['Enums']['invitation_status'];
           tenant_id: string;
-          token: string;
+          token_hash: string;
           updated_at: string;
         };
         Insert: {
@@ -191,7 +191,7 @@ export type Database = {
           role?: Database['public']['Enums']['membership_role'];
           status?: Database['public']['Enums']['invitation_status'];
           tenant_id: string;
-          token: string;
+          token_hash: string;
           updated_at?: string;
         };
         Update: {
@@ -204,7 +204,7 @@ export type Database = {
           role?: Database['public']['Enums']['membership_role'];
           status?: Database['public']['Enums']['invitation_status'];
           tenant_id?: string;
-          token?: string;
+          token_hash?: string;
           updated_at?: string;
         };
         Relationships: [
@@ -645,6 +645,15 @@ export type Database = {
       app_error: {
         Args: { p_code: string; p_message: string; p_sqlstate?: string };
         Returns: undefined;
+      };
+      create_invitation: {
+        Args: {
+          p_email?: string;
+          p_expires_in?: string;
+          p_role?: Database['public']['Enums']['membership_role'];
+          p_tenant_id: string;
+        };
+        Returns: string;
       };
       create_tenant: {
         Args: { p_name: string; p_slug: string };

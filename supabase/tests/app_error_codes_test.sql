@@ -40,12 +40,12 @@ exception when others then
 end;
 $$;
 
-insert into public.invitations (tenant_id, email, role, token, expires_at) values
-  ('aaaaaaaa-0000-4000-8000-000000000001', 'lea@example.com', 'MEMBER', 'tok-perime',
+insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
+  ('aaaaaaaa-0000-4000-8000-000000000001', 'lea@example.com', 'MEMBER', encode(extensions.digest('tok-perime','sha256'),'hex'),
    now() - interval '1 day'),
-  ('aaaaaaaa-0000-4000-8000-000000000001', 'lea@example.com', 'MEMBER', 'tok-consomme',
+  ('aaaaaaaa-0000-4000-8000-000000000001', 'lea@example.com', 'MEMBER', encode(extensions.digest('tok-consomme','sha256'),'hex'),
    now() + interval '7 days');
-update public.invitations set status = 'ACCEPTED' where token = 'tok-consomme';
+update public.invitations set status = 'ACCEPTED' where token_hash = encode(extensions.digest('tok-consomme','sha256'),'hex');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';

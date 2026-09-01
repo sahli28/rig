@@ -6,7 +6,7 @@
 -- des scénarios ci-dessous **réussissait** avant l'audit du ticket P0-004.
 
 begin;
-select plan(24);
+select plan(25);
 
 -- Un utilisateur tout neuf, membre d'aucune box.
 insert into auth.users (
@@ -86,15 +86,15 @@ reset role;
 -- accept_invitation() — les trois façons de forcer la porte
 -- ---------------------------------------------------------------------------
 
-insert into public.invitations (tenant_id, email, role, token, expires_at) values
+insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
   ('bbbbbbbb-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER',
-   'tok-valide', now() + interval '7 days'),
+   encode(extensions.digest('tok-valide','sha256'),'hex'), now() + interval '7 days'),
   ('bbbbbbbb-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER',
-   'tok-expire', now() - interval '1 day'),
+   encode(extensions.digest('tok-expire','sha256'),'hex'), now() - interval '1 day'),
   -- Invitation destinée à quelqu'un d'autre : c'est le cas du lien transféré,
   -- capté dans un `Referer` ou pris en capture d'écran.
   ('bbbbbbbb-0000-4000-8000-000000000001', 'quelquun.dautre@example.com', 'MEMBER',
-   'tok-autrui', now() + interval '7 days');
+   encode(extensions.digest('tok-autrui','sha256'),'hex'), now() + interval '7 days');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"99999999-0000-4000-8000-000000000001","role":"authenticated","email":"nouveau@example.com"}';
@@ -143,9 +143,9 @@ reset role;
 -- Le cas réel : une adhérente devient coach, la box lui envoie une invitation
 -- nominative COACH. Sans refus explicite, elle cliquait, voyait « bienvenue »,
 -- restait MEMBER, et le jeton était brûlé — un succès silencieux.
-insert into public.invitations (tenant_id, email, role, token, expires_at) values
+insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
   ('bbbbbbbb-0000-4000-8000-000000000001', 'nouveau@example.com', 'COACH',
-   'tok-promotion', now() + interval '7 days');
+   encode(extensions.digest('tok-promotion','sha256'),'hex'), now() + interval '7 days');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"99999999-0000-4000-8000-000000000001","role":"authenticated","email":"nouveau@example.com"}';
@@ -160,7 +160,7 @@ select throws_ok(
 reset role;
 
 select is(
-  (select status::text from public.invitations where token = 'tok-promotion'),
+  (select status::text from public.invitations where token_hash = encode(extensions.digest('tok-promotion','sha256'),'hex')),
   'PENDING',
   'le jeton n''est pas consommé par une acceptation refusée'
 );
@@ -182,9 +182,9 @@ update public.memberships set status = 'SUSPENDED'
 where user_id = '99999999-0000-4000-8000-000000000001'
   and tenant_id = 'bbbbbbbb-0000-4000-8000-000000000001';
 
-insert into public.invitations (tenant_id, email, role, token, expires_at) values
+insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
   ('bbbbbbbb-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER',
-   'tok-rentrer', now() + interval '7 days');
+   encode(extensions.digest('tok-rentrer','sha256'),'hex'), now() + interval '7 days');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"99999999-0000-4000-8000-000000000001","role":"authenticated","email":"nouveau@example.com"}';
@@ -222,10 +222,22 @@ select throws_ok(
 );
 
 -- Chemin 2 : forger une invitation OWNER, à faire accepter par un complice.
+--
+-- La porte a changé avec D-005 : l'`insert` direct n'existe plus, ni comme
+-- policy ni comme droit. Le test vise donc la nouvelle porte, `create_invitation()`,
+-- où la même matrice de rôles est rejouée — c'est le même scénario d'attaque, sur
+-- le mécanisme qui le reçoit désormais.
 select throws_ok(
-  $$insert into public.invitations (tenant_id, role, token, expires_at)
-    values ('aaaaaaaa-0000-4000-8000-000000000001', 'OWNER', 'tok-pirate',
+  $$insert into public.invitations (tenant_id, role, token_hash, expires_at)
+    values ('aaaaaaaa-0000-4000-8000-000000000001', 'OWNER', 'peu importe',
             now() + interval '7 days')$$,
+  '42501',
+  null,
+  'l''insertion directe d''une invitation est fermée à tous, quel que soit le rôle'
+);
+
+select throws_ok(
+  $$select public.create_invitation('aaaaaaaa-0000-4000-8000-000000000001', null, 'OWNER')$$,
   '42501',
   null,
   'un MEMBER ne peut pas créer d''invitation, encore moins avec le rôle OWNER'
@@ -244,9 +256,8 @@ set local role authenticated;
 set local request.jwt.claims = '{"sub":"11111111-0000-4000-8000-000000000001","role":"authenticated","email":"marc@rueil.example"}';
 
 select lives_ok(
-  $$insert into public.invitations (tenant_id, role, token, expires_at)
-    values ('aaaaaaaa-0000-4000-8000-000000000001', 'COACH', 'tok-legitime',
-            now() + interval '7 days')$$,
+  $$select public.create_invitation('aaaaaaaa-0000-4000-8000-000000000001',
+                                    'coach@example.com', 'COACH')$$,
   'un OWNER crée bien une invitation dans sa box'
 );
 
@@ -259,8 +270,9 @@ reset role;
 -- Le QR d'affiliation affiché au mur d'une box est une invitation **sans
 -- e-mail**, `PENDING` en permanence. S'il pouvait réactiver une exclusion,
 -- `remove_member()` n'aurait aucun effet dans la configuration normale d'une box.
-insert into public.invitations (tenant_id, email, role, token, expires_at) values
-  ('aaaaaaaa-0000-4000-8000-000000000001', null, 'MEMBER', 'qr-mural-a',
+insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
+  ('aaaaaaaa-0000-4000-8000-000000000001', null, 'MEMBER',
+   encode(extensions.digest('qr-mural-a', 'sha256'), 'hex'),
    now() + interval '365 days');
 
 -- Marc exclut Léa.
@@ -282,8 +294,8 @@ select throws_ok(
 reset role;
 
 -- En revanche la box peut la réinviter nommément : c'est un geste délibéré.
-insert into public.invitations (tenant_id, email, role, token, expires_at) values
-  ('aaaaaaaa-0000-4000-8000-000000000001', 'lea@example.com', 'MEMBER', 'tok-retour',
+insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
+  ('aaaaaaaa-0000-4000-8000-000000000001', 'lea@example.com', 'MEMBER', encode(extensions.digest('tok-retour','sha256'),'hex'),
    now() + interval '7 days');
 
 set local role authenticated;

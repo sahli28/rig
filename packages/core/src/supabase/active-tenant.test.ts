@@ -73,14 +73,14 @@ describe('tenantScope', () => {
 
     tenantScope(client, TENANT).insert('invitations', {
       tenant_id: autreBox,
-      token: 'tok',
+      token_hash: 'tok',
       expires_at: '2026-09-30T10:00:00Z',
     });
 
     // Le cas réel n'est pas la malveillance mais la recopie : un objet lu dans
     // une box, modifié, réinséré dans l'écran d'une autre.
     expect(calls[0]?.payload).toEqual([
-      { tenant_id: TENANT, token: 'tok', expires_at: '2026-09-30T10:00:00Z' },
+      { tenant_id: TENANT, token_hash: 'tok', expires_at: '2026-09-30T10:00:00Z' },
     ]);
   });
 
@@ -88,8 +88,8 @@ describe('tenantScope', () => {
     const { client, calls } = fakeClient();
 
     tenantScope(client, TENANT).insert('invitations', [
-      { tenant_id: TENANT, token: 'a', expires_at: '2026-09-30T10:00:00Z' },
-      { tenant_id: TENANT, token: 'b', expires_at: '2026-09-30T10:00:00Z' },
+      { tenant_id: TENANT, token_hash: 'a', expires_at: '2026-09-30T10:00:00Z' },
+      { tenant_id: TENANT, token_hash: 'b', expires_at: '2026-09-30T10:00:00Z' },
     ]);
 
     expect(calls[0]?.payload).toHaveLength(2);
@@ -125,9 +125,9 @@ describe('tenantScope', () => {
   it('n’écrase pas le patch quand il ne porte pas de tenant_id', () => {
     const { client, calls } = fakeClient();
 
-    tenantScope(client, TENANT).update('invitations', { status: 'REVOKED', token: 'tok' });
+    tenantScope(client, TENANT).update('invitations', { status: 'REVOKED', token_hash: 'tok' });
 
-    expect(calls[0]?.payload).toEqual({ status: 'REVOKED', token: 'tok' });
+    expect(calls[0]?.payload).toEqual({ status: 'REVOKED', token_hash: 'tok' });
   });
 
   it('expose la box active pour les appels qui ne passent pas par lui', () => {

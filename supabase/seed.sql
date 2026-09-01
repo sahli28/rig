@@ -97,9 +97,16 @@ insert into public.memberships (id, tenant_id, user_id, role) values
   -- sur celui-ci.
   ('b3000000-0000-4000-8000-000000000004', 'bbbbbbbb-0000-4000-8000-000000000001', '77777777-0000-4000-8000-000000000001', 'MEMBER');
 
-insert into public.invitations (tenant_id, email, role, token, expires_at) values
-  ('aaaaaaaa-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER', 'inv-rueil-0001',    now() + interval '30 days'),
-  ('bbbbbbbb-0000-4000-8000-000000000001', 'nouvelle@example.com','MEMBER', 'inv-nanterre-0001', now() + interval '30 days');
+-- Depuis D-005, la table ne garde que l'**empreinte** du jeton. Les jetons en
+-- clair du seed restent `inv-rueil-0001` et `inv-nanterre-0001` : ils sont
+-- écrits ici hachés, mais on peut toujours les taper tels quels pour la passe
+-- manuelle. En production ils n'existeraient qu'une fois, dans le retour de
+-- `create_invitation()`.
+insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
+  ('aaaaaaaa-0000-4000-8000-000000000001', 'nouveau@example.com',  'MEMBER',
+   encode(extensions.digest('inv-rueil-0001', 'sha256'), 'hex'),    now() + interval '30 days'),
+  ('bbbbbbbb-0000-4000-8000-000000000001', 'nouvelle@example.com', 'MEMBER',
+   encode(extensions.digest('inv-nanterre-0001', 'sha256'), 'hex'), now() + interval '30 days');
 
 -- ---------------------------------------------------------------------------
 -- Conformité et traçabilité — des lignes des deux côtés partout
