@@ -1,0 +1,27 @@
+/* Aucune couleur littérale : variables de <ThemeStyle/> uniquement (règle 7). */
+
+.notice {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--rig-text-title);
+}
+
+.body {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--rig-color-text-muted);
+}
+
+.link {
+  margin-top: 8px;
+}

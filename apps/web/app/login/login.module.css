@@ -1,0 +1,101 @@
+/*
+ * Aucune couleur littérale : tout vient des variables injectées par
+ * <ThemeStyle/>, dérivées du thème de la box (règle 7 de CLAUDE.md).
+ */
+
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  background: var(--rig-color-surface-2);
+  border: 1px solid var(--rig-color-border);
+  border-radius: var(--rig-radius-lg);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--rig-text-display);
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--rig-text-title);
+  font-weight: 700;
+}
+
+.muted {
+  margin: 0;
+  color: var(--rig-color-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: var(--rig-text-small);
+  font-weight: 500;
+}
+
+.input {
+  padding: 12px;
+  min-height: var(--rig-touch-target);
+  border: 1px solid var(--rig-color-border);
+  border-radius: var(--rig-radius-md);
+  background: var(--rig-color-surface);
+  color: var(--rig-color-text);
+  font: inherit;
+}
+
+.hint {
+  margin: 0;
+  color: var(--rig-color-text-muted);
+  font-size: var(--rig-text-small);
+}
+
+.primary {
+  margin-top: 8px;
+  border: none;
+  padding: 12px 16px;
+  background: var(--rig-color-primary);
+  color: var(--rig-color-on-primary);
+  font-weight: 600;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ghost {
+  border: 1px solid var(--rig-color-border);
+  background: transparent;
+  color: var(--rig-color-text);
+  padding: 12px 16px;
+}
+
+/*
+ * L'information n'est jamais portée par la couleur seule (`.claude/rules/ui.md`) :
+ * le message d'erreur est un texte, annoncé en `role="alert"`, et la bordure ne
+ * fait que le souligner.
+ */
+.error {
+  margin: 0;
+  padding: 12px;
+  border-left: 4px solid var(--rig-color-danger);
+  background: var(--rig-color-surface);
+  border-radius: var(--rig-radius-md);
+}

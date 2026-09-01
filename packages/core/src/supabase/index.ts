@@ -8,6 +8,7 @@ export {
 } from './chunked-storage';
 export {
   chooseActiveTenant,
+  findMembershipBySlug,
   fetchMe,
   hasRequiredAction,
   BookingRulesSchema,

@@ -107,6 +107,20 @@ export function hasRequiredAction(me: Me, action: RequiredAction): boolean {
 }
 
 /**
+ * Retrouve une appartenance par le `slug` de sa box.
+ *
+ * Le web porte la box active dans l'URL (`/box/[slug]/…`), et il faut en tirer un
+ * `tenant_id`. La résolution se fait **parmi ses propres appartenances**, jamais
+ * par `tenant_public_profile()` : celui-ci résoudrait n'importe quelle box
+ * active, y compris une où l'appelant n'a rien, et il faudrait rattraper le cas
+ * plus loin. Ici, « box inconnue » et « accès refusé » sont indiscernables par
+ * construction — ce qui est le comportement voulu.
+ */
+export function findMembershipBySlug(me: Me, slug: string): Membership | null {
+  return me.memberships.find((m) => m.tenant_slug === slug) ?? null;
+}
+
+/**
  * Choisit la box à activer. Le choix appartient au client — `me()` refuse de le
  * faire, et c'est ce refus qui donne son sens à cette fonction.
  *

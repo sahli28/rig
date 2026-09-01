@@ -42,3 +42,29 @@ Conséquences pour l'écran :
   `MANAGER_CANNOT_GRANT_ROLE` s'il essaie autre chose. L'écran masque l'option,
   la base la refuse — deux couches.
 - `invited_by` est dérivé de la session : ne pas l'envoyer.
+
+## Découpage et ré-estimation (décidé en P1-001a)
+
+**L'estimation de 4 j·h est fausse.** Elle omettait trois choses :
+
+1. **La porte d'entrée n'existait pas.** `apps/web` n'avait aucun écran de
+   connexion — P0-005a avait livré les écrans du mobile et la tuyauterie de
+   session web, jamais la porte. Sortie en **P1-001a** (~2,5 j·h), livrée : la
+   connexion par lien, la coquille, la box active dans l'URL, et le choix de la
+   base de composants web (ADR 0005), lui non plus jamais fait.
+2. **`class_types` n'existe pas en base.** Il y a donc une migration, avec ses
+   policies, ses droits de table (D-006) et ses tests.
+3. **L'import CSV vaut 2 à 3 j·h à lui seul.** 200 lignes, mapping de colonnes
+   assisté, prévisualisation, détection de doublons, et « rien ne se crée en cas
+   d'erreur bloquante » — c'est une transaction et un écran à part entière.
+
+Le reste se coupe en trois, à ouvrir dans cet ordre :
+
+| Ticket | Contenu | j·h |
+| --- | --- | ---: |
+| **P1-001b** | `class_types` + Box Settings : infos, horaires, salles, règles de réservation | 3 |
+| **P1-001c** | Staff & Roles : annuaire (`member_admin_directory`, D-001), invitations (`create_invitation`, D-005), changement de rôle | 2 |
+| **P1-001d** | Import CSV de membres | 3 |
+
+Les deux dépendances de P1-001c sont déjà livrées : D-001 a construit l'annuaire
+administratif, D-005 l'API d'invitation. C'était leur raison d'être.
