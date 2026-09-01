@@ -45,4 +45,10 @@ export {
   type ProfilePatch,
   type RecordConsentsInput,
 } from './profile';
-export { tenantScope, type TenantScope, type TenantScopedTable } from './active-tenant';
+export {
+  tenantScope,
+  type TenantScope,
+  type TenantScopedRelation,
+  type TenantScopedTable,
+  type TenantScopedView,
+} from './active-tenant';

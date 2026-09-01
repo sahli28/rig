@@ -18,6 +18,7 @@ import type { RigClient } from './client';
 import type { Database } from './types.gen';
 
 type Tables = Database['public']['Tables'];
+type Views = Database['public']['Views'];
 
 /**
  * Les tables portant un `tenant_id`. Le type se déduit du schéma généré : une
@@ -27,6 +28,20 @@ type Tables = Database['public']['Tables'];
 export type TenantScopedTable = {
   [K in keyof Tables]: 'tenant_id' extends keyof Tables[K]['Row'] ? K : never;
 }[keyof Tables];
+
+/** Idem pour les vues — `member_admin_directory` et celles qui suivront. */
+export type TenantScopedView = {
+  [K in keyof Views]: 'tenant_id' extends keyof Views[K]['Row'] ? K : never;
+}[keyof Views];
+
+/**
+ * Ce qui se **lit** avec un filtre de box : tables et vues.
+ *
+ * La distinction n'est pas cosmétique. Une vue ne s'écrit pas — `insert` et
+ * `update` restent sur `TenantScopedTable`, si bien qu'une écriture visant une
+ * vue échoue au typecheck plutôt qu'en base.
+ */
+export type TenantScopedRelation = TenantScopedTable | TenantScopedView;
 
 /**
  * Lie un client à une box. Toute lecture ou écriture d'une table de box passe
@@ -53,6 +68,19 @@ export function tenantScope(client: RigClient, tenantId: string) {
     /** `select` filtré sur la box active. */
     select<T extends TenantScopedTable>(table: T, columns = '*') {
       return whereTenant(client.from(table).select(columns), tenantId);
+    },
+
+    /**
+     * Idem pour une vue. Méthode distincte, et non une union avec `select` :
+     * `client.from()` porte deux surcharges — tables d'un côté, vues de l'autre —
+     * qu'une union ne satisfait ni l'une ni l'autre. Les fusionner coûterait un
+     * transtypage qui écraserait le type des lignes rendues.
+     *
+     * L'asymétrie n'est pas qu'un contournement : une vue ne s'écrit pas, et
+     * c'est précisément pourquoi elle n'a ni `insert` ni `update` ici.
+     */
+    selectView<V extends TenantScopedView>(view: V, columns = '*') {
+      return whereTenant(client.from(view).select(columns), tenantId);
     },
 
     /**

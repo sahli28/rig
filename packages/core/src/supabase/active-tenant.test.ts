@@ -23,6 +23,10 @@ function fakeClient() {
         call.filters.push([column, value]);
         return builder;
       },
+      // `currentTenant()` termine par là ; le test n'inspecte que les appels.
+      maybeSingle() {
+        return builder;
+      },
     };
     return builder;
   }
@@ -137,5 +141,33 @@ describe('tenantScope', () => {
     // @ts-expect-error `users` n'a pas de tenant_id : la filtrer n'aurait aucun
     // sens, et le helper ne doit pas laisser croire qu'il protège quoi que ce soit.
     tenantScope(client, TENANT).select('users');
+  });
+
+  it('accepte une vue de box en lecture', () => {
+    const { client, calls } = fakeClient();
+
+    tenantScope(client, TENANT).selectView('member_admin_directory');
+
+    expect(calls[0]?.filters).toEqual([['tenant_id', TENANT]]);
+  });
+
+  it('refuse au typecheck d’écrire dans une vue', () => {
+    const { client } = fakeClient();
+
+    // @ts-expect-error une vue ne s'écrit pas : `insert` et `update` restent
+    // bornés aux tables, si bien que l'erreur arrive au typecheck et non en base.
+    tenantScope(client, TENANT).insert('member_admin_directory', { tenant_id: TENANT });
+  });
+
+  it('filtre la box elle-même sur id, faute de colonne tenant_id', () => {
+    const { client, calls } = fakeClient();
+
+    tenantScope(client, TENANT).currentTenant();
+
+    // `tenants` n'a pas de `tenant_id` — sa clé primaire *est* l'identifiant —
+    // mais elle relève du même piège : `select()` sans filtre rend toutes les
+    // boxes de la personne.
+    expect(calls[0]?.table).toBe('tenants');
+    expect(calls[0]?.filters).toEqual([['id', TENANT]]);
   });
 });

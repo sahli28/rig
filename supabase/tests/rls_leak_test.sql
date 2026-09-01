@@ -32,7 +32,23 @@ where n.nspname = 'public'
   and c.relkind = 'r'
   and c.relname not like 'pg_%';
 
-select plan(4);
+-- Les vues (`relkind = 'v'`), que les quatre contrôles ci-dessous ne voient pas.
+--
+-- Ce n'est pas un détail de complétude. Une vue **ne peut pas** porter de policy
+-- RLS : sa protection est son propre `WHERE`, et rien dans le catalogue ne dit
+-- si ce `WHERE` existe. Comme le parcours ci-dessus est restreint à `relkind =
+-- 'r'`, une vue posée sans filtre de tenant ne ferait pas rougir ce test et
+-- n'atterrirait dans aucune liste d'exceptions — elle serait simplement
+-- invisible. C'est pire qu'une exception : une exception se relit.
+create temporary table business_views as
+select c.relname::text as view_name, pg_get_viewdef(c.oid) as definition
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public'
+  and c.relkind = 'v'
+  and c.relname not like 'pg_%';
+
+select plan(6);
 
 -- 1. tenant_id
 select is(
@@ -82,6 +98,39 @@ select is(
      )),
   '',
   'toute table a au moins une policy (hors exceptions justifiées)'
+);
+
+-- 5. Toute vue porte un prédicat de tenant.
+--
+-- Contrôle grossier — il cherche l'appel dans la définition, pas sa correction —
+-- mais il attrape le cas qui compte : une vue posée sans **aucun** filtre de
+-- tenant. Comme le parcours porte sur le catalogue, toute vue ajoutée plus tard
+-- est couverte sans qu'on ait à tenir une liste.
+select is(
+  (select coalesce(string_agg(v.view_name, ', ' order by v.view_name), '')
+   from business_views v
+   where v.definition not like '%current_tenant_ids%'
+     and v.definition not like '%current_admin_tenant_ids%'),
+  '',
+  'toute vue dérive son tenant d''auth.uid(), jamais d''un paramètre'
+);
+
+-- 6. Une vue qui expose une colonne sensible porte un prédicat de **rôle**.
+--
+-- Un filtre de tenant dit « c'est bien ta box ». Il ne dit pas « tu as le droit
+-- d'y voir les adresses e-mail de tout le monde ». La minimisation vaut aussi à
+-- l'intérieur d'une box (`.claude/rules/privacy.md`) : les colonnes qui
+-- identifient une personne au-delà de son prénom exigent le rôle, pas seulement
+-- l'appartenance.
+select is(
+  (select coalesce(string_agg(v.view_name, ', ' order by v.view_name), '')
+   from business_views v
+   join information_schema.columns col
+     on col.table_schema = 'public' and col.table_name = v.view_name
+   where col.column_name in ('email', 'birthdate', 'gender')
+     and v.definition not like '%current_admin_tenant_ids%'),
+  '',
+  'une vue exposant e-mail, date de naissance ou sexe exige un rôle d''administration'
 );
 
 select * from finish();
