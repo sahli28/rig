@@ -45,11 +45,11 @@ inter-box), gestion des invitations côté OWNER (P1-001 avec les réglages).
       avant toute connexion** — `tenant_public_profile` en clé `anon`, vérifié
 - [x] **Mobile** : le code à six chiffres arrive dans Mailpit et connecte —
       vérifié de bout en bout par appels HTTP réels (gabarits `supabase/templates/`)
-- [ ] **Web** : le **lien** du même e-mail connecte aussi — `detectSessionInUrl`
-      reste actif côté web, et le middleware pose la session en cookies.
-      **Deux chemins d'authentification, donc deux à tester** : sans cette
-      ligne, seul celui qu'on utilise au quotidien serait vérifié, et l'autre
-      casserait en silence
+- [x] **Web** : le **lien** du même e-mail connecte aussi — vérifié de bout en
+      bout dans le navigateur lors de P1-001a, qui a livré l'écran manquant.
+      Deux chemins, deux vérifications : c'est exactement ce que cette ligne
+      devait empêcher d'oublier, et elle a servi — le chemin web était cassé
+      par un `additional_redirect_urls` en `https` que rien n'exerçait
 - [x] Le jeton d'accès expire en 15 min et se rafraîchit sans déconnexion
       visible — `jwt_expiry = 900`, `expires_in: 900` relevé sur la réponse
 - [x] `me()` retourne le tenant courant, son thème et ses règles en un
