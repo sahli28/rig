@@ -22,7 +22,11 @@ en expliquant la cause avant de corriger.
 7. **Parité i18n** : toute clé ajoutée dans `fr.json` existe dans `en.json`, et l'inverse.
 8. **Argent** : aucun `parseFloat`, `toFixed`, `*100` ou `/100` sur un montant
    dans le diff. Les montants sont des entiers de centimes.
-9. **Tenant** : toute nouvelle table a `tenant_id`, RLS forcée, policies et index.
+9. **Tenant** : toute nouvelle table a `tenant_id`, RLS forcée, policies, index —
+    **et ses `grant` explicites**. Les privilèges par défaut du schéma ont été
+    retirés à `anon` et `authenticated` (D-006) : sans grant, la table est
+    inaccessible, ce qui est le bon défaut mais se diagnostique mal si on
+    l'ignore. `pnpm test:db` confronte droits et policies dans les deux sens.
 9bis. **Box active** : `pnpm lint` refuse déjà tout `.from('<table de box>')` hors
     `packages/core/src/supabase/` (règle `no-restricted-syntax` dans
     `eslint.config.mjs`). Ce qu'il reste à faire à la main, parce qu'aucune règle
