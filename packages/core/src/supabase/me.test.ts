@@ -5,6 +5,7 @@ import {
   MeSchema,
   REQUIRED_ACTIONS,
   chooseActiveTenant,
+  findMembershipBySlug,
   hasRequiredAction,
   type Me,
   type Membership,
@@ -118,6 +119,38 @@ describe('required_actions', () => {
         action,
       );
     }
+  });
+});
+
+describe('findMembershipBySlug', () => {
+  const me = MeSchema.parse(payload());
+
+  it('retrouve une box à soi par son slug', () => {
+    expect(findMembershipBySlug(me, 'crossfit-bastille')?.tenant_id).toBe(
+      'aaaaaaaa-0000-4000-8000-000000000001',
+    );
+  });
+
+  it('ne trouve rien pour une box où l’on n’est pas', () => {
+    // Le cas qui compte : la box existe et est active, mais elle n'est pas à
+    // nous. « Inconnue » et « refusée » doivent être indiscernables — c'est
+    // pourquoi la résolution passe par les appartenances et non par
+    // `tenant_public_profile()`, qui aurait répondu.
+    expect(findMembershipBySlug(me, 'crossfit-nanterre')).toBeNull();
+  });
+
+  it('ne trouve rien pour un slug inexistant', () => {
+    expect(findMembershipBySlug(me, 'nexiste-pas')).toBeNull();
+  });
+
+  it('est sensible à la casse, comme les slugs', () => {
+    // Les slugs sont contraints en minuscules par `create_tenant()` : accepter
+    // une variante de casse ferait exister deux URL pour la même box.
+    expect(findMembershipBySlug(me, 'CrossFit-Bastille')).toBeNull();
+  });
+
+  it('ne trouve rien quand on n’a aucune box', () => {
+    expect(findMembershipBySlug(MeSchema.parse(payload({ memberships: [] })), 'x')).toBeNull();
   });
 });
 

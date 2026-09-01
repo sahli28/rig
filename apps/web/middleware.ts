@@ -36,7 +36,42 @@ export async function middleware(request: NextRequest) {
   // `getUser()` et pas `getSession()` : seul le premier revalide le jeton
   // auprès du serveur d'authentification. `getSession()` se contente de relire
   // le cookie, qu'un client peut avoir écrit lui-même.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Aiguillage, ajouté par P1-001a. Deux règles, pas une de plus : le
+  // back-office exige une session, et l'écran de connexion n'a rien à dire à
+  // quelqu'un qui en a déjà une.
+  //
+  // Ce n'est **pas** la garde d'autorisation : les policies et
+  // `current_admin_tenant_ids()` refusent déjà tout à qui n'a rien à y faire.
+  // C'est de l'ergonomie — éviter une page vide là où une redirection est plus
+  // claire.
+  const { pathname, search } = request.nextUrl;
+
+  if (pathname.startsWith('/box') && user === null) {
+    const login = request.nextUrl.clone();
+    login.pathname = '/login';
+    login.search = '';
+    login.searchParams.set('next', `${pathname}${search}`);
+
+    // « Session expirée » seulement si elle a existé. Un cookie `sb-…` présent
+    // mais refusé par `getUser()`, c'est une session périmée ; aucun cookie,
+    // c'est une première visite — lui annoncer une expiration serait faux, et
+    // ce genre de message faux use la confiance dans tous les autres.
+    if (request.cookies.getAll().some((cookie) => cookie.name.startsWith('sb-'))) {
+      login.searchParams.set('erreur', 'session');
+    }
+    return NextResponse.redirect(login);
+  }
+
+  if (pathname === '/login' && user !== null) {
+    const home = request.nextUrl.clone();
+    home.pathname = '/';
+    home.search = '';
+    return NextResponse.redirect(home);
+  }
 
   return response;
 }

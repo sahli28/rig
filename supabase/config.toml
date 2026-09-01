@@ -159,7 +159,15 @@ site_url = "http://127.0.0.1:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+# Les deux hôtes **et** en `http` : `site_url` dit `127.0.0.1`, le serveur de
+# développement sert `localhost`, et Supabase compare l'URL de redirection à la
+# lettre — comme Google pour OAuth. La valeur d'origine était en `https`, ce qui
+# aurait fait rejeter tout lien magique web. Personne ne l'avait vu parce que
+# personne n'avait d'écran pour l'essayer (P1-001a).
+additional_redirect_urls = [
+  "http://localhost:3000/**",
+  "http://127.0.0.1:3000/**",
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 # 15 minutes (P0-005a) : un jeton volé — sauvegarde d'appareil, presse-papiers,
 # journal réseau — cesse de valoir quelque chose vite. Le rafraîchissement

@@ -77,9 +77,17 @@ interdit à Claude de lire ou d'écrire tout fichier `.env*`, et `.gitignore` ex
 les `.env.local`. Chaque framework lit le dossier de son app, pas la racine du
 monorepo — il faut donc **deux fichiers**.
 
-Les valeurs se lisent avec `pnpm exec supabase status`. La clé `anon` est publique
-par construction : elle part dans le bundle et ne donne accès qu'à ce que la RLS
+Les valeurs se lisent avec `pnpm exec supabase status`. La clé est publique par
+construction : elle part dans le bundle et ne donne accès qu'à ce que la RLS
 autorise. Ce n'est pas un secret.
+
+⚠️ Le CLI Supabase récent expose les **nouvelles** clés — `Publishable` et
+`Secret`, au format `sb_publishable_…` — et non plus les JWT `anon` /
+`service_role`. Mettre la clé **publishable** dans `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+et `EXPO_PUBLIC_SUPABASE_ANON_KEY` : `@supabase/ssr` 0.12 et `supabase-js` 2.112
+l'acceptent telle quelle, vérifié sur le parcours de connexion web complet. Le
+nom de la variable garde `ANON` pour ne pas casser l'existant ; c'est la seule
+incohérence, et elle est ici plutôt que dans une surprise.
 
 `apps/mobile/.env.local` :
 

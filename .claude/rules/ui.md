@@ -21,6 +21,30 @@ consomme les tokens en CSS** (ADR 0003). Il n'y a pas de composant partagé.
 **Ne jamais importer `@rig/ui/native` depuis `apps/web`** : cela embarquerait
 React Native dans le bundle Next et casserait le build.
 
+## La convention web (ADR 0005)
+
+**Radix Primitives** pour le comportement, **CSS Modules** pour la mise en forme.
+
+- Radix ne porte aucun style : il porte l'accessibilité — focus piégé,
+  échappement, clavier, `aria-*`, portail. C'est ce que la spec §12.2 dit de ne
+  jamais recoder en solo, et rien de plus.
+- Un fichier `.module.css` à côté de son composant. **Toute** couleur, tout
+  rayon, toute taille de texte, toute cible tactile vient d'une variable
+  `--rig-*` injectée par `themeToCssRule()`. Aucune valeur littérale.
+- Les paquets Radix s'installent **un par un, à l'usage**, justifiés au commit.
+- **Pas de Tailwind, pas de shadcn/ui** : ils apportent un second système de
+  thème à côté de `@rig/ui/theme`, et deux endroits où définir une couleur, c'est
+  la promesse white-label qui se casse — silencieusement, un `bg-slate-100` à la
+  fois.
+
+Chaque écran de back-office vit sous `/box/[slug]/…` : **la box active est dans
+l'URL**, jamais dans un contexte ni dans un cookie. Elle survit au
+rafraîchissement et au lien partagé, le rendu serveur la lit dans `params`, et
+une lecture croisée se voit dans la barre d'adresse. Le slug se résout **parmi
+ses propres appartenances** (`findMembershipBySlug`), jamais par
+`tenant_public_profile()` : « box inconnue » et « accès refusé » doivent rester
+indiscernables.
+
 ## White-label
 
 - **Aucune couleur littérale** (`#E4572E`, `rgb(...)`, `red`) dans un composant,
