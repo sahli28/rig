@@ -32,6 +32,33 @@ appelant n'est pas « faite », elle est en attente.
 L'écran de création de box appartient à ce ticket : c'est la première étape de la
 mise en route, avant les cinq autres.
 
+## Ce que ce ticket suppose et qui doit exister
+
+Section ajoutée le 2 septembre 2026 (règle 8 de `CLAUDE.md`), rétroactivement.
+Ce ticket en avait plus besoin que les autres : **son KPI le plus vendeur
+n'avait aucune source de données.**
+
+| Prérequis | Où il vit | État |
+| --------- | --------- | ---- |
+| `create_tenant()`, avec son quota et ses gardes | P0-004 | ✅ existe, **sans aucun appelant** depuis P0-004. Ce ticket est celui qui la rend « faite » |
+| Écran de réglages en cinq sections | P1-001b | ✅ existe — l'assistant les enchaîne, il ne les réécrit pas |
+| `locations`, `rooms`, `class_types`, `opening_hours` | P1-001b | ✅ existent — la checklist se dérive de leur **présence réelle**, pas d'un drapeau |
+| Invitations et annuaire des membres | P1-001c, D-001 | ✅ existent |
+| Marque de la box | P1-001e | ✅ existe |
+| **`classes` et `bookings`** (« taux de remplissage ») | P1-002, P1-003 | ❌ **à créer par P1-002 et P1-003** |
+| **`checkins`** (« présences ») | P1-008 | ❌ **à créer par P1-008.** Sans lui, « présences » voudrait dire « réservations » — ce n'est pas la même chose et il ne faut pas l'étiqueter ainsi |
+| **`ledger_entries` avec des écritures** (« CA du mois ») | table depuis P0-004, écrivains depuis P2-006 | ❌ **c'était le trou.** Le KPI le plus vendeur de l'écran n'avait aucune source, et le ticket ne le disait pas. `revenue_report()` est livré par **P2-016** — d'où l'ordre P2-004 → P2-016, et un état vide honnête tant que P2-016 n'est pas là |
+| **Un composant graphique** (« graphique 30 jours ») | `packages/ui` | ❌ **à créer, ou à éviter.** Même arbitrage qu'en P2-016 : un tableau juste vaut mieux qu'une courbe approximative, et ajouter une bibliothèque de graphiques se justifie dans le message de commit |
+| Tests de rendu des composants | D-002 (dette ouverte) | ⚠️ **absente** |
+
+## Ce que ce ticket rend possible, et qui l'appellera
+
+| Ce que je livre | Appelé par | Ticket |
+| --------------- | ---------- | ------ |
+| L'écran de création de box | la personne qui s'inscrit | celui-ci — **c'est l'appelant manquant de `create_tenant()`**, nommé par la règle 7 |
+| La checklist dérivée de l'état réel | le dashboard | celui-ci |
+| Le bloc « CA du mois » | — | il **consomme** `revenue_report()`, livré par **P2-016** |
+
 ## Périmètre
 
 - Box Dashboard : KPI (CA, membres actifs, taux de remplissage, churn), alertes,

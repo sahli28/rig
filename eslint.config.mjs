@@ -15,6 +15,12 @@ export default tseslint.config(
       'supabase/.branches/**',
       // Généré par Next à chaque build, jamais édité à la main.
       '**/next-env.d.ts',
+      // Outillage d'un assistant tiers, transposé de `.claude/` par une session
+      // parallèle. On reste sur Claude Code : ces fichiers sont ignorés par git
+      // (voir `.gitignore`) et ne doivent pas non plus passer le linter, dont la
+      // configuration ne connaît ni `process` ni `console` hors contexte Node.
+      '.codex/**',
+      '.agents/**',
     ],
   },
   js.configs.recommended,
