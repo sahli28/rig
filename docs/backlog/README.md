@@ -18,7 +18,8 @@ Estimations en **jours-homme de 7 h effectives**. À 15–20 h/semaine, compter
 ```
 P0-001 → P0-002 → P0-003 → P0-004                 (socle, rien de visible)
 P0-005a → P0-005b                                 (connexion, puis SSO)
-P1-001 → P1-002 → P1-003 → P1-004 → P1-005        (planning et réservation)
+P1-001a → P1-001b → P1-001c → P1-001d             (back-office box)
+P1-002 → P1-003 → P1-004 → P1-005                 (planning et réservation)
 P1-007 → P1-006 → P1-008                          (push, waitlist, check-in)
                      ↓
         ═══ JALON : mise en production chez la box pilote ═══
@@ -44,7 +45,11 @@ mieux qu'un MVP parfait au mois 13.
 | P0-004 | Schéma de base, RLS, test anti-fuite |      6 | ✅ fusionné (PR #4)  |
 | P0-005a | Se connecter — code, session, `me()` |      6 | ✅ fusionné (PR #6) — reste la passe sur appareil |
 | P0-005b | SSO Google et linking d'identités    |      4 | à faire              |
-| P1-001 | Réglages box, salles, types de cours |      4 | à faire              |
+| P1-001a | Porte d'entrée du back-office web   |    2,5 | ✅ fusionné (PR #11) |
+| P1-001b | Réglages box, horaires, types de cours |   3 | à faire              |
+| P1-001c | Staff & Roles                       |      2 | à faire              |
+| P1-001d | Import CSV de membres               |      3 | à faire              |
+| P1-001e | Apparence de la box (branding)      |      1 | à faire — avant la première démo |
 | P1-002 | Planning récurrent (RRULE)           |      7 | à faire              |
 | P1-003 | Réservation transactionnelle         |      8 | à faire              |
 | P1-004 | Annulation et fenêtres               |      4 | à faire              |
@@ -52,10 +57,17 @@ mieux qu'un MVP parfait au mois 13.
 | P1-006 | Liste d'attente et promotion         |      6 | à faire              |
 | P1-007 | Notifications push                   |      4 | à faire              |
 | P1-008 | Check-in QR et mode kiosque          |      6 | à faire              |
-|        | **Total jusqu'au jalon pilote**      | **67** |                      |
+|        | **Total jusqu'au jalon pilote**      | **74,5** |                    |
 
 Le total passe de 62 à 67 j·h : P0-005 était estimé 5, l'inventaire en a montré
 ~17, dont 8 déplacés en P2. Ce qui reste avant le jalon pilote est donc 10, pas 5.
+
+Puis de 67 à 74,5 : **P1-001 valait 11,5 j·h, pas 4.** L'estimation d'origine
+omettait la porte d'entrée du back-office (livrée en P1-001a — `apps/web` n'avait
+aucun écran de connexion), la migration `class_types` qui n'existait pas en base,
+un import CSV qui vaut 3 j·h à lui seul, et l'écran de branding sans lequel
+`create_tenant()` laisse chaque box à la couleur d'exemple de la spec. Le détail
+est dans `P1-001-reglages-box.md`, qui devient l'archive du ticket d'origine.
 
 ### Avant la publication sur les stores
 
@@ -63,6 +75,12 @@ Le total passe de 62 à 67 j·h : P0-005 était estimé 5, l'inventaire en a mon
 | ------ | --------------------------------------- | --: | ------------------ |
 | P2-002 | Droits RGPD en self-service             |   5 | Obligation légale, pas préalable à la connexion. Conditionné à `docs/procedures/effacement-manuel.md` pendant le pilote. |
 | P2-003 | Sign in with Apple                      |   3 | Bloquant de publication. Prérequis administratif à lancer dès maintenant. |
+
+### Avant la vente en self-service
+
+| Ticket | Titre                                   | j·h | Pourquoi pas avant |
+| ------ | --------------------------------------- | --: | ------------------ |
+| P2-004 | Dashboard box et mise en route          |   4 | L'assistant remplace la personne qui accompagne. Au pilote, cette personne est la développeuse. Recueille les deux critères de P1-001 qui pointaient vers un écran qu'aucun ticket ne portait. |
 
 ### Dette convertie en tickets
 

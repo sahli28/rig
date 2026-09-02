@@ -37,6 +37,21 @@ React Native dans le bundle Next et casserait le build.
   la promesse white-label qui se casse — silencieusement, un `bg-slate-100` à la
   fois.
 
+### Les écritures du back-office passent par des Server Actions
+
+La session vient du cookie, la RLS s'applique, Zod valide côté serveur, et le
+formulaire fonctionne sans JavaScript client. Le `tenant_id` se **redérive de la
+session** à partir du slug de l'URL — jamais d'un champ de formulaire.
+
+Deux pièges payés en P1-001b :
+
+- **un fichier `'use server'` ne peut exporter que des fonctions asynchrones.**
+  Y laisser une constante — même un simple état initial — passe le typecheck et
+  casse le rendu à l'exécution. Les constantes et les types partagés vont dans un
+  module voisin (`action-state.ts`) ;
+- **une action rend une clé i18n, jamais un message.** `{ status, key }`, traduit
+  à l'affichage — le client réagit au code, pas au texte (`.claude/rules/api.md`).
+
 Chaque écran de back-office vit sous `/box/[slug]/…` : **la box active est dans
 l'URL**, jamais dans un contexte ni dans un cookie. Elle survit au
 rafraîchissement et au lien partagé, le rendu serveur la lit dans `params`, et

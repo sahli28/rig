@@ -1,4 +1,4 @@
-# Point de reprise — 1er septembre 2026
+# Point de reprise — 2 septembre 2026
 
 À lire en premier. Ce fichier disparaît quand la dernière case de
 `docs/backlog/P0-005a-connexion.md` sera cochée — avec le paragraphe de
@@ -10,10 +10,10 @@
 
 | | |
 | --- | --- |
-| `main` | `76919f1` — P0-001 à P0-004, **P0-005a**, **D-001**, **D-006**, **D-005** fusionnés |
-| Branche en cours | `feat/P1-001a-porte-back-office`, 2 commits, **poussée, à fusionner** |
-| Tests | **195 pgTAP** (13 fichiers) · **158 Vitest** · lint, typecheck, i18n (134 clés), format verts |
-| Migrations | 12 |
+| `main` | `a27d3b6` — P0-001 à P0-004, **P0-005a**, **D-001**, **D-006**, **D-005**, **P1-001a** fusionnés |
+| Branche en cours | `feat/P1-001b-reglages-box`, **à pousser et à fusionner** |
+| Tests | **229 pgTAP** (14 fichiers) · **191 Vitest** · lint, typecheck, i18n (221 clés), format verts |
+| Migrations | 16 |
 
 **Fusionner avec un merge commit, jamais en squash.** Le squash a cassé trois
 fois (PR #3, #4, #5) : il coupe le lien d'ascendance et toute branche empilée
@@ -70,6 +70,17 @@ remplacer `"Read(./.env.*)"` et `"Read(./**/.env.*)"` par `"Read(./**/.env)"`,
 `"Read(./**/.env.local)"`, `"Read(./**/.env.*.local)"`. En attendant, le README
 porte le contenu exact.
 
+### Ce que P1-001b a livré
+
+L'écran `/box/[slug]/reglages` en cinq sections — identité, horaires, salles,
+règles de réservation, types de cours — et les deux tables qui manquaient :
+`class_types` (que P1-002 attend) et `opening_hours`. Plus
+`tenants.default_locale`, exposée par `me()`.
+
+**Le découpage de P1-001 existe enfin en fichiers** : P1-001a à P1-001e et
+P2-004 sont dans `docs/backlog/`, et le tableau de son README est à jour. Il ne
+vivait jusqu'ici que dans une section du ticket d'origine.
+
 ## 3. La suite du backlog
 
 `P1-001` a été ré-estimé et découpé (voir la fin de son fichier) : les 4 j·h
@@ -78,9 +89,11 @@ pas, et un import CSV qui vaut 2 à 3 j·h seul.
 
 | Ticket | Contenu | j·h |
 | --- | --- | ---: |
-| **P1-001b** | `class_types` + Box Settings : infos, horaires, salles, règles | 3 |
+| ~~P1-001b~~ | réglages box — **fait**, à fusionner | 3 |
 | **P1-001c** | Staff & Roles : annuaire, invitations, changement de rôle | 2 |
 | **P1-001d** | Import CSV de membres | 3 |
+| **P1-001e** | Apparence de la box — **avant la première démo** : `create_tenant()` fige chaque box sur la couleur d'exemple de la spec, et aucun écran ne l'écrit | 1 |
+| **P2-004** | Dashboard box et mise en route — recueille les deux critères orphelins de P1-001 | 4 |
 
 Les dépendances de P1-001c sont **déjà livrées** : D-001 a construit
 `member_admin_directory`, D-005 l'API `create_invitation()`. C'était leur raison
@@ -90,7 +103,7 @@ Dettes ouvertes : **D-002** (tests de rendu), **D-003** (SSR de l'i18n),
 **D-004** (langue mobile — plus bloquée, le profil serveur existe), **D-007**
 (contraste de la page de démo), **D-008** (deep link, attend un domaine et Apple).
 
-## 4. Ce que P1-001a a établi, et qu'il ne faut pas re-litiger
+## 4. Ce que P1-001a et P1-001b ont établi, et qu'il ne faut pas re-litiger
 
 - **ADR 0005** : Radix Primitives pour le comportement, CSS Modules pour la
   forme. Pas de Tailwind, pas de shadcn/ui — ils apportent un second système de
@@ -102,6 +115,16 @@ Dettes ouvertes : **D-002** (tests de rendu), **D-003** (SSR de l'i18n),
   inconnue » et « accès refusé » restent indiscernables par construction.
 - **La garde de rôle de la coquille est de l'ergonomie, pas de la sécurité.** Les
   policies et `current_admin_tenant_ids()` refusent déjà tout à un MEMBER.
+- **La frontière OWNER / MANAGER se coupe par table, pas par colonne** (P1-001b,
+  troisième fois que la question se pose) : `tenants` — nom, slug, fuseau,
+  devise, langue — au seul propriétaire ; `tenant_settings`, `opening_hours`,
+  `locations`, `rooms`, `class_types` au gestionnaire aussi. À l'écran, le bloc
+  identité est en lecture seule **avec la phrase qui l'explique**.
+- **`opening_hours` est une table, pas un `jsonb`** : P1-002 la joindra dans une
+  fonction PLpgSQL. Ses heures sont des `time` **nus**, en heure locale de la
+  box — jamais `timetz`, jamais UTC. Le chevauchement de deux créneaux n'est
+  **pas** garanti par la base : il vit dans `overlappingSlots()`, et la migration
+  le dit.
 
 ## 5. Pièges d'environnement
 
@@ -137,6 +160,20 @@ lit `/tmp`.
 
 **pnpm** est installé au niveau utilisateur (`corepack enable` échoue faute de
 droits admin).
+
+**Après un `db:reset`, la session du navigateur est morte** et la première
+requête peut échouer en `PGRST303 « JWT issued at future »` — décalage d'horloge
+entre le conteneur Postgres et l'hôte. Se reconnecter, ou attendre quelques
+secondes et recharger.
+
+**Un fichier `'use server'` ne peut exporter que des fonctions asynchrones.** Y
+laisser une constante passe le typecheck et casse le rendu à l'exécution, sur un
+message qui ne nomme pas le coupable. Constantes et types dans un module voisin.
+
+**`tenantScope().select()` ne prend pas de liste de colonnes.** La rendre
+générique pour que PostgREST type les lignes fait exploser `tsc` en « heap out of
+memory » : il instancie l'analyseur de colonnes pour chaque table de l'union.
+Mesuré. Toutes colonnes, et une **vue** le jour où ça ne suffira plus.
 
 ## 6. Le contexte qui compte
 

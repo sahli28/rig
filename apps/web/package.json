@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.24",
+    "@radix-ui/react-tabs": "^1.1.21",
     "@rig/core": "workspace:*",
     "@rig/ui": "workspace:*",
     "@supabase/ssr": "^0.12.5",

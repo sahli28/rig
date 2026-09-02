@@ -61,6 +61,8 @@ export const CurrentTenantSchema = z.object({
   /** Fuseau de la box : toute règle métier locale s'y calcule (CLAUDE.md, règle 9). */
   timezone: z.string(),
   currency: z.string(),
+  /** Langue employée tant que la personne n'en a pas choisi une (P1-001b). */
+  default_locale: z.string(),
   role: z.enum(MEMBERSHIP_ROLES),
   theme: TenantThemeSchema,
   booking_rules: BookingRulesSchema,

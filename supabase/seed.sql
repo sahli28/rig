@@ -76,6 +76,46 @@ insert into public.rooms (id, tenant_id, location_id, name, capacity) values
   ('b2000000-0000-4000-8000-000000000001', 'bbbbbbbb-0000-4000-8000-000000000001', 'b1000000-0000-4000-8000-000000000001', 'Salle principale', 20);
 
 -- ---------------------------------------------------------------------------
+-- Référentiel de la box — types de cours et horaires d'ouverture
+-- ---------------------------------------------------------------------------
+
+-- Des lignes **des deux côtés**, comme partout ailleurs dans ce seed : un test
+-- d'isolation qui passe sur des données à sens unique ne prouve rien.
+insert into public.class_types (id, tenant_id, name_i18n, description_i18n, duration_minutes, color, default_capacity) values
+  ('a4000000-0000-4000-8000-000000000001', 'aaaaaaaa-0000-4000-8000-000000000001',
+   '{"fr": "WOD", "en": "WOD"}', '{"fr": "Le cours du jour.", "en": "Workout of the day."}', 60, '#E4572E', 16),
+  ('a4000000-0000-4000-8000-000000000002', 'aaaaaaaa-0000-4000-8000-000000000001',
+   '{"fr": "Haltérophilie", "en": "Weightlifting"}', null, 90, '#2E4057', 10),
+  ('a4000000-0000-4000-8000-000000000003', 'aaaaaaaa-0000-4000-8000-000000000001',
+   '{"fr": "Open gym", "en": "Open gym"}', null, 120, '#4C956C', 20),
+  ('b4000000-0000-4000-8000-000000000001', 'bbbbbbbb-0000-4000-8000-000000000001',
+   '{"fr": "WOD", "en": "WOD"}', null, 60, '#16457A', 20),
+  ('b4000000-0000-4000-8000-000000000002', 'bbbbbbbb-0000-4000-8000-000000000001',
+   '{"fr": "Hyrox", "en": "Hyrox"}', '{"fr": "Préparation Hyrox.", "en": "Hyrox prep."}', 75, '#8C1C13', 12);
+
+-- Heures **locales de la box** (tenants.timezone), jamais UTC — cf. le
+-- commentaire de la migration. 0 = lundi, 6 = dimanche ; un jour sans ligne est
+-- un jour fermé.
+--
+-- Rueil ferme le midi le lundi : c'est le seul endroit du seed où le cas « deux
+-- créneaux le même jour » existe, et c'est celui qui casse une modélisation en
+-- une seule paire d'heures par jour.
+insert into public.opening_hours (id, tenant_id, weekday, opens_at, closes_at) values
+  ('a5000000-0000-4000-8000-000000000001', 'aaaaaaaa-0000-4000-8000-000000000001', 0, '06:00', '13:00'),
+  ('a5000000-0000-4000-8000-000000000002', 'aaaaaaaa-0000-4000-8000-000000000001', 0, '16:00', '21:30'),
+  ('a5000000-0000-4000-8000-000000000003', 'aaaaaaaa-0000-4000-8000-000000000001', 1, '06:00', '21:30'),
+  ('a5000000-0000-4000-8000-000000000004', 'aaaaaaaa-0000-4000-8000-000000000001', 2, '06:00', '21:30'),
+  ('a5000000-0000-4000-8000-000000000005', 'aaaaaaaa-0000-4000-8000-000000000001', 3, '06:00', '21:30'),
+  ('a5000000-0000-4000-8000-000000000006', 'aaaaaaaa-0000-4000-8000-000000000001', 4, '06:00', '20:00'),
+  ('a5000000-0000-4000-8000-000000000007', 'aaaaaaaa-0000-4000-8000-000000000001', 5, '09:00', '13:00'),
+  ('b5000000-0000-4000-8000-000000000001', 'bbbbbbbb-0000-4000-8000-000000000001', 0, '07:00', '20:00'),
+  ('b5000000-0000-4000-8000-000000000002', 'bbbbbbbb-0000-4000-8000-000000000001', 1, '07:00', '20:00'),
+  ('b5000000-0000-4000-8000-000000000003', 'bbbbbbbb-0000-4000-8000-000000000001', 2, '07:00', '20:00'),
+  ('b5000000-0000-4000-8000-000000000004', 'bbbbbbbb-0000-4000-8000-000000000001', 3, '07:00', '20:00'),
+  ('b5000000-0000-4000-8000-000000000005', 'bbbbbbbb-0000-4000-8000-000000000001', 4, '07:00', '20:00'),
+  ('b5000000-0000-4000-8000-000000000006', 'bbbbbbbb-0000-4000-8000-000000000001', 5, '10:00', '12:00');
+
+-- ---------------------------------------------------------------------------
 -- Appartenances — Julie est dans les DEUX boxes, c'est le cas qui compte
 -- ---------------------------------------------------------------------------
 

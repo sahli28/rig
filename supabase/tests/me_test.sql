@@ -4,7 +4,7 @@
 -- réellement à empêcher toute divulgation, sans contrôle réécrit dans la fonction.
 
 begin;
-select plan(16);
+select plan(17);
 
 -- ---------------------------------------------------------------------------
 -- Léa — membre d'une seule box, profil complet, consentements du seed
@@ -59,6 +59,15 @@ select is(
   (select (public.me('aaaaaaaa-0000-4000-8000-000000000001') -> 'current_tenant' -> 'booking_rules' ->> 'cancel_window_minutes')::int),
   240,
   'les règles de réservation aussi'
+);
+
+-- La langue par défaut de la box voyage avec le fuseau et la devise : elles
+-- répondent à la même question — dans quelle langue, à quelle heure et dans
+-- quelle monnaie s'adresse-t-on à quelqu'un dont on ne sait rien encore.
+select is(
+  (select public.me('aaaaaaaa-0000-4000-8000-000000000001') -> 'current_tenant' ->> 'default_locale'),
+  'fr',
+  'la langue par défaut de la box est exposée, pas seulement stockée'
 );
 
 -- ---------------------------------------------------------------------------

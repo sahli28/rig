@@ -75,7 +75,7 @@ create policy <table>_tenant_write on <table> for all to authenticated
 Le `(select …)` autour de l'appel n'est pas cosmétique : il permet à Postgres de
 mettre le résultat en cache d'initplan au lieu de le réévaluer à chaque ligne.
 
-### Onze pièges déjà payés, à ne pas repayer
+### Douze pièges déjà payés, à ne pas repayer
 
 Chacun a coûté un aller-retour d'audit sur le ticket P0-004. Ils sont ici plutôt
 que dans le ticket parce qu'un ticket clos ne se relit jamais.
@@ -140,6 +140,15 @@ que dans le ticket parce qu'un ticket clos ne se relit jamais.
     d'annulation : un MEMBER faisait pire en changeant le fuseau qu'en touchant
     `cancel_window_minutes`. Après avoir gardé une table, faire l'inventaire de
     celles qui portent la même donnée sous un autre nom.
+
+12. **Une contrainte CHECK qui s'évalue à NULL passe.** Écrite
+    `check (jsonb_typeof(name_i18n -> 'fr') = 'string')`, la contrainte
+    censée imposer un nom français **acceptait** `{"en": "…"}` : la clé absente
+    rend l'opérateur NULL, la comparaison NULL, et PostgreSQL ne rejette une
+    ligne que sur un `false` franc. Commencer par un terme qui rend un booléen —
+    `name_i18n -> 'fr' is not null and …` — parce que `false and null` vaut
+    `false`. Trouvé par un test, pas par la relecture : la contrainte se lisait
+    juste.
 
 ### La RLS ne borne pas les colonnes
 
@@ -268,7 +277,7 @@ Contraintes qui doivent exister et ne jamais être retirées :
 
 ## Énumérer les sœurs
 
-C'est le douzième piège, et le plus rentable : **cinq des cinq trous trouvés
+C'est le treizième piège, et le plus rentable : **cinq des cinq trous trouvés
 depuis P0-004 ont la même forme — un chemin bien gardé, et son jumeau oublié.**
 
 | Gardé | Oublié | Ce que ça donnait |

@@ -44,6 +44,17 @@ export type TenantScopedView = {
 export type TenantScopedRelation = TenantScopedTable | TenantScopedView;
 
 /**
+ * Ce qu'un appelant fournit à `insert` : la ligne **sans** son `tenant_id`.
+ *
+ * Il reste accepté — un objet relu depuis la base en porte un — mais il n'est
+ * plus exigé, et il est de toute façon écrasé. Le demander revenait à faire
+ * écrire par chaque appelant la valeur dont ce helper existe pour le dispenser.
+ */
+export type TenantInsert<T extends TenantScopedTable> = Omit<Tables[T]['Insert'], 'tenant_id'> & {
+  tenant_id?: string;
+};
+
+/**
  * Lie un client à une box. Toute lecture ou écriture d'une table de box passe
  * par l'objet rendu ; `client.from(…)` en direct est à considérer comme un
  * oubli de filtre jusqu'à preuve du contraire.
@@ -65,9 +76,22 @@ export function tenantScope(client: RigClient, tenantId: string) {
   return {
     tenantId,
 
-    /** `select` filtré sur la box active. */
-    select<T extends TenantScopedTable>(table: T, columns = '*') {
-      return whereTenant(client.from(table).select(columns), tenantId);
+    /**
+     * `select` filtré sur la box active, **toutes colonnes**.
+     *
+     * Pas de liste de colonnes : la rendre générique pour que PostgREST sache
+     * typer les lignes fait exploser `tsc` — il instancie l'analyseur de
+     * colonnes pour chaque table de l'union, et le typecheck meurt en
+     * « heap out of memory ». Mesuré, pas supposé.
+     *
+     * Ce que ça coûte : quelques colonnes de trop sur des tables de réglages.
+     * Ce que ça évite : des lignes typées `GenericStringError` et un
+     * transtypage à chaque écran. Le jour où une table portera une colonne
+     * lourde ou sensible, la réponse sera une **vue**, pas une projection
+     * passée en chaîne.
+     */
+    select<T extends TenantScopedTable>(table: T) {
+      return whereTenant(client.from(table).select('*'), tenantId);
     },
 
     /**
@@ -91,8 +115,23 @@ export function tenantScope(client: RigClient, tenantId: string) {
      *
      * Sœur de `select()`, avec le seul filtre qui ait un sens ici.
      */
-    currentTenant(columns = '*') {
-      return client.from('tenants').select(columns).eq('id', tenantId).maybeSingle();
+    currentTenant() {
+      return client.from('tenants').select('*').eq('id', tenantId).maybeSingle();
+    },
+
+    /**
+     * Écrit la box active. Sœur de `currentTenant()`, et elle manquait :
+     * l'écran de réglages, premier à modifier une box, a dû passer par
+     * `client.from('tenants')` en direct — que la règle ESLint a arrêté, ce
+     * qui est exactement son rôle.
+     *
+     * `id` est retiré du patch, pour la même raison que `tenant_id` l'est de
+     * `update()` : filtrer dit quelles lignes sont modifiables, ça n'empêche
+     * pas d'en réécrire la clé.
+     */
+    updateCurrentTenant(patch: Tables['tenants']['Update']) {
+      const { id: _immuable, ...safe } = patch;
+      return client.from('tenants').update(safe).eq('id', tenantId);
     },
 
     /**
@@ -100,10 +139,7 @@ export function tenantScope(client: RigClient, tenantId: string) {
      * de l'appelant est écrasée, pour qu'une ligne ne puisse pas atterrir dans
      * une autre box par recopie d'un objet.
      */
-    insert<T extends TenantScopedTable>(
-      table: T,
-      values: Tables[T]['Insert'] | Tables[T]['Insert'][],
-    ) {
+    insert<T extends TenantScopedTable>(table: T, values: TenantInsert<T> | TenantInsert<T>[]) {
       const rows = (Array.isArray(values) ? values : [values]).map((row) => ({
         ...row,
         tenant_id: tenantId,

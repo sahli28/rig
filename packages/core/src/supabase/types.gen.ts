@@ -72,6 +72,53 @@ export type Database = {
           },
         ];
       };
+      class_types: {
+        Row: {
+          color: string;
+          created_at: string;
+          default_capacity: number;
+          deleted_at: string | null;
+          description_i18n: Json | null;
+          duration_minutes: number;
+          id: string;
+          name_i18n: Json;
+          tenant_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          color?: string;
+          created_at?: string;
+          default_capacity: number;
+          deleted_at?: string | null;
+          description_i18n?: Json | null;
+          duration_minutes: number;
+          id?: string;
+          name_i18n: Json;
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          color?: string;
+          created_at?: string;
+          default_capacity?: number;
+          deleted_at?: string | null;
+          description_i18n?: Json | null;
+          duration_minutes?: number;
+          id?: string;
+          name_i18n?: Json;
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'class_types_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       consents: {
         Row: {
           created_at: string;
@@ -383,6 +430,47 @@ export type Database = {
           },
         ];
       };
+      opening_hours: {
+        Row: {
+          closes_at: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          opens_at: string;
+          tenant_id: string;
+          updated_at: string;
+          weekday: number;
+        };
+        Insert: {
+          closes_at: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          opens_at: string;
+          tenant_id: string;
+          updated_at?: string;
+          weekday: number;
+        };
+        Update: {
+          closes_at?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          opens_at?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          weekday?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'opening_hours_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       processed_webhook_events: {
         Row: {
           event_id: string;
@@ -495,6 +583,7 @@ export type Database = {
           country: string;
           created_at: string;
           currency: string;
+          default_locale: string;
           deleted_at: string | null;
           id: string;
           name: string;
@@ -507,6 +596,7 @@ export type Database = {
           country?: string;
           created_at?: string;
           currency?: string;
+          default_locale?: string;
           deleted_at?: string | null;
           id?: string;
           name: string;
@@ -519,6 +609,7 @@ export type Database = {
           country?: string;
           created_at?: string;
           currency?: string;
+          default_locale?: string;
           deleted_at?: string | null;
           id?: string;
           name?: string;
