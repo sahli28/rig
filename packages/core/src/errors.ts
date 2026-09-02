@@ -32,6 +32,10 @@ export const APP_ERROR_CODES = [
   'EMAIL_ALREADY_REGISTERED',
   'EMAIL_IMMUTABLE',
   'FORBIDDEN_ROLE',
+  'IMPORT_EMPTY',
+  'IMPORT_INVALID_ROW',
+  'IMPORT_TOO_LARGE',
+  'INVITATION_ALREADY_PENDING',
   'INVITATION_ALREADY_USED',
   'INVITATION_EMAIL_MISMATCH',
   'INVITATION_EXPIRED',
@@ -92,6 +96,7 @@ export const ERROR_MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   INVITATION_NOT_FOUND: 'errors.invitation_not_found',
   INVITATION_EXPIRED: 'errors.invitation_expired',
   INVITATION_ALREADY_USED: 'errors.invitation_already_used',
+  INVITATION_ALREADY_PENDING: 'errors.invitation_already_pending',
   INVITATION_EMAIL_MISMATCH: 'errors.invitation_email_mismatch',
 
   // Appartenance et rôles
@@ -114,6 +119,11 @@ export const ERROR_MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   TENANT_QUOTA_REACHED: 'errors.tenant_quota_reached',
   CURRENCY_LOCKED: 'errors.currency_locked',
   TENANT_WOULD_BE_ORPHANED: 'errors.tenant_would_be_orphaned',
+
+  // Import d'effectif (P1-001d)
+  IMPORT_EMPTY: 'errors.import_empty',
+  IMPORT_INVALID_ROW: 'errors.import_invalid_row',
+  IMPORT_TOO_LARGE: 'errors.import_too_large',
 
   // Réservation — la base ne les lève pas encore, l'API les rendra en P1
   CLASS_FULL: 'errors.class_full',

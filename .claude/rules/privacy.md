@@ -57,6 +57,18 @@ chaque session.
   réimprimer une affiche, c'est émettre un nouveau QR et jeter les anciennes.
   Un dump livrerait sinon la possibilité de rejoindre n'importe quelle box à
   distance — ce que l'affiche physique, elle, n'autorise pas.
+- **Un fichier importé ne quitte jamais le navigateur.** Le CSV d'effectif est
+  décodé, analysé et mappé côté client ; seules les lignes retenues, **et les
+  colonnes qu'on importe**, partent au serveur. Un export de logiciel de gestion
+  porte des numéros de licence, des dates de naissance, des montants : rien de
+  tout cela n'a de destination ici.
+  Conséquence à ne pas défaire : le fichier n'est **jamais** stocké, journalisé,
+  ni déposé dans un répertoire temporaire. Le jour où quelqu'un proposera « de
+  téléverser le fichier dans Storage pour pouvoir rejouer un import », c'est
+  cette propriété qu'il annulera.
+- **Le journal d'un import porte des nombres, pas des adresses** — et une seule
+  entrée pour tout le lot. `audit_logs` est append-only : ce qui y entre par
+  erreur n'en sort plus.
 - Tout consentement est écrit dans `consents` avec sa version de politique et son horodatage.
   Un consentement se retire aussi simplement qu'il se donne.
 - Une suppression de compte anonymise réellement à J+30 et conserve les écritures

@@ -40,12 +40,14 @@ exception when others then
 end;
 $$;
 
-insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
-  ('aaaaaaaa-0000-4000-8000-000000000001', 'lea@example.com', 'MEMBER', encode(extensions.digest('tok-perime','sha256'),'hex'),
-   now() - interval '1 day'),
-  ('aaaaaaaa-0000-4000-8000-000000000001', 'lea@example.com', 'MEMBER', encode(extensions.digest('tok-consomme','sha256'),'hex'),
-   now() + interval '7 days');
-update public.invitations set status = 'ACCEPTED' where token_hash = encode(extensions.digest('tok-consomme','sha256'),'hex');
+-- Le statut est posé **à l'insertion** : depuis P1-001d, un index unique
+-- partiel interdit deux invitations `PENDING` pour la même personne dans la même
+-- box, et la fixture d'origine en créait deux avant d'en marquer une acceptée.
+insert into public.invitations (tenant_id, email, role, status, token_hash, expires_at) values
+  ('aaaaaaaa-0000-4000-8000-000000000001', 'lea@example.com', 'MEMBER', 'PENDING',
+   encode(extensions.digest('tok-perime','sha256'),'hex'), now() - interval '1 day'),
+  ('aaaaaaaa-0000-4000-8000-000000000001', 'lea@example.com', 'MEMBER', 'ACCEPTED',
+   encode(extensions.digest('tok-consomme','sha256'),'hex'), now() + interval '7 days');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';

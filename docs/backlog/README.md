@@ -48,7 +48,7 @@ mieux qu'un MVP parfait au mois 13.
 | P1-001a | Porte d'entrée du back-office web   |    2,5 | ✅ fusionné (PR #11) |
 | P1-001b | Réglages box, horaires, types de cours |   3 | ✅ fusionné (PR #12) |
 | P1-001c | Staff & Roles, page d'invitation, journal d'audit | 3,75 | ✅ fusionné (PR #13) |
-| P1-001d | Import CSV de membres               |      3 | à faire              |
+| P1-001d | Import CSV de membres               |      4 | ✅ fait, à fusionner |
 | P1-001e | Apparence de la box (branding)      |      1 | ✅ fait, à fusionner |
 | P1-001f | Logo et couche Storage              |      1 | à faire — après la première démo |
 | P1-002 | Planning récurrent (RRULE)           |      7 | à faire              |
@@ -58,7 +58,7 @@ mieux qu'un MVP parfait au mois 13.
 | P1-006 | Liste d'attente et promotion         |      6 | à faire              |
 | P1-007 | Notifications push                   |      4 | à faire              |
 | P1-008 | Check-in QR et mode kiosque          |      6 | à faire              |
-|        | **Total jusqu'au jalon pilote**      | **77,25** |                   |
+|        | **Total jusqu'au jalon pilote**      | **78,25** |                   |
 
 Le total passe de 62 à 67 j·h : P0-005 était estimé 5, l'inventaire en a montré
 ~17, dont 8 déplacés en P2. Ce qui reste avant le jalon pilote est donc 10, pas 5.
