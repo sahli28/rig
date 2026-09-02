@@ -71,3 +71,35 @@ valident leurs préconditions elles-mêmes.
 
 Toute nouvelle table est un moment à risque. D'où le sous-agent `rls-auditor`
 et le hook qui protège les migrations déjà appliquées.
+
+## Amendement — 2026-09-02, réconciliation spec ↔ backlog
+
+**La box active se résout par le chemin `/box/[slug]/…`, pas par un
+sous-domaine.** L'écart avec la spec (§2.2 M2 « création de box, **sous-domaine**,
+RLS » et §7.4 « en-tête `X-Tenant-Id`, ou sous-domaine côté web ») a été fait en
+P1-001a et jamais consigné. Il l'est ici.
+
+Le sous-domaine n'a pas été écarté pour son coût — DNS générique et certificat
+générique sont peu de travail — mais parce qu'il **fuit l'existence des boxes**.
+Un sous-domaine est observable au DNS par n'importe qui : `crossfit-lyon-7.rig.app`
+résout ou ne résout pas, avant toute authentification, et l'énumération est
+triviale.
+
+Le chemin, lui, se résout **parmi les appartenances de l'appelant**
+(`findMembershipBySlug`) et jamais par `tenant_public_profile()`. Conséquence
+directe : « cette box n'existe pas » et « vous n'avez pas accès à cette box »
+rendent la **même** réponse, et restent indiscernables par construction — pas par
+discipline de code. C'est exactement ce qu'un sous-domaine rend impossible.
+
+Ce que l'amendement ne dit pas :
+
+- il ne ferme pas la porte à un sous-domaine **vanity** pour les pages publiques
+  (page de vitrine, invitation), qui ne portent aucune donnée de membre et dont
+  l'existence est de toute façon publique ;
+- le white-label N2 (C1, v2) ré-ouvrira la question, mais sur un domaine par box,
+  ce qui est un autre problème.
+
+L'en-tête `X-Tenant-Id` de §7.4 n'existe pas davantage, et pour la même raison
+que le garde-fou n°2 : les droits se dérivent de l'identité, jamais d'un
+paramètre client. Un en-tête de tenant serait au mieux redondant, au pire
+interprété un jour comme une autorisation.

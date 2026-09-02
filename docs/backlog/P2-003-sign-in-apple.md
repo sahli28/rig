@@ -19,6 +19,28 @@ le texte évolue.
 critique dont le délai ne se rattrape pas : l'inscription doit être lancée bien
 avant ce ticket, idéalement dès P0-005.
 
+## Ce que ce ticket suppose et qui doit exister
+
+Section ajoutée le 2 septembre 2026 (règle 8 de `CLAUDE.md`), rétroactivement.
+
+| Prérequis | Où il vit | État |
+| --------- | --------- | ---- |
+| Magic link, session, `me()` | P0-005a | ✅ existe |
+| **SSO Google et le linking d'identités** | P0-005b | ❌ **à créer par P0-005b**, lui-même bloqué sur trois `client_id` Google. Le linking s'écrit une fois, là-bas ; ici on branche un second fournisseur dessus |
+| `accept_invitation()` et son contrôle d'e-mail | P0-004, P1-001c | ✅ existe — et c'est **exactement ce que l'adresse relayée casse**, voir les notes |
+| `public.users.email` unique sur `lower(email)` | P0-004 | ✅ existe |
+| **Compte au programme développeur Apple, 99 $/an** | — | ❌ **à ouvrir maintenant.** Délai d'enrôlement variable, vérification d'identité. Seul élément du chemin critique dont le délai ne se rattrape pas en codant |
+| **App ID, Service ID, clé privée, domaine de retour** | console Apple | ❌ suppose le compte ci-dessus **et un nom de domaine** — le même que P2-015 et D-008 attendent. Trois éléments bloqués par une seule absence |
+| **EAS Build, et un appareil iOS réel** | `apps/mobile` | ❌ **n'existe pas.** Sign in with Apple n'est **pas testable dans Expo Go** : il faut un build de développement. Si EAS n'est pas en place, c'est du travail non chiffré dans les 3 j·h |
+| L'app mobile ayant tourné au moins une fois | `apps/mobile` | ⚠️ **jamais exécutée** (`docs/REPRISE.md` §2). Poser un fournisseur d'authentification sur une app qui n'a jamais démarré, c'est débusquer deux classes de bugs en même temps |
+
+## Ce que ce ticket rend possible, et qui l'appellera
+
+| Ce que je livre | Appelé par | Ticket |
+| --------------- | ---------- | ------ |
+| Le bouton Apple et son échange de jeton | l'écran de connexion (P0-005a) | celui-ci |
+| La tolérance à l'adresse relayée | `accept_invitation()` | celui-ci **modifie** la fonction de P1-001c, et son test |
+
 ## Périmètre
 
 - Sign in with Apple sur iOS, plus le flux web pour Android et le back-office.

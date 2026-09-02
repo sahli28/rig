@@ -10,8 +10,9 @@
 
 | | |
 | --- | --- |
-| `main` | `cf8bd50` — P0-001 à P0-004, **P0-005a**, les quatre dettes, **P1-001a** à **P1-001c** fusionnés |
-| Branche en cours | `feat/P1-001d-import-csv-membres`, **à pousser et à fusionner** |
+| `main` | `374184b` (PR #15) — P0-001 à P0-004, **P0-005a**, les quatre dettes, **tout P1-001 (a → e)** fusionnés |
+| Branche en cours | — · **P1-001 est terminé** |
+| Prochain ticket | **P1-002**, planning récurrent (RRULE) |
 | Tests | **296 pgTAP** (18 fichiers) · **225 Vitest** · lint, typecheck, i18n (331 clés), format verts |
 | Migrations | 22 |
 
@@ -134,28 +135,71 @@ message « espace réservé au staff » porte maintenant la sortie.
 
 ## 3. La suite du backlog
 
-`P1-001` a été ré-estimé et découpé (voir la fin de son fichier) : les 4 j·h
-annoncés omettaient la porte d'entrée, la migration `class_types` qui n'existe
-pas, et un import CSV qui vaut 2 à 3 j·h seul.
+**Ce fichier ne tient plus de table de tickets.** Elle contredisait
+`docs/backlog/README.md` — deux lignes P1-001d/e en double, et aucune trace de la
+Phase 2. La table de vérité est **`docs/backlog/README.md`**, et rien d'autre.
 
-| Ticket | Contenu | j·h |
-| --- | --- | ---: |
-| ~~P1-001b~~ | réglages box — **fusionné** (PR #12) | 3 |
-| ~~P1-001c~~ | Staff & Roles + page d'invitation + journal — **fusionné** (PR #13) | 3,75 |
-| ~~P1-001d~~ | import CSV — **fait**, à fusionner | 4 |
-| ~~P1-001e~~ | apparence de la box — **fusionné** (PR #14) | 1 |
-| **P1-001f** | Logo et couche Storage — après la démo | 1 |
-| **P1-001d** | Import CSV de membres | 3 |
-| **P1-001e** | Apparence de la box — **avant la première démo** : `create_tenant()` fige chaque box sur la couleur d'exemple de la spec, et aucun écran ne l'écrit | 1 |
-| **P2-004** | Dashboard box et mise en route — recueille les deux critères orphelins de P1-001 | 4 |
+Ce qu'il faut savoir en arrivant :
 
-Les dépendances de P1-001c sont **déjà livrées** : D-001 a construit
-`member_admin_directory`, D-005 l'API `create_invitation()`. C'était leur raison
-d'être.
+| Horizon | Reste | Échéance à 2,3 j·h/semaine |
+| --- | ---: | --- |
+| ① Jalon pilote (une box réserve en production) | **48,5 j·h** | ~ février 2027 |
+| ② MVP vendable (une box encaisse sans nous) | **+ 76 j·h** | ~ octobre 2027 |
+| Dette ouverte, hors des deux totaux | 6,75 j·h | se paie quand un ticket la rend bloquante |
 
-Dettes ouvertes : **D-002** (tests de rendu), **D-003** (SSR de l'i18n),
-**D-004** (langue mobile — plus bloquée, le profil serveur existe), **D-007**
-(contraste de la page de démo), **D-008** (deep link, attend un domaine et Apple).
+**Ticket en cours : P1-002** (planning récurrent, **9 j·h** après application de la
+règle 8 — sa section de prérequis a révélé `pg_cron` jamais activé, une grille de
+semaine à construire, et un cache mobile inexistant, sorti dans **P1-002b**).
+
+État : la migration `20260902120000_recurrent_class_schedules.sql` et
+`supabase/tests/class_schedules_test.sql` sont écrites, la migration s'applique,
+et `rls_leak_test.sql` reste vert. **Deux défauts trouvés à la relecture, non
+corrigés** — voir le rapport de session : `refresh_class_schedule()` matérialise
+les séries de **toutes les boxes**, et l'alignement de semaine d'`INTERVAL≥2` ne
+suit pas la RFC 5545 quand `starts_on` n'est pas un jour de `BYDAY`.
+
+### Ce que la réconciliation spec ↔ backlog du 2 septembre a changé
+
+Le backlog ne couvrait que le jalon pilote, et on pouvait croire que c'était le
+produit. **Sept items MUST manquaient** — M8, M9, M10 (toute la couche paiement)
+et M12 à M15 (toute la programmation et les scores) — plus **S6** (reporting
+financier), que §2.3 classe en v1 mais que §13.4 planifie en Phase 2, et dont le
+critère de sortie de la Phase 2 dépend (« rapprochement exact au centime »).
+
+**Treize tickets P2 ont été écrits** : P2-001 et P2-005 à P2-016. Trois trous
+supplémentaires ont été trouvés en chemin, tous de la même famille — un prérequis
+que plusieurs tickets croyaient acquis :
+
+1. **Aucun ticket n'envoyait d'e-mail**, alors que M19 l'exige et que P1-007,
+   P2-006 et P2-008 s'appuient dessus → **P2-015**.
+2. **Le sous-domaine de M2** avait été remplacé par `/box/[slug]/` sans être
+   consigné → amendement à l'**ADR 0002**, écrit.
+3. **Le consentement `LEADERBOARD`** existe dans l'enum depuis P0-004 et aucun
+   écran ne le recueille — sixième « livré sans appelant ».
+
+D'où la **règle 8 de `CLAUDE.md`** et la section obligatoire « Ce que ce ticket
+suppose et qui doit exister » (`docs/backlog/_gabarit.md`), appliquée aux seize
+tickets P2 et à P1-002. Les règles 7 et 8 sont la même vue par deux bouts : la 7
+traque ce qu'on livre sans que personne l'appelle, la 8 ce qu'on appelle sans que
+personne l'ait livré.
+
+### Trois choses à lancer maintenant, parce que leur délai n'est pas rattrapable
+
+| Quoi | Bloque | Pourquoi maintenant |
+| --- | --- | --- |
+| **Trois `client_id` Google** | P0-005b, puis P2-003 | Bloqué depuis cinq sessions |
+| **Compte développeur Apple, 99 $/an** | P2-003, la publication | Vérification d'identité, délai variable |
+| **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société |
+| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, et le retour Apple | **Trois éléments bloqués par une seule absence** |
+
+Aucun n'est du travail de développement, et tous sont sur le chemin critique.
+
+### Ce qui reste ouvert côté dette
+
+**D-002** (tests de rendu — devient gênante à P2-010, l'écran le plus riche du
+produit), **D-003** (SSR de l'i18n), **D-004** (langue mobile — plus bloquée, le
+profil serveur existe), **D-007** (contraste de la page de démo), **D-008**
+(deep link — attend le domaine ci-dessus).
 
 ## 4. Ce que P1-001a et P1-001b ont établi, et qu'il ne faut pas re-litiger
 
