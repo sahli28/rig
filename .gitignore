@@ -15,3 +15,15 @@ next-env.d.ts
 CLAUDE.local.md
 supabase/.temp/
 supabase/.branches/
+
+# Outillage Codex, transposé de `.claude/` par une session parallèle. On reste
+# sur Claude Code : ces fichiers n'apportent rien d'unique — `AGENTS.md` ne
+# diffère de `CLAUDE.md` que par le titre d'une section, et `.agents/skills` et
+# `.codex/` recopient `.claude/skills`, `.claude/agents` et `.claude/hooks`.
+# Deux copies d'une même règle, c'est une règle qui diverge en silence.
+AGENTS.md
+.agents/
+.codex/
+
+# Permissions locales de Claude Code : propres à la machine, jamais partagées.
+.claude/settings.local.json

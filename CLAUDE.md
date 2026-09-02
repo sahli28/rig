@@ -12,7 +12,7 @@ Backlog exécutable : `docs/backlog/` — un fichier par ticket.
 ## Contexte de développement
 
 - **Développeuse solo**, ~15–20 h/semaine. Optimise pour la maintenabilité par une seule personne, jamais pour l'élégance architecturale.
-- Priorité produit : **CrossFit d'abord**, Hyrox en v1, réseau inter-box en v1.
+- Priorité produit : **CrossFit d'abord**. **Hyrox et réseau inter-box restent en v1**, conformément à la spec §2.3 et §13.5 — Hyrox est notre porte d'entrée commerciale (§18.1) et la seule réponse écrite au risque R2. Mais **aucun ticket ne le porte tant que le MVP n'encaisse pas** : la valeur `HYROX_PREP` n'entrera dans l'enum `programs.type` qu'au ticket P3 qui l'implémente. Une valeur d'enum sans code derrière ne vaut rien, et `alter type … add value` coûte une ligne.
 - Phase courante : **P0 — Socle** (voir `docs/backlog/README.md`).
 - Langues : FR + EN dès le premier écran. Marché : France / UE, RGPD applicable.
 
@@ -105,6 +105,19 @@ null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la 
    connexion, et `create_tenant()` — qui **n'a toujours aucun appelant**
    (écran de création de box : P2-004). Aucun n'a été trouvé par les tests :
    ils vérifient ce qui est écrit, pas ce qui manque.
+8. **Tout ticket porte la section « Ce que ce ticket suppose et qui doit
+   exister ».** Même famille que la règle 7, prise par l'autre bout : la 7 traque
+   ce qu'on livre sans que personne l'appelle, la 8 traque ce qu'on appelle sans
+   que personne l'ait livré. Chaque prérequis — écran, table, colonne, composant,
+   compte tiers, canal d'envoi — est listé avec son état **vérifié dans le
+   dépôt**, jamais supposé. Un prérequis absent nomme le ticket qui le créera ;
+   s'il n'y en a pas, ce ticket s'écrit **avant**, il ne s'absorbe pas en cours de
+   route.
+   Les trois explosions d'estimation ont cette cause unique, et une ligne écrite
+   à temps les aurait attrapées : P0-005 supposait un écran de connexion web que
+   `apps/web` n'avait pas (5 → 17 j·h) ; P1-001 supposait `class_types` en base
+   **et** une bibliothèque de composants web, ni l'une ni l'autre n'existant
+   (4 → 11,5 j·h). Gabarit : `docs/backlog/_gabarit.md`.
 
 ## Ce qu'il ne faut pas faire
 
