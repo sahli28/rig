@@ -2,6 +2,13 @@
 
 **Phase** P1 · **Estimation** 4 j·h · **Dépend de** P0-005 · **Spec** §4-P1 (onboarding Owner), §6.2
 
+> **Ticket archivé.** Il valait 11,5 j·h, pas 4 — voir « Découpage et
+> ré-estimation » à la fin. Le travail vit désormais dans **P1-001a**
+> (porte d'entrée, fusionné), **P1-001b** (réglages), **P1-001c** (staff),
+> **P1-001d** (import CSV) et **P1-001e** (apparence). Les deux critères
+> orphelins — assistant en 5 étapes et checklist de mise en route — sont
+> partis en **P2-004**. Ce fichier reste pour la trace du raisonnement.
+
 ## Périmètre
 
 - Assistant d'onboarding box en 5 étapes : infos, horaires d'ouverture, salles, types de cours, règles de réservation.

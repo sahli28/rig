@@ -130,6 +130,16 @@ describe('tenantScope', () => {
     expect(calls[0]?.payload).toEqual({ status: 'REVOKED', token_hash: 'tok' });
   });
 
+  it('écrit la box active, et retire `id` du patch', () => {
+    const { client, calls } = fakeClient();
+
+    tenantScope(client, TENANT).updateCurrentTenant({ name: 'CF Rueil', id: 'autre-box' });
+
+    expect(calls[0]?.table).toBe('tenants');
+    expect(calls[0]?.payload).toEqual({ name: 'CF Rueil' });
+    expect(calls[0]?.filters).toEqual([['id', TENANT]]);
+  });
+
   it('expose la box active pour les appels qui ne passent pas par lui', () => {
     const { client } = fakeClient();
     expect(tenantScope(client, TENANT).tenantId).toBe(TENANT);

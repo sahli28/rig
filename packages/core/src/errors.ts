@@ -28,6 +28,7 @@ export const APP_ERROR_CODES = [
   'ALREADY_MEMBER',
   'APPEND_ONLY',
   'AUTH_REQUIRED',
+  'CURRENCY_LOCKED',
   'EMAIL_ALREADY_REGISTERED',
   'EMAIL_IMMUTABLE',
   'FORBIDDEN_ROLE',
@@ -111,6 +112,7 @@ export const ERROR_MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   TENANT_SLUG_INVALID: 'errors.tenant_slug_invalid',
   TENANT_SLUG_TAKEN: 'errors.tenant_slug_taken',
   TENANT_QUOTA_REACHED: 'errors.tenant_quota_reached',
+  CURRENCY_LOCKED: 'errors.currency_locked',
   TENANT_WOULD_BE_ORPHANED: 'errors.tenant_would_be_orphaned',
 
   // Réservation — la base ne les lève pas encore, l'API les rendra en P1

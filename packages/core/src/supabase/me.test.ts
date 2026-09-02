@@ -54,6 +54,7 @@ const CURRENT_TENANT = {
   name: 'CrossFit Bastille',
   timezone: 'Europe/Paris',
   currency: 'EUR',
+  default_locale: 'fr',
   role: 'MEMBER',
   theme: {
     app_name: 'CrossFit Bastille',
