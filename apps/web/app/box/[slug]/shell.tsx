@@ -15,6 +15,7 @@ import styles from './shell.module.css';
  */
 const NAV: ReadonlyArray<{ segment: string; labelKey: TranslationKey; ownerOnly?: true }> = [
   { segment: '', labelKey: 'shell.nav_dashboard' },
+  { segment: '/planning', labelKey: 'shell.nav_planning' },
   { segment: '/reglages', labelKey: 'shell.nav_settings' },
   { segment: '/apparence', labelKey: 'shell.nav_appearance', ownerOnly: true },
   { segment: '/staff', labelKey: 'shell.nav_staff' },
