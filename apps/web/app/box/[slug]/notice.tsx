@@ -7,11 +7,20 @@ import type { TranslationKey } from '@rig/core';
 import { browserClient } from '../../../lib/supabase/client';
 import styles from './notice.module.css';
 
-type Kind = 'unknown_box' | 'staff_only' | 'not_configured' | 'coming_soon' | 'invalid_invitation';
+type Kind =
+  | 'unknown_box'
+  | 'staff_only'
+  | 'owner_only'
+  | 'not_configured'
+  | 'coming_soon'
+  | 'invalid_invitation';
 
 const TEXTS: Record<Kind, { title: TranslationKey; body: TranslationKey }> = {
   unknown_box: { title: 'shell.unknown_box_title', body: 'shell.unknown_box_body' },
   staff_only: { title: 'shell.staff_only_title', body: 'shell.staff_only_body' },
+  // Le white-label est au propriétaire (spec §5.2). La policy `themes_update`
+  // refuse déjà — mais un refus de la RLS n'affecte aucune ligne et ne dit rien.
+  owner_only: { title: 'shell.owner_only_title', body: 'shell.owner_only_body' },
   not_configured: { title: 'shell.not_configured_title', body: 'shell.not_configured_body' },
   coming_soon: { title: 'shell.coming_soon_title', body: 'shell.coming_soon_body' },
   // Inconnue, expirée, révoquée, consommée, ou box fermée : un seul message

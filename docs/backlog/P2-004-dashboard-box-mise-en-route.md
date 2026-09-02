@@ -22,6 +22,16 @@ self-service) : l'obligation est réelle, le préalable ne l'est pas.
 Ce qui suppose que les réglages soient atteignables **sans** assistant — c'est
 exactement ce que P1-001b livre : un écran à cinq sections, pas un tunnel.
 
+## Ce ticket porte le seul appelant manquant de `create_tenant()`
+
+`create_tenant()` existe depuis P0-004, avec son quota, ses tests et ses gardes.
+**Aucun écran ne l'appelle** : une box ne se crée aujourd'hui qu'en SQL. C'est le
+quatrième cas du motif que `CLAUDE.md` §7 nomme désormais — une fonction sans
+appelant n'est pas « faite », elle est en attente.
+
+L'écran de création de box appartient à ce ticket : c'est la première étape de la
+mise en route, avant les cinq autres.
+
 ## Périmètre
 
 - Box Dashboard : KPI (CA, membres actifs, taux de remplissage, churn), alertes,
@@ -30,6 +40,7 @@ exactement ce que P1-001b livre : un écran à cinq sections, pas un tunnel.
   de cours ? des horaires ? un plan tarifaire ? un premier membre ?) plutôt que
   stockée — un drapeau `onboarding_step` se désynchronise le jour où quelqu'un
   supprime la donnée qu'il prétendait valider.
+- **Création de la box** (`create_tenant()`), première étape de l'assistant.
 - Assistant en cinq étapes qui enchaîne les sections de l'écran Réglages :
   infos, horaires, salles, types de cours, règles de réservation.
 

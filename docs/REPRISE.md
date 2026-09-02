@@ -10,10 +10,10 @@
 
 | | |
 | --- | --- |
-| `main` | `13f1325` — P0-001 à P0-004, **P0-005a**, **D-001**, **D-006**, **D-005**, **P1-001a**, **P1-001b** fusionnés |
-| Branche en cours | `feat/P1-001c-staff-et-roles`, **à pousser et à fusionner** |
-| Tests | **266 pgTAP** (16 fichiers) · **207 Vitest** · lint, typecheck, i18n (276 clés), format verts |
-| Migrations | 19 |
+| `main` | `cf8bd50` — P0-001 à P0-004, **P0-005a**, les quatre dettes, **P1-001a** à **P1-001c** fusionnés |
+| Branche en cours | `feat/P1-001e-apparence-box`, **à pousser et à fusionner** |
+| Tests | **273 pgTAP** (17 fichiers) · **207 Vitest** · lint, typecheck, i18n (296 clés), format verts |
+| Migrations | 20 |
 
 **Fusionner avec un merge commit, jamais en squash.** Le squash a cassé trois
 fois (PR #3, #4, #5) : il coupe le lien d'ascendance et toute branche empilée
@@ -81,6 +81,25 @@ règles de réservation, types de cours — et les deux tables qui manquaient :
 P2-004 sont dans `docs/backlog/`, et le tableau de son README est à jour. Il ne
 vivait jusqu'ici que dans une section du ticket d'origine.
 
+### Ce que P1-001e a livré
+
+L'écran `/box/[slug]/apparence` — **le seul qui écrive `themes`**. Jusqu'ici,
+`create_tenant()` posait une couleur et plus personne n'y touchait : le produit
+dont l'argument numéro un est « votre app, à vos couleurs » ne savait pas les
+changer.
+
+Et **la promesse est maintenant observable** : changer la couleur repeint la
+coquille du back-office **et** la page publique d'invitation, police et rayon
+compris. C'est la démonstration à faire à un propriétaire de box.
+
+Aucune migration de structure : tout existait sur `themes` depuis P0-004. La
+seule ligne de SQL sépare deux constantes qui partageaient un littéral —
+`DEFAULT_BRAND.primary` (la couleur de RIG) et le défaut d'une **box neuve**,
+qui devient un gris « pas encore configuré ».
+
+C'est aussi le premier ticket qui **actionne** `ensureContrast()`, posée en
+P0-002 et jamais exercée par une couleur humaine.
+
 ### Ce que P1-001c a livré
 
 L'écran `/box/[slug]/staff` — annuaire, changement de rôle, retrait, invitations
@@ -107,7 +126,9 @@ pas, et un import CSV qui vaut 2 à 3 j·h seul.
 | Ticket | Contenu | j·h |
 | --- | --- | ---: |
 | ~~P1-001b~~ | réglages box — **fusionné** (PR #12) | 3 |
-| ~~P1-001c~~ | Staff & Roles + page d'invitation + journal — **fait**, à fusionner | 3,75 |
+| ~~P1-001c~~ | Staff & Roles + page d'invitation + journal — **fusionné** (PR #13) | 3,75 |
+| ~~P1-001e~~ | apparence de la box — **fait**, à fusionner | 1 |
+| **P1-001f** | Logo et couche Storage — après la démo | 1 |
 | **P1-001d** | Import CSV de membres | 3 |
 | **P1-001e** | Apparence de la box — **avant la première démo** : `create_tenant()` fige chaque box sur la couleur d'exemple de la spec, et aucun écran ne l'écrit | 1 |
 | **P2-004** | Dashboard box et mise en route — recueille les deux critères orphelins de P1-001 | 4 |

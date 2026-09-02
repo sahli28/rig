@@ -96,6 +96,15 @@ null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la 
    `git rebase --onto origin/main <dernier-commit-déjà-dans-main>` rejoue les
    seuls commits réellement absents.
 6. Si un choix contredit la spec, **le signaler** au lieu de l'appliquer silencieusement.
+7. **Un ticket qui livre une fonction SQL ou un helper nomme son appelant.** Si
+   l'appelant n'existe pas encore, le ticket le dit explicitement et cite le
+   ticket qui l'écrira. Une fonction sans appelant n'est pas « faite » — elle est
+   en attente, et ça doit se voir dans le backlog.
+   Quatre cas l'ont établie : `log_audit()` sans écrivain pendant tout P0,
+   `ensureContrast()` sans écran, la tuyauterie de session web sans page de
+   connexion, et `create_tenant()` — qui **n'a toujours aucun appelant**
+   (écran de création de box : P2-004). Aucun n'a été trouvé par les tests :
+   ils vérifient ce qui est écrit, pas ce qui manque.
 
 ## Ce qu'il ne faut pas faire
 

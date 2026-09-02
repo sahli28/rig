@@ -66,6 +66,14 @@ export {
   type RecordConsentsInput,
 } from './profile';
 export {
+  BoxAppearanceSchema,
+  FONT_OPTIONS,
+  UNCONFIGURED_BOX_PRIMARY,
+  fontOptions,
+  type BoxAppearance,
+} from './appearance';
+
+export {
   BookingRulesPatchSchema,
   BoxIdentitySchema,
   ClassTypePatchSchema,
