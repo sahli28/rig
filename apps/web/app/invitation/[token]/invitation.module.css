@@ -1,0 +1,90 @@
+/* Aucune valeur littérale : variables de <ThemeStyle/>, ici aux couleurs de la
+   box qui invite. */
+
+.page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 460px;
+  padding: 28px;
+  border: 1px solid var(--rig-color-border);
+  border-radius: var(--rig-radius-lg);
+  background: var(--rig-color-surface-2);
+}
+
+.title {
+  font-size: var(--rig-text-display);
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  font-size: var(--rig-text-title);
+  margin: 16px 0 8px;
+}
+
+.muted {
+  color: var(--rig-color-text-muted);
+  margin: 0 0 20px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: var(--rig-text-caption);
+  color: var(--rig-color-text-muted);
+}
+
+.hint {
+  font-size: var(--rig-text-caption);
+  color: var(--rig-color-text-muted);
+  margin: 0;
+}
+
+.input {
+  min-height: var(--rig-touch-target);
+  padding: 10px 12px;
+  border: 1px solid var(--rig-color-border);
+  border-radius: var(--rig-radius-md);
+  background: var(--rig-color-surface);
+  color: var(--rig-color-text);
+  font-family: inherit;
+  font-size: var(--rig-text-body);
+}
+
+.primary {
+  margin-top: 8px;
+  border: 0;
+  padding: 12px 18px;
+  background: var(--rig-color-primary);
+  color: var(--rig-color-on-primary);
+  font-weight: 600;
+  width: 100%;
+}
+
+.primaryLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rig-touch-target);
+  padding: 12px 18px;
+  border-radius: var(--rig-radius-md);
+  background: var(--rig-color-primary);
+  color: var(--rig-color-on-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.error {
+  font-size: var(--rig-text-caption);
+  color: var(--rig-color-danger);
+  margin: 0 0 12px;
+}
