@@ -28,9 +28,28 @@ export {
   type TenantTheme,
 } from './me';
 export {
+  DirectoryRowSchema,
+  INVITATION_STATES,
+  createInvitation,
+  displayName,
+  filterDirectory,
+  grantableRoles,
+  invitationState,
+  removeMember,
+  setMemberRole,
+  type DirectoryFilter,
+  type DirectoryRow,
+  type InvitationState,
+} from './staff';
+
+export {
   acceptInvitation,
   fetchTenantPublicProfile,
+  InvitationPreviewSchema,
   TenantPublicProfileSchema,
+  fetchInvitationPreview,
+  invitationAcceptsEmail,
+  type InvitationPreview,
   type TenantPublicProfile,
 } from './tenant';
 export {

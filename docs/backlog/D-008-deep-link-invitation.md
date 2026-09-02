@@ -39,5 +39,20 @@ C'est le *deferred deep link*, explicitement reporté au commit de P0-005a.
 vérification doivent être servis en HTTPS sur le domaine final. Donc pas avant
 P2-003 (programme développeur Apple) et le nom de domaine de production.
 
+## Ce que P1-001c a changé : ce ticket n'est plus bloquant
+
+**Une invitation s'accepte désormais sur le web**, à `/invitation/[token]` : la
+page affiche la box à ses couleurs, envoie le lien de connexion, puis appelle
+`accept_invitation()`. Elle ne dépend ni d'un domaine, ni d'Apple, ni d'un store.
+
+Tant que ce parcours n'existait pas, D-008 était le **seul** chemin d'entrée
+d'un nouveau membre, donc un prérequis du pilote bloqué sur deux démarches
+administratives. Il redevient ce qu'il aurait toujours dû être : une
+**optimisation** — ouvrir l'app plutôt que le navigateur quand elle est
+installée, et ne pas perdre le contexte quand elle ne l'est pas.
+
+Corollaire pour le QR mural : il encode maintenant l'URL de cette page, pas un
+jeton. L'affiche fonctionne sans app installée.
+
 Le repli qui existe aujourd'hui reste acceptable pour le pilote : la box envoie
 le lien à une personne qui a déjà l'app, ou l'installe puis rouvre le lien.

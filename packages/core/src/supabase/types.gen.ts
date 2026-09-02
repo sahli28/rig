@@ -757,6 +757,25 @@ export type Database = {
         Args: { p_tenant_id: string };
         Returns: Database['public']['Enums']['membership_role'];
       };
+      invitation_accepts_email: {
+        Args: { p_email: string; p_token: string };
+        Returns: boolean;
+      };
+      invitation_preview: {
+        Args: { p_token: string };
+        Returns: {
+          app_name: string;
+          email_masked: string;
+          font: string;
+          logo_url: string;
+          name: string;
+          nominative: boolean;
+          primary_color: string;
+          radius: number;
+          role: Database['public']['Enums']['membership_role'];
+          slug: string;
+        }[];
+      };
       leave_tenant: { Args: { p_tenant_id: string }; Returns: undefined };
       log_audit: {
         Args: {

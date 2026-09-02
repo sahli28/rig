@@ -25,13 +25,25 @@ export interface TenantThemeRow {
   font: string;
 }
 
-/** Ce que `tenant_public_profile()` rend, colonnes de table telles quelles. */
+/**
+ * Ce que `tenant_public_profile()` et `invitation_preview()` rendent : les
+ * colonnes de table telles quelles.
+ *
+ * **Les colonnes de thème sont nulles quand la box n'a pas de ligne de
+ * branding.** Les deux fonctions joignent `themes` en jointure **externe**
+ * depuis qu'on a vu ce qu'une jointure interne coûtait : une box sans branding
+ * disparaissait de son profil public et ses invitations devenaient
+ * « invalides », sans qu'aucun message ne puisse le dire.
+ *
+ * Le repli est ici et pas en SQL : recopier `'#E4572E'` dans deux fonctions
+ * Postgres ferait une seconde source de vérité du white-label.
+ */
 export interface TenantPublicProfileRow {
   app_name: string;
   logo_url: string | null;
-  primary_color: string;
-  radius: number;
-  font: string;
+  primary_color: string | null;
+  radius: number | null;
+  font: string | null;
 }
 
 export function brandFromTheme(theme: TenantThemeRow): TenantBrand {
@@ -48,9 +60,9 @@ export function brandFromPublicProfile(profile: TenantPublicProfileRow): TenantB
   return {
     appName: profile.app_name,
     logoUrl: profile.logo_url,
-    primary: profile.primary_color,
-    radius: profile.radius,
-    font: profile.font,
+    primary: profile.primary_color ?? DEFAULT_BRAND.primary,
+    radius: profile.radius ?? DEFAULT_BRAND.radius,
+    font: profile.font ?? DEFAULT_BRAND.font,
   };
 }
 

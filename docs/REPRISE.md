@@ -10,10 +10,10 @@
 
 | | |
 | --- | --- |
-| `main` | `a27d3b6` — P0-001 à P0-004, **P0-005a**, **D-001**, **D-006**, **D-005**, **P1-001a** fusionnés |
-| Branche en cours | `feat/P1-001b-reglages-box`, **à pousser et à fusionner** |
-| Tests | **229 pgTAP** (14 fichiers) · **191 Vitest** · lint, typecheck, i18n (221 clés), format verts |
-| Migrations | 16 |
+| `main` | `13f1325` — P0-001 à P0-004, **P0-005a**, **D-001**, **D-006**, **D-005**, **P1-001a**, **P1-001b** fusionnés |
+| Branche en cours | `feat/P1-001c-staff-et-roles`, **à pousser et à fusionner** |
+| Tests | **266 pgTAP** (16 fichiers) · **207 Vitest** · lint, typecheck, i18n (276 clés), format verts |
+| Migrations | 19 |
 
 **Fusionner avec un merge commit, jamais en squash.** Le squash a cassé trois
 fois (PR #3, #4, #5) : il coupe le lien d'ascendance et toute branche empilée
@@ -81,6 +81,23 @@ règles de réservation, types de cours — et les deux tables qui manquaient :
 P2-004 sont dans `docs/backlog/`, et le tableau de son README est à jour. Il ne
 vivait jusqu'ici que dans une section du ticket d'origine.
 
+### Ce que P1-001c a livré
+
+L'écran `/box/[slug]/staff` — annuaire, changement de rôle, retrait, invitations
+— **et deux choses qui n'étaient pas au programme** :
+
+- **la page publique `/invitation/[token]`**, qui sort D-008 du chemin critique.
+  Une invitation s'accepte maintenant dans un navigateur, sans domaine ni compte
+  Apple, et le QR mural encode enfin une URL plutôt qu'un jeton de 48 caractères ;
+- **le journal d'audit, enfin écrit.** `log_audit()` existait depuis P0-004 sans
+  aucun appelant ; les six mutations d'appartenance l'appellent désormais.
+
+Au passage, un cul-de-sac réel : un COACH ou un MEMBER connecté sur le web
+n'avait **aucun moyen de se déconnecter** — la coquille, donc le menu de compte,
+ne se rend que pour un OWNER ou un MANAGER. Invisible tant que le web n'ouvrait
+de session qu'au staff ; la page d'invitation en ouvre à tous les rôles. Le
+message « espace réservé au staff » porte maintenant la sortie.
+
 ## 3. La suite du backlog
 
 `P1-001` a été ré-estimé et découpé (voir la fin de son fichier) : les 4 j·h
@@ -89,8 +106,8 @@ pas, et un import CSV qui vaut 2 à 3 j·h seul.
 
 | Ticket | Contenu | j·h |
 | --- | --- | ---: |
-| ~~P1-001b~~ | réglages box — **fait**, à fusionner | 3 |
-| **P1-001c** | Staff & Roles : annuaire, invitations, changement de rôle | 2 |
+| ~~P1-001b~~ | réglages box — **fusionné** (PR #12) | 3 |
+| ~~P1-001c~~ | Staff & Roles + page d'invitation + journal — **fait**, à fusionner | 3,75 |
 | **P1-001d** | Import CSV de membres | 3 |
 | **P1-001e** | Apparence de la box — **avant la première démo** : `create_tenant()` fige chaque box sur la couleur d'exemple de la spec, et aucun écran ne l'écrit | 1 |
 | **P2-004** | Dashboard box et mise en route — recueille les deux critères orphelins de P1-001 | 4 |
@@ -120,6 +137,14 @@ Dettes ouvertes : **D-002** (tests de rendu), **D-003** (SSR de l'i18n),
   devise, langue — au seul propriétaire ; `tenant_settings`, `opening_hours`,
   `locations`, `rooms`, `class_types` au gestionnaire aussi. À l'écran, le bloc
   identité est en lecture seule **avec la phrase qui l'explique**.
+- **Le journal d'audit s'écrit dans la même transaction que l'action**, et
+  `log_audit()` lève si l'appelant n'est pas membre **actif** : `leave_tenant`
+  journalise donc **avant** de passer le statut à `LEFT`, `accept_invitation` et
+  `create_tenant` **après** l'insertion de l'appartenance. L'ordre est une
+  question de correction, pas de style.
+- **Ni jeton ni e-mail dans `audit_logs.diff`** : la table est append-only, une
+  erreur y est définitive. Deux contrôles négatifs le vérifient dans
+  `audit_trail_test.sql`.
 - **`opening_hours` est une table, pas un `jsonb`** : P1-002 la joindra dans une
   fonction PLpgSQL. Ses heures sont des `time` **nus**, en heure locale de la
   box — jamais `timetz`, jamais UTC. Le chevauchement de deux créneaux n'est

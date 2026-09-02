@@ -16,9 +16,16 @@ export const TenantPublicProfileSchema = z.object({
   name: z.string(),
   app_name: z.string(),
   logo_url: z.string().nullable(),
-  primary_color: z.string(),
-  radius: z.number(),
-  font: z.string(),
+  /**
+   * Nuls quand la box n'a pas de ligne dans `themes`. La fonction SQL joint en
+   * **externe** exprès : une jointure interne faisait disparaître la box de son
+   * propre profil public, et rendait ses invitations « invalides » sans qu'aucun
+   * écran ne puisse le dire. `brandFromPublicProfile()` comble avec
+   * `DEFAULT_BRAND`.
+   */
+  primary_color: z.string().nullable(),
+  radius: z.number().nullable(),
+  font: z.string().nullable(),
 });
 
 export type TenantPublicProfile = z.infer<typeof TenantPublicProfileSchema>;
@@ -40,6 +47,61 @@ export async function fetchTenantPublicProfile(
 
   const first = data?.[0];
   return first === undefined ? null : TenantPublicProfileSchema.parse(first);
+}
+
+/**
+ * Ce qu'une invitation laisse voir **avant** toute connexion : la marque de la
+ * box, le rôle proposé, et l'adresse **masquée** si l'invitation est nominative.
+ *
+ * Les sept premiers champs ont la forme de `TenantPublicProfileSchema` à
+ * dessein : `brandFromPublicProfile()` s'applique aux deux sans conversion.
+ */
+export const InvitationPreviewSchema = TenantPublicProfileSchema.extend({
+  role: z.string(),
+  nominative: z.boolean(),
+  /** `l***@example.com`. Nul pour un QR mural, qui n'a pas de destinataire. */
+  email_masked: z.string().nullable(),
+});
+
+export type InvitationPreview = z.infer<typeof InvitationPreviewSchema>;
+
+/**
+ * Aperçu d'une invitation, par son jeton.
+ *
+ * `null` pour un jeton inconnu, expiré, révoqué, déjà consommé, ou d'une box
+ * fermée : la fonction SQL ne distingue pas les cinq, et l'écran ne doit pas non
+ * plus. Un écran qui dirait « expirée » à qui essaie des jetons au hasard lui
+ * confirmerait que le jeton a existé.
+ */
+export async function fetchInvitationPreview(
+  client: RigClient,
+  token: string,
+): Promise<InvitationPreview | null> {
+  const { data, error } = await client.rpc('invitation_preview', { p_token: token });
+  if (error) throw error;
+
+  const first = data?.[0];
+  return first === undefined ? null : InvitationPreviewSchema.parse(first);
+}
+
+/**
+ * L'invitation est-elle ouverte à cette adresse ?
+ *
+ * À appeler **avant** `signInWithOtp` : sans ce contrôle, une adresse qui ne
+ * correspond pas reçoit son lien, crée un compte, puis se voit refuser
+ * l'invitation — la personne se retrouve avec un compte et sans appartenance.
+ */
+export async function invitationAcceptsEmail(
+  client: RigClient,
+  token: string,
+  email: string,
+): Promise<boolean> {
+  const { data, error } = await client.rpc('invitation_accepts_email', {
+    p_token: token,
+    p_email: email,
+  });
+  if (error) throw error;
+  return data === true;
 }
 
 /**

@@ -46,8 +46,8 @@ mieux qu'un MVP parfait au mois 13.
 | P0-005a | Se connecter — code, session, `me()` |      6 | ✅ fusionné (PR #6) — reste la passe sur appareil |
 | P0-005b | SSO Google et linking d'identités    |      4 | à faire              |
 | P1-001a | Porte d'entrée du back-office web   |    2,5 | ✅ fusionné (PR #11) |
-| P1-001b | Réglages box, horaires, types de cours |   3 | à faire              |
-| P1-001c | Staff & Roles                       |      2 | à faire              |
+| P1-001b | Réglages box, horaires, types de cours |   3 | ✅ fusionné (PR #12) |
+| P1-001c | Staff & Roles, page d'invitation, journal d'audit | 3,75 | ✅ fait, à fusionner |
 | P1-001d | Import CSV de membres               |      3 | à faire              |
 | P1-001e | Apparence de la box (branding)      |      1 | à faire — avant la première démo |
 | P1-002 | Planning récurrent (RRULE)           |      7 | à faire              |
@@ -57,7 +57,7 @@ mieux qu'un MVP parfait au mois 13.
 | P1-006 | Liste d'attente et promotion         |      6 | à faire              |
 | P1-007 | Notifications push                   |      4 | à faire              |
 | P1-008 | Check-in QR et mode kiosque          |      6 | à faire              |
-|        | **Total jusqu'au jalon pilote**      | **74,5** |                    |
+|        | **Total jusqu'au jalon pilote**      | **76,25** |                   |
 
 Le total passe de 62 à 67 j·h : P0-005 était estimé 5, l'inventaire en a montré
 ~17, dont 8 déplacés en P2. Ce qui reste avant le jalon pilote est donc 10, pas 5.
@@ -96,7 +96,11 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-005  | Empreintes des jetons d'invitation             |   1 | PR #4 — ✅ fait, prérequis de P1-001 |
 | D-006  | Défense en profondeur sur `public.users`       | 0,5 | P0-004 — ✅ fait (périmètre réel : tout le schéma) |
 | D-007  | Contraste de la page de démo                   | 0,25 | P0-002 |
-| D-008  | Lien d'invitation qui survit à l'installation  | 1,5 | P0-005a |
+| D-008  | Lien d'invitation qui survit à l'installation  | 1,5 | P0-005a — **plus bloquant** depuis P1-001c |
+
+**D-008 est sortie du chemin critique.** Une invitation s'accepte désormais sur
+le web (`/invitation/[token]`, P1-001c), sans domaine ni compte Apple. Le deep
+link redevient une optimisation : ouvrir l'app plutôt que le navigateur.
 
 D-004 n'est plus bloquée : elle attendait un profil serveur, que P0-005a livre.
 `users.locale` est désormais écrit à l'inscription ; ce qui manque est la lecture
