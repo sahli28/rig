@@ -72,6 +72,87 @@ export type Database = {
           },
         ];
       };
+      class_schedules: {
+        Row: {
+          capacity: number;
+          class_type_id: string;
+          coach_membership_id: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          room_id: string;
+          rrule: string;
+          starts_at_local: string;
+          starts_on: string;
+          tenant_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          capacity: number;
+          class_type_id: string;
+          coach_membership_id: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          room_id: string;
+          rrule: string;
+          starts_at_local: string;
+          starts_on: string;
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          capacity?: number;
+          class_type_id?: string;
+          coach_membership_id?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          room_id?: string;
+          rrule?: string;
+          starts_at_local?: string;
+          starts_on?: string;
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'class_schedules_coach_same_tenant';
+            columns: ['coach_membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'class_schedules_coach_same_tenant';
+            columns: ['coach_membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'memberships';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'class_schedules_room_same_tenant';
+            columns: ['room_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'rooms';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'class_schedules_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'class_schedules_type_same_tenant';
+            columns: ['class_type_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'class_types';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+        ];
+      };
       class_types: {
         Row: {
           color: string;
@@ -116,6 +197,106 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'tenants';
             referencedColumns: ['id'];
+          },
+        ];
+      };
+      classes: {
+        Row: {
+          booked_count: number;
+          cancellation_reason: string | null;
+          capacity: number;
+          class_type_id: string;
+          coach_membership_id: string;
+          created_at: string;
+          deleted_at: string | null;
+          ends_at: string;
+          id: string;
+          is_override: boolean;
+          room_id: string;
+          schedule_id: string;
+          starts_at: string;
+          status: Database['public']['Enums']['class_status'];
+          tenant_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          booked_count?: number;
+          cancellation_reason?: string | null;
+          capacity: number;
+          class_type_id: string;
+          coach_membership_id: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          ends_at: string;
+          id?: string;
+          is_override?: boolean;
+          room_id: string;
+          schedule_id: string;
+          starts_at: string;
+          status?: Database['public']['Enums']['class_status'];
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          booked_count?: number;
+          cancellation_reason?: string | null;
+          capacity?: number;
+          class_type_id?: string;
+          coach_membership_id?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          ends_at?: string;
+          id?: string;
+          is_override?: boolean;
+          room_id?: string;
+          schedule_id?: string;
+          starts_at?: string;
+          status?: Database['public']['Enums']['class_status'];
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'classes_coach_same_tenant';
+            columns: ['coach_membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'classes_coach_same_tenant';
+            columns: ['coach_membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'memberships';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'classes_room_same_tenant';
+            columns: ['room_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'rooms';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'classes_schedule_same_tenant';
+            columns: ['schedule_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'class_schedules';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'classes_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'classes_type_same_tenant';
+            columns: ['class_type_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'class_types';
+            referencedColumns: ['id', 'tenant_id'];
           },
         ];
       };
@@ -822,6 +1003,11 @@ export type Database = {
         };
         Returns: string;
       };
+      maintain_class_occurrences: { Args: never; Returns: undefined };
+      materialize_class_occurrences: {
+        Args: { p_from: string; p_schedule_id?: string; p_until: string };
+        Returns: number;
+      };
       me: { Args: { p_tenant_id?: string }; Returns: Json };
       pending_invitations_for_me: {
         Args: never;
@@ -832,6 +1018,17 @@ export type Database = {
           tenant_name: string;
           tenant_slug: string;
         }[];
+      };
+      pilot_weekly_rrule_days: { Args: { p_rrule: string }; Returns: number[] };
+      pilot_weekly_rrule_interval: {
+        Args: { p_rrule: string };
+        Returns: number;
+      };
+      pilot_weekly_rrule_until: { Args: { p_rrule: string }; Returns: string };
+      pilot_weekly_rrule_valid: { Args: { p_rrule: string }; Returns: boolean };
+      refresh_class_schedule: {
+        Args: { p_from: string; p_schedule_id: string; p_until: string };
+        Returns: undefined;
       };
       remove_member: { Args: { p_membership_id: string }; Returns: undefined };
       set_member_role: {
@@ -856,6 +1053,7 @@ export type Database = {
       uuid_generate_v7: { Args: never; Returns: string };
     };
     Enums: {
+      class_status: 'SCHEDULED' | 'CANCELLED';
       consent_purpose:
         | 'TERMS'
         | 'PRIVACY'
@@ -993,6 +1191,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      class_status: ['SCHEDULED', 'CANCELLED'],
       consent_purpose: [
         'TERMS',
         'PRIVACY',
