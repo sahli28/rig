@@ -17,7 +17,20 @@ const EmailSchema = z.string().trim().email();
  * mobile saisit le code parce qu'un lien y impose du deep linking, le web suit
  * le lien parce qu'il n'y a rien à installer. Deux chemins, un seul envoi.
  */
-export function LoginForm({ next, erreur }: { next: string; erreur: string | null }) {
+export function LoginForm({
+  next,
+  erreur,
+  inscription = false,
+}: {
+  next: string;
+  erreur: string | null;
+  /**
+   * Autorise la création du compte. Vrai depuis `/invitations`, où arrivent les
+   * personnes qu'une box vient d'importer et qui n'ont, par construction, pas
+   * encore de compte. Faux pour la porte du back-office.
+   */
+  inscription?: boolean;
+}) {
   const { t } = useI18n();
 
   const [email, setEmail] = useState('');
@@ -46,7 +59,7 @@ export function LoginForm({ next, erreur }: { next: string; erreur: string | nul
 
     const { error } = await browserClient().auth.signInWithOtp({
       email: parsed.data,
-      options: { emailRedirectTo: redirection.toString(), shouldCreateUser: false },
+      options: { emailRedirectTo: redirection.toString(), shouldCreateUser: inscription },
     });
 
     setBusy(false);

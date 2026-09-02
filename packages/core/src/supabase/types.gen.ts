@@ -220,8 +220,10 @@ export type Database = {
           created_at: string;
           email: string | null;
           expires_at: string;
+          first_name: string | null;
           id: string;
           invited_by: string | null;
+          last_name: string | null;
           role: Database['public']['Enums']['membership_role'];
           status: Database['public']['Enums']['invitation_status'];
           tenant_id: string;
@@ -233,8 +235,10 @@ export type Database = {
           created_at?: string;
           email?: string | null;
           expires_at: string;
+          first_name?: string | null;
           id?: string;
           invited_by?: string | null;
+          last_name?: string | null;
           role?: Database['public']['Enums']['membership_role'];
           status?: Database['public']['Enums']['invitation_status'];
           tenant_id: string;
@@ -246,8 +250,10 @@ export type Database = {
           created_at?: string;
           email?: string | null;
           expires_at?: string;
+          first_name?: string | null;
           id?: string;
           invited_by?: string | null;
+          last_name?: string | null;
           role?: Database['public']['Enums']['membership_role'];
           status?: Database['public']['Enums']['invitation_status'];
           tenant_id?: string;
@@ -733,10 +739,15 @@ export type Database = {
     };
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string };
+      accept_pending_invitation: {
+        Args: { p_invitation_id: string };
+        Returns: string;
+      };
       app_error: {
         Args: { p_code: string; p_message: string; p_sqlstate?: string };
         Returns: undefined;
       };
+      claim_invitation: { Args: { p_invitation_id: string }; Returns: string };
       create_invitation: {
         Args: {
           p_email?: string;
@@ -756,6 +767,29 @@ export type Database = {
       current_tenant_role: {
         Args: { p_tenant_id: string };
         Returns: Database['public']['Enums']['membership_role'];
+      };
+      expire_stale_invitations: {
+        Args: { p_email: string; p_tenant_id: string };
+        Returns: undefined;
+      };
+      import_members: {
+        Args: { p_expires_in?: string; p_rows: Json; p_tenant_id: string };
+        Returns: Json;
+      };
+      insert_invitation: {
+        Args: {
+          p_email: string;
+          p_expires_in: string;
+          p_first_name?: string;
+          p_invited_by: string;
+          p_last_name?: string;
+          p_role: Database['public']['Enums']['membership_role'];
+          p_tenant_id: string;
+        };
+        Returns: {
+          invitation_id: string;
+          token: string;
+        }[];
       };
       invitation_accepts_email: {
         Args: { p_email: string; p_token: string };
@@ -789,6 +823,16 @@ export type Database = {
         Returns: string;
       };
       me: { Args: { p_tenant_id?: string }; Returns: Json };
+      pending_invitations_for_me: {
+        Args: never;
+        Returns: {
+          expires_at: string;
+          invitation_id: string;
+          role: Database['public']['Enums']['membership_role'];
+          tenant_name: string;
+          tenant_slug: string;
+        }[];
+      };
       remove_member: { Args: { p_membership_id: string }; Returns: undefined };
       set_member_role: {
         Args: {

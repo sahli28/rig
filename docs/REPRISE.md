@@ -11,9 +11,9 @@
 | | |
 | --- | --- |
 | `main` | `cf8bd50` — P0-001 à P0-004, **P0-005a**, les quatre dettes, **P1-001a** à **P1-001c** fusionnés |
-| Branche en cours | `feat/P1-001e-apparence-box`, **à pousser et à fusionner** |
-| Tests | **273 pgTAP** (17 fichiers) · **207 Vitest** · lint, typecheck, i18n (296 clés), format verts |
-| Migrations | 20 |
+| Branche en cours | `feat/P1-001d-import-csv-membres`, **à pousser et à fusionner** |
+| Tests | **296 pgTAP** (18 fichiers) · **225 Vitest** · lint, typecheck, i18n (331 clés), format verts |
+| Migrations | 22 |
 
 **Fusionner avec un merge commit, jamais en squash.** Le squash a cassé trois
 fois (PR #3, #4, #5) : il coupe le lien d'ascendance et toute branche empilée
@@ -81,6 +81,21 @@ règles de réservation, types de cours — et les deux tables qui manquaient :
 P2-004 sont dans `docs/backlog/`, et le tableau de son README est à jour. Il ne
 vivait jusqu'ici que dans une section du ticket d'origine.
 
+### Ce que P1-001d a livré
+
+L'import d'un effectif, **en une transaction** — et la porte qu'il a fallu
+ouvrir pour que 200 personnes puissent entrer sans qu'on distribue 200 jetons :
+`accept_pending_invitation()`, qui accepte une invitation nominative **sans
+jeton**, en se connectant avec l'adresse invitée.
+
+Les deux portes partagent leur corps (`claim_invitation()`) pour qu'aucune ne
+puisse perdre un contrôle en route, et `pending_invitations_for_me()` ne prend
+**aucun paramètre** — sinon elle serait un annuaire d'invitations inter-tenants.
+
+Le piège du ticket n'était pas l'analyse CSV mais **l'encodage** : PapaParse
+reçoit une chaîne, il ne décode rien. Un export Excel FR lu en UTF-8 a déjà
+perdu ses accents. Vérifié de bout en bout, « Hervé Noël » arrive intact.
+
 ### Ce que P1-001e a livré
 
 L'écran `/box/[slug]/apparence` — **le seul qui écrive `themes`**. Jusqu'ici,
@@ -127,7 +142,8 @@ pas, et un import CSV qui vaut 2 à 3 j·h seul.
 | --- | --- | ---: |
 | ~~P1-001b~~ | réglages box — **fusionné** (PR #12) | 3 |
 | ~~P1-001c~~ | Staff & Roles + page d'invitation + journal — **fusionné** (PR #13) | 3,75 |
-| ~~P1-001e~~ | apparence de la box — **fait**, à fusionner | 1 |
+| ~~P1-001d~~ | import CSV — **fait**, à fusionner | 4 |
+| ~~P1-001e~~ | apparence de la box — **fusionné** (PR #14) | 1 |
 | **P1-001f** | Logo et couche Storage — après la démo | 1 |
 | **P1-001d** | Import CSV de membres | 3 |
 | **P1-001e** | Apparence de la box — **avant la première démo** : `create_tenant()` fige chaque box sur la couleur d'exemple de la spec, et aucun écran ne l'écrit | 1 |
@@ -158,6 +174,11 @@ Dettes ouvertes : **D-002** (tests de rendu), **D-003** (SSR de l'i18n),
   devise, langue — au seul propriétaire ; `tenant_settings`, `opening_hours`,
   `locations`, `rooms`, `class_types` au gestionnaire aussi. À l'écran, le bloc
   identité est en lecture seule **avec la phrase qui l'explique**.
+- **Une invitation nominative s'accepte sans jeton**, par l'adresse vérifiée de
+  la session. Les deux portes partagent `claim_invitation()` ; ajouter un
+  contrôle à l'une sans l'autre serait un contournement invisible.
+- **Un fichier importé ne quitte jamais le navigateur** (`privacy.md`), et le
+  journal d'un import porte des nombres, pas des adresses.
 - **Le journal d'audit s'écrit dans la même transaction que l'action**, et
   `log_audit()` lève si l'appelant n'est pas membre **actif** : `leave_tenant`
   journalise donc **avant** de passer le statut à `LEFT`, `accept_invitation` et

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useI18n } from '@rig/ui/i18n';
 import { LanguageSwitcher } from './language-switcher';
+import { PendingBanner } from './pending-banner';
 
 /**
  * Page client parce qu'elle consomme le contexte i18n. Acceptable sur un écran
@@ -16,6 +17,7 @@ export default function HomePage() {
     <main style={{ maxWidth: 880, margin: '0 auto', padding: 24 }}>
       <h1 style={{ fontSize: 'var(--rig-text-display)' }}>RIG</h1>
       <p style={{ color: 'var(--rig-color-text-muted)' }}>{t('home.placeholder_web')}</p>
+      <PendingBanner />
       <LanguageSwitcher />
       <p>
         <Link href="/design-system">{t('home.design_system_cta')}</Link>

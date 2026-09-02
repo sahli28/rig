@@ -9,6 +9,7 @@
 
 import { z } from 'zod';
 import type { RigClient } from './client';
+import type { Json } from './types.gen';
 import { MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES } from './me';
 
 /** Une ligne de `member_admin_directory` (D-001), telle que l'écran la lit. */
@@ -121,8 +122,38 @@ export async function removeMember(client: RigClient, membershipId: string): Pro
   if (error) throw error;
 }
 
+/** Ce que `import_members()` rend : des nombres, pour l'écran de résultat. */
+export const ImportResultSchema = z.object({
+  rows: z.number().int(),
+  created: z.number().int(),
+  already_member: z.number().int(),
+  already_invited: z.number().int(),
+});
+
+export type ImportResult = z.infer<typeof ImportResultSchema>;
+
 /**
- * Émet une invitation et rend le jeton **en clair, une seule fois** (D-005).
+ * Importe un effectif **en une transaction**.
+ *
+ * Une ligne illisible annule tout ; une personne déjà membre ou déjà invitée est
+ * ignorée et comptée. Aucun jeton n'en sort : les personnes importées rejoignent
+ * en se connectant, par `acceptPendingInvitation()`.
+ */
+export async function importMembers(
+  client: RigClient,
+  tenantId: string,
+  rows: readonly Record<string, unknown>[],
+): Promise<ImportResult> {
+  const { data, error } = await client.rpc('import_members', {
+    p_tenant_id: tenantId,
+    p_rows: rows as unknown as Json,
+  });
+  if (error) throw error;
+  return ImportResultSchema.parse(data);
+}
+
+/**
+ * Émet une invitation et **rend le jeton en clair, une seule fois** (D-005).
  *
  * La base n'en garde que l'empreinte SHA-256 : ce retour est le seul moment de
  * son existence. L'écran doit l'afficher immédiatement et le dire — il n'y a pas

@@ -1,0 +1,89 @@
+/* Marque plateforme : cette page n'a pas de box dans son URL, donc pas de box à
+   résoudre — contrairement à /invitation/[token], qui en a une. */
+
+.page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  padding: 28px;
+  border: 1px solid var(--rig-color-border);
+  border-radius: var(--rig-radius-lg);
+  background: var(--rig-color-surface-2);
+}
+
+.title {
+  font-size: var(--rig-text-display);
+  margin: 0 0 8px;
+}
+
+.muted {
+  color: var(--rig-color-text-muted);
+  margin: 0 0 20px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid var(--rig-color-border);
+  border-radius: var(--rig-radius-md);
+  background: var(--rig-color-surface);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 160px;
+  font-weight: 600;
+}
+
+.rowMeta {
+  color: var(--rig-color-text-muted);
+  font-size: var(--rig-text-caption);
+}
+
+.primary {
+  border: 0;
+  padding: 10px 18px;
+  background: var(--rig-color-primary);
+  color: var(--rig-color-on-primary);
+  font-weight: 600;
+}
+
+.link {
+  color: var(--rig-color-primary);
+}
+
+.error {
+  font-size: var(--rig-text-caption);
+  color: var(--rig-color-danger);
+}
+
+/* Un bouton qui se lit comme un lien : l'action est secondaire, mais elle doit
+   exister — sans elle, une personne connectée avec la mauvaise adresse n'a
+   aucune issue. */
+.linkButton {
+  border: 0;
+  background: transparent;
+  color: var(--rig-color-primary);
+  padding: 0;
+  font-size: var(--rig-text-caption);
+  min-height: 0;
+}

@@ -104,6 +104,49 @@ export async function invitationAcceptsEmail(
   return data === true;
 }
 
+/** Une invitation qui attend l'appelant, sans qu'il détienne de jeton. */
+export const PendingInvitationSchema = z.object({
+  invitation_id: z.string().uuid(),
+  tenant_slug: z.string(),
+  tenant_name: z.string(),
+  role: z.string(),
+  expires_at: z.string(),
+});
+
+export type PendingInvitation = z.infer<typeof PendingInvitationSchema>;
+
+/**
+ * Les invitations en attente pour l'adresse **vérifiée** de la session.
+ *
+ * La fonction SQL ne prend **aucun paramètre**, et c'est l'invariant : avec une
+ * adresse en argument, elle deviendrait un annuaire d'invitations lisible à
+ * travers tous les tenants. Même règle que `current_tenant_ids()`.
+ */
+export async function fetchPendingInvitations(client: RigClient): Promise<PendingInvitation[]> {
+  const { data, error } = await client.rpc('pending_invitations_for_me');
+  if (error) throw error;
+  return PendingInvitationSchema.array().parse(data ?? []);
+}
+
+/**
+ * Rejoint une box par une invitation qu'on n'a pas eu à recevoir : c'est la
+ * porte des personnes importées par leur box (P1-001d).
+ *
+ * Les contrôles sont exactement ceux de `acceptInvitation()` — les deux
+ * fonctions SQL partagent `claim_invitation()`, précisément pour qu'aucune des
+ * deux ne puisse en perdre un en route.
+ */
+export async function acceptPendingInvitation(
+  client: RigClient,
+  invitationId: string,
+): Promise<string> {
+  const { data, error } = await client.rpc('accept_pending_invitation', {
+    p_invitation_id: invitationId,
+  });
+  if (error) throw error;
+  return z.string().uuid().parse(data);
+}
+
 /**
  * Accepte une invitation et rend l'identifiant de la box rejointe.
  *

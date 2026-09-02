@@ -9,9 +9,9 @@ import { LoginForm } from './login-form';
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; erreur?: string }>;
+  searchParams: Promise<{ next?: string; erreur?: string; inscription?: string }>;
 }) {
-  const { next, erreur } = await searchParams;
+  const { next, erreur, inscription } = await searchParams;
 
-  return <LoginForm next={next ?? '/'} erreur={erreur ?? null} />;
+  return <LoginForm next={next ?? '/'} erreur={erreur ?? null} inscription={inscription === '1'} />;
 }

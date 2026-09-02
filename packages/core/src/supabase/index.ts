@@ -29,6 +29,9 @@ export {
 } from './me';
 export {
   DirectoryRowSchema,
+  ImportResultSchema,
+  importMembers,
+  type ImportResult,
   INVITATION_STATES,
   createInvitation,
   displayName,
@@ -46,6 +49,10 @@ export {
   acceptInvitation,
   fetchTenantPublicProfile,
   InvitationPreviewSchema,
+  PendingInvitationSchema,
+  acceptPendingInvitation,
+  fetchPendingInvitations,
+  type PendingInvitation,
   TenantPublicProfileSchema,
   fetchInvitationPreview,
   invitationAcceptsEmail,

@@ -86,14 +86,18 @@ reset role;
 -- accept_invitation() — les trois façons de forcer la porte
 -- ---------------------------------------------------------------------------
 
-insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
-  ('bbbbbbbb-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER',
+-- `tok-expire` est posée `EXPIRED` dès l'insertion : depuis P1-001d, deux
+-- invitations `PENDING` pour la même personne dans la même box sont interdites
+-- par index. Le scénario testé — un jeton périmé qu'on tente de rejouer — reste
+-- exactement le même, et `claim_invitation()` refuse d'abord sur le statut.
+insert into public.invitations (tenant_id, email, role, status, token_hash, expires_at) values
+  ('bbbbbbbb-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER', 'PENDING',
    encode(extensions.digest('tok-valide','sha256'),'hex'), now() + interval '7 days'),
-  ('bbbbbbbb-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER',
+  ('bbbbbbbb-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER', 'EXPIRED',
    encode(extensions.digest('tok-expire','sha256'),'hex'), now() - interval '1 day'),
   -- Invitation destinée à quelqu'un d'autre : c'est le cas du lien transféré,
   -- capté dans un `Referer` ou pris en capture d'écran.
-  ('bbbbbbbb-0000-4000-8000-000000000001', 'quelquun.dautre@example.com', 'MEMBER',
+  ('bbbbbbbb-0000-4000-8000-000000000001', 'quelquun.dautre@example.com', 'MEMBER', 'PENDING',
    encode(extensions.digest('tok-autrui','sha256'),'hex'), now() + interval '7 days');
 
 set local role authenticated;
@@ -181,6 +185,13 @@ select is(
 update public.memberships set status = 'SUSPENDED'
 where user_id = '99999999-0000-4000-8000-000000000001'
   and tenant_id = 'bbbbbbbb-0000-4000-8000-000000000001';
+
+-- L'invitation COACH restée en attente est d'abord révoquée : depuis P1-001d,
+-- une box ne peut pas avoir deux invitations vivantes pour la même personne.
+-- C'est aussi ce qu'elle ferait en vrai — on ne réinvite pas quelqu'un en
+-- laissant traîner l'invitation précédente.
+update public.invitations set status = 'REVOKED'
+where token_hash = encode(extensions.digest('tok-promotion','sha256'),'hex');
 
 insert into public.invitations (tenant_id, email, role, token_hash, expires_at) values
   ('bbbbbbbb-0000-4000-8000-000000000001', 'nouveau@example.com', 'MEMBER',
