@@ -2,7 +2,7 @@
 -- projection construite côté client. Ces tests précèdent la migration P1-002.
 
 begin;
-select plan(27);
+select plan(24);
 
 select has_table('public', 'class_schedules', 'la série récurrente existe');
 select has_table('public', 'classes', 'les occurrences matérialisées existent');
@@ -25,25 +25,62 @@ select has_function(
   'une modification de série réconcilie les seules occurrences modifiables'
 );
 
-select ok(
-  public.pilot_weekly_rrule_valid('FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR'),
-  'la RRULE hebdomadaire du pilote est acceptée'
+-- Parité de grammaire avec le TypeScript.
+--
+-- Ces deux listes sont **mot pour mot** celles de
+-- `packages/core/src/supabase/class-schedules.test.ts`. La grammaire du pilote
+-- est écrite à deux endroits — elle doit l'être, la base ne peut pas exécuter de
+-- TypeScript et un écran ne peut pas se reposer sur un code d'erreur — donc la
+-- seule façon honnête de la tenir est que les deux suites échouent ensemble le
+-- jour où l'une dérive.
+--
+-- En une assertion par sens plutôt qu'une par chaîne : ce qu'on veut lire dans
+-- un échec, c'est **laquelle** a dérivé, et `string_agg` le dit.
+select is(
+  (select coalesce(string_agg(candidate, ', ' order by candidate), '')
+   from (values
+     ('FREQ=WEEKLY;BYDAY=MO'),
+     ('FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR'),
+     ('FREQ=WEEKLY;INTERVAL=2;BYDAY=MO;UNTIL=20261231'),
+     ('FREQ=WEEKLY;INTERVAL=52;BYDAY=SU'),
+     ('FREQ=WEEKLY;BYDAY=SA,SU;UNTIL=20270101')
+   ) as acceptees(candidate)
+   where not public.pilot_weekly_rrule_valid(candidate)),
+  '',
+  'toute RRULE du sous-ensemble pilote est acceptée'
 );
-select ok(
-  public.pilot_weekly_rrule_valid('FREQ=WEEKLY;INTERVAL=2;BYDAY=MO;UNTIL=20261231'),
-  'INTERVAL et UNTIL sont acceptés dans le sous-ensemble pilote'
-);
-select ok(
-  not public.pilot_weekly_rrule_valid('FREQ=MONTHLY;BYDAY=MO'),
-  'une fréquence hors pilote est refusée explicitement'
-);
-select ok(
-  not public.pilot_weekly_rrule_valid('FREQ=WEEKLY;BYDAY=MO;COUNT=8'),
-  'COUNT n''est jamais interprété approximativement'
-);
-select ok(
-  not public.pilot_weekly_rrule_valid('FREQ=WEEKLY;BYDAY=MO;BYHOUR=18'),
-  'une clé RRULE inconnue est refusée'
+
+select is(
+  (select coalesce(string_agg(candidate, ', ' order by candidate), '')
+   from (values
+     -- Fréquences hors pilote.
+     ('FREQ=MONTHLY;BYDAY=MO'),
+     ('FREQ=DAILY;BYDAY=MO'),
+     -- COUNT exigerait de dérouler la série pour savoir quand elle s'arrête.
+     ('FREQ=WEEKLY;BYDAY=MO;COUNT=8'),
+     -- Clés inconnues, même inoffensives en apparence. WKST changerait
+     -- l'alignement des semaines d'INTERVAL sans que rien ne le signale.
+     ('FREQ=WEEKLY;BYDAY=MO;BYHOUR=18'),
+     ('FREQ=WEEKLY;WKST=SU;BYDAY=MO'),
+     -- BYDAY est obligatoire : sans lui la RFC déduit le jour de DTSTART, ce
+     -- que la matérialisation ne fait pas.
+     ('FREQ=WEEKLY'),
+     ('FREQ=WEEKLY;BYDAY='),
+     -- Bornes d'INTERVAL.
+     ('FREQ=WEEKLY;INTERVAL=0;BYDAY=MO'),
+     ('FREQ=WEEKLY;INTERVAL=53;BYDAY=MO'),
+     -- La forme est canonique, pas approximative.
+     ('BYDAY=MO;FREQ=WEEKLY'),
+     -- Jour inconnu, jour répété.
+     ('FREQ=WEEKLY;BYDAY=XX'),
+     ('FREQ=WEEKLY;BYDAY=MO,MO'),
+     -- UNTIL mal formé, et une date qui n'existe pas.
+     ('FREQ=WEEKLY;BYDAY=MO;UNTIL=2026-12-31'),
+     ('FREQ=WEEKLY;BYDAY=MO;UNTIL=20260230')
+   ) as refusees(candidate)
+   where public.pilot_weekly_rrule_valid(candidate)),
+  '',
+  'toute RRULE hors du sous-ensemble pilote est refusée, jamais approximée'
 );
 
 -- Hugo est MANAGER de Rueil mais seulement MEMBER de Nanterre : le cas qui

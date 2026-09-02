@@ -107,6 +107,26 @@ export {
 } from './box-settings';
 
 export {
+  ClassSchedulePatchSchema,
+  RecurrenceSchema,
+  RRULE_DAYS,
+  RRULE_MAX_INTERVAL,
+  RRULE_MIN_INTERVAL,
+  buildWeeklyRrule,
+  dayOfWeekday,
+  isCalendarDate,
+  isPilotRrule,
+  mondayOf,
+  parseWeeklyRrule,
+  shiftWeeks,
+  weekDates,
+  weekdayOf,
+  type ClassSchedulePatch,
+  type RruleDay,
+  type WeeklyRecurrence,
+} from './class-schedules';
+
+export {
   tenantScope,
   type TenantInsert,
   type TenantScope,
