@@ -24,6 +24,28 @@ describe('brandFromTheme', () => {
 });
 
 describe('brandFromPublicProfile', () => {
+  // Les colonnes de thème sortent nulles quand la box n'a pas de ligne dans
+  // `themes` : les fonctions SQL joignent en **externe** depuis qu'on a
+  // vu ce qu'une jointure interne coûtait — une box sans branding disparaissait
+  // de son profil public, et ses invitations devenaient « invalides ».
+  it('comble un branding absent avec la marque par défaut', () => {
+    expect(
+      brandFromPublicProfile({
+        app_name: 'CrossFit Bastille',
+        logo_url: null,
+        primary_color: null,
+        radius: null,
+        font: null,
+      }),
+    ).toEqual({
+      appName: 'CrossFit Bastille',
+      logoUrl: null,
+      primary: DEFAULT_BRAND.primary,
+      radius: DEFAULT_BRAND.radius,
+      font: DEFAULT_BRAND.font,
+    });
+  });
+
   it('traduit le profil public, dont la colonne s’appelle primary_color', () => {
     expect(
       brandFromPublicProfile({

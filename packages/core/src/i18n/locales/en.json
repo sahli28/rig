@@ -226,6 +226,8 @@
   "invitation.title": "Join {box}",
   "invitation.intro": "You are invited to join this box as {role}.",
   "invitation.nominative_hint": "This invitation is personal: it expects the address {email}.",
+  "invitation.other_account": "You are signed in as {email}, and this invitation expects a different address.",
+  "invitation.switch_account": "Use a different address",
   "invitation.email_mismatch": "This invitation does not apply to that address. Use the one it was sent to.",
   "invitation.join": "Join {box}",
   "invitation.welcome_title": "Welcome to {box}",

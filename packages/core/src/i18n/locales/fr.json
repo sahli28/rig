@@ -226,6 +226,8 @@
   "invitation.title": "Rejoindre {box}",
   "invitation.intro": "Tu es invité·e à rejoindre cette box en tant que {role}.",
   "invitation.nominative_hint": "Cette invitation est nominative : elle attend l'adresse {email}.",
+  "invitation.other_account": "Tu es connecté·e avec {email}, et cette invitation attend une autre adresse.",
+  "invitation.switch_account": "Utiliser une autre adresse",
   "invitation.email_mismatch": "Cette invitation ne vaut pas pour cette adresse. Utilise celle à laquelle elle a été envoyée.",
   "invitation.join": "Rejoindre {box}",
   "invitation.welcome_title": "Bienvenue chez {box}",

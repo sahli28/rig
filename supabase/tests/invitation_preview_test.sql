@@ -14,7 +14,7 @@
 --      donc avant qu'un compte orphelin soit créé.
 
 begin;
-select plan(16);
+select plan(19);
 
 -- Un QR mural : une invitation sans e-mail, réutilisable jusqu'à révocation.
 -- Le seed n'en porte pas, et c'est pourtant l'autre moitié du sujet.
@@ -61,8 +61,8 @@ select is(
 -- découvrir.
 select is(
   (select email_masked from public.invitation_preview('inv-rueil-0001')),
-  'n***@example.com',
-  'l''e-mail sort masqué'
+  'n***@e***.com',
+  'l''e-mail sort masqué — partie locale **et** domaine, seul le suffixe reste'
 );
 
 select isnt(
@@ -141,6 +141,45 @@ select is(
   (select count(*) from public.invitation_preview('inv-rueil-0001'))::int,
   0,
   'une invitation révoquée non plus : les cinq cas sont indiscernables'
+);
+
+-- ---------------------------------------------------------------------------
+-- Une box sans branding reste joignable
+--
+-- La jointure sur `themes` était **interne** : une ligne de branding manquante
+-- faisait disparaître la box de son profil public et rendait ses invitations
+-- « invalides ou expirées ». Indiagnosticable par construction, puisque les cinq
+-- causes d'invalidité sont indiscernables à dessein.
+--
+-- `create_tenant()` insère toujours cette ligne — mais « aujourd'hui c'est
+-- vrai » n'est pas un invariant, et c'est précisément ce que ce test transforme
+-- en garantie.
+-- ---------------------------------------------------------------------------
+
+reset role;
+
+delete from public.themes where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001';
+
+set local role anon;
+
+select is(
+  (select count(*) from public.invitation_preview('qr-rueil-0001'))::int,
+  1,
+  'une box sans ligne de branding invite quand même'
+);
+
+select is(
+  (select app_name from public.invitation_preview('qr-rueil-0001')),
+  'CrossFit Rueil',
+  '…et se présente sous son propre nom, faute de nom d''app'
+);
+
+-- La sœur, qui avait exactement le même défaut : ne corriger qu'une des deux
+-- fonctions aurait répété le motif au lieu de le clore.
+select is(
+  (select count(*) from public.tenant_public_profile('crossfit-rueil'))::int,
+  1,
+  'son profil public survit aussi — c''était le même défaut, dans l''autre fonction'
 );
 
 -- ---------------------------------------------------------------------------

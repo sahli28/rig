@@ -12,8 +12,8 @@
 | --- | --- |
 | `main` | `13f1325` — P0-001 à P0-004, **P0-005a**, **D-001**, **D-006**, **D-005**, **P1-001a**, **P1-001b** fusionnés |
 | Branche en cours | `feat/P1-001c-staff-et-roles`, **à pousser et à fusionner** |
-| Tests | **263 pgTAP** (16 fichiers) · **206 Vitest** · lint, typecheck, i18n (274 clés), format verts |
-| Migrations | 18 |
+| Tests | **266 pgTAP** (16 fichiers) · **207 Vitest** · lint, typecheck, i18n (276 clés), format verts |
+| Migrations | 19 |
 
 **Fusionner avec un merge commit, jamais en squash.** Le squash a cassé trois
 fois (PR #3, #4, #5) : il coupe le lien d'ascendance et toute branche empilée

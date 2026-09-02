@@ -83,6 +83,38 @@ et il n'est récupérable par aucun chemin ensuite.
   couches.
 - `invited_by` est dérivé de la session : ne pas l'envoyer.
 
+## Trois corrections issues de la relecture
+
+**1. La jointure sur `themes` faisait disparaître des invitations.** Elle était
+**interne** : une box sans ligne de branding sortait de son profil public, et ses
+invitations devenaient « invalides ou expirées » — sans que personne puisse
+savoir pourquoi, puisque les cinq causes d'invalidité sont indiscernables à
+dessein. Bon contre un attaquant, redoutable pour le dépannage.
+
+`create_tenant()` insère toujours cette ligne, donc c'était vrai aujourd'hui.
+Mais « aujourd'hui c'est vrai » n'est pas un invariant : une migration, une
+suppression manuelle, ou **P1-001e** qui permettra de réinitialiser l'apparence.
+Un test le transforme en garantie.
+
+Et **`tenant_public_profile()` avait exactement le même défaut** : ne corriger
+que la fonction neuve aurait répété le motif au lieu de le clore. Les deux
+joignent désormais en externe, et le repli vit là où il vit déjà —
+`DEFAULT_BRAND` dans `packages/ui`, pas un `'#E4572E'` recopié dans deux
+fonctions Postgres.
+
+**2. Une session déjà ouverte n'est pas forcément la bonne.** Arriver sur
+l'invitation en étant connecté sous une autre adresse menait à
+`INVITATION_EMAIL_MISMATCH` **après** avoir cliqué : ni avancer, ni revenir. Le
+même cul-de-sac que celui du COACH, à un écran près. La page tranche donc
+**avant** d'afficher le bouton et offre « utiliser une autre adresse ». Session
+correspondante : le bouton « rejoindre » directement, sans redemander l'e-mail ni
+renvoyer un lien.
+
+**3. Le masque laissait le domaine entier.** `l***@rueil.example` devient
+`l***@r***.example` : le suffixe suffit à reconnaître son fournisseur. Détail —
+le porteur du jeton connaît déjà l'adresse — mais l'écran est public, et tant
+qu'à masquer, autant masquer.
+
 ## Critères d'acceptation
 
 - [x] Un MANAGER invite un coach, pas un autre manager (spec §5.2) — et ne voit
@@ -98,3 +130,7 @@ et il n'est récupérable par aucun chemin ensuite.
 - [x] Un jeton inconnu, expiré ou déjà consommé donne le **même** message
 - [x] Les six mutations écrivent au journal, avec le bon acteur, et sans jamais
       y laisser de jeton ni d'e-mail
+- [x] Une box privée de sa ligne de branding invite quand même, et garde son
+      profil public
+- [x] Une session ouverte sous une autre adresse est reconnue **avant** le
+      bouton, avec une sortie ; une session correspondante rejoint directement

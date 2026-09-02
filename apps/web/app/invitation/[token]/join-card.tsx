@@ -2,7 +2,9 @@
 
 import { useActionState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useI18n } from '@rig/ui/i18n';
+import { browserClient } from '../../../lib/supabase/client';
 import type { InvitationPreview } from '@rig/core/supabase';
 import type { TranslationKey } from '@rig/core';
 import styles from './invitation.module.css';
@@ -25,13 +27,20 @@ const ROLE_KEYS: Record<string, TranslationKey> = {
 export function JoinCard({
   token,
   preview,
-  signedIn,
+  session,
 }: {
   token: string;
   preview: InvitationPreview;
-  signedIn: boolean;
+  /** Nulle sans session ; `matches` dit si l'invitation vaut pour cette adresse. */
+  session: { email: string; matches: boolean } | null;
 }) {
   const { t } = useI18n();
+  const router = useRouter();
+
+  async function changerDeCompte() {
+    await browserClient().auth.signOut();
+    router.refresh();
+  }
 
   const [etatLien, envoyerLien] = useActionState<ActionState, FormData>(
     sendInvitationLink.bind(null, token),
@@ -43,6 +52,7 @@ export function JoinCard({
   );
 
   const staff = preview.role === 'OWNER' || preview.role === 'MANAGER';
+  const signedIn = session !== null;
 
   if (etatAdhesion.status === 'joined') {
     return (
@@ -72,7 +82,17 @@ export function JoinCard({
 
         <Feedback state={signedIn ? etatAdhesion : etatLien} />
 
-        {signedIn ? (
+        {session !== null && !session.matches ? (
+          // Connecté·e, mais pas avec l'adresse que l'invitation attend. Sans
+          // cette branche, le bouton mènerait à un refus de la base et à rien
+          // d'autre : ni avancer, ni revenir.
+          <>
+            <p className={styles.hint}>{t('invitation.other_account', { email: session.email })}</p>
+            <button type="button" className={styles.primary} onClick={() => void changerDeCompte()}>
+              {t('invitation.switch_account')}
+            </button>
+          </>
+        ) : session !== null ? (
           <form action={rejoindre}>
             <button type="submit" className={styles.primary}>
               {t('invitation.join', { box: preview.name })}

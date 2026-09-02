@@ -16,9 +16,16 @@ export const TenantPublicProfileSchema = z.object({
   name: z.string(),
   app_name: z.string(),
   logo_url: z.string().nullable(),
-  primary_color: z.string(),
-  radius: z.number(),
-  font: z.string(),
+  /**
+   * Nuls quand la box n'a pas de ligne dans `themes`. La fonction SQL joint en
+   * **externe** exprès : une jointure interne faisait disparaître la box de son
+   * propre profil public, et rendait ses invitations « invalides » sans qu'aucun
+   * écran ne puisse le dire. `brandFromPublicProfile()` comble avec
+   * `DEFAULT_BRAND`.
+   */
+  primary_color: z.string().nullable(),
+  radius: z.number().nullable(),
+  font: z.string().nullable(),
 });
 
 export type TenantPublicProfile = z.infer<typeof TenantPublicProfileSchema>;

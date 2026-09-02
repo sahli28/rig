@@ -1,5 +1,5 @@
 import { brandFromPublicProfile } from '@rig/ui/theme';
-import { fetchInvitationPreview } from '@rig/core/supabase';
+import { fetchInvitationPreview, invitationAcceptsEmail } from '@rig/core/supabase';
 import { ThemeStyle } from '../../theme-style';
 import { serverClient } from '../../../lib/supabase/server';
 import { supabaseConfigured } from '../../../lib/supabase/config';
@@ -36,12 +36,26 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Une session déjà ouverte n'est pas forcément la bonne. Une invitation
+  // nominative acceptée sous une autre adresse échoue en
+  // `INVITATION_EMAIL_MISMATCH` **après coup**, et la personne se retrouve dans
+  // un état d'où elle ne peut ni avancer ni revenir — le cul-de-sac que
+  // « espace réservé au staff » vient de perdre. On tranche donc **avant**
+  // d'afficher le bouton, et on offre la sortie.
+  const session =
+    user === null
+      ? null
+      : {
+          email: user.email ?? '',
+          matches: await invitationAcceptsEmail(supabase, token, user.email ?? ''),
+        };
+
   return (
     <>
       {/* Aux couleurs de la box **avant** toute connexion : c'est chez elle que
           la personne croit arriver, pas chez RIG. */}
       <ThemeStyle brand={brandFromPublicProfile(preview)} />
-      <JoinCard token={token} preview={preview} signedIn={user !== null} />
+      <JoinCard token={token} preview={preview} session={session} />
     </>
   );
 }
