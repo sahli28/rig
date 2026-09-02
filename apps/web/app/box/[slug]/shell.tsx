@@ -9,9 +9,14 @@ import type { TranslationKey } from '@rig/core';
 import { browserClient } from '../../../lib/supabase/client';
 import styles from './shell.module.css';
 
-const NAV: ReadonlyArray<{ segment: string; labelKey: TranslationKey }> = [
+/**
+ * `ownerOnly` n'est pas une garde : la policy `themes_update` refuse déjà tout
+ * gestionnaire. C'est de l'ergonomie — ne pas proposer une porte qui se ferme.
+ */
+const NAV: ReadonlyArray<{ segment: string; labelKey: TranslationKey; ownerOnly?: true }> = [
   { segment: '', labelKey: 'shell.nav_dashboard' },
   { segment: '/reglages', labelKey: 'shell.nav_settings' },
+  { segment: '/apparence', labelKey: 'shell.nav_appearance', ownerOnly: true },
   { segment: '/staff', labelKey: 'shell.nav_staff' },
   { segment: '/membres', labelKey: 'shell.nav_members' },
 ];
@@ -56,22 +61,24 @@ export function Shell({
         <span className={styles.box}>{boxName}</span>
 
         <nav className={styles.nav} aria-label={t('shell.nav_label')}>
-          {NAV.map(({ segment, labelKey }) => {
-            const href = `${base}${segment}`;
-            const actif = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={actif ? `${styles.link} ${styles.linkActive}` : styles.link}
-                // L'état actif n'est pas porté par la seule couleur : il est
-                // annoncé aux lecteurs d'écran (`.claude/rules/ui.md`).
-                aria-current={actif ? 'page' : undefined}
-              >
-                {t(labelKey)}
-              </Link>
-            );
-          })}
+          {NAV.filter((entry) => entry.ownerOnly !== true || role === 'OWNER').map(
+            ({ segment, labelKey }) => {
+              const href = `${base}${segment}`;
+              const actif = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={actif ? `${styles.link} ${styles.linkActive}` : styles.link}
+                  // L'état actif n'est pas porté par la seule couleur : il est
+                  // annoncé aux lecteurs d'écran (`.claude/rules/ui.md`).
+                  aria-current={actif ? 'page' : undefined}
+                >
+                  {t(labelKey)}
+                </Link>
+              );
+            },
+          )}
         </nav>
 
         <DropdownMenu.Root>

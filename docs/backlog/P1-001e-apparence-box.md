@@ -21,21 +21,52 @@ tests unitaires mais n'ont jamais vu une couleur choisie par un humain.
 
 ## Périmètre
 
-- Écran `/box/[slug]/apparence` : couleur primaire, logo, nom d'app, rayon,
-  police.
+- Écran `/box/[slug]/apparence` : couleur primaire, nom d'app, rayon, police.
+  **Le logo part en P1-001f** : c'est le premier usage de Storage, donc le pilote
+  de toute la couche fichiers — bucket, policies, limites, et la question que
+  tout le monde oublie, qui supprime l'ancien fichier. Le concevoir ici, c'est le
+  concevoir distrait.
 - **OWNER seul** : la spec §5.2 exclut explicitement le gestionnaire du
   white-label, et la policy `themes_update` le fait déjà.
 - Aperçu en direct des tokens dérivés, avec le **ratio de contraste affiché** et
   un avertissement quand la couleur choisie oblige `ensureContrast()` à corriger.
-- Téléversement du logo (Supabase Storage — première utilisation, à cadrer :
-  bucket par tenant, RLS du bucket, taille et format acceptés).
+- **Deux constantes séparées.** `DEFAULT_BRAND.primary` (la couleur de RIG,
+  avant qu'une box soit résolue) et le défaut de `themes.primary_color` (le point
+  de départ d'une box neuve) partageaient le même littéral : impossible de savoir,
+  en regardant un écran, si on voyait « la plateforme faute de box » ou « cette
+  box, au défaut ». Le second devient un **gris ardoise** — un neutre dit « pas
+  encore configuré », ce qui est exact et appelle l'action.
+
+  Pas une teinte dérivée du slug : une couleur calculée est assez spécifique pour
+  avoir l'air choisie, et « pourquoi ma box est turquoise ? » n'a pas de bonne
+  réponse.
+
+## Ce que ce ticket n'a pas eu besoin de faire
+
+**Aucune migration de structure.** `app_name`, `primary_color`, `radius` et
+`font` existent sur `themes` depuis P0-004, avec leurs contraintes ; la policy
+`themes_update` était déjà réservée à l'OWNER, et les droits posés. Vérifié
+avant d'estimer, pas supposé. La seule ligne de SQL du ticket est le changement
+de défaut ci-dessus.
 
 ## Critères d'acceptation
 
-- [ ] Un OWNER change la couleur de sa box et l'app mobile comme le back-office
-      la prennent au chargement suivant
-- [ ] Un MANAGER n'atteint pas l'écran
-- [ ] Une couleur à faible contraste est acceptée mais **signalée**, et le texte
-      reste lisible grâce à `ensureContrast()`
-- [ ] Le thème par défaut d'une box nouvellement créée cesse d'être la couleur
-      d'exemple de la spec
+- [x] Un OWNER change la couleur de sa box, et **la coquille du back-office
+      comme la page publique d'invitation** se repeignent — couleur, police et
+      rayon compris. C'est la promesse white-label rendue observable.
+- [x] Un MANAGER n'atteint pas l'écran : pas d'entrée de navigation, et une
+      phrase s'il force l'URL
+- [x] Une couleur à faible contraste est acceptée, **enregistrée telle quelle**,
+      et signalée : `#f2e94e` donne 1,3:1 en clair, l'écran annonce `#7f7909`
+      (4,5:1) et explique pourquoi
+- [x] Le thème par défaut d'une box nouvellement créée cesse d'être la couleur
+      d'exemple de la spec (test pgTAP)
+- [ ] **L'app mobile** prend la couleur au chargement suivant — reste sur la
+      passe Expo en attente, comme le reste du mobile
+
+### Une correction au cahier des charges
+
+`/login` **n'est pas** dans la liste des écrans qui se repeignent. Il n'a pas de
+box dans son URL, donc pas de box à résoudre : il porte la marque **plateforme**,
+par construction. Les trois écrans brandés sont la coquille `/box/[slug]/…`, la
+page `/invitation/[token]`, et l'accueil mobile via `tenant_public_profile()`.
