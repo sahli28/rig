@@ -133,12 +133,53 @@ là où les écrans qui déclenchent les changements existeront.
 
 ## Critères d'acceptation
 
-- [ ] Créer « WOD, lundi au vendredi 18h30, salle principale, 16 places » génère 8 semaines d'occurrences
-- [ ] Modifier la récurrence ne détruit pas les occurrences passées ni les réservations existantes
-- [ ] Annuler une occurrence unique ne casse pas la série
-- [ ] Le passage à l'heure d'hiver ne décale aucun cours (test explicite sur le dimanche de bascule)
+- [x] Créer « WOD, lundi au vendredi 18h30, salle principale, 16 places » génère 8 semaines d'occurrences
+- [x] Modifier la récurrence ne détruit pas les occurrences passées ni les réservations existantes
+- [x] Annuler une occurrence unique ne casse pas la série
+- [x] Le passage à l'heure d'hiver ne décale aucun cours (test explicite sur le dimanche de bascule)
 - [ ] Dupliquer une semaine prend moins de 5 secondes
-- [ ] Toute RRULE hors sous-ensemble pilote est refusée avec une alternative claire ; elle n'est jamais acceptée puis interprétée partiellement
+- [x] Toute RRULE hors sous-ensemble pilote est refusée avec une alternative claire ; elle n'est jamais acceptée puis interprétée partiellement
+
+## Ce qui reste, et pourquoi
+
+**Trois choses, dont une seule dépend de nous.**
+
+1. **Dupliquer une semaine** — pas fait, et à re-cadrer avant de le coder. Le
+   critère vient de la spec §4-P5 (RM5.8), où il porte sur un **programme
+   d'entraînement**. Appliqué à un planning **récurrent**, il a perdu l'essentiel
+   de son sens : une semaine se répète déjà toute seule, c'est la définition
+   d'une série. Ce qui reste utile est de dupliquer les **exceptions** d'une
+   semaine — un coach remplacé le 12, une salle changée le 14 — ce qui n'est pas
+   la même fonctionnalité et mérite d'être demandé à une box avant d'être écrit.
+   La duplication au sens de la spec appartient à **P2-010** (Program Builder),
+   où elle garde tout son sens.
+
+2. **Exceptions autres que l'annulation** — coach remplacé, capacité modifiée sur
+   une occurrence. La base est prête (`is_override`, et les `grant update` par
+   colonne le permettent) ; l'écran ne l'expose pas. C'est du travail d'interface
+   pur, sans inconnue.
+
+3. **La notification d'annulation — bloquée, pas oubliée.** Le périmètre dit
+   « annulation d'un cours **avec notification** ». Annuler est fait ; notifier
+   n'a aucun canal : le push est **P1-007**, l'e-mail **P2-015**, et aucun des
+   deux n'existe. L'écran le dit à qui annule (« les membres inscrits ne sont pas
+   prévenus automatiquement ») plutôt que de laisser croire le contraire — mais
+   ce critère reste ouvert et doit être recoché à P1-007.
+
+Le planning mobile et son cache hors ligne sont sortis dans **P1-002b**.
+
+## Dette ajoutée par ce ticket
+
+- **`refresh_class_schedule()` ne notifie personne.** Archiver une occurrence
+  future non réservée est sans conséquence ; le jour où P1-003 aura posé des
+  réservations, la protection `booked_count = 0` suffira. Mais un cours
+  **annulé** dont on retire la série reste visible et personne n'est prévenu.
+  À revoir avec P1-007.
+- **La suite pgTAP suppose une base fraîchement semée.** Découvert en laissant
+  des données de test manuelles derrière soi : six tests ont rougi, dont quatre
+  dans `account_deletion_test.sql`, sans qu'aucun code soit en cause. Ce n'est
+  pas nouveau et ce n'est pas grave — `pnpm db:reset` avant `pnpm test:db` — mais
+  ça vaut d'être écrit quelque part, parce que le message d'échec ne le dit pas.
 
 ## Notes
 
