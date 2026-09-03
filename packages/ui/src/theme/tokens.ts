@@ -94,11 +94,36 @@ export interface Theme {
   contrast: ThemeContrastReport;
 }
 
-/** Marque par défaut de la plateforme, avant qu'une box n'ait configuré la sienne. */
+/**
+ * Marque de la plateforme : ce qu'on affiche quand **aucune box n'est
+ * résolue** — ouverture à froid, lien non reconnu, page publique sans
+ * invitation.
+ *
+ * **Le graphite n'est pas un choix esthétique, c'est un instrument de mesure.**
+ * Cette couleur valait `#E4572E` jusqu'au 3 septembre 2026, c'est-à-dire
+ * exactement la couleur de CrossFit Rueil dans `supabase/seed.sql`. Les deux
+ * étaient indiscernables à l'œil, et la conséquence n'était pas cosmétique :
+ * **aucun contrôle visuel du white-label ne prouvait quoi que ce soit.** « C'est
+ * orange » était vrai que le thème du tenant ait été résolu ou non, donc un
+ * défaut de résolution passait inaperçu. C'est précisément ce qui est arrivé à
+ * l'écran de bienvenue, resté à la marque par défaut pendant tout le parcours
+ * d'invitation sans que personne le voie.
+ *
+ * Trois états doivent rester distinguables d'un coup d'œil :
+ *
+ * | État | Couleur | Ce qu'il dit |
+ * | --- | --- | --- |
+ * | plateforme, aucune box résolue | `#1F2933` graphite | « je ne sais pas de quelle box il s'agit » |
+ * | box neuve, non configurée | `#4A5568` ardoise (défaut de `themes.primary_color`) | « cette box, qui n'a pas encore choisi » |
+ * | box configurée | la sienne | « cette box-là » |
+ *
+ * `default-brand.test.ts` relit le seed et les migrations et échoue si l'un de
+ * ces trois-là en rejoint un autre.
+ */
 export const DEFAULT_BRAND: TenantBrand = {
   appName: 'RIG',
   logoUrl: null,
-  primary: '#E4572E',
+  primary: '#1F2933',
   radius: 16,
   font: 'Inter',
 };

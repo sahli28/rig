@@ -63,6 +63,27 @@ insert into public.tenant_settings (tenant_id) values
   ('aaaaaaaa-0000-4000-8000-000000000001'),
   ('bbbbbbbb-0000-4000-8000-000000000001');
 
+-- **Ces deux couleurs doivent rester distinctes de celle de la plateforme.**
+-- Ce n'est pas une préférence de fixture, c'est ce qui rend un contrôle visuel
+-- capable de prouver quelque chose.
+--
+-- Jusqu'au 3 septembre 2026, `DEFAULT_BRAND.primary` valait `#E4572E` —
+-- exactement l'orange de Rueil ci-dessous. Conséquence : sur un écran, « c'est
+-- orange » était vrai que le thème du tenant ait été résolu **ou pas**. Aucune
+-- passe manuelle de white-label n'a donc jamais rien démontré, et un vrai
+-- défaut de résolution est passé inaperçu pendant tout le parcours
+-- d'invitation mobile.
+--
+-- Trois valeurs, trois significations, et elles ne doivent jamais se rejoindre :
+--
+--   * `#1F2933` graphite — la plateforme, quand **aucune** box n'est résolue ;
+--   * `#4A5568` ardoise — le défaut de `themes.primary_color`, une box neuve
+--     qui n'a pas encore choisi ;
+--   * les couleurs ci-dessous — des boxes qui, elles, ont choisi.
+--
+-- `packages/ui/src/theme/default-brand.test.ts` relit ce fichier et échoue si
+-- l'une rejoint l'autre. Changer l'orange de Rueil est permis ; le remplacer par
+-- la couleur de la plateforme ne l'est pas.
 insert into public.themes (tenant_id, app_name, primary_color) values
   ('aaaaaaaa-0000-4000-8000-000000000001', 'CF Rueil',    '#E4572E'),
   ('bbbbbbbb-0000-4000-8000-000000000001', 'CF Nanterre', '#16457A');
