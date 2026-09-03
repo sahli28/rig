@@ -37,10 +37,28 @@ const secureStore: KeyValueStore = {
 };
 
 /**
- * `expo-secure-store` n'existe pas sur le web, où l'app tourne pour les démos
- * du kit de composants. `localStorage` y tient lieu de stockage : le web mobile
- * n'est pas une cible de production, et un `undefined` ferait planter au
- * démarrage un écran qui n'a rien à voir avec l'authentification.
+ * `expo-secure-store` n'existe pas sur le web. `localStorage` y tient lieu de
+ * stockage : le web mobile n'est pas une cible de production, et un
+ * `undefined` ferait planter au démarrage un écran qui n'a rien à voir avec
+ * l'authentification.
+ *
+ * **Cette branche revendiquait une cible qui ne construisait pas.** Jusqu'au
+ * 3 septembre 2026, le bundle web échouait sur
+ * `Unable to resolve "react-native-web/dist/index"` : les trois dépendances de
+ * la cible web n'étaient pas déclarées. Le choix était binaire — la dépendance
+ * entre, ou le commentaire et la branche sortent.
+ *
+ * Elle entre, et pour une raison qui s'est prouvée le jour même : **c'est le
+ * seul harnais qui exerce le routeur, les fournisseurs et les écrans sans
+ * téléphone.** C'est lui qui a localisé la perte du jeton d'invitation, en
+ * montrant « Unmatched Route » sur l'URL que le produit distribue — un défaut
+ * qu'aucun test unitaire ne pouvait voir et qui avait survécu à une passe sur
+ * appareil réel. Il ne remplace pas l'appareil (ni le trousseau, ni
+ * `expo-localization`, ni le rendu natif), il attrape ce que l'appareil coûte
+ * trop cher à rattraper.
+ *
+ * `pnpm --filter @rig/mobile build:web` est en CI : une cible qu'on revendique
+ * sans la construire redevient une cible morte en trois commits.
  */
 const webStore: KeyValueStore = {
   getItem: (key) => Promise.resolve(globalThis.localStorage?.getItem(key) ?? null),

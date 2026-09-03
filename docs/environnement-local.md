@@ -84,6 +84,27 @@ Expo — la procédure complète est dans `docs/passe-mobile-iphone.md`, section
 
 Installé au niveau utilisateur : `corepack enable` échoue faute de droits admin.
 
+**Un `pnpm add` interrompu laisse l'arbre à moitié détruit.** Symptôme :
+`ERR_PNPM_ENOENT … scandir 'node_modules/<paquet>_tmp_<pid>/node_modules'`, qui
+revient à chaque tentative en changeant de paquet. Ce qu'il faut regarder :
+
+```bash
+ls node_modules/.pnpm | wc -l      # doit valoir des centaines, pas 1
+```
+
+Si le magasin virtuel `.pnpm` est vide alors que `node_modules` est plein, tous
+les liens pendent dans le vide et **aucun `pnpm install` ne s'en remet** : il
+bute sur un dossier réel laissé par le `_tmp_` de la fois précédente. Retirer
+les `node_modules` (racine **et** paquets) et réinstaller depuis le lockfile —
+35 s, et rien n'est perdu :
+
+```bash
+node -e "for (const d of ['node_modules','apps/mobile/node_modules','apps/web/node_modules','packages/core/node_modules','packages/ui/node_modules']) require('node:fs').rmSync(d,{recursive:true,force:true})" && pnpm install
+```
+
+`--force`, `--package-import-method=copy` et la suppression des seuls dossiers
+`_tmp_` ont tous été essayés : aucun ne suffit.
+
 ---
 
 ## Deux pièges de code qui ne se voient qu'à l'exécution

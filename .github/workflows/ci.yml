@@ -40,6 +40,18 @@ jobs:
       - name: Format
         run: pnpm format:check
 
+      # Le bundle web de l'app mobile. Il ne remplace pas un appareil, mais il
+      # est le seul harnais qui exerce le routeur et les écrans sans téléphone —
+      # et il a servi le jour même à localiser la perte du jeton d'invitation.
+      #
+      # Il est ici parce qu'il a **déjà** pourri une fois en silence :
+      # `lib/supabase.ts` portait une branche `webStore` justifiée par « les
+      # démos du kit sur le web » pendant que le bundle échouait sur
+      # `Unable to resolve "react-native-web/dist/index"`. Une cible revendiquée
+      # et jamais construite est une cible morte, et personne ne le remarque.
+      - name: Bundle web de l'app mobile
+        run: pnpm --filter @rig/mobile build:web
+
   database:
     name: base · isolation multi-tenant · T1 concurrence
     runs-on: ubuntu-latest
