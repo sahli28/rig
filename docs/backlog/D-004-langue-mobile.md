@@ -2,6 +2,12 @@
 
 **Phase** dette · **Estimation** 2 j·h (était 1) · **Origine** P0-003, **élargi par la passe sur appareil du 3 septembre 2026** · **Dépend de** P0-005a ✅
 
+> **Sur le chemin critique depuis le 3 septembre 2026.** P1-003b la rend
+> bloquante : ses critères sont des critères de parcours, jugés à la main sur un
+> appareil, et une app en anglais les fait juger sur les mauvais mots. Les 2 j·h
+> ont quitté la dette hors totaux pour entrer dans le total du jalon pilote, et
+> ce ticket **ouvre** la chaîne D-004 → P1-002b → P1-003b.
+
 ## Ce que la passe sur appareil a montré
 
 iPhone 12 Pro Max, Expo Go, SDK 57. **L'app s'ouvre en anglais sur un téléphone

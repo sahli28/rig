@@ -139,7 +139,7 @@ export const ERROR_MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   IMPORT_INVALID_ROW: 'errors.import_invalid_row',
   IMPORT_TOO_LARGE: 'errors.import_too_large',
 
-  // Réservation — la base ne les lève pas encore, l'API les rendra en P1
+  // Réservation — `book_class()` les lève depuis P1-003, l'API les rendra aussi
   CLASS_FULL: 'errors.class_full',
   ALREADY_BOOKED: 'errors.already_booked',
   BOOKING_WINDOW_CLOSED: 'errors.booking_window_closed',
