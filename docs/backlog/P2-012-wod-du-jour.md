@@ -17,7 +17,7 @@ visibles. Sans lui, la programmation est un back-office que personne ne lit.
 | Séances publiées, `publish_session()` | P2-009, P2-010 | ❌ **à créer par P2-009 / P2-010** |
 | `resolve_block_for_member()` | P2-011 | ❌ **à créer par P2-011**. Sans elle, ce ticket affiche « 75 % 1RM » brut — dégradation acceptable, à dire au plan |
 | Notifications push, catégorie « WOD publié » | P1-007 | ❌ **à créer par P1-007** — la catégorie est **déjà nommée dans son périmètre**, marquée « (P2) ». C'est ce ticket-ci |
-| **L'app mobile ayant tourné au moins une fois** | `apps/mobile` | ⚠️ **jamais exécutée.** P0-005a laisse sa passe sur appareil ouverte (`docs/REPRISE.md` §2). Ce ticket est un écran mobile de plus posé sur une app qui n'a jamais démarré : le chiffrer à 3 j·h suppose la passe faite |
+| **L'app mobile ayant tourné au moins une fois** | `apps/mobile` | ✅ passe faite le 3 septembre 2026 (`docs/passe-mobile-iphone.md`). Le chiffrage à 3 j·h ne repose plus sur une supposition |
 | Deep link vers un écran depuis une notification | P1-007 | ❌ **à créer par P1-007** (critère d'acceptation existant) |
 | Planificateur pour les publications futures | P2-010 | ❌ **à créer par P2-010** — job `pg_cron` |
 

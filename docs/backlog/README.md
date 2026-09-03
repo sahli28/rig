@@ -13,18 +13,40 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **48,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **38,5 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 76 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
-**février 2027**, MVP vendable vers **octobre 2027**. Ces dates sont ce
-qu'elles sont ; les connaître vaut mieux que les découvrir.
+**janvier 2027**, MVP vendable vers **septembre 2027**. Ces dates sont ce
+qu'elles sont ; les connaître vaut mieux que les découvrir. Elles ont avancé
+d'un mois le 3 septembre 2026 : P1-002 et le lot SQL de P1-003 sont fusionnés.
 
 **La ligne de démarcation est celle de la spec §2.6** : une box doit pouvoir
 créer son compte → configurer son planning → inviter ses membres → **vendre un
 abonnement et un pack de 10** → voir réserver, annuler, pointer → **publier le
 WOD avec Rx/Scaled** → voir logguer les scores → **consulter son CA**. Tout ce
 qui est en gras était absent du backlog jusqu'au 2 septembre 2026.
+
+## Chemin critique hors code
+
+**Dernier examen : 3 septembre 2026.** À relire à chaque revue de backlog, et à
+dater à nouveau — une échéance non relue est une échéance oubliée.
+
+Quatre démarches administratives bloquent du code déjà écrit ou déjà chiffré.
+**Aucune ne se rattrape en codant plus vite**, et aucune n'a bougé depuis une
+semaine. Elles ne vivent nulle part ailleurs dans le dépôt : ni un ticket, ni un
+test, ni la CI ne les rappellera.
+
+| Quoi | Bloque | Pourquoi maintenant |
+| --- | --- | --- |
+| **Trois `client_id` Google** (web, iOS, Android) | P0-005b, puis P2-003 | Bloqué depuis cinq sessions. URI de redirection **exactement** `http://127.0.0.1:55321/auth/v1/callback` en local : Google compare au caractère près, et `localhost` n'est pas `127.0.0.1` pour lui |
+| **Compte développeur Apple**, 99 $/an | P2-003, et toute publication | Vérification d'identité, délai d'enrôlement variable. Câbler Google engage sur Apple avant soumission (guideline 4.8) |
+| **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société |
+| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, et le retour Apple | **Trois éléments bloqués par une seule absence** |
+
+Le constat qui a fait écrire cette section : pendant quatre tickets d'affilée,
+le choix du ticket suivant s'est fait par élimination — c'était le seul travail
+non bloqué. Le chemin critique du projet est administratif, pas technique.
 
 ## Convention
 
@@ -46,7 +68,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 83,75 j·h, dont **48,5 restants**
+## ① Jalon pilote — 86,75 j·h, dont **38,5 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -55,13 +77,19 @@ Objectif : une box réelle utilise l'app en production pendant deux semaines.
 
 ```
 P0-005b                                (SSO Google)
-P1-002 → P1-003 → P1-004 → P1-005      (planning, réservation, annulation, temps réel)
-P1-002b                                (planning mobile + cache hors ligne)
+D-004 → P1-002b → P1-003b              (langue, planning mobile, réserver depuis le mobile)
+P1-004 → P1-005                        (annulation, temps réel)
 P1-007 → P1-006 → P1-008               (push, waitlist, check-in)
 P1-001f                                (logo — après la première démo)
         ↓
   ═══ JALON : mise en production chez la box pilote ═══
 ```
+
+**D-004 ouvre la chaîne mobile**, et ce n'est pas un caprice : les critères de
+P1-002b et de P1-003b sont des critères de parcours, jugés à la main sur un
+appareil. Une app qui s'ouvre en anglais sur un iPhone français les fait juger
+sur les mauvais mots. Cette dette entre donc dans le total ① — voir P1-003b,
+section « Ce lot attend D-004 ».
 
 ### État
 
@@ -71,23 +99,31 @@ P1-001f                                (logo — après la première démo)
 | P0-002  | Design tokens et thème tenant                     |      4 | ✅ fusionné (PR #1)  |
 | P0-003  | i18n FR/EN                                        |      2 | ✅ fusionné (PR #3)  |
 | P0-004  | Schéma de base, RLS, test anti-fuite              |      6 | ✅ fusionné (PR #4)  |
-| P0-005a | Se connecter — code, session, `me()`              |      6 | ✅ fusionné (PR #6) — **reste la passe sur appareil** |
+| P0-005a | Se connecter — code, session, `me()`              |      6 | ✅ fusionné (PR #6) — passe sur appareil faite le 3 sept. 2026 |
 | P0-005b | SSO Google et linking d'identités                 |      4 | 🔒 bloqué — trois `client_id` Google à créer |
 | P1-001a | Porte d'entrée du back-office web                 |    2,5 | ✅ fusionné (PR #11) |
 | P1-001b | Réglages box, horaires, types de cours            |      3 | ✅ fusionné (PR #12) |
 | P1-001c | Staff & Roles, invitations, journal d'audit       |   3,75 | ✅ fusionné (PR #13) |
-| P1-001d | Import CSV de membres                             |      4 | ✅ fait, à fusionner |
+| P1-001d | Import CSV de membres                             |      4 | ✅ fusionné (PR #15) |
 | P1-001e | Apparence de la box (branding)                    |      1 | ✅ fusionné (PR #14) |
 | P1-001f | Logo et couche Storage                            |      1 | à faire — après la démo |
-| P1-002  | Planning récurrent (RRULE)                        |      9 | **en cours** — migration et test écrits |
+| P1-002  | Planning récurrent (RRULE)                        |      9 | ✅ fusionné (PR #17) |
+| D-004   | La langue du mobile — **entrée au chemin critique** |    2 | ✅ code écrit — **reste la passe sur appareil** (`expo-localization`, trousseau, absence de clignotement) |
 | P1-002b | Planning mobile et cache hors ligne               |    3,5 | à faire — sorti de P1-002 |
-| P1-003  | Réservation transactionnelle                      |      8 | à faire              |
+| P1-003  | Réservation — lot 1, le SQL                       |      4 | ✅ fusionné (PR #18) — prouvé sous contention réelle en CI |
+| P1-003b | Réserver depuis le mobile — lot 2, les écrans     |      5 | à faire — après D-004 et P1-002b |
 | P1-004  | Annulation et fenêtres                            |      4 | à faire              |
 | P1-005  | Places restantes en temps réel                    |      3 | à faire              |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire              |
 | P1-007  | Notifications push                                |      4 | à faire              |
 | P1-008  | Check-in QR et mode kiosque                       |      6 | à faire              |
-|         | **Total ①**                                       | **83,75** | dont **35,25 faits**, **48,5 restants** |
+|         | **Total ①**                                       | **86,75** | dont **48,25 faits**, **38,5 restants** |
+
+Deux mouvements de chiffres, tous deux dus à la règle 8 appliquée au lot 2 de
+P1-003 : **P1-003 passe de 8 à 9 j·h** (4 pour le SQL livré, 5 pour les écrans —
+l'écran Planning en est sorti, il appartient à P1-002b), et **D-004 rejoint le
+total ① pour 2 j·h**. C'est le deuxième ticket où la section de prérequis coûte
+avant le code plutôt qu'après.
 
 ---
 
@@ -138,11 +174,9 @@ numérotation de la spec :
 | P2-003 | Sign in with Apple                             |   3 | **M1** — bloquant de publication |
 |        | **Total ②**                                    | **76** | |
 
-**P2-001 et P2-003 ont un prérequis administratif à lancer maintenant** :
-activation de Stripe Connect (vérification d'identité de la société) et compte
-développeur Apple à 99 $/an. Ce sont les deux seuls éléments du chemin critique
-dont le délai ne se rattrape pas en codant plus vite. P2-015 et D-008 en ont un
-troisième, commun : **un nom de domaine**, avec SPF, DKIM et DMARC.
+**P2-001, P2-003, P2-015 et D-008 attendent tous une démarche administrative** —
+Stripe Connect, le compte Apple, un nom de domaine. Voir « Chemin critique hors
+code » en tête de ce fichier : c'est là que ces échéances vivent.
 
 ---
 
@@ -173,7 +207,7 @@ SHOULD payé en avance, à ne pas recompter.
 
 ---
 
-## ④ Dette convertie en tickets — 7,75 j·h ouverts
+## ④ Dette convertie en tickets — 5,75 j·h ouverts
 
 `CLAUDE.md` dit « ce qui déborde devient un nouveau ticket ». La dette accumulée
 dans les tickets clos y échappait : un ticket clos ne se relit pas.
@@ -183,16 +217,17 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-001  | Vue restreinte des membres d'une box           |   2 | P0-004 — ✅ fait, débloquait P1-001 |
 | D-002  | Tests de rendu des composants                  |   2 | P0-002 — **devient gênante à P2-010**, l'écran le plus riche du produit |
 | D-003  | SSR de l'i18n pour les pages publiques         |   2 | P0-003 |
-| D-004  | **La langue** : source de vérité, persistance, repli |   2 | P0-003 — **élargi par la passe sur appareil du 3 sept. 2026** : l'app s'ouvre en anglais sur un iPhone français, `Intl` ne donne pas la langue de l'appareil sous Hermes, et `FALLBACK_LOCALE = 'en'` pour un produit vendu en France |
+| D-004  | **La langue** : source de vérité, persistance, repli |   2 | P0-003 — **élargi par la passe sur appareil du 3 sept. 2026** : l'app s'ouvre en anglais sur un iPhone français, `Intl` ne donne pas la langue de l'appareil sous Hermes, et `FALLBACK_LOCALE = 'en'` pour un produit vendu en France. **Sortie de la dette hors totaux le 3 septembre : P1-003b la rend bloquante**, elle est comptée dans ① |
 | D-005  | Empreintes des jetons d'invitation             |   1 | PR #4 — ✅ fait |
 | D-006  | Défense en profondeur sur `public.users`       | 0,5 | P0-004 — ✅ fait |
 | D-007  | Contraste de la page de démo                   | 0,25 | P0-002 |
 | D-008  | Lien d'invitation qui survit à l'installation  | 1,5 | P0-005a — **attend un domaine**, comme P2-015 |
-|        | **Ouvert**                                     | **7,75** | D-002, D-003, D-004, D-007, D-008 |
+|        | **Ouvert, hors totaux**                        | **5,75** | D-002, D-003, D-007, D-008 — D-004 est passée dans ① |
 
-Ces 7,75 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
+Ces 5,75 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
 une dette qu'on additionne au chemin critique le rend indiscutable, une dette
-qu'on cache le rend faux. Elle se paie quand un ticket la rend bloquante —
+qu'on cache le rend faux. Elle se paie quand un ticket la rend bloquante — et
+elle entre alors dans le total, comme D-004 vient de le faire pour P1-003b.
 D-002 le sera à P2-010.
 
 ---

@@ -9,6 +9,7 @@
  */
 
 import { z } from 'zod';
+import type { Locale } from '../i18n/types';
 import type { RigClient } from './client';
 import { Constants, type Database } from './types.gen';
 
@@ -45,6 +46,28 @@ export async function updateProfile(
   if (parsed.avatar_url !== undefined) values.avatar_url = parsed.avatar_url;
 
   const { error } = await client.from('users').update(values).eq('id', userId);
+  if (error) throw error;
+}
+
+/**
+ * Écrit **la seule langue** du compte (D-004, rang 2).
+ *
+ * Distincte d'`updateProfile`, qui exige un prénom : réconcilier `users.locale`
+ * ne doit ni supposer que le reste du profil est connu, ni risquer de le
+ * réécrire. Passer par `updateProfile` obligerait à relire un prénom pour
+ * changer une langue, et à le renvoyer — une écriture de plus, sur des colonnes
+ * que personne n'a touchées.
+ *
+ * `locale` fait bien partie du `grant update (…) on public.users` : la policy
+ * `id = auth.uid()` et les droits de colonne suffisent, aucune fonction SQL
+ * n'est nécessaire.
+ */
+export async function updateLocale(
+  client: RigClient,
+  userId: string,
+  locale: Locale,
+): Promise<void> {
+  const { error } = await client.from('users').update({ locale }).eq('id', userId);
   if (error) throw error;
 }
 

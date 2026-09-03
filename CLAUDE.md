@@ -5,16 +5,31 @@ Spécification produit complète : `docs/spec/RIG-spec-produit-technique.md`
 (~156 Ko : à ouvrir section par section quand un ticket la référence, jamais en entier).
 Backlog exécutable : `docs/backlog/` — un fichier par ticket.
 
-> **Reprise de session : lire `docs/REPRISE.md` en premier.** Il porte l'état
-> exact, les actions en attente et les pièges d'environnement (Docker hors PATH,
-> ports Supabase décalés). Supprimer ce paragraphe quand le fichier disparaîtra.
+> **Avant de lancer quoi que ce soit : `docs/environnement-local.md`.** Docker
+> hors PATH, ports Supabase décalés, Expo qui réécrit un `tsconfig.json`. Ces
+> pièges frappent avant qu'un fichier soit ouvert, donc aucun glob de
+> `.claude/rules/` ne les charge à temps.
 
 ## Contexte de développement
 
 - **Développeuse solo**, ~15–20 h/semaine. Optimise pour la maintenabilité par une seule personne, jamais pour l'élégance architecturale.
 - Priorité produit : **CrossFit d'abord**. **Hyrox et réseau inter-box restent en v1**, conformément à la spec §2.3 et §13.5 — Hyrox est notre porte d'entrée commerciale (§18.1) et la seule réponse écrite au risque R2. Mais **aucun ticket ne le porte tant que le MVP n'encaisse pas** : la valeur `HYROX_PREP` n'entrera dans l'enum `programs.type` qu'au ticket P3 qui l'implémente. Une valeur d'enum sans code derrière ne vaut rien, et `alter type … add value` coûte une ligne.
-- Phase courante : **P0 — Socle** (voir `docs/backlog/README.md`).
+- Phase courante : **P1 — jalon pilote** (voir `docs/backlog/README.md`). P0 est fusionné, sauf P0-005b, bloqué par un prérequis administratif.
 - Langues : FR + EN dès le premier écran. Marché : France / UE, RGPD applicable.
+
+## Le contexte qui coûte le plus cher à redécouvrir
+
+- **`.claude/rules/database.md` porte douze pièges déjà payés**, et surtout la
+  **règle des sœurs** : cinq des cinq trous trouvés depuis P0-004 ont la même
+  forme — un chemin bien gardé, et son jumeau oublié. Aucun n'a été trouvé par
+  les tests ni par `rls-auditor`, qui vérifient ce qui est écrit, pas ce qui
+  manque. La question utile n'est donc pas « ce que je viens d'écrire est-il
+  correct ? » mais **« qu'est-ce qui, ailleurs, fait la même chose et n'a pas été
+  touché ? »**
+- Le pendant côté tests : un **contrôle structurel** dit que la forme est bonne,
+  un **contrôle comportemental** dit que ça se comporte bien.
+  `rls_leak_test.sql` porte les deux depuis D-001 et D-006 — et le second a
+  rattrapé un faux vert du premier.
 
 ## Stack
 

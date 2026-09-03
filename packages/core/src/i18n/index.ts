@@ -26,3 +26,9 @@ export {
   type TranslationValues,
   type Messages,
 } from './types';
+export {
+  localeFromTagOrNull,
+  profileLocaleToSync,
+  resolveLocale,
+  type LocaleSources,
+} from './resolve-locale';

@@ -21,6 +21,7 @@ docs/
   spec/                    la spécification produit complète (20 sections)
   adr/                     décisions d'architecture et leurs raisons
   backlog/                 un fichier par ticket, avec critères d'acceptation
+  environnement-local.md   les pièges de la machine de développement
 apps/
   mobile/                  Expo + expo-router (iOS, Android)
   web/                     Next.js App Router (back-office box, pages publiques)
@@ -69,6 +70,10 @@ Tout a été décalé de 543xx vers 553xx dans `supabase/config.toml` :
 
 Pour vérifier les plages réservées sur une autre machine :
 `netsh interface ipv4 show excludedportrange protocol=tcp`.
+
+Les autres pièges de la machine — Docker hors PATH, le port 3000 qui ne se
+déplace pas, Expo qui réécrit un `tsconfig.json` — sont dans
+**`docs/environnement-local.md`**. Les lire avant de perdre une heure dessus.
 
 ### Variables d'environnement
 
@@ -183,10 +188,11 @@ et on repart : `CLAUDE.md` et les règles se rechargent seuls.
 
 ## Où est la vérité
 
-| Question                       | Fichier                                   |
-| ------------------------------ | ----------------------------------------- |
-| Que construit-on et pourquoi ? | `docs/spec/RIG-spec-produit-technique.md` |
-| Comment code-t-on ici ?        | `CLAUDE.md` et `.claude/rules/`           |
-| Pourquoi ce choix technique ?  | `docs/adr/`                               |
-| Quoi faire maintenant ?        | `docs/backlog/README.md`                  |
-| Où en était-on ?               | `docs/REPRISE.md`                         |
+| Question                         | Fichier                                                 |
+| -------------------------------- | ------------------------------------------------------- |
+| Que construit-on et pourquoi ?   | `docs/spec/RIG-spec-produit-technique.md`               |
+| Comment code-t-on ici ?          | `CLAUDE.md` et `.claude/rules/`                         |
+| Pourquoi ce choix technique ?    | `docs/adr/`                                             |
+| Quoi faire maintenant ?          | `docs/backlog/README.md`                                |
+| Qu'est-ce qui bloque hors code ? | `docs/backlog/README.md`, « Chemin critique hors code » |
+| Pourquoi ma machine résiste ?    | `docs/environnement-local.md`                           |

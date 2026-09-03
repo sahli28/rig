@@ -21,13 +21,34 @@ export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
 }
 
-/** Langue par défaut quand celle de l'appareil n'est pas gérée. */
-export const FALLBACK_LOCALE: Locale = 'en';
+/**
+ * Langue servie quand on ne sait **rien** : appareil dans une langue non gérée,
+ * aucune préférence enregistrée, aucun profil.
+ *
+ * **Le français, tranché par D-004.** Le produit est vendu à des boxes
+ * françaises et ses écrans sont pensés en français ; un repli anglais était
+ * l'inverse du défaut attendu, et venait de l'habitude plutôt que d'un
+ * arbitrage. Le rang 4 de `resolve-locale.ts` est le seul à s'en servir : une
+ * personne dont le téléphone est en allemand voit désormais la langue de la
+ * box, pas une troisième langue.
+ */
+export const FALLBACK_LOCALE: Locale = 'fr';
 
 /**
  * Ramène une étiquette BCP-47 (`fr-CA`, `en_US`, `de-DE`) à une langue du
- * produit. Sert à lire la langue de l'appareil sans dépendance : sur mobile
- * comme sur le web, `Intl.DateTimeFormat().resolvedOptions().locale` la donne.
+ * produit, avec repli. Sert à **afficher** quelque chose à partir d'une
+ * étiquette quelconque.
+ *
+ * Pour **choisir** entre plusieurs sources, prendre `localeFromTagOrNull()` :
+ * cette fonction-ci ne distingue pas « allemand » de « rien », puisqu'elle rend
+ * le repli dans les deux cas.
+ *
+ * Sur le web, `navigator.language` donne la langue du navigateur. **Sur mobile,
+ * `Intl.DateTimeFormat().resolvedOptions().locale` ne donne pas celle de
+ * l'appareil** : sous Hermes elle vaut `en-US` quels que soient les réglages du
+ * téléphone. C'est `expo-localization` qui la donne, et cette phrase remplace
+ * l'hypothèse inverse, qui était écrite ici et fausse — vérifiée sur un iPhone
+ * réglé en français le 3 septembre 2026.
  */
 export function localeFromTag(tag: string | null | undefined): Locale {
   if (!tag) return FALLBACK_LOCALE;

@@ -1,28 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { ActivityIndicator, useColorScheme, View } from 'react-native';
 import { ThemeProvider, brandFromTheme, useTheme } from '@rig/ui/theme';
 import { I18nProvider } from '@rig/ui/i18n';
-import { localeFromTag } from '@rig/core';
+import { resolveLocale } from '@rig/core';
 import { BrandProvider, useBrand } from '../lib/brand';
+import { deviceLocale, deviceTimeZone, useLocaleStorage } from '../lib/locale';
 import { SessionProvider, useSession } from '../lib/session';
-
-/**
- * Fuseau tant qu'aucune box n'est active : celui de l'appareil. Dès que `me()`
- * rend une box, c'est le sien qui s'applique — les règles métier (fenêtre
- * d'annulation) se calculent en heure locale de la box, jamais du téléphone.
- */
-function deviceTimeZone() {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Paris';
-}
-
-/**
- * Langue de l'appareil, lue via `Intl` plutôt que via `expo-localization` :
- * une dépendance de moins pour une information que la plateforme expose déjà.
- */
-function deviceLocale() {
-  return localeFromTag(Intl.DateTimeFormat().resolvedOptions().locale);
-}
 
 /**
  * Aiguillage. Une seule fonction décide où l'on doit être, pour que la règle
@@ -105,9 +89,26 @@ function Branded() {
   const brand = current ? brandFromTheme(current.theme) : invitationBrand;
   const timeZone = current?.timezone ?? deviceTimeZone();
 
+  /**
+   * D-004, rangs 3 et 4 : tout ce qu'on peut savoir **avant** la connexion.
+   * L'écran de bienvenue s'affiche là, et il doit déjà être dans la bonne
+   * langue. Les rangs 1 et 2 — préférence enregistrée, puis `users.locale` —
+   * arrivent ensuite et sont appliqués par le provider, sans le remonter.
+   *
+   * Calculé une fois : la langue de l'appareil ne change pas sans que l'OS
+   * redémarre l'application.
+   */
+  const initialLocale = useMemo(() => resolveLocale({ device: deviceLocale() }), []);
+  const localeStorage = useLocaleStorage(me?.user.id ?? null, me?.user.locale ?? null);
+
   return (
     <ThemeProvider scheme={scheme} {...(brand === null ? {} : { brand })}>
-      <I18nProvider initialLocale={deviceLocale()} timeZone={timeZone}>
+      <I18nProvider
+        initialLocale={initialLocale}
+        timeZone={timeZone}
+        storage={localeStorage}
+        profileLocale={me?.user.locale ?? null}
+      >
         <ThemedStack />
       </I18nProvider>
     </ThemeProvider>

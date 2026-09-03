@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
-import { I18nProvider } from '@rig/ui/i18n';
 import { brandFromTheme } from '@rig/ui/theme';
 import { fetchMe, findMembershipBySlug } from '@rig/core/supabase';
 import { ThemeStyle } from '../../theme-style';
 import { serverClient } from '../../../lib/supabase/server';
 import { supabaseConfigured } from '../../../lib/supabase/config';
+import { BoxI18n } from './box-i18n';
 import { Notice } from './notice';
 import { Shell } from './shell';
 
@@ -73,15 +73,15 @@ export default async function BoxLayout({
       <ThemeStyle brand={brandFromTheme(tenant.theme)} />
       {/* Règle 9 : les heures s'affichent dans le fuseau de la box, jamais dans
           celui du navigateur. Le fournisseur racine porte encore un fuseau figé
-          — il ne vaut que pour les pages publiques, qui n'ont pas de box. */}
-      <I18nProvider
-        initialLocale={scoped.user.locale === 'en' ? 'en' : 'fr'}
-        timeZone={tenant.timezone}
-      >
+          — il ne vaut que pour les pages publiques, qui n'ont pas de box.
+
+          La langue, elle, suit les rangs de D-004 : `BoxI18n` ajoute la
+          préférence du navigateur, qui l'emporte sur `users.locale`. */}
+      <BoxI18n profileLocale={scoped.user.locale} timeZone={tenant.timezone}>
         <Shell slug={slug} boxName={tenant.theme.app_name} role={membership.role}>
           {children}
         </Shell>
-      </I18nProvider>
+      </BoxI18n>
     </>
   );
 }

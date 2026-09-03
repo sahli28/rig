@@ -24,7 +24,8 @@
  * Tout le monde se réveille à la même seconde, quel que soit le temps de
  * démarrage. C'est la seule façon d'être sûr que la contention a bien eu lieu —
  * et le script le **vérifie** plutôt que de l'espérer : si les erreurs ne sont
- * pas de la bonne forme, il le dit.
+ * pas de la bonne forme, il le dit, et un échantillonneur compte combien de
+ * sessions se sont réellement croisées dans la fonction.
  *
  * Usage :
  *     node scripts/booking-concurrency.mjs [N]     (défaut : 200, comme la spec)
@@ -81,9 +82,32 @@ const COUNTDOWN_SECONDS = Math.max(4, Math.ceil(N / 40));
 const TENANT = 'dddddddd-0000-4000-8000-000000000001';
 const CLASS = 'dd000000-0000-4000-8000-000000000001';
 
-/** Un `psql` dans le conteneur. Le mot de passe n'entre jamais en jeu. */
-function psql(sql, { async: isAsync = false } = {}) {
-  const args = ['exec', '-i', CONTAINER, 'psql', '-U', 'postgres', '-d', 'postgres', '-tAc', sql];
+/** Les sessions de la ruée, et l'échantillonneur qui les compte. */
+const STAMPEDE_APP = 'rig-stampede';
+const SAMPLER_APP = 'rig-peak-sampler';
+
+/**
+ * Un `psql` dans le conteneur. Le mot de passe n'entre jamais en jeu.
+ *
+ * `PGAPPNAME` plutôt qu'un `set application_name` en tête de requête : libpq le
+ * pose à l'ouverture de la connexion, donc avant la première instruction, et il
+ * survit à l'échec de la transaction.
+ */
+function psql(sql, { async: isAsync = false, appName = 'rig-harness' } = {}) {
+  const args = [
+    'exec',
+    '-i',
+    '-e',
+    `PGAPPNAME=${appName}`,
+    CONTAINER,
+    'psql',
+    '-U',
+    'postgres',
+    '-d',
+    'postgres',
+    '-tAc',
+    sql,
+  ];
   if (isAsync) return spawn('docker', args, { stdio: ['ignore', 'pipe', 'pipe'] });
   const result = spawnSync('docker', args, { encoding: 'utf8' });
   if (result.status !== 0) {
@@ -206,6 +230,77 @@ function tearDown() {
 }
 
 // ---------------------------------------------------------------------------
+// La contention, mesurée
+// ---------------------------------------------------------------------------
+
+/**
+ * Combien de sessions se sont **réellement** croisées sur la place.
+ *
+ * La taille prévue d'une vague dit ce qu'on a lancé, pas ce qui s'est croisé :
+ * une session partie après le top, ou qui n'a jamais obtenu de connexion, n'a
+ * contendu avec personne. Annoncer ce chiffre comme une contention serait
+ * énoncer une intention et la présenter comme une mesure.
+ *
+ * L'échantillonneur ouvre donc une session à part et compte, toutes les 2 ms,
+ * les sessions de la ruée **sorties du sommeil** : `wait_event` vaut `PgSleep`
+ * tant qu'elles attendent le top, et autre chose — rien, ou l'attente du verrou
+ * de ligne — dès qu'elles courent après la place. Le maximum de ces relevés est
+ * la simultanéité atteinte.
+ *
+ * Deux pièges, tous deux payés à l'exécution :
+ *
+ * - **`pg_stat_activity` est figée pour la durée d'une transaction.** Un bloc
+ *   `do` en est une seule : sans `pg_stat_clear_snapshot()`, la boucle relit
+ *   mille fois le même instantané — celui d'avant la ruée — et ne voit jamais
+ *   personne. Premier relevé de ce harnais : zéro session, sur une ruée qui
+ *   avait bel et bien eu lieu ;
+ * - il faut lui donner **le top**, sinon il ne sait pas quand se taire. Il
+ *   s'arrête deux secondes après le top, une fois la dernière session sortie.
+ *   Le garde-fou temporel n'est là que pour qu'il ne survive pas à un harnais
+ *   interrompu.
+ */
+function startPeakSampler(startAt) {
+  const child = psql(
+    `
+    do $sampler$
+    declare
+      v_top timestamptz := timestamptz '${startAt}';
+      v_deadline timestamptz := clock_timestamp() + interval '${COUNTDOWN_SECONDS + 60} seconds';
+      v_peak int := 0;
+      v_seen int;
+    begin
+      loop
+        perform pg_stat_clear_snapshot();
+
+        select count(*) into v_seen
+        from pg_stat_activity
+        where application_name = '${STAMPEDE_APP}'
+          and state = 'active'
+          and coalesce(wait_event, '') <> 'PgSleep';
+
+        if v_seen > v_peak then v_peak := v_seen; end if;
+
+        exit when v_seen = 0 and clock_timestamp() > v_top + interval '2 seconds';
+        exit when clock_timestamp() > v_deadline;
+        perform pg_sleep(0.002);
+      end loop;
+      raise notice 'RIG_PEAK=%', v_peak;
+    end $sampler$;
+  `,
+    { async: true, appName: SAMPLER_APP },
+  );
+
+  return new Promise((resolve) => {
+    let err = '';
+    child.stderr.on('data', (c) => (err += c));
+    child.on('close', () => {
+      const found = /RIG_PEAK=([0-9]+)/.exec(err);
+      resolve(found === null ? 0 : Number(found[1]));
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
 // La ruée
 // ---------------------------------------------------------------------------
 
@@ -214,6 +309,9 @@ async function stampede(first, count) {
     `select (clock_timestamp() + interval '${COUNTDOWN_SECONDS} seconds')::text`,
   );
   log(`  top commun : ${startAt} (${COUNTDOWN_SECONDS} s de marge) · ${count} session(s)`);
+
+  // Démarré **avant** les sessions : une vague courte doit être vue en entier.
+  const peak = startPeakSampler(startAt);
 
   const sessions = Array.from({ length: count }, (_, index) => {
     const i = first + index;
@@ -232,7 +330,7 @@ async function stampede(first, count) {
       commit;
     `;
 
-    const child = psql(sql, { async: true });
+    const child = psql(sql, { async: true, appName: STAMPEDE_APP });
     return new Promise((resolve) => {
       let out = '';
       let err = '';
@@ -242,7 +340,8 @@ async function stampede(first, count) {
     });
   });
 
-  return Promise.all(sessions);
+  const results = await Promise.all(sessions);
+  return { results, peak: await peak };
 }
 
 // ---------------------------------------------------------------------------
@@ -277,7 +376,13 @@ function verdict(results, peak) {
       other.length === 0,
       `${full} complet, ${other.length} autre(s)`,
     ],
-    ['contention réelle sur la place', peak >= 2, `${peak} sessions en même temps`],
+    // Mesuré par `startPeakSampler()`, pas déduit de la taille de la vague : ce
+    // qu'on a lancé n'est pas ce qui s'est croisé.
+    [
+      'contention réelle sur la place',
+      peak >= 2,
+      `${peak} sessions dans la fonction au même instant`,
+    ],
   ];
 
   log('');
@@ -303,26 +408,32 @@ try {
 
   // Le plafond se mesure **après** le décor : les insertions ont pu laisser des
   // connexions ouvertes, et un chiffre pris trop tôt serait optimiste.
+  // Une connexion de moins : l'échantillonneur en occupe une pendant toute la
+  // ruée, et une session qui n'obtient pas de connexion ne prouve rien.
   const headroom = connectionHeadroom();
-  const wave = Math.min(N, headroom);
+  const wave = Math.min(N, Math.max(1, headroom - 1));
 
   log(
     wave < N
       ? `Plafond de connexions : ${headroom}. La ruée se fait par vagues de ${wave} — ` +
-          `la contention réelle est celle de la première.`
+          `la contention retenue est la plus forte des vagues.`
       : `Plafond de connexions : ${headroom}. Les ${N} sessions tiennent en une seule ruée.`,
   );
 
   const started = Date.now();
   const results = [];
+  let peak = 0;
   for (let first = 1; first <= N; first += wave) {
     const count = Math.min(wave, N - first + 1);
     log(`Vague ${Math.ceil(first / wave)} :`);
-    results.push(...(await stampede(first, count)));
+    const round = await stampede(first, count);
+    results.push(...round.results);
+    peak = Math.max(peak, round.peak);
+    log(`  contention observée : ${round.peak} / ${count} sessions`);
   }
   log(`Terminé en ${((Date.now() - started) / 1000).toFixed(1)} s`);
 
-  ok = verdict(results, wave);
+  ok = verdict(results, peak);
 } finally {
   tearDown();
 }

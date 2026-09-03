@@ -63,6 +63,7 @@ export {
   fetchPolicyVersion,
   isPlatformConsent,
   recordConsents,
+  updateLocale,
   updateProfile,
   CONSENT_PURPOSES,
   PLATFORM_CONSENT_PURPOSES,

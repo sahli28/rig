@@ -12,10 +12,10 @@ vérité reste la base, et le jalon pilote privilégie d'abord le planning fiabl
 
 | Prérequis | Où il vit | État |
 | --------- | --------- | ---- |
-| `classes` matérialisées, et lecture membre | P1-002 | ❌ à créer par P1-002 |
+| `classes` matérialisées, et lecture membre | P1-002 | ✅ existent — policy `classes_select` sur `current_tenant_ids()`, horizon entretenu par `pg_cron` |
 | Types de cours, salles et coachs | P1-001b, P1-001c | ✅ existent |
-| Application mobile ayant exécuté au moins une fois | P0-005a | ⚠️ jamais vérifiée sur appareil (`docs/REPRISE.md` §2) |
-| Stockage persistant React Native | `apps/mobile` | ❌ à ajouter ici (`@react-native-async-storage/async-storage`), dépendance à justifier |
+| Application mobile ayant exécuté au moins une fois | P0-005a | ✅ **passe faite le 3 septembre 2026** sur iPhone 12 Pro Max, Expo Go — `docs/passe-mobile-iphone.md`. Cette vérification se périme : Expo bouge, l’IP change |
+| Stockage persistant React Native | `apps/mobile` | ❌ à ajouter ici : `@react-native-async-storage/async-storage`, dépendance à justifier au commit. **Vérifié le 3 septembre 2026 : incluse dans Expo Go (SDK 57)** — aucun development build, donc aucun compte Apple payant. Installer avec `npx expo install`, qui pose la version du binaire (`2.2.0`) |
 | Identité du membre et memberships | `me()` (P0-005a) | ✅ existent — nécessaires pour partitionner le cache |
 
 ## Ce que ce ticket rend possible, et qui l'appellera

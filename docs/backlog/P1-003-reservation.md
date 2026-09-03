@@ -19,7 +19,7 @@ transactionnelle en même temps qu'un formulaire, et c'est la fonction qui perdr
 | Lot | Contenu | État |
 | --- | ------- | ---- |
 | **1 — SQL** | `bookings`, `book_class()`, verrou de ligne, contraintes, idempotence, codes d'erreur, test de concurrence | **celui-ci** |
-| 2 — écrans | Home, Schedule, Class Detail, Booking Confirmation, My Bookings, mise à jour optimiste | après, et **après la passe mobile** |
+| 2 — écrans | Détail du cours, réservation, confirmation, Mes réservations, carte « prochain cours » | **`P1-003b-ecrans-reservation.md`** — écrit le 3 septembre 2026, après la passe mobile. L’écran Planning en est sorti : il appartient à P1-002b |
 
 ## Ce que ce ticket suppose et qui doit exister
 
@@ -41,20 +41,21 @@ ce ticket a été rédigé avant le gabarit.
 | `waitlist_entries` | P1-006 | ❌ à créer par P1-006. `CLASS_FULL` est donc une fin de parcours dans ce lot, pas une porte vers l'attente |
 | Annulation, et la libération de place qui va avec | P1-004 | ❌ à créer par P1-004 |
 | **La vue des pairs** (feuille d'inscrits) | — | ❌ **n'existe pas**, et D-001 l'a délibérément laissée. Les trois décisions à prendre sont écrites en fin de ticket ; elles se tranchent **avec l'écran sous les yeux**, donc au lot 2 |
-| **Écran de réservation côté membre** | `apps/mobile` | ❌ **et le socle sous lui n'a jamais tourné.** Les quatre écrans mobiles de P0-005a n'ont **jamais exécuté une ligne** sur un appareil (`docs/REPRISE.md` §2). Le lot 2 est donc conditionné à cette passe, faite par la développeuse — pas supposée faite |
+| **Écran de réservation côté membre** | `apps/mobile` | ❌ à créer par **P1-003b**. La condition posée ici — que le socle mobile ait tourné sur un appareil — est **levée** : passe faite le 3 septembre 2026 (`docs/passe-mobile-iphone.md`) |
 | `k6` ou `pgbench` pour la charge | — | ⚠️ **pas nécessaire à ce lot.** Le test de concurrence se fait en pgTAP avec `dblink`, voir les notes — le p95 sous charge appartient au lot 2, quand il y aura un appel HTTP à mesurer |
 
 ## Ce que ce lot rend possible, et qui l'appellera
 
 | Ce que je livre | Appelé par | Ticket |
 | --------------- | ---------- | ------ |
-| `book_class(class, membership, idempotency_key)` | l'écran de réservation | **lot 2 — ouvert** |
+| `book_class(class, membership, idempotency_key)` | l'écran Détail du cours | **P1-003b** |
 | `bookings` | l'annulation, la waitlist, le check-in, le portefeuille | P1-004, P1-006, P1-008, P2-007 |
 | `member_has_booking_right()` — le point de couture des droits | l'abonnement, le portefeuille | **P2-006 et P2-007 la remplacent**, voir ci-dessous |
 | L'infrastructure d'idempotence | toute écriture financière | P2-006, P2-007 |
 
-**Règle 7 : `book_class()` n'aura aucun appelant à la fin de ce lot.** C'est
-assumé et c'est écrit — le lot 2 est son appelant, et il attend la passe mobile.
+**Règle 7 : `book_class()` n'a aucun appelant à la fin de ce lot.** C'est assumé
+et c'est écrit — son appelant est **P1-003b**, qui existe depuis le 3 septembre
+2026 et attend D-004 puis P1-002b.
 
 ## Où P2-006 et P2-007 viendront se brancher
 
@@ -129,6 +130,10 @@ D-001 a livré `member_admin_directory` (staff) et **délibérément pas** la vu
 pairs : elle n'avait pas d'appelant, et la feuille d'inscrits qui la motive naît
 ici, avec `bookings`. Ce qui reste à trancher, écrit tant que le raisonnement
 était frais :
+
+**Où elles se tranchent** : dans **P1-003c**, écrit une fois que l'écran Détail
+du cours existera (P1-003b). La condition « avec l'écran sous les yeux » n'est
+toujours pas remplie ; la trancher avant serait la retrancher après.
 
 1. **« Les gens que je croise », pas « toute la box ».** Exposer l'annuaire
    complet d'une box à chacun de ses membres est plus large que ce que la spec
