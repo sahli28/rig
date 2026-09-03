@@ -23,15 +23,27 @@ import type { TranslationKey } from './i18n/types';
  * Doivent rester alignés sur `supabase/migrations/*_app_error_codes.sql` :
  * `errors.test.ts` relit les migrations et échoue si la base en ajoute un
  * que cette liste ignore.
+ *
+ * Six codes de réservation y sont entrés avec P1-003, et le passage mérite
+ * d'être compris : ils vivaient dans `API_ERROR_CODES` — le catalogue de ce
+ * que la **couche API** rendra — parce qu'aucune fonction SQL ne les levait
+ * encore. `book_class()` les lève désormais, donc leur source a changé, donc
+ * leur liste aussi. Ils restent dans les deux, comme `FORBIDDEN_ROLE` : la base
+ * les lève **et** l'API les rendra. Les deux listes ne disent pas la même
+ * chose — l'une dit « d'où ça vient », l'autre « ce qu'on peut réutiliser ».
  */
 export const APP_ERROR_CODES = [
+  'ALREADY_BOOKED',
   'ALREADY_MEMBER',
   'APPEND_ONLY',
   'AUTH_REQUIRED',
+  'BOOKING_WINDOW_CLOSED',
+  'CLASS_FULL',
   'CURRENCY_LOCKED',
   'EMAIL_ALREADY_REGISTERED',
   'EMAIL_IMMUTABLE',
   'FORBIDDEN_ROLE',
+  'IDEMPOTENCY_KEY_REQUIRED',
   'IMPORT_EMPTY',
   'IMPORT_INVALID_ROW',
   'IMPORT_TOO_LARGE',
@@ -43,10 +55,12 @@ export const APP_ERROR_CODES = [
   'LAST_OWNER',
   'MANAGER_CANNOT_GRANT_ROLE',
   'MANAGER_CANNOT_MODIFY_ADMIN',
+  'MAX_UPCOMING_BOOKINGS_REACHED',
   'MEMBERSHIP_NOT_FOUND',
   'MEMBERSHIP_REVOKED',
   'MEMBERSHIP_SUSPENDED',
   'NOT_TENANT_MEMBER',
+  'NO_VALID_ENTITLEMENT',
   'PROFILE_NOT_FOUND',
   'TENANT_CLOSED',
   'TENANT_NAME_REQUIRED',

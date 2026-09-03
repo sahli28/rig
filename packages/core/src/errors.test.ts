@@ -160,7 +160,17 @@ describe('errorMessageKeyOf', () => {
 describe('isAppErrorCode', () => {
   it('ne reconnaît que les codes de la base', () => {
     expect(isAppErrorCode('LAST_OWNER')).toBe(true);
-    expect(isAppErrorCode('CLASS_FULL')).toBe(false); // code d'API, pas de la base
+
+    // Ce cas portait `CLASS_FULL`, avec le commentaire « code d'API, pas de la
+    // base ». C'était vrai jusqu'à P1-003 : `book_class()` le lève désormais
+    // par `app_error()`, donc il **vient** de la base et doit être reconnu. Le
+    // test disait juste, sur un monde qui a changé.
+    expect(isAppErrorCode('CLASS_FULL')).toBe(true);
+
+    // `CANCEL_WINDOW_PASSED` reprend le rôle : il est au catalogue de l'API et
+    // aucune fonction SQL ne le lève encore — P1-004 le fera, et ce jour-là ce
+    // cas devra bouger à son tour. C'est le signal, pas la panne.
+    expect(isAppErrorCode('CANCEL_WINDOW_PASSED')).toBe(false);
     expect(isAppErrorCode(42)).toBe(false);
     expect(isAppErrorCode(null)).toBe(false);
   });

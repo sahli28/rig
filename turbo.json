@@ -1,5 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "//": "`errors.test.ts` relit `supabase/migrations/*.sql` à l'exécution pour vérifier que tout code levé par `app_error()` a sa clé i18n. Sans cette déclaration, Turbo ne voit pas cette dépendance : elle sort du paquet `@rig/core`. Une migration ajoutée ne changeait donc pas le hash de la tâche, le cache resservait le résultat d'avant, et `pnpm test` rendait un vert **périmé** — la CI, elle, part d'un cache froid et échouait. Arrivé en P1-003 : six codes de réservation absents de la table, invisibles en local, rouges en CI. Un test qui lit hors de son paquet doit le déclarer, sinon il ment.",
+  "globalDependencies": ["supabase/migrations/**"],
   "tasks": {
     "dev": {
       "cache": false,

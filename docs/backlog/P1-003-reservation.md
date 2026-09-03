@@ -7,6 +7,85 @@
 La fonction pour laquelle on achète le produit. **Un seul double-booking en
 production détruit la confiance de façon irréversible.**
 
+## Ce lot : le SQL seul
+
+Ce ticket se fait **en deux lots**, et celui-ci ne livre aucun écran.
+
+C'est la logique métier la plus risquée du produit — « un seul double-booking en
+production détruit la confiance de façon irréversible » — et elle se prouve
+**entièrement en pgTAP**, sans interface. Les mêler ferait relire une fonction
+transactionnelle en même temps qu'un formulaire, et c'est la fonction qui perdrait.
+
+| Lot | Contenu | État |
+| --- | ------- | ---- |
+| **1 — SQL** | `bookings`, `book_class()`, verrou de ligne, contraintes, idempotence, codes d'erreur, test de concurrence | **celui-ci** |
+| 2 — écrans | Home, Schedule, Class Detail, Booking Confirmation, My Bookings, mise à jour optimiste | après, et **après la passe mobile** |
+
+## Ce que ce ticket suppose et qui doit exister
+
+Section ajoutée le 3 septembre 2026 (règle 8 de `CLAUDE.md`), rétroactivement :
+ce ticket a été rédigé avant le gabarit.
+
+| Prérequis | Où il vit | État |
+| --------- | --------- | ---- |
+| `classes` avec `capacity`, `booked_count`, `status` | `..._recurrent_class_schedules.sql` (P1-002) | ✅ existe — avec `check (booked_count between 0 and capacity)` déjà posé |
+| `booked_count` **hors des `grant update`** de `authenticated` | idem | ✅ existe, et c'est délibéré : seule une fonction `security definer` pourra le bouger. Vérifié — `has_column_privilege` rend `false` |
+| Fenêtres de réservation : `open_days_before`, `close_minutes_before`, `max_upcoming_bookings` | `tenant_settings` (P0-004), éditables depuis P1-001b | ✅ existent, avec leurs contraintes de bornes |
+| `tenants.timezone` — les fenêtres se calculent en **heure locale de la box** | P0-004 | ✅ existe (règle 9 de `CLAUDE.md`) |
+| `app_error(code, message, sqlstate)` | `..._app_error_codes.sql` | ✅ existe |
+| Les six codes d'erreur du périmètre | `packages/core/src/errors.ts` : `CLASS_FULL`, `ALREADY_BOOKED`, `BOOKING_WINDOW_CLOSED`, `NO_VALID_ENTITLEMENT`, `MAX_UPCOMING_BOOKINGS_REACHED`, `IDEMPOTENCY_KEY_REQUIRED` | ✅ **déjà déclarés**, avec leurs clés i18n et le test de parité qui relit les migrations. Rien à inventer, tout à câbler |
+| `current_tenant_ids()`, `log_audit()`, `uuid_generate_v7()` | P0-004 | ✅ existent |
+| **`bookings`** | — | ❌ **n'existe pas.** Ce lot la crée : c'est son objet |
+| **Une infrastructure d'idempotence** | — | ❌ **n'existe rien.** `Idempotency-Key` est une règle de `CLAUDE.md` (n°4) que rien n'implémente encore. Ce lot pose la première, et P2-006 s'en servira pour l'argent |
+| **Des droits de réservation réels** (abonnement, crédits) | P2-006, P2-007 | ❌ **à créer, et volontairement pas ici** — voir ci-dessous |
+| `waitlist_entries` | P1-006 | ❌ à créer par P1-006. `CLASS_FULL` est donc une fin de parcours dans ce lot, pas une porte vers l'attente |
+| Annulation, et la libération de place qui va avec | P1-004 | ❌ à créer par P1-004 |
+| **La vue des pairs** (feuille d'inscrits) | — | ❌ **n'existe pas**, et D-001 l'a délibérément laissée. Les trois décisions à prendre sont écrites en fin de ticket ; elles se tranchent **avec l'écran sous les yeux**, donc au lot 2 |
+| **Écran de réservation côté membre** | `apps/mobile` | ❌ **et le socle sous lui n'a jamais tourné.** Les quatre écrans mobiles de P0-005a n'ont **jamais exécuté une ligne** sur un appareil (`docs/REPRISE.md` §2). Le lot 2 est donc conditionné à cette passe, faite par la développeuse — pas supposée faite |
+| `k6` ou `pgbench` pour la charge | — | ⚠️ **pas nécessaire à ce lot.** Le test de concurrence se fait en pgTAP avec `dblink`, voir les notes — le p95 sous charge appartient au lot 2, quand il y aura un appel HTTP à mesurer |
+
+## Ce que ce lot rend possible, et qui l'appellera
+
+| Ce que je livre | Appelé par | Ticket |
+| --------------- | ---------- | ------ |
+| `book_class(class, membership, idempotency_key)` | l'écran de réservation | **lot 2 — ouvert** |
+| `bookings` | l'annulation, la waitlist, le check-in, le portefeuille | P1-004, P1-006, P1-008, P2-007 |
+| `member_has_booking_right()` — le point de couture des droits | l'abonnement, le portefeuille | **P2-006 et P2-007 la remplacent**, voir ci-dessous |
+| L'infrastructure d'idempotence | toute écriture financière | P2-006, P2-007 |
+
+**Règle 7 : `book_class()` n'aura aucun appelant à la fin de ce lot.** C'est
+assumé et c'est écrit — le lot 2 est son appelant, et il attend la passe mobile.
+
+## Où P2-006 et P2-007 viendront se brancher
+
+Le hors-périmètre dit « pendant la phase pilote les droits sont accordés à la
+main par la box ». C'est le bon choix : encaisser n'est pas un préalable à
+réserver, et la box pilote paie hors app par construction. Mais **un choix
+temporaire non préparé devient une couture forcée**, alors autant la poser tout
+de suite.
+
+`book_class()` appelle **une seule fonction** pour décider si la personne a le
+droit de réserver :
+
+    member_has_booking_right(p_membership_id uuid, p_class_starts_at timestamptz)
+      returns boolean
+
+Dans ce lot, son corps tient en une ligne : l'appartenance est `ACTIVE` et non
+suspendue. C'est exactement « les droits sont accordés à la main par la box » —
+inviter quelqu'un, c'est lui donner le droit de réserver.
+
+Les deux tickets d'argent la **remplacent**, ils n'en ajoutent pas une seconde :
+
+- **P2-006** y met l'abonnement, avec RM2.8 — « une réservation est bloquée si
+  l'abonnement expire **avant la date du cours** », d'où le paramètre
+  `p_class_starts_at`, qui n'a aucune utilité aujourd'hui et existe pour ça ;
+- **P2-007** y ajoute le portefeuille, et **débite dans le verrou** de
+  `book_class()` plutôt que dans une seconde transaction.
+
+Le paramètre inutile est donc un choix, pas un oubli. Une signature qu'on
+n'aurait pas à changer coûte une ligne aujourd'hui et évite de reprendre la
+fonction la plus dangereuse du produit le jour où elle porte de l'argent.
+
 ## Périmètre
 
 - Fonction PLpgSQL `book_class(p_class_id, p_membership_id, p_idempotency_key)` :

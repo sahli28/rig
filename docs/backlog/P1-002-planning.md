@@ -52,8 +52,29 @@ base, un job de fond et deux écrans.
 - `class_schedules` avec règle de récurrence RRULE (jour, heure, coach, salle, capacité).
 - Matérialisation des occurrences dans `classes` par un job `pg_cron`, sur un horizon glissant de 8 semaines.
 - Exceptions : cours annulé, coach remplacé, capacité modifiée sur une occurrence sans toucher la récurrence.
-- Back-office : grille semaine, création récurrente, duplication d'une semaine, annulation d'un cours avec notification.
+- Back-office : grille semaine, création récurrente, annulation d'un cours avec notification.
 - RRULE pilote **strictement bornée** à `FREQ=WEEKLY`, `INTERVAL`, `BYDAY` et `UNTIL`. Toute autre clé ou fréquence est refusée, côté schéma partagé **et** par la base : aucune règle ne sera jamais interprétée approximativement.
+
+## Ce qui a été retiré de ce ticket, et où c'est parti
+
+**« Dupliquer une semaine en moins de 5 secondes » n'appartenait pas ici.** Le
+critère vient de RM5.8, où il porte sur un **cycle d'entraînement** : un coach
+compose huit semaines de programmation et veut recopier la semaine 3 en
+semaine 7 sans tout ressaisir. C'est du travail, et c'est réel.
+
+Appliqué à un planning **récurrent**, il a perdu son objet : une série se répète
+déjà par définition, c'est ce qu'est une RRULE. Dupliquer une semaine y
+reviendrait à créer une seconde série identique à la première, ce que personne
+ne veut.
+
+Ce qui resterait utile — dupliquer les **exceptions** d'une semaine, un coach
+remplacé le 12, une salle changée le 14 — est une autre fonctionnalité, et
+personne ne l'a demandée. On l'écrira le jour où une box la réclamera, pas parce
+qu'un critère mal placé nous y pousse.
+
+Le critère est donc **transféré à P2-010** (Program Builder), où il garde tout
+son sens, et inscrit dans la table de réconciliation du README pour qu'on ne le
+redécouvre pas dans six mois comme un trou.
 
 ## Hors périmètre
 
@@ -137,29 +158,18 @@ là où les écrans qui déclenchent les changements existeront.
 - [x] Modifier la récurrence ne détruit pas les occurrences passées ni les réservations existantes
 - [x] Annuler une occurrence unique ne casse pas la série
 - [x] Le passage à l'heure d'hiver ne décale aucun cours (test explicite sur le dimanche de bascule)
-- [ ] Dupliquer une semaine prend moins de 5 secondes
 - [x] Toute RRULE hors sous-ensemble pilote est refusée avec une alternative claire ; elle n'est jamais acceptée puis interprétée partiellement
 
 ## Ce qui reste, et pourquoi
 
-**Trois choses, dont une seule dépend de nous.**
+**Deux choses, dont une seule dépend de nous.**
 
-1. **Dupliquer une semaine** — pas fait, et à re-cadrer avant de le coder. Le
-   critère vient de la spec §4-P5 (RM5.8), où il porte sur un **programme
-   d'entraînement**. Appliqué à un planning **récurrent**, il a perdu l'essentiel
-   de son sens : une semaine se répète déjà toute seule, c'est la définition
-   d'une série. Ce qui reste utile est de dupliquer les **exceptions** d'une
-   semaine — un coach remplacé le 12, une salle changée le 14 — ce qui n'est pas
-   la même fonctionnalité et mérite d'être demandé à une box avant d'être écrit.
-   La duplication au sens de la spec appartient à **P2-010** (Program Builder),
-   où elle garde tout son sens.
-
-2. **Exceptions autres que l'annulation** — coach remplacé, capacité modifiée sur
+1. **Exceptions autres que l'annulation** — coach remplacé, capacité modifiée sur
    une occurrence. La base est prête (`is_override`, et les `grant update` par
    colonne le permettent) ; l'écran ne l'expose pas. C'est du travail d'interface
    pur, sans inconnue.
 
-3. **La notification d'annulation — bloquée, pas oubliée.** Le périmètre dit
+2. **La notification d'annulation — bloquée, pas oubliée.** Le périmètre dit
    « annulation d'un cours **avec notification** ». Annuler est fait ; notifier
    n'a aucun canal : le push est **P1-007**, l'e-mail **P2-015**, et aucun des
    deux n'existe. L'écran le dit à qui annule (« les membres inscrits ne sont pas
