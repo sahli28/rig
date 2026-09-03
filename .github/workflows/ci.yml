@@ -86,9 +86,10 @@ jobs:
       # POURQUOI 60 ET NON 200. La spec demande 200 tentatives. Sur ce moteur,
       # `max_connections = 100` : au-delà d'une soixantaine de sessions, les
       # suivantes n'obtiennent pas de connexion et n'atteignent jamais la
-      # fonction. Mesuré en local — un run à 200 donne **60 sessions en
-      # contention réelle**, puis 140 tentatives séquentielles qui se contentent
-      # de reconfirmer qu'un cours plein reste plein.
+      # fonction. Mesuré en local, et non plus déduit — le harnais échantillonne
+      # `pg_stat_activity` et affiche « contention observée » à chaque vague. Un
+      # run à 200 donne **59 sessions croisées dans la fonction**, puis 141
+      # tentatives qui se contentent de reconfirmer qu'un cours plein reste plein.
       #
       # 60 achète donc exactement la même preuve que 200 — la contention
       # maximale que le moteur accepte — pour un cinquième du temps. Ce que 200
@@ -100,8 +101,10 @@ jobs:
       #
       #     pnpm test:db:concurrency        # 200, la valeur de la spec
       #
-      # Le harnais refuse les faux verts : si des sessions n'ont pas atteint la
-      # fonction, il le dit au lieu de compter leurs refus comme métier.
+      # Le harnais refuse les faux verts, de deux façons : si des sessions n'ont
+      # pas atteint la fonction, leurs refus ne sont pas comptés comme métier ;
+      # et si moins de deux sessions se sont croisées, il échoue — un run sans
+      # contention prouverait exactement rien.
       - name: T1 · aucune double réservation sous contention
         if: steps.detect.outputs.found == 'true'
         run: pnpm test:db:concurrency 60
