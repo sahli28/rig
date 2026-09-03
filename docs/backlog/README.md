@@ -224,3 +224,22 @@ C'est ce qui a produit la règle 8 de `CLAUDE.md` et la section obligatoire du
 gabarit. Les deux règles sont la même vue par deux bouts : la 7 traque ce qu'on
 livre sans que personne l'appelle, la 8 ce qu'on appelle sans que personne l'ait
 livré.
+
+### Un quatrième cas, d'une autre nature : un critère au mauvais endroit
+
+**RM5.8 — « dupliquer une semaine en moins de 5 secondes » — figurait dans
+P1-002.** Il n'y avait rien à faire : la règle porte sur un **cycle
+d'entraînement**, où recopier la semaine 3 en semaine 7 évite une ressaisie
+complète. Sur un planning **récurrent**, elle n'a pas d'objet — une série se
+répète déjà par définition, et la dupliquer reviendrait à en créer une seconde,
+identique, que personne ne veut.
+
+Retiré de P1-002 le 3 septembre 2026, **transféré à P2-010**, et inscrit ici pour
+qu'on ne le retrouve pas dans six mois en croyant à un oubli.
+
+Ce n'est pas un trou de couverture mais son symétrique, et il vaut d'être noté :
+les règles 7 et 8 attrapent ce qui manque et ce qu'on suppose, aucune n'attrape
+**ce qui est là sans raison d'y être**. Un critère recopié d'une section de spec
+vers un ticket dont ce n'est pas le sujet passe tous les contrôles — il a même un
+test possible, il est simplement sans objet. Le seul filtre reste de demander,
+critère par critère : *à quoi sert-il ici ?*

@@ -47,6 +47,10 @@ pas ; un éditeur trop malin non plus.
 - **Duplication** : une semaine, ou un cycle entier, avec décalage automatique
   des dates (RM5.8). En **une fonction PLpgSQL**, pas en N appels : c'est la
   seule façon de tenir les 5 secondes, et c'est la règle 3 de `CLAUDE.md`.
+  **Ce critère a été transféré depuis P1-002** (2026-09-03) : il y avait été
+  recopié par erreur, alors que RM5.8 porte sur un cycle d'entraînement et non
+  sur un planning récurrent, où une semaine se répète déjà par définition. C'est
+  ici qu'il a un objet, et c'est le seul endroit où il en a un.
 - Rattachement d'une séance à un ou plusieurs `classes` du planning.
 - Publication : immédiate, ou planifiée (« la veille à 18 h »), en heure locale
   de la box — règle 9 de `CLAUDE.md`.
