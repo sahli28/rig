@@ -32,7 +32,7 @@ borne donc pas aux tickets à venir.
 | **Un canal e-mail** (accusé de demande, confirmation d'effacement) | P2-015 | ❌ **à créer par P2-015.** Une suppression de compte qui ne confirme rien par écrit est indéfendable devant la CNIL |
 | **Transmettre la propriété d'une box** | — | ❌ **n'existe pas.** `set_member_role()` change un rôle ; rien ne transfère le statut d'OWNER **unique**. Fonction SQL à écrire ici, avec son test — c'est la moitié invisible du ticket |
 | **Fermer une box** | — | ❌ **n'existe pas.** Ni écriture de `tenants.deleted_at`, ni réponse sur les réservations à venir, les abonnements en cours et les soldes de portefeuille. À cadrer au plan : c'est peut-être un ticket à part |
-| Écran de réglages mobile (les « 3 taps ») | `apps/mobile` | ⚠️ existe, **jamais exécuté** (`docs/REPRISE.md` §2) |
+| Écran de réglages mobile (les « 3 taps ») | `apps/mobile` | ⚠️ existe ; l’app a tourné sur appareil le 3 septembre 2026 (`docs/passe-mobile-iphone.md`), cet écran-là non |
 | `consent_purpose` = `LEADERBOARD` | `..._compliance_and_ledger.sql:8` | ⚠️ la valeur existe, **aucun écran ne la recueille**. Le dernier critère (« retirer un consentement est aussi simple que le donner ») suppose un écran de consentements que personne n'a écrit — ici ou en P2-014, à trancher au plan |
 
 ## Ce que ce ticket rend possible, et qui l'appellera

@@ -30,7 +30,7 @@ par trois tickets, que chacun croyait déjà là.
 | Thème du tenant (marque dans l'e-mail) | `themes` + `buildTheme()` (P0-002, P1-001e) | ✅ existe — un e-mail de box porte **ses** couleurs, comme la page d'invitation |
 | **Un domaine à nous, avec SPF, DKIM et DMARC** | — | ❌ **n'existe pas.** Prérequis administratif : sans authentification de domaine, tout part en spam. D-008 attend déjà un domaine ; c'est le **second** ticket bloqué par la même absence |
 | Compte Resend (ou équivalent) | §8 le recommande, §17.3 le budgète à 20 $/mois | ❌ à ouvrir |
-| Un moyen de lire les e-mails en local | Mailpit, port **55324** (`docs/REPRISE.md` §5) | ✅ existe |
+| Un moyen de lire les e-mails en local | Mailpit, port **55324** (`docs/environnement-local.md`) | ✅ existe |
 | Gabarits d'auth Supabase | `supabase/templates/*.html` | ⚠️ existent, **bilingues dans une seule chaîne**. À refaire proprement ici |
 
 ## Ce que ce ticket rend possible, et qui l'appellera

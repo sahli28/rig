@@ -32,7 +32,7 @@ Section ajoutée le 2 septembre 2026 (règle 8 de `CLAUDE.md`), rétroactivement
 | **Compte au programme développeur Apple, 99 $/an** | — | ❌ **à ouvrir maintenant.** Délai d'enrôlement variable, vérification d'identité. Seul élément du chemin critique dont le délai ne se rattrape pas en codant |
 | **App ID, Service ID, clé privée, domaine de retour** | console Apple | ❌ suppose le compte ci-dessus **et un nom de domaine** — le même que P2-015 et D-008 attendent. Trois éléments bloqués par une seule absence |
 | **EAS Build, et un appareil iOS réel** | `apps/mobile` | ❌ **n'existe pas.** Sign in with Apple n'est **pas testable dans Expo Go** : il faut un build de développement. Si EAS n'est pas en place, c'est du travail non chiffré dans les 3 j·h |
-| L'app mobile ayant tourné au moins une fois | `apps/mobile` | ⚠️ **jamais exécutée** (`docs/REPRISE.md` §2). Poser un fournisseur d'authentification sur une app qui n'a jamais démarré, c'est débusquer deux classes de bugs en même temps |
+| L'app mobile ayant tourné au moins une fois | `apps/mobile` | ✅ passe faite le 3 septembre 2026 (`docs/passe-mobile-iphone.md`). Elle a livré D-004 élargi au passage : la langue |
 
 ## Ce que ce ticket rend possible, et qui l'appellera
 

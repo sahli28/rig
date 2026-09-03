@@ -418,3 +418,25 @@ pas, l'écran doit l'afficher immédiatement et le dire.
 
 Ce qui vaudra aussi pour les jetons de check-in QR (P1-008) et pour toute clé de
 webhook entrante.
+
+## Trois décisions de P1-001 qu'il ne faut pas re-litiger
+
+Elles se sont posées deux ou trois fois chacune. Les voici tranchées.
+
+**La frontière OWNER / MANAGER se coupe par table, pas par colonne.**
+`tenants` — nom, slug, fuseau, devise, langue — au seul propriétaire ;
+`tenant_settings`, `opening_hours`, `locations`, `rooms`, `class_types` au
+gestionnaire aussi. Une frontière par colonne se serait re-négociée à chaque
+nouvelle colonne. À l'écran, le bloc identité est en lecture seule **avec la
+phrase qui l'explique**.
+
+**Le journal d'audit s'écrit dans la même transaction que l'action**, et
+`log_audit()` lève si l'appelant n'est pas membre **actif**. D'où un ordre qui
+est une question de correction, pas de style : `leave_tenant` journalise
+**avant** de passer le statut à `LEFT` ; `accept_invitation` et `create_tenant`
+**après** l'insertion de l'appartenance.
+
+**`opening_hours` est une table, pas un `jsonb`** : une fonction PLpgSQL la
+joint (P1-002). Ses heures sont des `time` **nus**, en heure locale de la box —
+jamais `timetz`, jamais UTC. Le chevauchement de deux créneaux n'est **pas**
+garanti par la base : il vit dans `overlappingSlots()`, et la migration le dit.

@@ -26,6 +26,27 @@ abonnement et un pack de 10** → voir réserver, annuler, pointer → **publier
 WOD avec Rx/Scaled** → voir logguer les scores → **consulter son CA**. Tout ce
 qui est en gras était absent du backlog jusqu'au 2 septembre 2026.
 
+## Chemin critique hors code
+
+**Dernier examen : 3 septembre 2026.** À relire à chaque revue de backlog, et à
+dater à nouveau — une échéance non relue est une échéance oubliée.
+
+Quatre démarches administratives bloquent du code déjà écrit ou déjà chiffré.
+**Aucune ne se rattrape en codant plus vite**, et aucune n'a bougé depuis une
+semaine. Elles ne vivent nulle part ailleurs dans le dépôt : ni un ticket, ni un
+test, ni la CI ne les rappellera.
+
+| Quoi | Bloque | Pourquoi maintenant |
+| --- | --- | --- |
+| **Trois `client_id` Google** (web, iOS, Android) | P0-005b, puis P2-003 | Bloqué depuis cinq sessions. URI de redirection **exactement** `http://127.0.0.1:55321/auth/v1/callback` en local : Google compare au caractère près, et `localhost` n'est pas `127.0.0.1` pour lui |
+| **Compte développeur Apple**, 99 $/an | P2-003, et toute publication | Vérification d'identité, délai d'enrôlement variable. Câbler Google engage sur Apple avant soumission (guideline 4.8) |
+| **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société |
+| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, et le retour Apple | **Trois éléments bloqués par une seule absence** |
+
+Le constat qui a fait écrire cette section : pendant quatre tickets d'affilée,
+le choix du ticket suivant s'est fait par élimination — c'était le seul travail
+non bloqué. Le chemin critique du projet est administratif, pas technique.
+
 ## Convention
 
 - `P0-*` — Socle (fait)
@@ -138,11 +159,9 @@ numérotation de la spec :
 | P2-003 | Sign in with Apple                             |   3 | **M1** — bloquant de publication |
 |        | **Total ②**                                    | **76** | |
 
-**P2-001 et P2-003 ont un prérequis administratif à lancer maintenant** :
-activation de Stripe Connect (vérification d'identité de la société) et compte
-développeur Apple à 99 $/an. Ce sont les deux seuls éléments du chemin critique
-dont le délai ne se rattrape pas en codant plus vite. P2-015 et D-008 en ont un
-troisième, commun : **un nom de domaine**, avec SPF, DKIM et DMARC.
+**P2-001, P2-003, P2-015 et D-008 attendent tous une démarche administrative** —
+Stripe Connect, le compte Apple, un nom de domaine. Voir « Chemin critique hors
+code » en tête de ce fichier : c'est là que ces échéances vivent.
 
 ---
 

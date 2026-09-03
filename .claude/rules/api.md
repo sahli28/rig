@@ -116,3 +116,11 @@ Codes HTTP : `402` pour droits insuffisants, `409` pour conflit métier
 - Insérer l'`event.id` dans `processed_webhook_events` ; si conflit, sortir en `200` sans retraiter.
 - Écrire dans `ledger_entries` dans la même transaction que l'activation des droits.
 - Ne jamais activer de droit depuis une route appelée par le client.
+
+## `tenantScope().select()` ne prend pas de liste de colonnes
+
+Et ce n'est pas une négligence. La rendre générique pour que PostgREST type les
+lignes rendues fait exploser `tsc` en « heap out of memory » : il instancie
+l'analyseur de colonnes pour **chaque table de l'union**. Mesuré, pas supposé.
+
+Toutes les colonnes, donc — et une **vue** le jour où ça ne suffira plus.
