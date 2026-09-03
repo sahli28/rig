@@ -104,26 +104,78 @@ allemand ou en espagnol. À trancher explicitement, pas à subir.
 | La résolution à quatre rangs | le démarrage de l'app, et la reprise de session | celui-ci |
 | `FALLBACK_LOCALE` tranché | tout le produit | celui-ci |
 
+## État au 3 septembre 2026 — le code est écrit
+
+| Ce qui est livré | Où |
+| ---------------- | -- |
+| La règle des quatre rangs, pure et testée (13 tests) | `packages/core/src/i18n/resolve-locale.ts` |
+| `FALLBACK_LOCALE = 'fr'`, avec un test qui **épingle la décision** | `packages/core/src/i18n/types.ts` |
+| `deviceLocale()` par `expo-localization` — et `deviceTimeZone()` avec | `apps/mobile/lib/locale.ts` |
+| L'adaptateur de stockage mobile, et la remontée dans `users.locale` | idem |
+| La réconciliation au démarrage — la contrepartie du rang 1 | idem |
+| Le rang 2 appliqué **en cours de session**, sans remonter le provider | `packages/ui/src/i18n/i18n-provider.tsx` |
+| `updateLocale()` — écrire la langue sans exiger le reste du profil | `packages/core/src/supabase/profile.ts` |
+| Le web aligné sur les mêmes rangs, back-office compris | `apps/web/lib/use-locale-storage.ts`, `app/providers.tsx`, `app/box/[slug]/box-i18n.tsx` |
+
+**Deux découvertes en chemin, réparées ici :**
+
+1. **Le back-office web ignorait le rang 1.** Son `I18nProvider` montait avec
+   `users.locale` et **sans stockage** : une langue choisie sur une page publique
+   était oubliée en entrant dans `/box/[slug]/…`. C'était le rang 2 qui écrasait
+   le rang 1, l'inverse exact de l'ordre décidé — invisible tant que personne ne
+   comparait les deux zones du site.
+2. **`deviceTimeZone()` était le jumeau de `deviceLocale()`** : même appel à
+   `Intl.DateTimeFormat().resolvedOptions()`, dont un champ s'est révélé faux
+   sous Hermes. Corriger la langue et laisser le fuseau sur la source qui a menti
+   aurait été la « règle des sœurs » de `.claude/rules/database.md` appliquée à
+   la lettre. Les deux passent désormais par `expo-localization`.
+
+**Vérifié dans un navigateur** — c'est le même provider que sur mobile : une
+préférence enregistrée l'emporte sur la langue du navigateur, survit au
+rechargement, et `setLocale` l'écrit. Aucune erreur de console.
+
+**Ce qui ne peut se vérifier que sur un téléphone** : tout ce qui touche
+`expo-localization`, le trousseau, et l'absence de clignotement au passage du
+rang 3 au rang 2. Ces critères restent décochés exprès.
+
 ## Critères d'acceptation
 
 - [ ] Un iPhone réglé en français ouvre l'app **en français**, avant toute
-      connexion
-- [ ] La langue choisie survit à la fermeture complète de l'app
+      connexion — *sur appareil*
+- [ ] La langue choisie survit à la fermeture complète de l'app — *sur appareil*
 - [ ] Elle suit le compte d'un appareil à l'autre : se connecter sur un second
       téléphone donne la langue du profil, pas celle de l'appareil
 - [ ] Une préférence posée sur l'appareil l'emporte sur le profil, et **écrit le
-      profil** — sinon les deux divergent en silence
+      profil** — sinon les deux divergent en silence. *Le chemin d'écriture
+      existe des deux côtés ; reste à l'exercer avec une vraie session*
 - [ ] Le passage à la langue du profil, après connexion, ne fait pas clignoter
-      l'écran
+      l'écran — *sur appareil*
 - [ ] Un appareil dans une langue non gérée (allemand) ouvre l'app dans le repli
       **tranché par ce ticket**, et le ticket dit lequel
-- [ ] Le commentaire de `types.ts` ne prétend plus qu'`Intl` donne la langue de
-      l'appareil sur mobile
+- [x] Le commentaire de `types.ts` ne prétend plus qu'`Intl` donne la langue de
+      l'appareil sur mobile : il dit l'inverse, avec la date de la vérification
+- [x] Le repli est tranché — `'fr'` — et un test le fige, pour qu'un retour en
+      arrière soit un choix et non une régression silencieuse
 
 ## Notes
 
 Ne pas coder dans P1-003 : la décision de source de vérité touche le web autant
-que le mobile, et elle n'a rien à voir avec la réservation.
+que le mobile, et elle n'a rien à voir avec la réservation. **C'est ce qui s'est
+passé** — le web a bougé autant que le mobile, et ça n'aurait pas eu sa place au
+milieu d'un écran de réservation.
+
+**Un trou fermé plutôt que documenté.** Le web pouvait se contenter d'écrire
+`localStorage`, en renvoyant à un futur écran de réglages ; les deux sources
+auraient alors divergé dès qu'une langue serait choisie depuis un navigateur.
+`useLocaleStorage()` écrit donc aussi `users.locale` quand une session existe. La
+réconciliation **au démarrage**, elle, reste au mobile seul : lui connaît le
+profil par `me()`, alors que les pages publiques ne l'ont pas et déclencheraient
+une écriture à chaque page vue par un visiteur.
+
+**Ce qui n'est couvert par aucun test automatisé** : le liant React
+(`I18nProvider`) n'a pas de test de rendu — `packages/ui` n'en a aucun, c'est
+D-002. La logique pure est testée, le branchement ne l'est pas. Écrit ici pour
+que ça ne passe pas plus tard pour un oubli.
 
 Le défaut 1 explique aussi pourquoi rien ne l'avait attrapé : `localeFromTag` est
 testée, et ses tests passent — elle fait correctement ce qu'on lui demande. C'est

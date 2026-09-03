@@ -12,6 +12,7 @@ import * as SecureStore from 'expo-secure-store';
 import type { Session } from '@supabase/supabase-js';
 import { chooseActiveTenant, fetchMe, type Me } from '@rig/core/supabase';
 import { errorMessageKeyOf, type TranslationKey } from '@rig/core';
+import { forgetLocale } from './locale';
 import { startSessionAutoRefresh, supabase } from './supabase';
 
 /**
@@ -138,6 +139,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await persistTenant(null);
+    // La préférence de langue part avec la session, et ce n'est pas une perte :
+    // elle a été écrite dans `users.locale` (D-004), donc la reconnexion la
+    // restitue par le rang 2. La garder ferait pire — sur un téléphone partagé,
+    // la personne suivante hériterait de la langue de la précédente, et la
+    // réconciliation irait écraser **son** profil avec.
+    await forgetLocale();
     await supabase.auth.signOut();
   }, []);
 
