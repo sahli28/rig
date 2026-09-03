@@ -16,7 +16,8 @@
     "format:check": "prettier --check .",
     "test": "turbo run test",
     "i18n:check": "node scripts/i18n-check.mjs",
-    "test:db": "supabase test db",
+    "test:db": "node scripts/test-db.mjs",
+    "test:db:fresh": "supabase db reset && node scripts/test-db.mjs",
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > packages/core/src/supabase/types.gen.ts && prettier --write packages/core/src/supabase/types.gen.ts"
