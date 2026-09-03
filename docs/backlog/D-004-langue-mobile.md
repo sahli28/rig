@@ -92,7 +92,7 @@ allemand ou en espagnol. À trancher explicitement, pas à subir.
 | `me()` rend le profil, et `useSession()` le télécharge | P0-005a | ✅ existe — **et personne ne lit `locale`** |
 | `I18nProvider` avec son adaptateur `LocaleStorage` | `packages/ui` (P0-003) | ✅ existe, utilisé par le web seul |
 | `expo-secure-store`, pour la préférence locale | `apps/mobile` | ✅ existe — `chunkedStore` s'en sert déjà pour la session, vérifié sur appareil |
-| `expo-localization` | — | ❌ **dépendance à ajouter**, incluse dans Expo Go, à justifier au commit |
+| `expo-localization` | — | ❌ **dépendance à ajouter**, à justifier au commit. **Vérifié le 3 septembre 2026** : « Included in Expo Go » sur `docs.expo.dev/versions/latest/sdk/localization/` (SDK 57), version épinglée `~57.0.1`. Aucun development build, donc aucun compte Apple payant — installer avec `npx expo install` |
 | Un appareil réel pour vérifier | — | ✅ disponible — iPhone 12 Pro Max, et c'est lui qui a trouvé le défaut |
 
 ## Ce que ce ticket rend possible, et qui l'appellera

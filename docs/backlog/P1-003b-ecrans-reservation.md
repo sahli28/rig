@@ -39,13 +39,53 @@ Vérifié dans le dépôt le 3 septembre 2026, pas supposé.
 | Kit de composants natifs | `packages/ui/src/native` — 16 composants (`Card`, `ListRow`, `Button`, `Banner`, `Sheet`, `Toast`, `Skeleton`, `EmptyState`…) | ✅ existe. Rien à construire avant de composer les écrans — c'est exactement ce qui avait coûté 7,5 j·h à P1-001 |
 | **L'écran Planning mobile** (le jour, les filtres, le cache) | **P1-002b** | ❌ **n'existe pas.** `apps/mobile/app` porte cinq écrans : `welcome`, `auth`, `consents`, `profile-setup`, `(app)/index`. Le planning est le livrable de P1-002b, qui doit passer **avant** — voir « L'ordre change » |
 | **La langue de l'app sur un iPhone français** | **D-004** | ❌ **cassée.** L'app s'ouvre en anglais sur un téléphone réglé en français. Ce ticket l'attend — voir « Ce lot attend D-004 » |
-| **Un identifiant unique généré sur l'appareil** | — | ❌ **rien.** Aucun code du dépôt ne génère d'UUID côté client, et `crypto.randomUUID()` n'existe pas sous Hermes. Dépendance `expo-crypto` (incluse dans Expo Go) à ajouter et à justifier au commit. **Sans elle, la règle 4 de `CLAUDE.md` n'a aucune implémentation côté appelant** |
+| **Un identifiant unique généré sur l'appareil** | — | ❌ **rien.** Aucun code du dépôt ne génère d'UUID côté client, et rien ne fournit `crypto.randomUUID()` : le runtime « winter » d'`expo@57.0.18` installe `fetch`, `URL`, `TextEncoder`, `structuredClone` et les streams — **pas `crypto`** (vérifié dans `node_modules/expo/src/winter`, et la doc SDK 57 de `expo` ne le liste pas). Dépendance **`expo-crypto`** à ajouter et à justifier au commit. **Sans elle, la règle 4 de `CLAUDE.md` n'a aucune implémentation côté appelant** |
 | Un harnais de test mobile | Maestro, annoncé par `CLAUDE.md` | ❌ **rien** — et `apps/mobile` n'a même pas de script `test`. Les critères de parcours se vérifient **à la main**, et ce ticket le dit plutôt que de faire semblant. Un ticket « harnais mobile » reste à écrire ; il n'est pas bloquant ici, il est seulement absent |
 | Places restantes en temps réel | P1-005 | ❌ hors périmètre : mise à jour optimiste seulement |
 | Annulation | P1-004 | ❌ à créer par P1-004. **Conséquence à dire à la box pilote** : après ce ticket, un membre qui a réservé ne peut pas se désinscrire |
 | Liste d'attente | P1-006 | ❌ à créer par P1-006. « Cours complet » est une fin de parcours, pas une porte |
 | Droits de réservation réels (abonnement, crédits) | P2-006, P2-007 | ❌ volontairement absents. `member_has_booking_right()` rend `true` pour tout membre actif : « la box accorde à la main » |
 | Feuille d'inscrits (la vue des pairs) | — | ❌ hors périmètre → **P1-003c**, à écrire quand l'écran existera |
+
+## Toute la chaîne mobile tient-elle dans Expo Go ?
+
+**Oui. Vérifié le 3 septembre 2026, pas supposé.** C'est la question qui décide
+si la passe du 3 septembre reste valide ou si tout le jalon pilote change de
+forme, et elle ne s'était jamais posée par écrit.
+
+**Pourquoi elle est décisive.** Expo Go n'exécute que les modules natifs
+compilés dans l'app du store. Un seul module absent, et il faut un
+*development build* → donc EAS → donc **un compte développeur Apple payant et
+une inscription de plusieurs jours**. L'inscription Apple quitterait alors le
+« chemin critique hors code » — où elle bloque la publication, dans plusieurs
+mois — pour devenir bloquante **maintenant**, sur les trois tickets suivants.
+
+Les trois dépendances natives que la chaîne D-004 → P1-002b → P1-003b ajoute :
+
+| Module | Ticket qui l'ajoute | Version épinglée par `expo/bundledNativeModules.json` | Dans Expo Go, SDK 57 |
+| ------ | ------------------- | ---------------------------------------------------- | -------------------- |
+| `expo-crypto` | **celui-ci** | `~57.0.2` | ✅ « Included in Expo Go » — `docs.expo.dev/versions/latest/sdk/crypto/` |
+| `expo-localization` | D-004 | `~57.0.1` | ✅ idem — `…/sdk/localization/` |
+| `@react-native-async-storage/async-storage` | P1-002b | `2.2.0` | ✅ idem — `…/sdk/async-storage/`, bibliothèque tierce mais embarquée dans Expo Go |
+
+**Conséquences, dans l'ordre où elles comptent :**
+
+1. **aucun development build, aucun EAS, aucun compte Apple payant** pour cette
+   chaîne. L'inscription Apple reste où elle est — bloquante pour P2-003 et la
+   publication, pas pour le pilote ;
+2. **la passe du 3 septembre reste valide** : les trois tickets tournent dans le
+   même Expo Go que celui qui a servi à la faire ;
+3. installer avec **`npx expo install <module>`** et non `pnpm add` : c'est ce
+   qui pose la version qu'Expo Go embarque. Une version plus récente installée à
+   la main donnerait un module JavaScript qui ne correspond plus au binaire
+   natif — un décalage qui ne se voit qu'à l'exécution, sur l'appareil.
+
+**Un détail à ne pas confondre avec une entorse à la règle 12** :
+`Crypto.randomUUID()` rend un **UUID v4**, pas un v7. Ce n'est pas un
+identifiant de ligne — `bookings.id` reste `uuid_generate_v7()`, posé par la
+base. C'est une **clé d'idempotence opaque**, stockée en `text`, dont la seule
+propriété utile est d'être unique et imprévisible. La règle 12 parle des
+identifiants ; celui-ci n'en est pas un.
 
 ## Ce que ce lot rend possible, et qui l'appellera
 
