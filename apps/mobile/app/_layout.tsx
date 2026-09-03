@@ -19,8 +19,16 @@ function useAuthRedirect() {
 
   const inAuthGroup = segments[0] === '(auth)';
 
+  /**
+   * L'écran d'invitation s'aiguille lui-même : il détient un jeton qu'il doit
+   * ranger avant de partir, et **une redirection n'emporte pas les paramètres**.
+   * C'est cette règle-là, appliquée sans exception, qui a fait disparaître le
+   * jeton du lien d'invitation le 3 septembre 2026.
+   */
+  const onInvitation = segments.includes('invitation');
+
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading' || onInvitation) return;
 
     if (status === 'signed_out') {
       if (!inAuthGroup) router.replace('/welcome');
@@ -38,7 +46,7 @@ function useAuthRedirect() {
       return;
     }
     if (inAuthGroup) router.replace('/');
-  }, [status, me, inAuthGroup, router]);
+  }, [status, me, inAuthGroup, onInvitation, router]);
 }
 
 /** Les options de navigation ont besoin du thème : elles vivent sous le fournisseur. */

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack } from 'expo-router';
 import { z } from 'zod';
 import { useTheme } from '@rig/ui/theme';
 import { useI18n } from '@rig/ui/i18n';
@@ -8,6 +8,7 @@ import { Banner, Button, Input } from '@rig/ui/native';
 import { errorMessageKeyOf, type TranslationKey } from '@rig/core';
 import { acceptInvitation } from '@rig/core/supabase';
 import { supabase } from '../../lib/supabase';
+import { useBrand } from '../../lib/brand';
 import { useSession } from '../../lib/session';
 
 const EmailSchema = z.string().trim().email();
@@ -24,7 +25,9 @@ const CODE = /^\d{6}$/;
 export default function AuthScreen() {
   const theme = useTheme();
   const { t } = useI18n();
-  const { token } = useLocalSearchParams<{ token?: string }>();
+  // Du contexte, pas de l'URL : un paramètre ne survit pas à une redirection,
+  // et c'est exactement comme ça que le jeton se perdait.
+  const { invitationToken, clearInvitation } = useBrand();
   const { reload } = useSession();
 
   const [step, setStep] = useState<'email' | 'code'>('email');
@@ -90,9 +93,17 @@ export default function AuthScreen() {
 
     // L'invitation s'accepte **après** la connexion : la fonction SQL compare
     // l'adresse de l'invitation nominative à l'e-mail vérifié du JWT.
-    if (token !== undefined) {
+    //
+    // L'ordre compte : l'acceptation d'abord, `reload()` ensuite. Le
+    // rafraîchissement déclenché par `onAuthStateChange` court en parallèle et
+    // lit un `me()` d'avant l'appartenance ; c'est ce `reload()`-ci, lancé après
+    // le rattachement, qui rend la box visible.
+    if (invitationToken !== null) {
       try {
-        await acceptInvitation(supabase, token);
+        await acceptInvitation(supabase, invitationToken);
+        // Consommé : un jeton nominatif est à usage unique, le rejouer ne
+        // rendrait qu'`INVITATION_ALREADY_USED`.
+        clearInvitation();
       } catch (invitationError) {
         setErrorKey(errorMessageKeyOf(invitationError));
       }

@@ -133,9 +133,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  /**
+   * Relit `me()` — après un profil complété, un consentement, une invitation
+   * acceptée.
+   *
+   * **La session est relue, pas capturée.** Avec `load(session)`, cette
+   * fonction fermait sur l'état du rendu où l'appelant l'avait obtenue : sur
+   * l'écran de connexion, c'était `null`. Le `reload()` qui suit `verifyOtp()`
+   * appelait donc `load(null)` et **déconnectait** l'app une fraction de
+   * seconde après l'avoir connectée, au lieu de recharger le profil. Rattrapé
+   * ensuite par `onAuthStateChange`, donc invisible — mais il aurait avalé
+   * l'appartenance que l'acceptation d'invitation venait de créer.
+   */
   const reload = useCallback(async () => {
-    await load(session);
-  }, [load, session]);
+    const { data } = await supabase.auth.getSession();
+    await load(data.session);
+  }, [load]);
 
   const signOut = useCallback(async () => {
     await persistTenant(null);
