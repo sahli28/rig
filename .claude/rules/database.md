@@ -248,6 +248,43 @@ et échoue si une table n'a pas de policy.
 - Toute migration doit être réversible ou documenter pourquoi elle ne l'est pas.
 - Pas de `drop column` sans étape de dépréciation préalable.
 
+### Une migration ajoutée doit invalider les tests qui lisent les migrations
+
+Deux tests de `packages/core` relisent `supabase/migrations/*.sql` **à
+l'exécution** : `errors.test.ts` (tout code levé par `app_error()` a-t-il sa clé
+i18n ?) et `me.test.ts`. Cette dépendance sort de leur paquet, et Turbo ne la
+déduit pas : sans déclaration, ajouter une migration ne change pas le hash de la
+tâche, et le cache ressert un résultat calculé **avant** que la migration
+existe.
+
+C'est arrivé en P1-003, et la forme du symptôme mérite d'être retenue :
+
+    local : cache hit, replaying logs a8f090fa5772d266   → vert
+    CI    : cache miss, executing    a8f090fa5772d266   → rouge
+
+**Le même hash.** Deux verts, un seul vrai, et un commit poussé sur la foi du
+mauvais. Six codes d'erreur manquaient dans `APP_ERROR_CODES` ; aucun n'était
+visible en local.
+
+La parade est dans `turbo.json` :
+
+```json
+"globalDependencies": ["supabase/migrations/**"]
+```
+
+`globalDependencies` plutôt que des `inputs` par tâche, pour deux raisons : ces
+fichiers sont hors de tout paquet, et la déclaration couvre **les deux** tests
+d'un coup — donc aussi le troisième, qu'on écrira sans y penser. Une migration
+change assez rarement pour que l'invalidation large ne coûte rien.
+
+Vérifier plutôt que supposer : `turbo run test --dry=json` liste les fichiers du
+hash global sous `globalCacheInputs.files`. Et `touch` ne prouve rien — Turbo
+hache le contenu, pas la date.
+
+La règle générale, qui vaut au-delà de ce dépôt : **un test qui lit hors de son
+paquet doit le déclarer, sinon il ment** — et il ment dans le sens le plus
+coûteux, en rendant vert.
+
 ## Logique métier transactionnelle
 
 Ces opérations sont des fonctions PLpgSQL, jamais du TypeScript :

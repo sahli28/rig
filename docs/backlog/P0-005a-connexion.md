@@ -61,10 +61,22 @@ inter-box), gestion des invitations côté OWNER (P1-001 avec les réglages).
 - [x] Un `slug` inconnu ne divulgue rien — la fonction rend `[]`, l'écran ne
       distingue pas « inconnue » de « fermée »
 - [x] Les quatre consentements sont des cases distinctes, sans dark pattern
-- [ ] Le parcours complet tient sous 3 minutes, montre en main — **reste à
-      valider sur appareil**. L'app mobile n'a jamais démarré : elle typecheck
-      et elle lint, les écrans n'ont jamais exécuté une ligne. Préalable :
-      créer les deux `.env.local` (README, « Variables d'environnement »)
+- [x] Le parcours complet tient sous 3 minutes, montre en main
+      — passe sur appareil du **3 septembre 2026** — iPhone 12 Pro Max, Expo Go,
+      Expo SDK 57, base locale servie sur le réseau. **Toute la chaîne tient** :
+      Expo Go → réseau local → Supabase → code à six chiffres → session →
+      lecture filtrée par RLS.
+
+      Deux choses que cette passe prouve et qu'aucun test ne pouvait prouver :
+
+      1. **La session survit à la fermeture complète de l'app.** `chunkedStore`
+         sur `expo-secure-store` écrit dans un vrai trousseau iOS — le
+         découpage était testé en pur, la liaison ne l'était pas ;
+      2. `signInWithOtp` fonctionne sous Hermes **sans** `react-native-url-polyfill`,
+         qui avait été volontairement laissé de côté en attendant de savoir.
+
+      Deux défauts trouvés au passage, tous deux sur la **langue**, et sortis
+      dans leur propre ticket : **D-004**.
 
 ## Notes
 

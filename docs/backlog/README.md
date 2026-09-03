@@ -173,7 +173,7 @@ SHOULD payé en avance, à ne pas recompter.
 
 ---
 
-## ④ Dette convertie en tickets — 6,75 j·h ouverts
+## ④ Dette convertie en tickets — 7,75 j·h ouverts
 
 `CLAUDE.md` dit « ce qui déborde devient un nouveau ticket ». La dette accumulée
 dans les tickets clos y échappait : un ticket clos ne se relit pas.
@@ -183,14 +183,14 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-001  | Vue restreinte des membres d'une box           |   2 | P0-004 — ✅ fait, débloquait P1-001 |
 | D-002  | Tests de rendu des composants                  |   2 | P0-002 — **devient gênante à P2-010**, l'écran le plus riche du produit |
 | D-003  | SSR de l'i18n pour les pages publiques         |   2 | P0-003 |
-| D-004  | Persistance mobile de la langue                |   1 | P0-003 — plus bloquée, le profil serveur existe |
+| D-004  | **La langue** : source de vérité, persistance, repli |   2 | P0-003 — **élargi par la passe sur appareil du 3 sept. 2026** : l'app s'ouvre en anglais sur un iPhone français, `Intl` ne donne pas la langue de l'appareil sous Hermes, et `FALLBACK_LOCALE = 'en'` pour un produit vendu en France |
 | D-005  | Empreintes des jetons d'invitation             |   1 | PR #4 — ✅ fait |
 | D-006  | Défense en profondeur sur `public.users`       | 0,5 | P0-004 — ✅ fait |
 | D-007  | Contraste de la page de démo                   | 0,25 | P0-002 |
 | D-008  | Lien d'invitation qui survit à l'installation  | 1,5 | P0-005a — **attend un domaine**, comme P2-015 |
-|        | **Ouvert**                                     | **6,75** | D-002, D-003, D-004, D-007, D-008 |
+|        | **Ouvert**                                     | **7,75** | D-002, D-003, D-004, D-007, D-008 |
 
-Ces 6,75 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
+Ces 7,75 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
 une dette qu'on additionne au chemin critique le rend indiscutable, une dette
 qu'on cache le rend faux. Elle se paie quand un ticket la rend bloquante —
 D-002 le sera à P2-010.

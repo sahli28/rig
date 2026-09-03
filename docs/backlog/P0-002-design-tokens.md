@@ -32,10 +32,13 @@ irréversible : une couleur en dur écrite maintenant coûtera des semaines plus
 - [x] Changer la couleur primaire dans un seul objet change toute l'app
       — `buildTheme(brand, scheme)` dérive tout de `TenantBrand` ; testé, et
       manipulable en direct sur l'écran de démonstration.
-- [~] Les 16 composants s'affichent correctement en clair et en sombre
-      — les 16 existent, typent, passent le lint et **bundlent** ; le rendu
-      visuel n'a pas été observé (ni émulateur ni appareil sur cette machine).
-      À valider à la main : `pnpm dev`, écran « Système de design ».
+- [x] Les 16 composants s'affichent correctement en clair et en sombre
+      — passe sur appareil du **3 septembre 2026** — iPhone 12 Pro Max, Expo Go,
+      Expo SDK 57, base locale servie sur le réseau, sur le rapport de la
+      développeuse. Le point le plus probant n'est pas le rendu mais sa
+      **source** : l'écran affiche « CF Rueil », donc `themes.app_name` lu en
+      base avec le jeton du membre. Le white-label atteint le mobile, ce qui
+      était toute la promesse de P0-002.
 - [x] Une couleur primaire à contraste insuffisant est détectée et corrigée automatiquement
       — `ensureContrast` ; 12 tests, dont un échantillon hostile (jaune fluo,
       blanc, noir, pastel, fuchsia, gris moyen) sur les deux schémas.
@@ -43,10 +46,11 @@ irréversible : une couleur en dur écrite maintenant coûtera des semaines plus
       — `minTouchTarget` = 48 sur tous les composants interactifs, vérifié par
       audit. Deux écarts trouvés et corrigés pendant le ticket : `SegmentedControl`
       (40 pt) et `Card` actionnable (hauteur laissée au contenu).
-- [~] Le texte dynamique à 200 % ne casse aucun composant
-      — aucune hauteur fixe, aucun `numberOfLines`, aucune police non scalable :
-      le kit est écrit pour tenir. **Non vérifié à l'exécution**, pour la même
-      raison que le critère 3.
+- [x] Le texte dynamique à 200 % ne casse aucun composant
+      — passe sur appareil du **3 septembre 2026** — iPhone 12 Pro Max, Expo Go,
+      Expo SDK 57, base locale servie sur le réseau, sur le rapport de la
+      développeuse. Le kit était écrit pour tenir — aucune hauteur fixe, aucun
+      `numberOfLines`, aucune police non scalable — et l'appareil l'a confirmé.
 
 ## Notes
 
