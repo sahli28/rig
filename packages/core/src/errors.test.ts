@@ -57,9 +57,43 @@ describe('table des codes', () => {
 
   it('couvre tous les codes levés par les migrations', () => {
     const known = new Set<string>(APP_ERROR_CODES);
-    for (const code of codesRaisedInMigrations()) {
-      expect(known.has(code), `code levé en SQL mais absent de la table : ${code}`).toBe(true);
-    }
+    const api = new Set<string>(API_ERROR_CODES);
+
+    // Tous les manquants d'un coup, et **le geste exact** à faire.
+    //
+    // Ce test a échoué en P1-003, et son message disait « expected true to be
+    // false ». Il fallait alors lire l'implémentation pour comprendre qu'il
+    // existe deux listes, que la seconde est le catalogue de l'API, et que le
+    // code y était déjà. Six codes manquaient ; le message n'en montrait qu'un,
+    // `expect` s'arrêtant au premier.
+    //
+    // Le défaut se reproduira à chaque ticket qui ajoute une fonction SQL —
+    // P1-004 avec `CANCEL_WINDOW_PASSED`, P2-006 avec les codes de paiement.
+    // Autant qu'il se corrige en dix secondes.
+    //
+    // La liste reste écrite à la main, et c'est **voulu** : `AppErrorCode` est
+    // une union de types littéraux, elle ne peut pas être dérivée d'une lecture
+    // de fichier à l'exécution. Ce qu'on peut supprimer, ce n'est pas
+    // l'entretien, c'est le temps qu'il coûte.
+    const manquants = [...codesRaisedInMigrations()].filter((code) => !known.has(code));
+
+    const instructions = manquants
+      .map((code) =>
+        api.has(code)
+          ? `  • déplacer '${code}' de API_ERROR_CODES vers APP_ERROR_CODES` +
+            ` (une fonction SQL le lève désormais ; le laisser dans les deux est admis,` +
+            ` comme FORBIDDEN_ROLE, mais APP_ERROR_CODES est obligatoire)`
+          : `  • ajouter '${code}' à APP_ERROR_CODES, et sa clé i18n dans ERROR_MESSAGE_KEYS`,
+      )
+      .join('\n');
+
+    expect(
+      manquants,
+      manquants.length === 0
+        ? ''
+        : `\n${manquants.length} code(s) levé(s) par app_error() en SQL et absent(s) de APP_ERROR_CODES.\n` +
+            `Dans packages/core/src/errors.ts :\n${instructions}\n`,
+    ).toEqual([]);
   });
 });
 

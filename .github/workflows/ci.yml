@@ -41,7 +41,7 @@ jobs:
         run: pnpm format:check
 
   database:
-    name: test:db (isolation multi-tenant)
+    name: base · isolation multi-tenant · T1 concurrence
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,3 +75,33 @@ jobs:
       - name: Tests base et anti-fuite inter-tenant
         if: steps.detect.outputs.found == 'true'
         run: pnpm test:db
+
+      # T1 de la spec §16.4 — seuil « doubles réservations : 0 ».
+      #
+      # Ce test ne peut pas vivre dans pgTAP : un fichier pgTAP tourne dans une
+      # seule session, et `book_class()` y passerait au vert sans le moindre
+      # `for update`. Il ouvre donc N connexions réelles qui se réveillent au
+      # même instant, sur un cours à une place.
+      #
+      # POURQUOI 60 ET NON 200. La spec demande 200 tentatives. Sur ce moteur,
+      # `max_connections = 100` : au-delà d'une soixantaine de sessions, les
+      # suivantes n'obtiennent pas de connexion et n'atteignent jamais la
+      # fonction. Mesuré en local — un run à 200 donne **60 sessions en
+      # contention réelle**, puis 140 tentatives séquentielles qui se contentent
+      # de reconfirmer qu'un cours plein reste plein.
+      #
+      # 60 achète donc exactement la même preuve que 200 — la contention
+      # maximale que le moteur accepte — pour un cinquième du temps. Ce que 200
+      # ajoute est la répétition, pas la démonstration.
+      #
+      # CE QUE CETTE ÉTAPE NE PROUVE PAS : le T1 littéral de la spec, ses 200
+      # tentatives, ni le p95 sous charge (qui suppose un appel HTTP, donc le
+      # lot 2 de P1-003). **Avant chaque jalon**, lancer à la main :
+      #
+      #     pnpm test:db:concurrency        # 200, la valeur de la spec
+      #
+      # Le harnais refuse les faux verts : si des sessions n'ont pas atteint la
+      # fonction, il le dit au lieu de compter leurs refus comme métier.
+      - name: T1 · aucune double réservation sous contention
+        if: steps.detect.outputs.found == 'true'
+        run: pnpm test:db:concurrency 60

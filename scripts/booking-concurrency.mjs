@@ -32,7 +32,48 @@
 
 import { spawn, spawnSync } from 'node:child_process';
 
-const CONTAINER = 'supabase_db_imys';
+/**
+ * Le conteneur Postgres, **découvert et non supposé**.
+ *
+ * Le CLI Supabase le nomme `supabase_db_<dossier du projet>` : il valait
+ * `supabase_db_imys` sur la machine où ce script est né, et
+ * `supabase_db_rig` sur un runner GitHub, qui clone dans `rig/`. Un nom en dur
+ * marchait donc partout sauf en CI — c'est-à-dire au seul endroit où personne ne
+ * l'aurait vu échouer autrement qu'en cherchant pourquoi.
+ */
+function findContainer() {
+  const result = spawnSync(
+    'docker',
+    ['ps', '--filter', 'name=supabase_db', '--format', '{{.Names}}'],
+    { encoding: 'utf8' },
+  );
+  const names = (result.stdout ?? '')
+    .split('\n')
+    .map((n) => n.trim())
+    .filter(Boolean);
+
+  if (names.length === 0) {
+    throw new Error(
+      'Aucun conteneur `supabase_db_*` en cours d’exécution.\n' +
+        'Démarre la base avec `pnpm exec supabase start` avant ce script.',
+    );
+  }
+  if (names.length > 1) {
+    // Deux projets Supabase ouverts : deviner lequel serait pire que refuser.
+    throw new Error(
+      `Plusieurs conteneurs Supabase actifs (${names.join(', ')}).\n` +
+        'Arrête les projets que tu ne testes pas : ce script ne devine pas lequel viser.',
+    );
+  }
+  return names[0];
+}
+
+const CONTAINER = findContainer();
+
+/**
+ * Le nombre de tentatives. La spec §16.4 (T1) en demande 200 ; la CI en lance
+ * moins, et le workflow dit pourquoi — voir `.github/workflows/ci.yml`.
+ */
 const N = Number(process.argv[2] ?? 200);
 /** Marge avant le top de départ. Doit couvrir le démarrage de N processus. */
 const COUNTDOWN_SECONDS = Math.max(4, Math.ceil(N / 40));

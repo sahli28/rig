@@ -26,10 +26,11 @@ Aucun écran, aucune table métier, aucun déploiement.
       — vérifié sur un clone réel avec `--frozen-lockfile`
 - [x] `pnpm typecheck`, `pnpm lint`, `pnpm test` passent sur le squelette
       — 4 packages typés, 0 erreur ESLint, 3 tests verts, `format:check` vert
-- [~] `pnpm dev` lance le web et le mobile
-      — câblage vérifié (`turbo run dev --dry` : `next dev` + `expo start`),
-      `next build` et `expo export --platform android` réussissent. Le double
-      lancement en conditions réelles reste à faire à la main.
+- [x] `pnpm dev` lance le web et le mobile
+      — passe sur appareil du **3 septembre 2026** — iPhone 12 Pro Max, Expo Go,
+      Expo SDK 57, base locale servie sur le réseau. L'app démarre dans Expo Go et
+      atteint la base ; le web tournait en parallèle. Le câblage était vérifié
+      depuis P0-001 (`turbo run dev --dry`), c'est l'exécution qui manquait.
 - [x] `npx supabase start` démarre une base locale
       — 12 conteneurs démarrés, base saine sur le port 55322.
       A nécessité de **décaler tous les ports de 543xx vers 553xx** : Windows
