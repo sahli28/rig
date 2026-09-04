@@ -130,6 +130,7 @@ export {
 } from './class-schedules';
 export {
   CoachRowSchema,
+  DAY_SCHEDULE_TIMEOUT_MS,
   coachDisplayName,
   DAY_LABELS,
   DayScheduleSchema,

@@ -221,6 +221,7 @@
   "planning.next_day": "Jour suivant",
   "planning.next_week": "Semaine suivante",
   "planning.offline_body": "Planning enregistré {date}. Les places affichées peuvent avoir changé, et la réservation est indisponible.",
+  "planning.offline_never_loaded": "Cette journée n’a jamais été chargée sur ce téléphone. Reconnecte-toi pour la voir.",
   "planning.offline_title": "Hors ligne",
   "planning.places": "{booked} / {capacity} places",
   "planning.previous_day": "Jour précédent",

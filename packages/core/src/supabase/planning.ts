@@ -236,6 +236,27 @@ export const DayScheduleSchema = z.object({
  * source d'identité qu'un membre peut lire, et c'est délibéré : la règle
  * d'exposition est dans `.claude/rules/privacy.md`.
  */
+/**
+ * **Cinq secondes, et pas de « ça finira bien par répondre ».**
+ *
+ * Sans délai explicite, l'écran attend que le système d'exploitation abandonne,
+ * et ce délai n'est pas le même deux fois : la passe du 4 septembre 2026 a vu,
+ * pour un même geste hors ligne, tantôt des squelettes très longtemps, tantôt
+ * « Planning indisponible », tantôt rien. L'état final était correct ; c'est le
+ * **chemin** qui était indéterminé.
+ *
+ * Pourquoi cinq. Le p95 visé pour une écriture de réservation est de 800 ms
+ * (P1-003) ; une lecture de journée est plus légère. Cinq secondes valent donc
+ * plus de six fois la pire latence acceptable : ce délai ne peut pas couper une
+ * requête qui allait aboutir. Et il reste sous les dix secondes à partir
+ * desquelles on tue une app plutôt que de l'attendre.
+ *
+ * Le cas visé n'est pas le mode avion — là, l'app sait qu'elle est hors ligne et
+ * ne part même pas. C'est le **wifi qui capte mal dans un sous-sol de box** :
+ * le réseau se déclare connecté et ne répond jamais.
+ */
+export const DAY_SCHEDULE_TIMEOUT_MS = 5_000;
+
 export async function fetchDaySchedule(
   client: RigClient,
   {
@@ -243,54 +264,85 @@ export async function fetchDaySchedule(
     date,
     timeZone,
     locale,
-  }: { tenantId: string; date: string; timeZone: string; locale: string },
+    timeoutMs = DAY_SCHEDULE_TIMEOUT_MS,
+  }: {
+    tenantId: string;
+    date: string;
+    timeZone: string;
+    locale: string;
+    /** Injectable pour les tests : rien d'autre ne doit le changer. */
+    timeoutMs?: number;
+  },
 ): Promise<DaySchedule> {
   const scope = tenantScope(client, tenantId);
 
-  const [classesRows, typesRows, roomsRows, coachesRows] = await Promise.all([
-    scope
-      .select('classes')
-      .is('deleted_at', null)
-      .gte('starts_at', instantLocal(`${date}T00:00:00`, timeZone))
-      .lt('starts_at', instantLocal(`${shiftDays(date, 1)}T00:00:00`, timeZone))
-      .order('starts_at'),
-    scope.select('class_types').is('deleted_at', null),
-    scope.select('rooms').is('deleted_at', null),
-    scope.selectView('tenant_coaches'),
-  ]);
+  /**
+   * **Supposition sur le moteur : `AbortController` existe.**
+   *
+   * React Native le fournit avec son `fetch`, et le runtime « winter » d'Expo
+   * pose `AbortSignal`. Assumé, pas prouvé sur appareil — au même titre que les
+   * globales recensées dans `packages/core/src/i18n/intl.ts`, et pour la même
+   * raison : nos tests tournent sous Node. Voir `D-010`.
+   *
+   * `AbortSignal.timeout()` aurait tenu en une ligne et **n'est pas utilisé** :
+   * c'est une statique récente, exactement le genre d'hypothèse qui a coûté un
+   * plantage la semaine dernière. Un `AbortController` et un `setTimeout` ne
+   * supposent rien de neuf.
+   */
+  const abandon = new AbortController();
+  const minuterie = setTimeout(() => abandon.abort(), timeoutMs);
 
-  if (classesRows.error !== null) throw classesRows.error;
+  try {
+    const [classesRows, typesRows, roomsRows, coachesRows] = await Promise.all([
+      scope
+        .select('classes')
+        .is('deleted_at', null)
+        .gte('starts_at', instantLocal(`${date}T00:00:00`, timeZone))
+        .lt('starts_at', instantLocal(`${shiftDays(date, 1)}T00:00:00`, timeZone))
+        .order('starts_at')
+        .abortSignal(abandon.signal),
+      scope.select('class_types').is('deleted_at', null).abortSignal(abandon.signal),
+      scope.select('rooms').is('deleted_at', null).abortSignal(abandon.signal),
+      scope.selectView('tenant_coaches').abortSignal(abandon.signal),
+    ]);
 
-  const types = new Map(
-    (typesRows.data ?? []).map((row) => [
-      row.id,
-      { label: localizedText(row.name_i18n, locale), color: row.color },
-    ]),
-  );
-  const rooms = new Map((roomsRows.data ?? []).map((row) => [row.id, row.name]));
-  const coaches = new Map(
-    CoachRowSchema.array()
-      .parse(coachesRows.data ?? [])
-      .map((row) => [row.membership_id, coachDisplayName(row)]),
-  );
+    if (classesRows.error !== null) throw classesRows.error;
 
-  return {
-    date,
-    fetchedAt: new Date().toISOString(),
-    classes: (classesRows.data ?? []).map((row) => ({
-      id: row.id,
-      starts_at: row.starts_at,
-      ends_at: row.ends_at,
-      capacity: row.capacity,
-      booked_count: row.booked_count,
-      status: row.status,
-      cancellation_reason: row.cancellation_reason,
-      className: types.get(row.class_type_id)?.label ?? '',
-      classColor: types.get(row.class_type_id)?.color ?? '',
-      roomName: rooms.get(row.room_id) ?? '',
-      coachName: coaches.get(row.coach_membership_id) ?? '',
-    })),
-  };
+    const types = new Map(
+      (typesRows.data ?? []).map((row) => [
+        row.id,
+        { label: localizedText(row.name_i18n, locale), color: row.color },
+      ]),
+    );
+    const rooms = new Map((roomsRows.data ?? []).map((row) => [row.id, row.name]));
+    const coaches = new Map(
+      CoachRowSchema.array()
+        .parse(coachesRows.data ?? [])
+        .map((row) => [row.membership_id, coachDisplayName(row)]),
+    );
+
+    return {
+      date,
+      fetchedAt: new Date().toISOString(),
+      classes: (classesRows.data ?? []).map((row) => ({
+        id: row.id,
+        starts_at: row.starts_at,
+        ends_at: row.ends_at,
+        capacity: row.capacity,
+        booked_count: row.booked_count,
+        status: row.status,
+        cancellation_reason: row.cancellation_reason,
+        className: types.get(row.class_type_id)?.label ?? '',
+        classColor: types.get(row.class_type_id)?.color ?? '',
+        roomName: rooms.get(row.room_id) ?? '',
+        coachName: coaches.get(row.coach_membership_id) ?? '',
+      })),
+    };
+  } finally {
+    // Toujours, y compris quand la requête a abouti : une minuterie qui survit
+    // garde le processus JavaScript éveillé pour rien.
+    clearTimeout(minuterie);
+  }
 }
 
 /**
