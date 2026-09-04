@@ -1,6 +1,10 @@
 # P1-003b — Réserver depuis le mobile (lot 2 de P1-003)
 
-**Phase** P1 · **Estimation** 5 j·h · **Dépend de** P1-003 ✅, D-004 ✅, **D-009**, **P1-002b** · **Spec** §4-P2, RM2.1–2.8
+**Phase** P1 · **Estimation** 5 j·h · **Dépend de** P1-003 ✅, D-004 ✅, D-009 ✅, P1-002b ✅ · **Spec** §4-P2, RM2.1–2.8
+
+> **Toutes les dépendances sont closes depuis le 4 septembre 2026** — D-009,
+> P1-002b et P1-010, cette dernière repassée sur appareil. Le tableau ci-dessous
+> a été relu à cette date : les trois `❌` qui portaient sur elles sont tombés.
 
 ## Objectif
 
@@ -25,7 +29,8 @@ Deux fenêtres sont ouvertes en même temps, et l'une se referme toute seule :
 
 ## Ce que ce ticket suppose et qui doit exister
 
-Vérifié dans le dépôt le 3 septembre 2026, pas supposé.
+Vérifié dans le dépôt le 3 septembre 2026, **relu le 4 septembre** après la
+fermeture de D-009, P1-002b et P1-010. Pas supposé.
 
 | Prérequis | Où il vit | État |
 | --------- | --------- | ---- |
@@ -35,11 +40,11 @@ Vérifié dans le dépôt le 3 septembre 2026, pas supposé.
 | `classes` matérialisées et lisibles par un simple membre | P1-002 — policy `classes_select` sur `current_tenant_ids()` | ✅ existe. L'horizon est entretenu par `pg_cron` (`rig-maintain-class-occurrences`, 00 h 05), pas par un passage humain |
 | Les fenêtres de réservation côté client | `me()` → `BookingRulesSchema` (P0-005a, éditées en P1-001b) | ✅ existent : l'écran peut dire « ouvre dans 3 jours » sans le deviner |
 | Le fuseau de la box appliqué à l'affichage | `_layout.tsx:106` → `I18nProvider timeZone` | ✅ existe (règle 9) |
-| L'app mobile ayant tourné sur un appareil réel | `docs/passe-mobile-iphone.md` | ✅ faite le 3 septembre 2026 — **et périssable** |
+| L'app mobile ayant tourné sur un appareil réel | `docs/passe-mobile-iphone.md` | ✅ trois passes, les 3 et 4 septembre 2026, la dernière en `lea@example.com` — **et périssable** |
 | Kit de composants natifs | `packages/ui/src/native` — 16 composants (`Card`, `ListRow`, `Button`, `Banner`, `Sheet`, `Toast`, `Skeleton`, `EmptyState`…) | ✅ existe. Rien à construire avant de composer les écrans — c'est exactement ce qui avait coûté 7,5 j·h à P1-001 |
-| **L'écran Planning mobile** (le jour, les filtres, le cache) | **P1-002b** | ❌ **n'existe pas.** `apps/mobile/app` porte cinq écrans : `welcome`, `auth`, `consents`, `profile-setup`, `(app)/index`. Le planning est le livrable de P1-002b, qui doit passer **avant** — voir « L'ordre change » |
+| **L'écran Planning mobile** (le jour, les filtres, le cache) | **P1-002b** ✅ | ✅ **existe et est clos** — planning du jour, filtres type **et coach**, cache hors ligne daté, hors ligne repassé sur appareil le 4 septembre 2026. Ce qui reste du ticket est parti en `D-011` (relecture du cache) et ne bloque rien ici |
 | **La langue de l'app sur un iPhone français** | **D-004** | ✅ **réparée et vérifiée sur appareil le 4 septembre 2026.** L'app s'ouvre en français. La section « Ce lot attend D-004 » ci-dessous devient l'historique d'une décision tenue, pas une attente |
-| **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** | ❌ à créer, et à faire passer avant. Ce lot ajoute trois écrans, dont le **premier à retour légitime** du produit — le détail d'un cours. Il a besoin d'une convention, pas d'une pile à réparer en même temps |
+| **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** ✅ | ✅ **faite.** La convention du premier écran à retour légitime — le détail d'un cours — est écrite dans `.claude/rules/ui.md`, section « La convention de navigation mobile », et le balayage de retour a été exercé sur iPhone le 4 septembre. Reste le bouton retour Android, sans appareil pour l'exercer |
 | **Un identifiant unique généré sur l'appareil** | — | ❌ **rien.** Aucun code du dépôt ne génère d'UUID côté client, et rien ne fournit `crypto.randomUUID()` : le runtime « winter » d'`expo@57.0.18` installe `fetch`, `URL`, `TextEncoder`, `structuredClone` et les streams — **pas `crypto`** (vérifié dans `node_modules/expo/src/winter`, et la doc SDK 57 de `expo` ne le liste pas). Dépendance **`expo-crypto`** à ajouter et à justifier au commit. **Sans elle, la règle 4 de `CLAUDE.md` n'a aucune implémentation côté appelant** |
 | Un harnais de test mobile | Maestro, annoncé par `CLAUDE.md` | ❌ **rien** — et `apps/mobile` n'a même pas de script `test`. Les critères de parcours se vérifient **à la main**, et ce ticket le dit plutôt que de faire semblant. Un ticket « harnais mobile » reste à écrire ; il n'est pas bloquant ici, il est seulement absent |
 | Places restantes en temps réel | P1-005 | ❌ hors périmètre : mise à jour optimiste seulement |
@@ -213,6 +218,12 @@ Automatisables :
 - [ ] Membre sans droits → « Choisir une formule », jamais une erreur brute
 - [ ] Fenêtre close → la raison, exprimée en heure locale de la box
 - [ ] Un refus fait **revenir** la place affichée à sa valeur réelle, visiblement
+- [ ] **Sur une journée venue du cache, aucune action de réservation n'est
+      proposée** — critère hérité de P1-002b, qui l'annonçait porté ici alors
+      qu'il n'y était pas. Le type l'impose déjà à moitié : un `LoadedSchedule`
+      d'origine `'cache'` ne fait jamais autorité sur une place
+      (`apps/mobile/lib/schedule-cache.ts:41`). L'écran doit finir le travail —
+      pas de bouton grisé qui laisse croire qu'un tap suffirait
 - [ ] La réservation apparaît dans « Mes réservations » et survit à la fermeture
       complète de l'app
 - [ ] Un iPhone réglé en français fait tout le parcours **en français** — D-004
