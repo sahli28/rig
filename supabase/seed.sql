@@ -195,3 +195,48 @@ insert into public.ledger_entries (tenant_id, type, amount_cents, direction, ref
 
 insert into public.processed_webhook_events (event_id, source) values
   ('evt_seed_0001', 'stripe');
+
+-- ---------------------------------------------------------------------------
+-- Planning — des séries, et les occurrences qu'elles produisent
+-- ---------------------------------------------------------------------------
+
+-- **Le seed n'avait aucun cours.** P1-002 a livré la grille du back-office, où
+-- l'on crée ses séries à la main ; personne n'en avait donc besoin en fixture.
+-- Le planning mobile (P1-002b) est en lecture seule : sans données, il ne peut
+-- afficher que son état vide, et aucune passe ne prouve quoi que ce soit. La
+-- réservation (P1-003b) butera sur le même mur — il lui faut un cours à réserver.
+--
+-- Des séries **des deux côtés**, comme partout dans ce fichier : un planning à
+-- sens unique ne montrerait pas qu'un membre de Rueil ne voit pas Nanterre.
+--
+-- `starts_on` part du lundi de la semaine courante pour que les occurrences
+-- tombent autour d'aujourd'hui, quel que soit le jour où le seed est rejoué.
+insert into public.class_schedules
+  (id, tenant_id, class_type_id, room_id, coach_membership_id, starts_on, starts_at_local, rrule, capacity)
+values
+  ('a5000000-0000-4000-8000-000000000001', 'aaaaaaaa-0000-4000-8000-000000000001',
+   'a4000000-0000-4000-8000-000000000001', 'a2000000-0000-4000-8000-000000000001',
+   'a3000000-0000-4000-8000-000000000003',
+   date_trunc('week', current_date)::date, '18:30', 'FREQ=WEEKLY;BYDAY=MO,WE,FR', 16),
+  ('a5000000-0000-4000-8000-000000000002', 'aaaaaaaa-0000-4000-8000-000000000001',
+   'a4000000-0000-4000-8000-000000000002', 'a2000000-0000-4000-8000-000000000001',
+   'a3000000-0000-4000-8000-000000000003',
+   date_trunc('week', current_date)::date, '19:00', 'FREQ=WEEKLY;BYDAY=TU', 10),
+  ('a5000000-0000-4000-8000-000000000003', 'aaaaaaaa-0000-4000-8000-000000000001',
+   'a4000000-0000-4000-8000-000000000003', 'a2000000-0000-4000-8000-000000000001',
+   'a3000000-0000-4000-8000-000000000003',
+   date_trunc('week', current_date)::date, '10:00', 'FREQ=WEEKLY;BYDAY=SA', 20),
+  ('b5000000-0000-4000-8000-000000000001', 'bbbbbbbb-0000-4000-8000-000000000001',
+   'b4000000-0000-4000-8000-000000000001', 'b2000000-0000-4000-8000-000000000001',
+   'b3000000-0000-4000-8000-000000000001',
+   date_trunc('week', current_date)::date, '12:15', 'FREQ=WEEKLY;BYDAY=MO,TH', 20),
+  ('b5000000-0000-4000-8000-000000000002', 'bbbbbbbb-0000-4000-8000-000000000001',
+   'b4000000-0000-4000-8000-000000000002', 'b2000000-0000-4000-8000-000000000001',
+   'b3000000-0000-4000-8000-000000000001',
+   date_trunc('week', current_date)::date, '19:30', 'FREQ=WEEKLY;BYDAY=WE', 12);
+
+-- Deux semaines d'occurrences, en arrière et en avant : de quoi exercer la
+-- navigation d'un jour à l'autre sans tomber dans le vide au premier tap. La
+-- fonction est la **même** que celle de `pg_cron` — le seed ne fabrique pas ses
+-- occurrences à la main, il emprunte le chemin réel (piège 9 de database.md).
+select public.materialize_class_occurrences(current_date - 14, current_date + 14, null);

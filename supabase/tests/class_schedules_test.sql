@@ -136,14 +136,24 @@ select throws_ok(
 
 reset role;
 
+-- Bornée à **sa** série, pas au job global.
+--
+-- Sans `p_schedule_id`, cette assertion comptait tout ce que la fenêtre
+-- produisait, seed compris : le jour où le seed a gagné ses propres séries
+-- (P1-002b), elle est passée de 40 à davantage sans qu'aucune règle ait changé.
+-- Un test qui compte le monde entier mesure le monde entier.
 select is(
-  public.materialize_class_occurrences('2026-10-19', '2026-12-13'),
+  public.materialize_class_occurrences(
+    '2026-10-19', '2026-12-13', 'a6000000-0000-4000-8000-000000000001'
+  ),
   40,
   'huit semaines de WOD lundi-vendredi matérialisent quarante occurrences'
 );
 
 select is(
-  public.materialize_class_occurrences('2026-10-19', '2026-12-13'),
+  public.materialize_class_occurrences(
+    '2026-10-19', '2026-12-13', 'a6000000-0000-4000-8000-000000000001'
+  ),
   0,
   'rejouer le job ne duplique aucune occurrence'
 );
@@ -230,9 +240,12 @@ set local role authenticated;
 set local request.jwt.claims =
   '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
 
+-- Bornée aux séries de ce test : le seed porte désormais les siennes, et ce
+-- contrôle-ci parle de la **lecture d'un membre**, pas du volume du seed.
 select is(
   (select count(*) from public.classes
-   where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'),
+   where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'
+     and schedule_id::text like 'a6000000%'),
   12::bigint,
   'un membre lit les occurrences de sa box'
 );
@@ -290,9 +303,12 @@ select public.refresh_class_schedule(
 
 reset role;
 
+-- Bornée aux séries de ce test, pour la même raison. Ce qui est mesuré est
+-- « rafraîchir chez soi n'écrit pas chez le voisin », pas « le voisin est vide ».
 select is(
   (select count(*) from public.classes
-   where tenant_id = 'bbbbbbbb-0000-4000-8000-000000000001'),
+   where tenant_id = 'bbbbbbbb-0000-4000-8000-000000000001'
+     and schedule_id::text like 'a6000000%'),
   0::bigint,
   'rafraîchir une série de sa box n''écrit aucune occurrence chez une autre box'
 );
