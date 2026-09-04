@@ -51,7 +51,7 @@ fermeture de D-009, P1-002b et P1-010. Pas supposé.
 | **L'écran Planning mobile** (le jour, les filtres, le cache) | **P1-002b** ✅ | ✅ **existe et est clos** — planning du jour, filtres type **et coach**, cache hors ligne daté, hors ligne repassé sur appareil le 4 septembre 2026. Ce qui reste du ticket est parti en `D-011` (relecture du cache) et ne bloque rien ici |
 | **La langue de l'app sur un iPhone français** | **D-004** | ✅ **réparée et vérifiée sur appareil le 4 septembre 2026.** L'app s'ouvre en français. La section « Ce lot attend D-004 » ci-dessous devient l'historique d'une décision tenue, pas une attente |
 | **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** ✅ | ✅ **faite.** La convention du premier écran à retour légitime — le détail d'un cours — est écrite dans `.claude/rules/ui.md`, section « La convention de navigation mobile », et le balayage de retour a été exercé sur iPhone le 4 septembre. Reste le bouton retour Android, sans appareil pour l'exercer |
-| **Des situations de refus dans le seed** — un cours complet, une fenêtre close, un plafond atteint | `supabase/seed.sql` | ❌ **aucune.** `bookings` est vide et aucune occurrence n'est pleine : trois des quatorze critères manuels n'ont aujourd'hui **rien à exercer**. Ajoutées par ce ticket, comme P1-002b avait dû ajouter les séries |
+| **Des situations de refus dans le seed** | `supabase/seed.sql` | ⚠️ **une seule manquait vraiment.** `bookings` était vide et aucune occurrence pleine ; mais seules les fenêtres et le plafond se déduisent des réglages par défaut, donc s'atteignent sans fixture. Le cours complet est ajouté par ce ticket, comme P1-002b avait dû ajouter les séries |
 | **Une réponse produit à `CLASS_FULL`** | la liste d'attente, **P1-006**, après ce lot | ❌ **absente, et rien ne la remplace** — voir « Un cours complet » ci-dessous. Décidée dans ce ticket plutôt que découverte à l'écran |
 | **Une annonce vocale de la confirmation sur iOS** | `Toast` (`packages/ui/src/native/toast.tsx:30`) | ⚠️ **à moitié** : `accessibilityLiveRegion` est **Android uniquement**. Sur l'appareil de nos passes, rien n'est annoncé — voir « Le bouton dit ce qu'il réserve » |
 | **Un identifiant unique généré sur l'appareil** | `uuidV7()`, `packages/core/src/crypto.ts` | ✅ **existe depuis le 4 septembre 2026**, avec sa source d'aléa à installer au démarrage. `crypto` est **absent** sous Hermes (pas incomplet) : ESLint l'interdit hors de cette façade, et elle lève plutôt que de se rabattre sur `Math.random()`. **Reste à faire ici** : ajouter `expo-crypto`, la justifier au commit, et appeler `installRandomBytesSource()` dans `_layout.tsx` |
@@ -304,10 +304,12 @@ que de cours, **tous identiques à l'oreille**.
 - **Accueil** : la carte du prochain cours réservable, d'où partent les deux taps.
 - **Mise à jour optimiste** de la place et du compteur, avec **retour en arrière
   visible** si le serveur refuse (`Toast`).
-- **Trois situations de refus dans le seed** : une occurrence complète (capacité
-  1, déjà réservée par une autre membre), une à fenêtre close, et de quoi
-  atteindre le plafond. Sans elles, trois critères manuels n'ont rien à exercer
-  et se cocheraient « par raisonnement ». Compris dans les 5,5 j·h.
+- **Une seule situation de refus dans le seed**, et non trois comme annoncé :
+  une occurrence complète (capacité 1, déjà réservée). Les défauts de
+  `tenant_settings` rendent les autres gratuites — fenêtre close en ouvrant un
+  cours déjà commencé (`close_minutes_before = 15`), fenêtre pas encore ouverte
+  huit jours plus loin (`open_days_before = 7`), plafond en réservant trois cours
+  (`max_upcoming_bookings = 3`). Vérifié avant d'écrire la fixture, pas supposé.
 - **La durée de l'appel écrite en console, en développement seulement** — c'est
   ce qui rend le p95 mesurable au lieu d'être une impression. Compris aussi.
 - Toute chaîne visible en `fr.json` et `en.json` (règle 8 des règles non
@@ -355,8 +357,9 @@ Compter dix minutes avant de toucher au téléphone.
 | 3 | Rouvrir le même cours, taper deux fois vite | **Une seule** réservation |
 | 4 | Mode avion pendant l'appel, rétablir, réessayer | **Une seule** réservation — la clé n'a pas changé |
 | 5 | Le cours complet du seed | « Complet », la phrase, et le retour au planning à un tap |
-| 6 | Le cours à fenêtre close | La raison, en heure locale de la box |
-| 7 | Le membre au plafond | « Choisir une formule » ou le plafond, jamais une erreur brute |
+| 6 | Un cours **déjà commencé** aujourd'hui, ou la veille | « Réservations closes », avec les 15 minutes des réglages de la box |
+| 7 | Avancer de **huit jours** dans le planning | « Pas encore ouvert », avec les 7 jours des réglages |
+| 7 bis | Réserver un **troisième** cours à venir | Le plafond, et une phrase qui dit qu'il se libère après le prochain cours |
 | 8 | Un jour **déjà visité**, puis mode avion, puis retour sur ce jour | Le bandeau hors ligne, les cours, **et aucune action de réservation** |
 | 9 | VoiceOver : parcourir trois cours d'affilée | Trois annonces **différentes**, chacune nommant son cours et son heure |
 | 10 | VoiceOver : réserver | La confirmation **s'annonce** sans qu'on aille la chercher |
@@ -365,6 +368,15 @@ Compter dix minutes avant de toucher au téléphone.
 
 Les gestes 9 et 10 viennent **après** les refus et non avant : VoiceOver ralentit
 tout, et l'activer tôt fait écourter le reste.
+
+**Ce que le harnais web a déjà montré, le 5 septembre 2026**, et qui allège la
+passe sans la remplacer : les deux taps depuis l'accueil, les quatre états de
+refus avec les nombres venus des réglages, le libellé accessible du bouton
+(« Réserver Open gym à 10:00 »), le retour annoncé « CF Rueil, back », et
+« Mes réservations ». Ce qu'il **ne peut pas** montrer et qui reste entier :
+tout ce qui touche l'appareil — VoiceOver, le mode avion, la survie à la
+fermeture de l'app, le fuseau du téléphone, et les vingt mesures du p95, qui n'ont
+de sens que sur un vrai réseau.
 
 ### Ce qu'on note au passage, parce que ça ne se retrouve pas après
 
@@ -391,12 +403,21 @@ Android au projet. Il reste ouvert, et il vaut mieux qu'il le reste visiblement.
 
 Automatisables :
 
-- [ ] **Avant le code** : test Vitest de `bookClass()` — une clé rejouée rend la
+- [x] **Avant le code** : test Vitest de `bookClass()` — une clé rejouée rend la
       même réservation ; chacun des six codes rend sa clé i18n ; une erreur
-      inconnue rend `errors.unknown` plutôt que le texte de la base
-- [ ] `pnpm i18n:check` reste vert : aucune chaîne des nouveaux écrans en dur
-- [ ] Aucune couleur en dur dans les écrans ajoutés (règle 7 des règles non
+      inconnue rend `errors.unknown` plutôt que le texte de la base.
+      **30 tests**, et le premier a payé tout de suite : « close pile au seuil »
+      était faux, le SQL compare avec `<`, donc à exactement quinze minutes la
+      base **accepte encore**
+- [x] **Les cinq refus se vérifient sans écran** — critère ajouté en cours de
+      route, parce qu'il change ce que la passe manuelle doit prouver.
+      `bookingAffordance()` est une fonction pure, testée aux bornes à la
+      seconde près ; l'ordre de ses cas est celui du SQL, ligne pour ligne
+- [x] `pnpm i18n:check` reste vert : aucune chaîne des nouveaux écrans en dur —
+      423 clés, FR et EN alignées, aucune orpheline
+- [x] Aucune couleur en dur dans les écrans ajoutés (règle 7 des règles non
       négociables)
+- [x] `pnpm test:db` vert **avec la fixture de seed** : 363 tests
 
 À la main, sur un **appareil réel** — Expo web n'en coche aucun :
 
@@ -409,7 +430,17 @@ Automatisables :
       Aucune impasse, aucune promesse que le produit ne tient pas (§12.3)
 - [ ] Le cas de course dit la même chose : cours affiché libre, complet au tap →
       `Toast` `errors.class_full`, puis le bouton bascule sur ce même état
-- [ ] Membre sans droits → « Choisir une formule », jamais une erreur brute
+- [~] Membre sans droits → « Choisir une formule », jamais une erreur brute.
+      **Inatteignable par l'interface, et ce n'est pas un manque** :
+      `member_has_booking_right()` rend vrai pour une appartenance `ACTIVE`
+      (`…_bookings_and_book_class.sql:116`) et `current_tenant_ids()` — base de
+      toutes les policies — exige `ACTIVE` aussi
+      (`…_identity_and_tenancy.sql:121`). Un membre suspendu **ne voit aucun
+      cours**, donc n'atteint jamais l'écran d'où l'on réserve. Le code est
+      traité à l'arrivée (une suspension peut tomber entre l'affichage et le
+      tap) et couvert par un test Vitest ; il ne se coche pas sur appareil.
+      **Ce critère redeviendra exerçable à P2-006**, quand le droit cessera
+      d'être « l'appartenance est active »
 - [ ] Fenêtre close → la raison, exprimée en heure locale de la box
 - [ ] Un refus fait **revenir** la place affichée à sa valeur réelle, visiblement
 - [ ] **Sur une journée venue du cache, aucune action de réservation n'est
