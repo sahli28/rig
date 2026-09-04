@@ -183,13 +183,67 @@ déconnexion.
 - [ ] Deux membres et deux boxes sur le même téléphone ne partagent jamais leur
       cache — la clé est `(utilisateur, box, jour)` ; **à exercer avec deux
       comptes sur un appareil**
+- [x] **Le mode hors ligne dit ce qu'il montre** — le bandeau parle du **jour
+      affiché**, jamais de la dernière écriture du cache. La passe iPhone du **4 septembre 2026** l'a trouvé
+      faux : « Planning enregistré aujourd'hui à 15:44 » s'affichait au-dessus de
+      trois squelettes vides, sur un jour jamais chargé. Le bandeau raisonnait
+      sur l'app, la liste sur le jour
+- [x] **Hors ligne sur un jour sans cache, le message final apparaît en moins de
+      six secondes, et c'est le même à chaque fois** — le critère qui interdit le
+      non-déterminisme.
+
+      **Pourquoi six.** La lecture est bornée à **cinq secondes**
+      (`DAY_SCHEDULE_TIMEOUT_MS`), plus une seconde de marge de rendu. Cinq
+      parce que le p95 visé pour une écriture de réservation est de 800 ms
+      (P1-003) et qu'une lecture de journée est plus légère : cinq secondes
+      valent plus de six fois la pire latence acceptable, donc ce délai **ne peut
+      pas couper une requête qui allait aboutir**. Et il reste sous les dix
+      secondes à partir desquelles on tue une app plutôt que de l'attendre.
+
+      Six secondes est le **pire cas** : réseau qui se déclare connecté et ne
+      répond jamais — le sous-sol de box, pas le mode avion. Quand l'app **sait**
+      qu'elle est hors ligne (`expo-network`), elle ne part pas en requête du
+      tout et le message tombe en moins d'une seconde, le temps d'une lecture
+      d'`AsyncStorage`.
+
+      Vérifié par `day-schedule-timeout.test.ts`, qui borne des **deux** côtés :
+      pas avant le délai — sinon le test passerait aussi sur un échec instantané
+      — et pas longtemps après. Trois exécutions du même geste, écart mesuré
+- [x] **Pas de squelette quand l'app sait qu'elle n'a pas de réseau** — un
+      squelette est une promesse d'arrivée, et là rien n'arrivera du réseau
 - [x] Une déconnexion supprime les caches du compte local — `clearScheduleCache()`
       appelée dans `signOut()`, à côté de l'effacement de la langue
 - [x] `groupByDay` et ses voisines n'existent qu'à **un** endroit —
       `view-model.ts` a disparu, le web importe `@rig/core/supabase`, et
       `next build` est vert
-- [ ] Un appareil réel exerce le parcours ; Expo web ne coche aucun critère de
-      parcours
+- [x] Un appareil réel exerce le parcours — passe iPhone du **4 septembre 2026**. Le planning se rend, les
+      deux filtres fonctionnent, VoiceOver annonce les lignes correctement, et le
+      balayage de retour est correct y compris après connexion
+- [ ] **Le hors ligne repasse sur appareil** — les deux correctifs ci-dessus
+      n'ont été exercés qu'au harnais et en test. Le mode avion sur un jour
+      jamais visité est le geste à refaire
+
+## Ce que la passe du 4 septembre a corrigé
+
+Deux défauts, une seule cause de fond : **l'écran tenait trois états qu'aucune
+règle ne synchronisait** — `schedule`, `origin` et `loading` pouvaient décrire
+trois jours différents.
+
+1. **Le chemin vers l'état final était indéterminé.** Aucun délai d'expiration,
+   aucune connaissance du réseau : l'app attendait que le système abandonne, et
+   ce délai n'est pas le même deux fois. L'état final était correct ; c'est
+   l'attente qui variait. Corrigé par `expo-network` — l'app **sait** qu'elle
+   est hors ligne au lieu de le déduire d'un échec — et par un délai explicite de
+   cinq secondes sur la requête, parce que « pas de réseau » et « réseau qui ne
+   répond pas » sont deux choses différentes ;
+2. **le bandeau et la liste parlaient de deux jours différents.** `VueJour` porte
+   désormais son `jour`, et tout état qui ne décrit pas le jour demandé est
+   ignoré par construction. C'est le même défaut que le titre « Aucun cours ce
+   jour-là » déjà corrigé dans ce lot, pris par l'autre bout.
+
+**`expo-network` est incluse dans Expo Go** (SDK 57, vérifié sur la doc avant de
+s'appuyer dessus, comme `expo-crypto` et `expo-localization`) : aucun
+development build, donc aucun compte Apple payant.
 
 ## Notes
 

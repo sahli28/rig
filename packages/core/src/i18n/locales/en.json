@@ -221,6 +221,7 @@
   "planning.next_day": "Next day",
   "planning.next_week": "Next week",
   "planning.offline_body": "Schedule saved {date}. The seats shown may have changed, and booking is unavailable.",
+  "planning.offline_never_loaded": "This day has never been loaded on this phone. Reconnect to see it.",
   "planning.offline_title": "Offline",
   "planning.places": "{booked} / {capacity} spots",
   "planning.previous_day": "Previous day",

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
+import { useNetworkState } from 'expo-network';
 import { useTheme } from '@rig/ui/theme';
 import { useI18n } from '@rig/ui/i18n';
 import { Badge, Banner, Button, EmptyState, ListRow, Select, Skeleton } from '@rig/ui/native';
@@ -24,7 +25,31 @@ import { readDay, writeDay, type ScheduleOrigin } from '../../lib/schedule-cache
  * « 3 places » depuis un cache de la veille et laisser toucher « Réserver »
  * produirait le mensonge exact que P1-003 a passé un lot entier à rendre
  * impossible côté base.
+ *
+ * **Un seul état, et il nomme son jour.** La première version tenait `schedule`,
+ * `origin` et `loading` en trois `useState` séparés qu'aucune règle ne
+ * synchronisait : changer de jour laissait les données du précédent en place le
+ * temps du chargement. Sur un jour jamais visité, hors ligne, ça donnait un
+ * bandeau « Planning enregistré aujourd'hui à 15:44 » au-dessus de trois
+ * squelettes vides — le bandeau parlait d'un jour, la liste d'un autre. C'est le
+ * même défaut que le titre « Aucun cours ce jour-là » corrigé plus bas, pris par
+ * l'autre bout.
  */
+
+/**
+ * Ce que l'écran sait du jour demandé — **et de quel jour il s'agit**.
+ *
+ * Les trois phases sont exclusives, ce qui interdit un rendu contradictoire :
+ * on ne peut plus afficher un bandeau de cache et des squelettes en même temps,
+ * parce qu'ils ne vivent pas dans la même phase.
+ */
+interface VueJour {
+  /** Le jour décrit. Un état dont le jour n'est plus celui demandé est périmé. */
+  jour: string;
+  phase: 'chargement' | 'prêt' | 'indisponible';
+  schedule: DaySchedule | null;
+  origine: ScheduleOrigin;
+}
 export default function PlanningScreen() {
   const theme = useTheme();
   const { t, formatDate, formatTime, formatRelativeDate, locale } = useI18n();
@@ -36,11 +61,35 @@ export default function PlanningScreen() {
 
   const today = useMemo(() => localDay(new Date().toISOString(), timeZone), [timeZone]);
   const [date, setDate] = useState(today);
-  const [schedule, setSchedule] = useState<DaySchedule | null>(null);
-  const [origin, setOrigin] = useState<ScheduleOrigin>('network');
-  const [loading, setLoading] = useState(true);
+  const [etat, setEtat] = useState<VueJour>({
+    jour: today,
+    phase: 'chargement',
+    schedule: null,
+    origine: 'network',
+  });
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [coachFilter, setCoachFilter] = useState<string | null>(null);
+
+  /**
+   * **L'app sait qu'elle est hors ligne, elle ne le déduit plus d'un échec.**
+   *
+   * Sans cette connaissance, un jour jamais visité en mode avion partait quand
+   * même en requête et attendait que le système abandonne — un délai qui n'est
+   * pas le même deux fois. Le symptôme n'était pas l'attente, c'était son
+   * **indétermination** : même geste, résultat différent.
+   *
+   * `?? true` en dernier recours, et c'est délibéré : au premier rendu,
+   * `isInternetReachable` vaut `undefined`. Dans le doute on **essaie** — le
+   * délai d'expiration de `fetchDaySchedule` borne le pire cas de toute façon.
+   * Refuser de partir sur une incertitude coûterait un écran vide à quelqu'un
+   * qui a du réseau.
+   *
+   * `expo-network` est **incluse dans Expo Go** (SDK 57, vérifié sur la doc
+   * avant de s'appuyer dessus, comme `expo-crypto` et `expo-localization`) :
+   * aucun development build, donc aucun compte Apple payant.
+   */
+  const reseau = useNetworkState();
+  const enLigne = reseau.isInternetReachable ?? reseau.isConnected ?? true;
 
   /**
    * Réseau d'abord, cache **seulement** en cas d'échec réseau.
@@ -49,34 +98,68 @@ export default function PlanningScreen() {
    * place est une donnée qui change sous les doigts. Le cache est un filet, pas
    * un raccourci.
    */
-  const load = useCallback(
-    async (wanted: string) => {
-      if (userId === null || activeTenantId === null) return;
-      setLoading(true);
+  useEffect(() => {
+    if (userId === null || activeTenantId === null) return;
+
+    const jour = date;
+    let annulé = false;
+    // Synchrone, et **avant tout** : c'est ce qui empêche le bandeau du jour
+    // précédent de survivre au-dessus de la liste du suivant.
+    setEtat({ jour, phase: 'chargement', schedule: null, origine: 'network' });
+
+    /** Le cache, et le verdict qui va avec. Jamais de squelette après ça. */
+    const replier = async (): Promise<void> => {
+      const cache = await readDay(userId, activeTenantId, jour);
+      if (annulé) return;
+      setEtat({
+        jour,
+        phase: cache === null ? 'indisponible' : 'prêt',
+        schedule: cache,
+        origine: 'cache',
+      });
+    };
+
+    void (async () => {
+      // Hors ligne, on ne part pas : inutile d'attendre l'échec d'une requête
+      // dont on sait qu'elle échouera, et dont le délai d'échec varie.
+      if (!enLigne) {
+        await replier();
+        return;
+      }
       try {
-        const fresh = await fetchDaySchedule(supabase, {
+        const frais = await fetchDaySchedule(supabase, {
           tenantId: activeTenantId,
-          date: wanted,
+          date: jour,
           timeZone,
           locale,
         });
-        setSchedule(fresh);
-        setOrigin('network');
-        await writeDay(userId, activeTenantId, fresh);
+        if (annulé) return;
+        setEtat({ jour, phase: 'prêt', schedule: frais, origine: 'network' });
+        await writeDay(userId, activeTenantId, frais);
       } catch {
-        const cached = await readDay(userId, activeTenantId, wanted);
-        setSchedule(cached);
-        setOrigin('cache');
-      } finally {
-        setLoading(false);
+        // Réseau tombé en route, ou délai d'expiration atteint. Les deux mènent
+        // au même endroit : ce qu'on a sur l'appareil, ou rien, mais dit.
+        if (!annulé) await replier();
       }
-    },
-    [userId, activeTenantId, timeZone, locale],
-  );
+    })();
 
-  useEffect(() => {
-    void load(date);
-  }, [load, date]);
+    // Changer de jour pendant qu'une lecture court **annule** son effet : sans
+    // ça, deux requêtes en vol pourraient se résoudre dans le désordre et
+    // afficher le mauvais jour.
+    return () => {
+      annulé = true;
+    };
+  }, [userId, activeTenantId, timeZone, locale, date, enLigne]);
+
+  /**
+   * L'invariant, rendu explicite : **on n'affiche jamais l'état d'un autre
+   * jour**. Il tient déjà par construction — l'effet remet l'état à zéro de
+   * façon synchrone — et cette ligne le dit à qui lit le rendu.
+   */
+  const vue: VueJour =
+    etat.jour === date
+      ? etat
+      : { jour: date, phase: 'chargement', schedule: null, origine: 'network' };
 
   /**
    * Les filtres se dérivent de ce qui est **affiché**, pas des référentiels de
@@ -86,22 +169,20 @@ export default function PlanningScreen() {
    */
   const valeursDe = useCallback(
     (champ: (item: DayClass) => string) =>
-      [...new Set((schedule?.classes ?? []).map(champ).filter((v) => v !== ''))].sort((a, b) =>
+      [...new Set((vue.schedule?.classes ?? []).map(champ).filter((v) => v !== ''))].sort((a, b) =>
         a.localeCompare(b),
       ),
-    [schedule],
+    [vue.schedule],
   );
 
   const types = useMemo(() => valeursDe((item) => item.className), [valeursDe]);
   const coaches = useMemo(() => valeursDe((item) => item.coachName), [valeursDe]);
 
-  const shown = (schedule?.classes ?? []).filter(
+  const shown = (vue.schedule?.classes ?? []).filter(
     (item) =>
       (typeFilter === null || item.className === typeFilter) &&
       (coachFilter === null || item.coachName === coachFilter),
   );
-
-  const offline = origin === 'cache' && schedule !== null;
 
   return (
     <ScrollView
@@ -156,11 +237,15 @@ export default function PlanningScreen() {
         />
       )}
 
-      {offline ? (
+      {/* Le bandeau parle du **jour affiché**, et de lui seul : `vue.schedule`
+          est l'entrée de cache de ce jour-là, pas la dernière écriture du cache
+          tous jours confondus. C'était le second défaut de la passe du
+          4 septembre — le bandeau raisonnait sur l'app, la liste sur le jour. */}
+      {vue.phase === 'prêt' && vue.origine === 'cache' && vue.schedule !== null ? (
         <Banner
           title={t('planning.offline_title')}
           description={t('planning.offline_body', {
-            date: formatRelativeDate(schedule.fetchedAt),
+            date: formatRelativeDate(vue.schedule.fetchedAt),
           })}
           tone="warning"
         />
@@ -192,23 +277,31 @@ export default function PlanningScreen() {
         />
       )}
 
-      {loading ? (
-        <View style={{ gap: theme.space(2) }}>
-          <Skeleton height={64} />
-          <Skeleton height={64} />
-          <Skeleton height={64} />
-        </View>
-      ) : shown.length === 0 ? (
-        // Deux états vides, et **deux titres**. « Aucun cours ce jour-là » est
+      {vue.phase === 'chargement' ? (
+        // **Pas de squelette quand l'app sait qu'elle n'a pas de réseau** : un
+        // squelette est une promesse d'arrivée, et là rien n'arrivera du réseau.
+        // Il ne reste qu'une lecture locale du cache, de l'ordre de quelques
+        // dizaines de millisecondes — trop court pour mériter une animation.
+        enLigne ? (
+          <View style={{ gap: theme.space(2) }}>
+            <Skeleton height={64} />
+            <Skeleton height={64} />
+            <Skeleton height={64} />
+          </View>
+        ) : null
+      ) : vue.phase === 'indisponible' ? (
+        // **Trois états vides, trois messages.** « Aucun cours ce jour-là » est
         // une affirmation sur le planning de la box : elle est fausse quand on
-        // n'a justement rien pu lire. Trouvé en relisant l'arbre — seul le
-        // corps du message disait la vérité, le titre la contredisait.
+        // n'a rien pu lire. Et « le planning n'a pas pu être chargé » suppose
+        // qu'on a essayé — faux en mode avion, où l'on n'a même pas tenté.
         <EmptyState
-          title={schedule === null ? t('planning.unavailable_title') : t('planning.empty_title')}
+          title={enLigne ? t('planning.unavailable_title') : t('planning.offline_title')}
           description={
-            schedule === null ? t('planning.unavailable_body') : t('planning.empty_body')
+            enLigne ? t('planning.unavailable_body') : t('planning.offline_never_loaded')
           }
         />
+      ) : shown.length === 0 ? (
+        <EmptyState title={t('planning.empty_title')} description={t('planning.empty_body')} />
       ) : (
         shown.map((item) => {
           const places = seatsLeft(item);
