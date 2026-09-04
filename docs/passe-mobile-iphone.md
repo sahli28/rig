@@ -108,6 +108,38 @@ P1-002b, donc la dégradation est **attendue** — noter simplement ce qu'elle
 donne : un écran vide, un message clair, ou un plantage. Les trois ne se
 corrigent pas de la même façon.
 
+## 5 bis. Le parcours d'invitation
+
+Ajouté après la passe du 3 septembre 2026, qui l'a trouvé cassé de bout en bout
+alors que les cinq vérifications ci-dessus étaient vertes.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Ouvrir `http://<IP>:8081/--/invitation/inv-rueil-0001` (ou le lien collé depuis le back-office) | L'écran de bienvenue dit **« Bienvenue chez CF Rueil »**, en **orange** |
+| 2 | Continuer, se connecter en `nouveau@example.com` | Code reçu dans Mailpit |
+| 3 | Arriver sur l'accueil | La box active est **CrossFit Rueil**, pas « aucune box » |
+
+**La couleur fait partie du critère.** Depuis que la marque de la plateforme est
+un graphite (`#1F2933`) et non plus l'orange de Rueil, « c'est orange » prouve
+que le thème du tenant a été résolu. Avant, les deux étaient identiques et
+l'écran de bienvenue a pu rester à la marque par défaut pendant tout le parcours
+sans que personne le voie.
+
+Contrôle négatif, à faire dans la foulée : ouvrir `/welcome` **sans jeton**.
+L'écran doit dire « Bienvenue sur RIG » et le bouton doit être **gris-bleu**. Si
+les deux écrans se ressemblent, la passe ne prouve rien.
+
+Le seed ne porte qu'une invitation Rueil et elle est à usage unique :
+`pnpm db:reset` la remet à `PENDING` avant chaque essai.
+
+## Sans téléphone : `pnpm --filter @rig/mobile web`
+
+Le bundle web d'Expo exerce le routeur, les fournisseurs, les écrans et les
+appels réseau — tout sauf le trousseau, `expo-localization` et le rendu natif.
+Il ne coche **aucun** critère de cette page, et il attrape ce que refaire une
+passe coûte trop cher à attraper : c'est lui qui a montré, en une navigation,
+que `/invitation/<jeton>` tombait sur « Unmatched Route ».
+
 ## 6. Ce qu'on note, et ce qu'on ne commite pas
 
 En cas d'écran rouge : la première ligne du message, et les dernières lignes du

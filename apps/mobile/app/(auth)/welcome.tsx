@@ -9,20 +9,32 @@ import { useBrand } from '../../lib/brand';
 /**
  * Écran de bienvenue, **aux couleurs de la box avant toute connexion**.
  *
- * Le `slug` vient du lien d'invitation. Sans lui — ouverture à froid, app
- * téléchargée sans lien — le thème RIG neutre s'applique et la marque de la box
- * arrive après `me()`. Il n'y a pas d'écran de saisie de code de box en 005a.
+ * Deux façons d'arriver ici avec une box à afficher, et il en manquait une :
+ *
+ * - un **jeton** d'invitation, ce que porte un vrai lien. Résolu par
+ *   `invitation_preview()`, capté par `/invitation/<jeton>` et rangé dans le
+ *   contexte de marque. C'était la branche absente : `apps/mobile` ne résolvait
+ *   que depuis un slug, qu'aucun lien ne porte, donc un membre invité voyait
+ *   toujours la marque de la plateforme ;
+ * - un **slug**, forme historique conservée pour les liens déjà distribués.
+ *
+ * Sans l'un ni l'autre — ouverture à froid, app téléchargée sans lien — le thème
+ * RIG neutre s'applique et la marque de la box arrive après `me()`.
  */
 export default function WelcomeScreen() {
   const theme = useTheme();
   const { t } = useI18n();
   const router = useRouter();
   const { slug, token } = useLocalSearchParams<{ slug?: string; token?: string }>();
-  const { brand, status, resolveSlug } = useBrand();
+  const { brand, status, invitationToken, resolveSlug, resolveToken } = useBrand();
 
   useEffect(() => {
-    if (slug) void resolveSlug(slug);
-  }, [slug, resolveSlug]);
+    // Le contexte d'abord : `/invitation/<jeton>` y a déjà déposé le jeton et
+    // lancé la résolution. Le paramètre d'URL ne sert qu'aux liens de la forme
+    // `?token=`, qui n'ont pas traversé cette route.
+    if (invitationToken === null && token) void resolveToken(token);
+    else if (invitationToken === null && slug) void resolveSlug(slug);
+  }, [invitationToken, token, slug, resolveSlug, resolveToken]);
 
   return (
     <View
@@ -78,13 +90,10 @@ export default function WelcomeScreen() {
         />
       ) : null}
 
-      <Button
-        label={t('auth.welcome_cta')}
-        fullWidth
-        onPress={() =>
-          router.push({ pathname: '/auth', params: token === undefined ? {} : { token } })
-        }
-      />
+      {/* Aucun paramètre : le jeton voyage par le contexte, que la navigation
+          ne peut pas vider. Le passer aussi dans l'URL rouvrirait deux sources
+          de vérité, dont une qui se perd à la première redirection. */}
+      <Button label={t('auth.welcome_cta')} fullWidth onPress={() => router.push('/auth')} />
     </View>
   );
 }
