@@ -1,9 +1,9 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { useI18n } from '@rig/ui/i18n';
-import { buildTheme, themeToCssVars, type ColorScheme } from '@rig/ui/theme';
-import { fontOptions } from '@rig/core/supabase';
+import { useI18n } from '@rack/ui/i18n';
+import { buildTheme, themeToCssVars, type ColorScheme } from '@rack/ui/theme';
+import { fontOptions } from '@rack/core/supabase';
 import styles from './apparence.module.css';
 import { IDLE, type ActionState } from './action-state';
 import { saveAppearance } from './actions';

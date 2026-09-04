@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useTheme } from '@rig/ui/theme';
+import { useTheme } from '@rack/ui/theme';
 import { useBrand } from '../../../lib/brand';
 
 /**

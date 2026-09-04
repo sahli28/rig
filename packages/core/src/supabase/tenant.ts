@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import type { RigClient } from './client';
+import type { RackClient } from './client';
 
 /**
  * Ce qu'une box expose **sans authentification** : sa marque, rien d'autre.
@@ -39,7 +39,7 @@ export type TenantPublicProfile = z.infer<typeof TenantPublicProfileSchema>;
  * une divulgation.
  */
 export async function fetchTenantPublicProfile(
-  client: RigClient,
+  client: RackClient,
   slug: string,
 ): Promise<TenantPublicProfile | null> {
   const { data, error } = await client.rpc('tenant_public_profile', { p_slug: slug });
@@ -74,7 +74,7 @@ export type InvitationPreview = z.infer<typeof InvitationPreviewSchema>;
  * confirmerait que le jeton a existé.
  */
 export async function fetchInvitationPreview(
-  client: RigClient,
+  client: RackClient,
   token: string,
 ): Promise<InvitationPreview | null> {
   const { data, error } = await client.rpc('invitation_preview', { p_token: token });
@@ -92,7 +92,7 @@ export async function fetchInvitationPreview(
  * l'invitation — la personne se retrouve avec un compte et sans appartenance.
  */
 export async function invitationAcceptsEmail(
-  client: RigClient,
+  client: RackClient,
   token: string,
   email: string,
 ): Promise<boolean> {
@@ -122,7 +122,7 @@ export type PendingInvitation = z.infer<typeof PendingInvitationSchema>;
  * adresse en argument, elle deviendrait un annuaire d'invitations lisible à
  * travers tous les tenants. Même règle que `current_tenant_ids()`.
  */
-export async function fetchPendingInvitations(client: RigClient): Promise<PendingInvitation[]> {
+export async function fetchPendingInvitations(client: RackClient): Promise<PendingInvitation[]> {
   const { data, error } = await client.rpc('pending_invitations_for_me');
   if (error) throw error;
   return PendingInvitationSchema.array().parse(data ?? []);
@@ -137,7 +137,7 @@ export async function fetchPendingInvitations(client: RigClient): Promise<Pendin
  * deux ne puisse en perdre un en route.
  */
 export async function acceptPendingInvitation(
-  client: RigClient,
+  client: RackClient,
   invitationId: string,
 ): Promise<string> {
   const { data, error } = await client.rpc('accept_pending_invitation', {
@@ -156,7 +156,7 @@ export async function acceptPendingInvitation(
  * applicatif : `INVITATION_EXPIRED` et `INVITATION_ALREADY_USED` partagent le
  * même SQLSTATE et ne se distinguent que par lui.
  */
-export async function acceptInvitation(client: RigClient, token: string): Promise<string> {
+export async function acceptInvitation(client: RackClient, token: string): Promise<string> {
   const { data, error } = await client.rpc('accept_invitation', { p_token: token });
   if (error) throw error;
   return z.string().uuid().parse(data);

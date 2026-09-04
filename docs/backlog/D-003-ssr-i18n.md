@@ -14,7 +14,7 @@ et perd le bénéfice du rendu serveur.
 
 - Résolution de la langue côté serveur : en-tête `Accept-Language`, puis cookie de
   préférence, puis segment d'URL si l'on adopte `/[locale]/`.
-- Traduction dans les Server Components via `translate()` de `@rig/core`, sans
+- Traduction dans les Server Components via `translate()` de `@rack/core`, sans
   contexte React.
 - Le `I18nProvider` client demeure pour les parties interactives.
 - Décider si l'URL porte la langue — condition d'un référencement propre en deux

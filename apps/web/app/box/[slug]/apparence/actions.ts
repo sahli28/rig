@@ -15,9 +15,9 @@ import {
   fetchMe,
   findMembershipBySlug,
   tenantScope,
-  type RigClient,
-} from '@rig/core/supabase';
-import { errorMessageKeyOf } from '@rig/core';
+  type RackClient,
+} from '@rack/core/supabase';
+import { errorMessageKeyOf } from '@rack/core';
 import { serverClient } from '../../../../lib/supabase/server';
 import type { ActionState } from './action-state';
 
@@ -26,7 +26,7 @@ const INVALID: ActionState = { status: 'error', key: 'settings.error_invalid' };
 
 async function contexteProprietaire(
   slug: string,
-): Promise<{ client: RigClient; tenantId: string } | null> {
+): Promise<{ client: RackClient; tenantId: string } | null> {
   const client = await serverClient();
   const me = await fetchMe(client);
   const membership = findMembershipBySlug(me, slug);

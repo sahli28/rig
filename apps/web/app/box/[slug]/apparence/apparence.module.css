@@ -12,25 +12,25 @@
 }
 
 .card {
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-lg);
-  background: var(--rig-color-surface-2);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-lg);
+  background: var(--rack-color-surface-2);
   padding: 20px;
 }
 
 .title {
-  font-size: var(--rig-text-display);
+  font-size: var(--rack-text-display);
   margin: 0 0 4px;
 }
 
 .cardTitle {
-  font-size: var(--rig-text-title);
+  font-size: var(--rack-text-title);
   margin: 0 0 4px;
 }
 
 .help {
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
   margin: 0 0 16px;
 }
 
@@ -47,20 +47,20 @@
 }
 
 .label {
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-text-muted);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-text-muted);
 }
 
 .input,
 .select {
-  min-height: var(--rig-touch-target);
+  min-height: var(--rack-touch-target);
   padding: 8px 12px;
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
-  background: var(--rig-color-surface);
-  color: var(--rig-color-text);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-surface);
+  color: var(--rack-color-text);
   font-family: inherit;
-  font-size: var(--rig-text-body);
+  font-size: var(--rack-text-body);
   width: 100%;
 }
 
@@ -71,22 +71,22 @@
 }
 
 .color {
-  min-height: var(--rig-touch-target);
+  min-height: var(--rack-touch-target);
   width: 64px;
   padding: 4px;
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
-  background: var(--rig-color-surface);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-surface);
 }
 
 .range {
   width: 100%;
-  accent-color: var(--rig-color-primary);
+  accent-color: var(--rack-color-primary);
 }
 
 .rowMeta {
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
 }
 
 .actions {
@@ -100,19 +100,19 @@
 .primary {
   border: 0;
   padding: 10px 18px;
-  background: var(--rig-color-primary);
-  color: var(--rig-color-on-primary);
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
   font-weight: 600;
 }
 
 .feedback {
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-success);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-success);
 }
 
 .error {
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-danger);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-danger);
 }
 
 /* --- L'aperçu ------------------------------------------------------------ */
@@ -129,8 +129,8 @@
  * pas une imitation peinte à la main.
  */
 .preview {
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -138,16 +138,16 @@
 }
 
 .previewScheme {
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-text-muted);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-text-muted);
 }
 
 .previewSurface {
-  background: var(--rig-color-surface);
-  color: var(--rig-color-text);
-  font-family: var(--rig-font-family), system-ui, sans-serif;
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
+  background: var(--rack-color-surface);
+  color: var(--rack-color-text);
+  font-family: var(--rack-font-family), system-ui, sans-serif;
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -156,22 +156,22 @@
 }
 
 .previewAppName {
-  font-size: var(--rig-text-title);
+  font-size: var(--rack-text-title);
   font-weight: 700;
 }
 
 .previewMuted {
   margin: 0;
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-small);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-small);
 }
 
 .previewButton {
   border: 0;
   padding: 10px 16px;
-  border-radius: var(--rig-radius-md);
-  background: var(--rig-color-primary);
-  color: var(--rig-color-on-primary);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
   font-weight: 600;
   /* Désactivé pour la démonstration, mais sans l'atténuation habituelle : c'est
      un échantillon de couleur, il doit montrer la vraie. */
@@ -181,6 +181,6 @@
 
 .warning {
   margin: 0;
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-warning);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-warning);
 }

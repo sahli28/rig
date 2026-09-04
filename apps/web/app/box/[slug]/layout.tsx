@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
-import { brandFromTheme } from '@rig/ui/theme';
-import { fetchMe, findMembershipBySlug } from '@rig/core/supabase';
+import { brandFromTheme } from '@rack/ui/theme';
+import { fetchMe, findMembershipBySlug } from '@rack/core/supabase';
 import { ThemeStyle } from '../../theme-style';
 import { serverClient } from '../../../lib/supabase/server';
 import { supabaseConfigured } from '../../../lib/supabase/config';

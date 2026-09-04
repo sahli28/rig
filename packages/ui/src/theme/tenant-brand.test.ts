@@ -74,7 +74,7 @@ describe('brandFromPublicProfile', () => {
 });
 
 describe('brandOrDefault', () => {
-  it('retombe sur la marque RIG quand aucune box n’est résolue', () => {
+  it('retombe sur la marque Rack quand aucune box n’est résolue', () => {
     expect(brandOrDefault(null)).toBe(DEFAULT_BRAND);
     expect(brandOrDefault(undefined)).toBe(DEFAULT_BRAND);
   });

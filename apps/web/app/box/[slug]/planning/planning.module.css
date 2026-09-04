@@ -7,20 +7,20 @@
 }
 
 .card {
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-lg);
-  background: var(--rig-color-surface-2);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-lg);
+  background: var(--rack-color-surface-2);
   padding: 20px;
 }
 
 .cardTitle {
-  font-size: var(--rig-text-title);
+  font-size: var(--rack-text-title);
   margin: 0 0 4px;
 }
 
 .help {
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
   margin: 0 0 16px;
 }
 
@@ -34,7 +34,7 @@
 }
 
 .weekLabel {
-  font-size: var(--rig-text-title);
+  font-size: var(--rack-text-title);
   margin: 0;
   flex: 1;
 }
@@ -58,29 +58,29 @@
 
 .grid th {
   text-align: left;
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-text-muted);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-text-muted);
   font-weight: 600;
   padding: 8px;
-  border-bottom: 1px solid var(--rig-color-border);
+  border-bottom: 1px solid var(--rack-color-border);
   vertical-align: top;
 }
 
 .grid td {
   padding: 8px;
   vertical-align: top;
-  border-bottom: 1px solid var(--rig-color-border);
+  border-bottom: 1px solid var(--rack-color-border);
   width: calc(100% / 7);
 }
 
 .dayDate {
   display: block;
   font-weight: 400;
-  color: var(--rig-color-text-muted);
+  color: var(--rack-color-text-muted);
 }
 
 .today {
-  color: var(--rig-color-primary);
+  color: var(--rack-color-primary);
   font-weight: 700;
 }
 
@@ -88,24 +88,24 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  border-left: 3px solid var(--rig-color-primary);
-  border-radius: var(--rig-radius-sm);
-  background: var(--rig-color-surface);
+  border-left: 3px solid var(--rack-color-primary);
+  border-radius: var(--rack-radius-sm);
+  background: var(--rack-color-surface);
   padding: 8px;
   margin-bottom: 8px;
   text-align: left;
   width: 100%;
-  font-family: var(--rig-font-family);
-  font-size: var(--rig-text-small);
-  color: var(--rig-color-text);
+  font-family: var(--rack-font-family);
+  font-size: var(--rack-text-small);
+  color: var(--rack-color-text);
   cursor: pointer;
-  min-height: var(--rig-touch-target);
+  min-height: var(--rack-touch-target);
 }
 
 .slot:hover,
 .slot:focus-visible {
-  border-color: var(--rig-color-primary);
-  outline: 2px solid var(--rig-color-primary);
+  border-color: var(--rack-color-primary);
+  outline: 2px solid var(--rack-color-primary);
   outline-offset: 1px;
 }
 
@@ -115,7 +115,7 @@
  * et la rature ne font que le redire à qui voit l'écran.
  */
 .slotCancelled {
-  border-left-color: var(--rig-color-danger);
+  border-left-color: var(--rack-color-danger);
   opacity: 0.7;
 }
 
@@ -124,19 +124,19 @@
 }
 
 .slotMeta {
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
 }
 
 .slotCancelledLabel {
-  color: var(--rig-color-danger);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-danger);
+  font-size: var(--rack-text-caption);
   font-weight: 600;
 }
 
 .empty {
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
   margin: 0;
 }
 
@@ -156,9 +156,9 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
-  background: var(--rig-color-surface);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-surface);
   padding: 12px;
 }
 
@@ -173,8 +173,8 @@
 
 .seriesRule {
   display: block;
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
 }
 
 /* Formulaires ------------------------------------------------------------ */
@@ -198,31 +198,31 @@
 }
 
 .label {
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-text-muted);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-text-muted);
 }
 
 .input,
 .select,
 .textarea {
-  font-family: var(--rig-font-family);
-  font-size: var(--rig-text-body);
-  color: var(--rig-color-text);
-  background: var(--rig-color-surface);
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
+  font-family: var(--rack-font-family);
+  font-size: var(--rack-text-body);
+  color: var(--rack-color-text);
+  background: var(--rack-color-surface);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
   padding: 10px 12px;
-  min-height: var(--rig-touch-target);
+  min-height: var(--rack-touch-target);
 }
 
 .textarea {
-  min-height: calc(var(--rig-touch-target) * 2);
+  min-height: calc(var(--rack-touch-target) * 2);
   resize: vertical;
 }
 
 .hint {
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
 }
 
 /* Les jours, en cases à cocher : plusieurs jours par série est le cas normal. */
@@ -239,16 +239,16 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-full);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-full);
   padding: 8px 12px;
-  font-size: var(--rig-text-small);
-  min-height: var(--rig-touch-target);
+  font-size: var(--rack-text-small);
+  min-height: var(--rack-touch-target);
   cursor: pointer;
 }
 
 .day:focus-within {
-  outline: 2px solid var(--rig-color-primary);
+  outline: 2px solid var(--rack-color-primary);
   outline-offset: 1px;
 }
 
@@ -260,14 +260,14 @@
 }
 
 .primary {
-  background: var(--rig-color-primary);
-  color: var(--rig-color-on-primary);
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
   border: 0;
-  border-radius: var(--rig-radius-md);
+  border-radius: var(--rack-radius-md);
   padding: 10px 16px;
-  font-family: var(--rig-font-family);
-  font-size: var(--rig-text-body);
-  min-height: var(--rig-touch-target);
+  font-family: var(--rack-font-family);
+  font-size: var(--rack-text-body);
+  min-height: var(--rack-touch-target);
   cursor: pointer;
 }
 
@@ -278,39 +278,39 @@
 
 .secondary {
   background: transparent;
-  color: var(--rig-color-text);
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
+  color: var(--rack-color-text);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
   padding: 10px 16px;
-  font-family: var(--rig-font-family);
-  font-size: var(--rig-text-body);
-  min-height: var(--rig-touch-target);
+  font-family: var(--rack-font-family);
+  font-size: var(--rack-text-body);
+  min-height: var(--rack-touch-target);
   cursor: pointer;
 }
 
 .danger {
   composes: secondary;
-  color: var(--rig-color-danger);
-  border-color: var(--rig-color-danger);
+  color: var(--rack-color-danger);
+  border-color: var(--rack-color-danger);
 }
 
 .feedback {
-  color: var(--rig-color-success);
-  font-size: var(--rig-text-small);
+  color: var(--rack-color-success);
+  font-size: var(--rack-text-small);
 }
 
 .error {
-  color: var(--rig-color-danger);
-  font-size: var(--rig-text-small);
+  color: var(--rack-color-danger);
+  font-size: var(--rack-text-small);
 }
 
 /* Le rappel qui compte : personne n'est prévenu. */
 .warning {
-  border: 1px solid var(--rig-color-warning);
-  border-radius: var(--rig-radius-md);
+  border: 1px solid var(--rack-color-warning);
+  border-radius: var(--rack-radius-md);
   padding: 12px;
-  font-size: var(--rig-text-small);
-  color: var(--rig-color-text);
+  font-size: var(--rack-text-small);
+  color: var(--rack-color-text);
 }
 
 /* Boîtes de dialogue ----------------------------------------------------- */
@@ -318,7 +318,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: var(--rig-color-overlay);
+  background: var(--rack-color-overlay);
 }
 
 .dialog {
@@ -329,14 +329,14 @@
   width: min(560px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
   overflow-y: auto;
-  background: var(--rig-color-surface-2);
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-lg);
+  background: var(--rack-color-surface-2);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-lg);
   padding: 20px;
 }
 
 .dialogTitle {
-  font-size: var(--rig-text-title);
+  font-size: var(--rack-text-title);
   margin: 0 0 12px;
 }
 

@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useI18n } from '@rig/ui/i18n';
-import { parseWeeklyRrule } from '@rig/core/supabase';
+import { useI18n } from '@rack/ui/i18n';
+import { parseWeeklyRrule } from '@rack/core/supabase';
 import { SeriesForm } from './series-form';
 import { WeekGrid } from './week-grid';
 import styles from './planning.module.css';
-import { DAY_LABELS, type Choice, type Occurrence, type Serie } from '@rig/core/supabase';
+import { DAY_LABELS, type Choice, type Occurrence, type Serie } from '@rack/core/supabase';
 
 /**
  * Le planning : la semaine affichée, puis les séries qui la produisent.

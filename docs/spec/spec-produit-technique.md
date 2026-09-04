@@ -1,4 +1,4 @@
-# RIG — Spécification produit & technique
+# Rack — Spécification produit & technique
 
 ### Plateforme SaaS multi-tenant pour boxes CrossFit / Hyrox
 
@@ -7,7 +7,7 @@
 |                          |                                                                                                                  |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
 | **Version du document**  | 1.0 — 30 août 2026                                                                                               |
-| **Nom de code produit**  | RIG (à valider marque, cf. §20)                                                                                  |
+| **Nom du produit**       | **Rack** — arrêté le 4 septembre 2026 (cf. §20 q. 6)                                                                                  |
 | **Priorité MVP retenue** | **CrossFit d'abord**, Hyrox en v1                                                                                |
 | **Point de départ**      | Greenfield total (aucun design, API ou données à conserver)                                                      |
 | **Capacité de delivery** | **Solo / side project (1 personne)** — toutes les estimations et la roadmap sont calibrées pour cette contrainte |
@@ -37,7 +37,7 @@ Ces hypothèses conditionnent tout le reste du document. Elles sont issues de vo
 
 ## 1. Résumé exécutif
 
-RIG est une plateforme SaaS multi-tenant (mobile iOS/Android + web responsive) qui permet à une box de CrossFit ou de préparation Hyrox de gérer l'intégralité de son quotidien — planning et réservation de cours en temps réel, abonnements et packs de crédits, check-in par QR code, encaissement automatisé et reporting financier — tout en offrant à ses coachs un véritable outil de programmation (cycles de force, WOD récurrents, options Rx/Scaled, benchmarks, notes de coach) et à ses membres une app où ils logguent leurs scores, suivent leurs PR et se comparent au leaderboard de la box. Le public cible est double : le **propriétaire de box indépendante** (80 à 250 membres, en France puis en Europe francophone), qui paie un abonnement mensuel par box, et le **membre pratiquant** CrossFit ou Hyrox, qui utilise l'app gratuitement. La proposition de valeur tient en trois points que les acteurs installés ne couvrent pas ensemble : (1) un outil de **programmation réellement pensé pour les coachs** — la plupart des logiciels de gestion traitent le WOD comme un champ texte, (2) un **module Hyrox natif** (épreuves standardisées, splits, heats, pairings, PR par station) alors que le marché ne propose aujourd'hui que des adaptations CrossFit, et (3) une couche de **coopération inter-box** — planning partagé, passage de membres en visite, marketplace d'événements avec partage de revenus automatisé — qui transforme des boxes concurrentes en réseau et crée un effet de réseau défendable. Le tout en marque blanche, pour que chaque box livre l'app sous son propre nom et ses propres couleurs.
+Rack est une plateforme SaaS multi-tenant (mobile iOS/Android + web responsive) qui permet à une box de CrossFit ou de préparation Hyrox de gérer l'intégralité de son quotidien — planning et réservation de cours en temps réel, abonnements et packs de crédits, check-in par QR code, encaissement automatisé et reporting financier — tout en offrant à ses coachs un véritable outil de programmation (cycles de force, WOD récurrents, options Rx/Scaled, benchmarks, notes de coach) et à ses membres une app où ils logguent leurs scores, suivent leurs PR et se comparent au leaderboard de la box. Le public cible est double : le **propriétaire de box indépendante** (80 à 250 membres, en France puis en Europe francophone), qui paie un abonnement mensuel par box, et le **membre pratiquant** CrossFit ou Hyrox, qui utilise l'app gratuitement. La proposition de valeur tient en trois points que les acteurs installés ne couvrent pas ensemble : (1) un outil de **programmation réellement pensé pour les coachs** — la plupart des logiciels de gestion traitent le WOD comme un champ texte, (2) un **module Hyrox natif** (épreuves standardisées, splits, heats, pairings, PR par station) alors que le marché ne propose aujourd'hui que des adaptations CrossFit, et (3) une couche de **coopération inter-box** — planning partagé, passage de membres en visite, marketplace d'événements avec partage de revenus automatisé — qui transforme des boxes concurrentes en réseau et crée un effet de réseau défendable. Le tout en marque blanche, pour que chaque box livre l'app sous son propre nom et ses propres couleurs.
 
 **En une phrase :** _le logiciel de gestion de box qui traite enfin la programmation et le Hyrox comme des citoyens de première classe, et qui relie les boxes entre elles._
 
@@ -394,8 +394,8 @@ Scénario: Coupure internet dans la box
 
 **Règles métier**
 
-- RM4.1 — **Stripe Connect Express** : chaque box est un compte connecté. Les fonds vont directement à la box ; RIG prélève une `application_fee` (commission plateforme). Vous n'êtes jamais détentrice des fonds → pas d'agrément établissement de paiement requis.
-- RM4.2 — La box est le vendeur au sens juridique : ses CGV, sa TVA, ses factures. RIG facture séparément son abonnement SaaS.
+- RM4.1 — **Stripe Connect Express** : chaque box est un compte connecté. Les fonds vont directement à la box ; Rack prélève une `application_fee` (commission plateforme). Vous n'êtes jamais détentrice des fonds → pas d'agrément établissement de paiement requis.
+- RM4.2 — La box est le vendeur au sens juridique : ses CGV, sa TVA, ses factures. Rack facture séparément son abonnement SaaS.
 - RM4.3 — Les crédits ont une date d'expiration configurable (défaut 6 mois) ; **prévenir 14 j et 3 j avant expiration** (loyauté commerciale, et ça évite les litiges).
 - RM4.4 — Un remboursement de crédit à l'annulation se fait dans le portefeuille, jamais en monnaie, sauf action explicite du propriétaire.
 - RM4.5 — Droit de rétractation : la vente à distance de services de loisir à date déterminée en est exemptée (art. L221-28 code de la consommation) — **mais** un abonnement sans date fixe ne l'est pas. Formule à faire valider par un juriste (cf. §19).
@@ -579,7 +579,7 @@ Scénario: Planification de heats
 3. Les créneaux de B marqués « ouverts au réseau » apparaissent dans l'app des membres de A, avec un badge visuel distinct **et le nom de B toujours affiché**.
 4. Un membre de A réserve chez B : vérification du quota (ex. 2 visites/mois), débit d'un crédit A ou paiement du tarif visiteur.
 5. Check-in chez B avec le même QR (le scanner de B reconnaît un visiteur du réseau).
-6. Règlement financier : le tarif visiteur est réparti automatiquement (part B, part A, commission RIG) via des transferts Stripe Connect.
+6. Règlement financier : le tarif visiteur est réparti automatiquement (part B, part A, commission Rack) via des transferts Stripe Connect.
 7. Reporting consolidé mensuel pour chaque box : visiteurs reçus / envoyés, revenus, solde net.
 
 **Écrans** : `Partners List` · `Partnership Request` · `Partnership Settings` · `Shared Schedule (badge réseau)` · `Cross-box Booking Confirmation` · `Visitor Roster (coach)` · `Network Revenue Report`
@@ -1372,7 +1372,7 @@ Réservation, capacité, waitlist, check-in, paiement, membres, notifications, l
 
 | Niveau                       | Contenu                                                                                                               | Effort                                       | Tarif indicatif                          |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------- |
-| **N0 — Co-brandé** (MVP)     | Logo, couleur primaire, nom de la box dans l'app RIG ; sous-domaine web `box.rig.app`                                 | Inclus                                       | Inclus                                   |
+| **N0 — Co-brandé** (MVP)     | Logo, couleur primaire, nom de la box dans l'app Rack ; sous-domaine web `box.rig.app`                                 | Inclus                                       | Inclus                                   |
 | **N1 — Marque étendue** (v1) | + domaine personnalisé (`app.crossfitrueil.fr`), e-mails et factures aux couleurs de la box, écran de démarrage dédié | 3 j·h de setup, ~0 récurrent                 | +29 €/mois                               |
 | **N2 — App dédiée** (v2)     | Binaire iOS/Android publié sous le compte développeur **de la box**, icône et nom propres, fiches store               | 2 j·h par box + maintenance à chaque release | +99 à 199 €/mois, **engagement 12 mois** |
 
@@ -1395,7 +1395,7 @@ Réservation, capacité, waitlist, check-in, paiement, membres, notifications, l
 | R1  | Le partenariat est **bilatéral et explicitement accepté** ; chaque direction a ses propres règles (A peut ouvrir 3 places à B sans que B en ouvre à A).                                                                            |
 | R2  | La box hôte contrôle : types de cours éligibles, nombre de places visiteurs par cours, plages horaires, tarif.                                                                                                                     |
 | R3  | Le quota de visite est mensuel, par membre, glissant, avec dépassement possible au tarif drop-in plein.                                                                                                                            |
-| R4  | **Minimisation des données** : la box hôte reçoit prénom + initiale + box d'origine + photo si consentie. Rien d'autre. Formalisé dans un accord de partage entre responsables conjoints (art. 26 RGPD), fourni en modèle par RIG. |
+| R4  | **Minimisation des données** : la box hôte reçoit prénom + initiale + box d'origine + photo si consentie. Rien d'autre. Formalisé dans un accord de partage entre responsables conjoints (art. 26 RGPD), fourni en modèle par Rack. |
 | R5  | Répartition par défaut 80 / 15 / 5 (hôte / origine / plateforme), paramétrable, somme obligatoirement = 100 %.                                                                                                                     |
 | R6  | Toute réservation cross-box génère une écriture dans les ledgers des **deux** boxes, avec le même identifiant de règlement.                                                                                                        |
 | R7  | Révocation à effet immédiat sur les réservations futures non payées ; les réservations payées sont honorées.                                                                                                                       |
@@ -1413,10 +1413,10 @@ Stripe PaymentIntent sur le compte connecté de B  (destination charge)
         │
         ├─► 16,00 €  reste chez B         (host_share_bps = 8000)
         ├─►  3,00 €  transfert vers A     (origin_share_bps = 1500)
-        └─►  1,00 €  application_fee RIG  (platform_fee_bps = 500)
+        └─►  1,00 €  application_fee Rack  (platform_fee_bps = 500)
         │
         ▼
-3 écritures ledger : B (+16), A (+3), RIG (+1) — même settlement_id
+3 écritures ledger : B (+16), A (+3), Rack (+1) — même settlement_id
 Remboursement éventuel → 3 contre-écritures + reversals Stripe
 ```
 
@@ -1702,10 +1702,10 @@ Marketplace publique, white-label N2, wearables, écran TV de salle, assistance 
 
 | Traitement                                                            | Responsable de traitement                                             | Sous-traitant  |
 | --------------------------------------------------------------------- | --------------------------------------------------------------------- | -------------- |
-| Données des membres d'une box (identité, présence, paiements, scores) | **La box**                                                            | **RIG** (vous) |
-| Compte utilisateur global, PR personnels, préférences                 | **RIG**                                                               | —              |
-| Réservation cross-box                                                 | **Responsables conjoints** (box d'origine + box hôte), accord art. 26 | RIG            |
-| Données de facturation SaaS des boxes                                 | **RIG**                                                               | Stripe         |
+| Données des membres d'une box (identité, présence, paiements, scores) | **La box**                                                            | **Rack** (vous) |
+| Compte utilisateur global, PR personnels, préférences                 | **Rack**                                                               | —              |
+| Réservation cross-box                                                 | **Responsables conjoints** (box d'origine + box hôte), accord art. 26 | Rack            |
+| Données de facturation SaaS des boxes                                 | **Rack**                                                               | Stripe         |
 
 **Conséquences opérationnelles obligatoires :**
 
@@ -1789,7 +1789,7 @@ Votre backend ──────┴──► PaymentIntent (destination charge v
 
 ### 15.6 Obligations françaises additionnelles
 
-- **Mentions légales** et CGU/CGV distinctes (RIG ↔ box, box ↔ membre) — la box est le vendeur du service sportif, vous êtes le fournisseur de l'outil.
+- **Mentions légales** et CGU/CGV distinctes (Rack ↔ box, box ↔ membre) — la box est le vendeur du service sportif, vous êtes le fournisseur de l'outil.
 - **TVA** : 20 % sur votre abonnement SaaS en France ; autoliquidation en B2B intracommunautaire (validation du numéro de TVA via VIES) ; vigilance sur le seuil de la franchise en base si vous démarrez en micro-entreprise.
 - **Facturation électronique** : la réforme française impose progressivement la réception puis l'émission de factures électroniques via des plateformes agréées — **calendrier à vérifier à l'approche du lancement** et à intégrer au choix de l'outil de facturation.
 - **Accessibilité** : l'European Accessibility Act s'applique aux services numériques grand public. Viser WCAG 2.2 AA n'est pas une option de confort.
@@ -1991,7 +1991,7 @@ Votre backend ──────┴──► PaymentIntent (destination charge v
 | R15 | **Usage de la marque « HYROX »**                                          | Moyenne |    Élevé     | HYROX est une marque déposée. Ne jamais l'utiliser dans le nom du produit, le nom de domaine, l'icône ou d'une manière suggérant un partenariat. Employer « préparation au format Hyrox », avec une mention de non-affiliation. Faire valider par un conseil en propriété industrielle avant tout marketing. Envisager une prise de contact officielle si l'usage devient central. |
 | R16 | Non-conformité RGPD (absence de DPA, données de santé)                    | Moyenne |    Élevé     | DPA signé dès le 1er client, champ santé isolé et chiffré sous consentement explicite, registre tenu à jour                                                                                                                                                                                                                                                                        |
 | R17 | Requalification en établissement de paiement                              | Faible  | **Critique** | Stripe Connect avec destination charges ; **ne jamais encaisser sur votre compte pour reverser** ; faire valider le montage par un avocat avant le premier euro                                                                                                                                                                                                                    |
-| R18 | Litige entre une box et un membre où vous êtes mise en cause              | Moyenne |    Moyen     | CGU claires : RIG est fournisseur d'outil, la box est le prestataire du service sportif. Limitation de responsabilité contractuelle. Assurance RC Pro.                                                                                                                                                                                                                             |
+| R18 | Litige entre une box et un membre où vous êtes mise en cause              | Moyenne |    Moyen     | CGU claires : Rack est fournisseur d'outil, la box est le prestataire du service sportif. Limitation de responsabilité contractuelle. Assurance RC Pro.                                                                                                                                                                                                                             |
 | R19 | Clause abusive dans les abonnements membres (droit de la consommation FR) | Moyenne |    Moyen     | Faire relire les modèles de CGV fournis aux boxes ; résiliation self-service ; pas de reconduction opaque ; l'app doit **faciliter** la conformité de la box, c'est un argument de vente                                                                                                                                                                                           |
 | R20 | Contentieux sur les frais d'annulation ou de no-show                      | Moyenne |    Faible    | Consentement explicite au moment de la réservation, montant affiché avant validation, historique traçable, annulation manuelle possible par l'Owner                                                                                                                                                                                                                                |
 
@@ -2011,7 +2011,7 @@ Ces questions affinent la spécification. Les cinq premières changent des déci
 
 ### 🟠 Importantes
 
-6. **Nom, marque et domaine** : avez-vous un nom en tête ? Est-il disponible à l'INPI et en `.fr`/`.com` ? (RIG est un nom de travail.)
+6. **Nom, marque et domaine** — ✅ **tranché le 4 septembre 2026 : le produit s'appelle `Rack`.** RIG était un nom de travail ; il a disparu du dépôt le même jour, d'un seul geste (`D-013`), pendant que le dépôt était encore petit et qu'aucune application n'était installée nulle part. Recherche d'antériorité faite : **aucun « RACK » en vigueur en France ni dans l'UE en classes 9, 41 et 42**. Ce qui **reste ouvert** : le dépôt de marque lui-même, et le **nom de domaine**, qui n'est pas acheté — les URLs d'exemple de cette spec (`cdn.rig.app`, `api.rig.app`, `box.rig.app`) sont donc **volontairement inchangées** et seront réécrites le jour où un domaine existera. Le domaine figure au « chemin critique hors code » du backlog : il bloque P2-015, D-008 et le retour d'Apple.
 7. **Une identité visuelle existante** (logo, palette, typographie) ou faut-il en créer une ?
 8. **Périmètre géographique à 24 mois** : Île-de-France seulement, France entière, ou Europe francophone (Belgique, Suisse) ? Cela change la TVA, les langues et les moyens de paiement.
 9. **Quel poids donnez-vous au prélèvement SEPA ?** S'il est indispensable à vos boxes cibles, il remonte du v1 vers le MVP et ajoute ~8 j·h.

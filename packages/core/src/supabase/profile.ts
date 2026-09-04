@@ -10,7 +10,7 @@
 
 import { z } from 'zod';
 import type { Locale } from '../i18n/types';
-import type { RigClient } from './client';
+import type { RackClient } from './client';
 import { Constants, type Database } from './types.gen';
 
 /** Colonnes du profil que `grant update (…) on public.users` autorise réellement. */
@@ -29,7 +29,7 @@ export type ProfilePatch = z.infer<typeof ProfilePatchSchema>;
  * facilement, et l'habitude vaut mieux que la confiance dans le filet.
  */
 export async function updateProfile(
-  client: RigClient,
+  client: RackClient,
   userId: string,
   patch: ProfilePatch,
 ): Promise<void> {
@@ -63,7 +63,7 @@ export async function updateProfile(
  * n'est nécessaire.
  */
 export async function updateLocale(
-  client: RigClient,
+  client: RackClient,
   userId: string,
   locale: Locale,
 ): Promise<void> {
@@ -77,7 +77,7 @@ export const CONSENT_PURPOSES = Constants.public.Enums.consent_purpose;
 export type ConsentPurpose = (typeof CONSENT_PURPOSES)[number];
 
 /**
- * Consentements de **plateforme** : ils engagent RIG, pas la box, et s'écrivent
+ * Consentements de **plateforme** : ils engagent Rack, pas la box, et s'écrivent
  * donc avec `tenant_id` nul (`.claude/rules/privacy.md`). Tous les autres
  * portent l'identifiant de la box, qui devient responsable de traitement et
  * doit pouvoir en administrer la preuve.
@@ -106,7 +106,7 @@ export interface RecordConsentsInput {
  * côté client la ferait diverger le jour d'une mise à jour des CGU, et
  * `me()` réclamerait alors indéfiniment un consentement déjà donné.
  */
-export async function fetchPolicyVersion(client: RigClient): Promise<string> {
+export async function fetchPolicyVersion(client: RackClient): Promise<string> {
   const { data, error } = await client.rpc('current_policy_version');
   if (error) throw error;
   return z.string().min(1).parse(data);
@@ -122,7 +122,7 @@ export async function fetchPolicyVersion(client: RigClient): Promise<string> {
  * tenant actif interdit par construction.
  */
 export async function recordConsents(
-  client: RigClient,
+  client: RackClient,
   { userId, tenantId, policyVersion, choices }: RecordConsentsInput,
 ): Promise<void> {
   if (choices.length === 0) return;

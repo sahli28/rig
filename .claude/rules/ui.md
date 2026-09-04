@@ -14,11 +14,11 @@ consomme les tokens en CSS** (ADR 0003). Il n'y a pas de composant partagé.
 
 | | mobile (`apps/mobile`) | web (`apps/web`) |
 | --- | --- | --- |
-| Composants | `@rig/ui/native` | les siens, base accessible (Radix/shadcn) |
-| Accès aux tokens | `useTheme()` | variables CSS `var(--rig-color-primary)` |
-| Source des tokens | `@rig/ui/theme` | `@rig/ui/theme` via `themeToCssRule()` |
+| Composants | `@rack/ui/native` | les siens, base accessible (Radix/shadcn) |
+| Accès aux tokens | `useTheme()` | variables CSS `var(--rack-color-primary)` |
+| Source des tokens | `@rack/ui/theme` | `@rack/ui/theme` via `themeToCssRule()` |
 
-**Ne jamais importer `@rig/ui/native` depuis `apps/web`** : cela embarquerait
+**Ne jamais importer `@rack/ui/native` depuis `apps/web`** : cela embarquerait
 React Native dans le bundle Next et casserait le build.
 
 ## La convention web (ADR 0005)
@@ -30,10 +30,10 @@ React Native dans le bundle Next et casserait le build.
   jamais recoder en solo, et rien de plus.
 - Un fichier `.module.css` à côté de son composant. **Toute** couleur, tout
   rayon, toute taille de texte, toute cible tactile vient d'une variable
-  `--rig-*` injectée par `themeToCssRule()`. Aucune valeur littérale.
+  `--rack-*` injectée par `themeToCssRule()`. Aucune valeur littérale.
 - Les paquets Radix s'installent **un par un, à l'usage**, justifiés au commit.
 - **Pas de Tailwind, pas de shadcn/ui** : ils apportent un second système de
-  thème à côté de `@rig/ui/theme`, et deux endroits où définir une couleur, c'est
+  thème à côté de `@rack/ui/theme`, et deux endroits où définir une couleur, c'est
   la promesse white-label qui se casse — silencieusement, un `bg-slate-100` à la
   fois.
 
@@ -98,7 +98,7 @@ courant est le mauvais**, et ce qu'il y a derrière un mauvais écran est tout
 aussi mauvais. Le seul retour légitime est une navigation que la personne a
 demandée — le « Continuer » de l'écran de bienvenue, qui reste un `push`.
 
-Ces trois points se vérifient sur `pnpm --filter @rig/mobile web`, et le
+Ces trois points se vérifient sur `pnpm --filter @rack/mobile web`, et le
 troisième **seulement à moitié** : le balayage iOS et le bouton retour Android
 demandent un appareil.
 
@@ -108,8 +108,8 @@ demandent un appareil.
   ni dans une feuille de style web. Uniquement des tokens.
 - Sur mobile : `colors.primary`, `colors.surface`, `colors.textMuted`… via
   `useTheme()`. Un composant qui ne peut pas être thémé est mal conçu.
-- Sur le web : `var(--rig-color-primary)`, `var(--rig-radius-md)`,
-  `var(--rig-text-body)`… Les variables sont injectées en SSR par `<ThemeStyle/>`,
+- Sur le web : `var(--rack-color-primary)`, `var(--rack-radius-md)`,
+  `var(--rack-text-body)`… Les variables sont injectées en SSR par `<ThemeStyle/>`,
   ce qui évite tout flash de thème.
 - Tester chaque écran avec deux thèmes contrastés (clair/sombre, primaire chaude/froide).
 
@@ -136,7 +136,7 @@ demandent un appareil.
 titre que regarder la console. Sur chaque écran livré :
 
 ```
-pnpm --filter @rig/mobile web     # ou le serveur web
+pnpm --filter @rack/mobile web     # ou le serveur web
 # puis, dans le harnais : read_page filter=interactive
 ```
 

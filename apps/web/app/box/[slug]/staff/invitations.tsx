@@ -1,9 +1,9 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { useI18n } from '@rig/ui/i18n';
-import { grantableRoles, invitationPath, invitationState } from '@rig/core/supabase';
-import type { TranslationKey } from '@rig/core';
+import { useI18n } from '@rack/ui/i18n';
+import { grantableRoles, invitationPath, invitationState } from '@rack/core/supabase';
+import type { TranslationKey } from '@rack/core';
 import styles from './staff.module.css';
 import { IDLE, type ActionState } from './action-state';
 import { issueInvitation, revokeInvitation } from './actions';
@@ -121,7 +121,7 @@ function IssuedLink({ token }: { token: string }) {
   // `window` n'existe qu'au rendu client, et ce composant n'apparaît qu'après
   // une action : l'origine est donc toujours disponible ici.
   //
-  // Le chemin vient de `@rig/core`, pas d'un littéral : c'est le **même** module
+  // Le chemin vient de `@rack/core`, pas d'un littéral : c'est le **même** module
   // que le mobile utilise pour relire ce lien. Recopié à la main des deux côtés,
   // il avait déjà divergé — `apps/mobile` n'avait aucune route pour cette URL,
   // et le jeton d'invitation se perdait sans que rien ne le signale.

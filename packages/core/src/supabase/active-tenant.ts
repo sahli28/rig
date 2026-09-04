@@ -14,7 +14,7 @@
  * `.claude/rules/api.md` porte la même règle pour la future couche API.
  */
 
-import type { RigClient } from './client';
+import type { RackClient } from './client';
 import type { Database } from './types.gen';
 
 type Tables = Database['public']['Tables'];
@@ -72,7 +72,7 @@ function whereTenant<B>(builder: B, tenantId: string): B {
   return (builder as unknown as { eq(column: string, value: string): B }).eq('tenant_id', tenantId);
 }
 
-export function tenantScope(client: RigClient, tenantId: string) {
+export function tenantScope(client: RackClient, tenantId: string) {
   return {
     tenantId,
 

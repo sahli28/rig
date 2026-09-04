@@ -1,5 +1,10 @@
 export type { Database, Json } from './types.gen';
-export { createRigClient, readSupabaseConfig, type RigClient, type SupabaseConfig } from './client';
+export {
+  createRackClient,
+  readSupabaseConfig,
+  type RackClient,
+  type SupabaseConfig,
+} from './client';
 export {
   chunkedStore,
   splitIntoChunks,

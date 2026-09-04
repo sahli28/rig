@@ -4,7 +4,7 @@
  * Fournisseur de thème, sans dépendance plateforme : il ne connaît que React.
  *
  * La directive `use client` est là pour Next : `createContext` n'existe pas
- * dans un Server Component, et le barrel `@rig/ui/theme` est importé côté
+ * dans un Server Component, et le barrel `@rack/ui/theme` est importé côté
  * serveur pour générer les variables CSS. React Native ignore la directive.
  *
  * Le schéma clair/sombre est passé en propriété plutôt que détecté ici, parce

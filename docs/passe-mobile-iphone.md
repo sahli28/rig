@@ -78,7 +78,7 @@ ne peut pas se connecter, s'arrêter là et régler ça d'abord :
 ## 4. Démarrer Metro
 
 ```bash
-pnpm --filter @rig/mobile exec expo start --clear
+pnpm --filter @rack/mobile exec expo start --clear
 ```
 
 `--clear` vide le cache : sans lui, un `.env.local` créé après un premier
@@ -133,13 +133,13 @@ l'écran de bienvenue a pu rester à la marque par défaut pendant tout le parco
 sans que personne le voie.
 
 Contrôle négatif, à faire dans la foulée : ouvrir `/welcome` **sans jeton**.
-L'écran doit dire « Bienvenue sur RIG » et le bouton doit être **gris-bleu**. Si
+L'écran doit dire « Bienvenue sur Rack » et le bouton doit être **gris-bleu**. Si
 les deux écrans se ressemblent, la passe ne prouve rien.
 
 Le seed ne porte qu'une invitation Rueil et elle est à usage unique :
 `pnpm db:reset` la remet à `PENDING` avant chaque essai.
 
-## Sans téléphone : `pnpm --filter @rig/mobile web`
+## Sans téléphone : `pnpm --filter @rack/mobile web`
 
 Le bundle web d'Expo exerce le routeur, les fournisseurs, les écrans et les
 appels réseau — tout sauf le trousseau, `expo-localization` et le rendu natif.

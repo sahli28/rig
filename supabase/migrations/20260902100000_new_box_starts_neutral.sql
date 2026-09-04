@@ -4,7 +4,7 @@
 -- `DEFAULT_BRAND.primary` dans `packages/ui/src/theme/tokens.ts`. Deux concepts
 -- distincts partageaient le même littéral :
 --
---   * `DEFAULT_BRAND` : la couleur de **RIG**, celle qu'on affiche quand aucune
+--   * `DEFAULT_BRAND` : la couleur de **Rack**, celle qu'on affiche quand aucune
 --     box n'est encore résolue — ouverture à froid, slug inconnu, page publique
 --     sans invitation ;
 --   * ce défaut de colonne : le point de départ d'une **box neuve**, avant

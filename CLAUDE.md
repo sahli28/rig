@@ -1,7 +1,7 @@
-# RIG — SaaS multi-tenant pour boxes CrossFit / Hyrox
+# Rack — SaaS multi-tenant pour boxes CrossFit / Hyrox
 
 Plateforme de réservation, programmation et coopération inter-box.
-Spécification produit complète : `docs/spec/RIG-spec-produit-technique.md`
+Spécification produit complète : `docs/spec/spec-produit-technique.md`
 (~156 Ko : à ouvrir section par section quand un ticket la référence, jamais en entier).
 Backlog exécutable : `docs/backlog/` — un fichier par ticket.
 
@@ -81,6 +81,17 @@ Backlog exécutable : `docs/backlog/` — un fichier par ticket.
 10. **Pas de suppression physique** sur les entités métier : `deleted_at`. Exception : demande RGPD → anonymisation réelle.
 11. **Aucune donnée de santé** (blessure, restriction médicale) dans les logs, les analytics ou les payloads partagés inter-box. Colonne isolée et chiffrée.
 12. **UUID v7** pour tous les identifiants.
+13. **Une migration déjà appliquée s'édite tant qu'aucune base de production
+    n'existe — et plus jamais après.** Aujourd'hui la CI reconstruit le schéma
+    par `supabase db reset` et il n'y a pas de base en production : corriger une
+    migration en place est propre, et ajouter une migration de rattrapage pour
+    un renommage laisserait une cicatrice permanente dans l'historique d'un
+    projet qui n'a jamais eu de données. **Le jour où une base de production
+    existe, la réponse s'inverse sans discussion** : on n'édite plus, on ajoute.
+    Cette bascule est écrite ici pour que personne n'ait à reposer la question,
+    et pour qu'elle ne se décide pas au cas par cas le jour où elle coûtera
+    cher. Le renommage `D-013` est le dernier cas traité sous l'ancienne
+    règle.
 
 ## Commandes
 
@@ -114,8 +125,8 @@ pnpm db:reset           # reset + seed local
 null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la cause.
 - Un module React partagé importé côté serveur Next (`createContext`, hooks) porte
   `'use client'` en première ligne. React Native ignore la directive.
-- `packages/ui` a deux entrées : `@rig/ui/theme` (sans dépendance plateforme,
-  importable par Next) et `@rig/ui/native` (kit React Native, réservé au mobile).
+- `packages/ui` a deux entrées : `@rack/ui/theme` (sans dépendance plateforme,
+  importable par Next) et `@rack/ui/native` (kit React Native, réservé au mobile).
   La logique testable ne vit jamais dans un `.tsx` qui importe `react-native` :
   Vitest ne sait pas parser les sources Flow de RN.
 

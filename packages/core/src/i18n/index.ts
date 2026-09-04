@@ -1,6 +1,6 @@
 /**
  * i18n — moteur pur, sans React ni dépendance plateforme.
- * Le liant React vit dans `@rig/ui/i18n`.
+ * Le liant React vit dans `@rack/ui/i18n`.
  */
 
 export { translate, interpolate, knownKeys, type TranslateOptions } from './translate';

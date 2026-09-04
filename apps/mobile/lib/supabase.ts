@@ -5,17 +5,17 @@
  * `AsyncStorage` : un jeton de session est un identifiant au porteur, et
  * `AsyncStorage` n'est qu'un fichier lisible sur un appareil rooté ou dans une
  * sauvegarde. Le trousseau plafonne une valeur à 2 Ko, ce que dépasse une
- * session Supabase — d'où le découpage de `@rig/core/supabase`.
+ * session Supabase — d'où le découpage de `@rack/core/supabase`.
  */
 
 import { AppState, Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import {
   chunkedStore,
-  createRigClient,
+  createRackClient,
   readSupabaseConfig,
   type KeyValueStore,
-} from '@rig/core/supabase';
+} from '@rack/core/supabase';
 
 /**
  * Les variables sont lues **littéralement** : Metro remplace le texte
@@ -57,7 +57,7 @@ const secureStore: KeyValueStore = {
  * `expo-localization`, ni le rendu natif), il attrape ce que l'appareil coûte
  * trop cher à rattraper.
  *
- * `pnpm --filter @rig/mobile build:web` est en CI : une cible qu'on revendique
+ * `pnpm --filter @rack/mobile build:web` est en CI : une cible qu'on revendique
  * sans la construire redevient une cible morte en trois commits.
  */
 const webStore: KeyValueStore = {
@@ -66,7 +66,7 @@ const webStore: KeyValueStore = {
   removeItem: (key) => Promise.resolve(globalThis.localStorage?.removeItem(key)),
 };
 
-export const supabase = createRigClient(config, {
+export const supabase = createRackClient(config, {
   auth: {
     storage: Platform.OS === 'web' ? webStore : chunkedStore(secureStore),
     autoRefreshToken: true,

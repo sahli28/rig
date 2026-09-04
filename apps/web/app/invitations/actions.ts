@@ -1,8 +1,8 @@
 'use server';
 
 import { z } from 'zod';
-import { acceptPendingInvitation } from '@rig/core/supabase';
-import { errorMessageKeyOf } from '@rig/core';
+import { acceptPendingInvitation } from '@rack/core/supabase';
+import { errorMessageKeyOf } from '@rack/core';
 import { serverClient } from '../../lib/supabase/server';
 import type { JoinState } from './join-state';
 

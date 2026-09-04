@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Liant React de l'i18n. Le moteur est dans `@rig/core` — pur, testable,
+ * Liant React de l'i18n. Le moteur est dans `@rack/core` — pur, testable,
  * sans React ; ici on ne fait que le brancher à un contexte et lier les
  * formatteurs à la langue courante et au **fuseau de la box**.
  *
@@ -24,7 +24,7 @@ import {
   type RelativeDateOptions,
   type TranslateOptions,
   type TranslationKey,
-} from '@rig/core';
+} from '@rack/core';
 
 /**
  * Persistance du choix de langue — le **rang 1** de D-004. Volontairement

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import { Stack } from 'expo-router';
-import { DEFAULT_BRAND, ThemeProvider, useTheme, type ColorScheme } from '@rig/ui/theme';
-import { useI18n } from '@rig/ui/i18n';
-import { SegmentedControl } from '@rig/ui/native';
-import type { TranslationKey } from '@rig/core';
+import { DEFAULT_BRAND, ThemeProvider, useTheme, type ColorScheme } from '@rack/ui/theme';
+import { useI18n } from '@rack/ui/i18n';
+import { SegmentedControl } from '@rack/ui/native';
+import type { TranslationKey } from '@rack/core';
 import { Gallery } from '../components/gallery';
 
 /**

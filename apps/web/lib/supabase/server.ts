@@ -12,10 +12,10 @@
 
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
-import type { Database, RigClient } from '@rig/core/supabase';
+import type { Database, RackClient } from '@rack/core/supabase';
 import { webSupabaseConfig } from './config';
 
-export async function serverClient(): Promise<RigClient> {
+export async function serverClient(): Promise<RackClient> {
   const store = await cookies();
   const { url, anonKey } = webSupabaseConfig();
 

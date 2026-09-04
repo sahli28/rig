@@ -18,7 +18,7 @@ import { z } from 'zod';
 import type { Database } from './types.gen';
 
 /** Le client, typé par le schéma généré. Aucun autre type de client ne circule. */
-export type RigClient = SupabaseClient<Database>;
+export type RackClient = SupabaseClient<Database>;
 
 export interface SupabaseConfig {
   url: string;
@@ -60,9 +60,9 @@ export function readSupabaseConfig(
  * l'URL, le web passe par des cookies (`@supabase/ssr`) pour que le rendu
  * serveur connaisse la personne connectée.
  */
-export function createRigClient(
+export function createRackClient(
   config: SupabaseConfig,
   options?: SupabaseClientOptions<'public'>,
-): RigClient {
+): RackClient {
   return createClient<Database>(config.url, config.anonKey, options);
 }

@@ -1,5 +1,5 @@
-import { brandFromPublicProfile } from '@rig/ui/theme';
-import { fetchInvitationPreview, invitationAcceptsEmail } from '@rig/core/supabase';
+import { brandFromPublicProfile } from '@rack/ui/theme';
+import { fetchInvitationPreview, invitationAcceptsEmail } from '@rack/core/supabase';
 import { ThemeStyle } from '../../theme-style';
 import { serverClient } from '../../../lib/supabase/server';
 import { supabaseConfigured } from '../../../lib/supabase/config';
@@ -53,7 +53,7 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
   return (
     <>
       {/* Aux couleurs de la box **avant** toute connexion : c'est chez elle que
-          la personne croit arriver, pas chez RIG. */}
+          la personne croit arriver, pas chez Rack. */}
       <ThemeStyle brand={brandFromPublicProfile(preview)} />
       <JoinCard token={token} preview={preview} session={session} />
     </>

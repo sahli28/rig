@@ -10,8 +10,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import type { Session } from '@supabase/supabase-js';
-import { chooseActiveTenant, fetchMe, type Me } from '@rig/core/supabase';
-import { errorMessageKeyOf, type TranslationKey } from '@rig/core';
+import { chooseActiveTenant, fetchMe, type Me } from '@rack/core/supabase';
+import { errorMessageKeyOf, type TranslationKey } from '@rack/core';
 import { forgetLocale } from './locale';
 import { clearScheduleCache } from './schedule-cache';
 import { startSessionAutoRefresh, supabase } from './supabase';
@@ -21,7 +21,7 @@ import { startSessionAutoRefresh, supabase } from './supabase';
  * comme le reste : une dépendance de stockage de moins, et l'effacement au
  * moment de la déconnexion est au même endroit.
  */
-const ACTIVE_TENANT_KEY = 'rig.active_tenant';
+const ACTIVE_TENANT_KEY = 'rack.active_tenant';
 
 export type SessionStatus = 'loading' | 'signed_out' | 'ready';
 

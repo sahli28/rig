@@ -24,7 +24,7 @@
 -- sortir **nulles**, et `brandFromPublicProfile()` les comble.
 --
 -- Seule exception : `app_name` se replie sur le nom de la box, qui est sous la
--- main et vaut mieux que « RIG » pour quelqu'un qu'on invite.
+-- main et vaut mieux que « Rack » pour quelqu'un qu'on invite.
 
 create or replace function public.tenant_public_profile(p_slug text)
 returns table (

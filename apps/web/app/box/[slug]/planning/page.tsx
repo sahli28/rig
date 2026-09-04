@@ -13,7 +13,7 @@ import {
   type Choice,
   type Occurrence,
   type Serie,
-} from '@rig/core/supabase';
+} from '@rack/core/supabase';
 import { serverClient } from '../../../../lib/supabase/server';
 import { Notice } from '../notice';
 import { PlanningScreen } from './planning-screen';

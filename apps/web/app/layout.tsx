@@ -5,7 +5,7 @@ import { Providers } from './providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'RIG',
+  title: 'Rack',
   description: 'Réservation, programmation et coopération inter-box',
 };
 

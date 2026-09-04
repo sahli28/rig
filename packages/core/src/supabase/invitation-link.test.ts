@@ -30,7 +30,7 @@ describe('invitationPath', () => {
  * Structurel, donc partiel : ce test dit que la route existe, pas qu'elle fait
  * quelque chose d'utile. Le comportement, lui, se voit dans
  * `docs/passe-mobile-iphone.md` § 5 bis — ou en une navigation sur
- * `pnpm --filter @rig/mobile web`.
+ * `pnpm --filter @rack/mobile web`.
  */
 describe('parité web ↔ mobile de la route d’invitation', () => {
   const token = 'jeton-de-test';

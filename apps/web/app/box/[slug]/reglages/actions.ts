@@ -30,16 +30,16 @@ import {
   findMembershipBySlug,
   overlappingSlots,
   tenantScope,
-  type RigClient,
-} from '@rig/core/supabase';
-import { errorMessageKey, errorMessageKeyOf } from '@rig/core';
+  type RackClient,
+} from '@rack/core/supabase';
+import { errorMessageKey, errorMessageKeyOf } from '@rack/core';
 import { serverClient } from '../../../../lib/supabase/server';
 import type { ActionState } from './action-state';
 
 const INVALID: ActionState = { status: 'error', key: 'settings.error_invalid' };
 const FORBIDDEN: ActionState = { status: 'error', key: 'errors.forbidden_role' };
 
-type Contexte = { client: RigClient; tenantId: string; role: string };
+type Contexte = { client: RackClient; tenantId: string; role: string };
 
 /** Résout la box et le rôle depuis la session. `null` = ni box, ni droit. */
 async function contexte(slug: string): Promise<Contexte | null> {

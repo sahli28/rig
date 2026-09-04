@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "RIG",
-    "slug": "rig",
-    "scheme": "rig",
+    "name": "Rack",
+    "slug": "rack",
+    "scheme": "rack",
     "version": "0.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,10 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.rig.mobile"
+      "bundleIdentifier": "app.rack.mobile"
     },
     "android": {
-      "package": "app.rig.mobile",
+      "package": "app.rack.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

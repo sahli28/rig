@@ -20,7 +20,7 @@ import { dateTimeFormat } from '../i18n/intl';
 import type { TranslationKey } from '../i18n/types';
 import { tenantScope } from './active-tenant';
 import { localizedText } from './box-settings';
-import type { RigClient } from './client';
+import type { RackClient } from './client';
 import type { RruleDay } from './class-schedules';
 import { shiftDays, weekDates } from './class-schedules';
 
@@ -258,7 +258,7 @@ export const DayScheduleSchema = z.object({
 export const DAY_SCHEDULE_TIMEOUT_MS = 5_000;
 
 export async function fetchDaySchedule(
-  client: RigClient,
+  client: RackClient,
   {
     tenantId,
     date,

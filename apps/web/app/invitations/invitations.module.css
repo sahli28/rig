@@ -13,18 +13,18 @@
   width: 100%;
   max-width: 520px;
   padding: 28px;
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-lg);
-  background: var(--rig-color-surface-2);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-lg);
+  background: var(--rack-color-surface-2);
 }
 
 .title {
-  font-size: var(--rig-text-display);
+  font-size: var(--rack-text-display);
   margin: 0 0 8px;
 }
 
 .muted {
-  color: var(--rig-color-text-muted);
+  color: var(--rack-color-text-muted);
   margin: 0 0 20px;
 }
 
@@ -43,9 +43,9 @@
   align-items: center;
   flex-wrap: wrap;
   padding: 12px 14px;
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
-  background: var(--rig-color-surface);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-surface);
 }
 
 .rowMain {
@@ -55,25 +55,25 @@
 }
 
 .rowMeta {
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
 }
 
 .primary {
   border: 0;
   padding: 10px 18px;
-  background: var(--rig-color-primary);
-  color: var(--rig-color-on-primary);
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
   font-weight: 600;
 }
 
 .link {
-  color: var(--rig-color-primary);
+  color: var(--rack-color-primary);
 }
 
 .error {
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-danger);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-danger);
 }
 
 /* Un bouton qui se lit comme un lien : l'action est secondaire, mais elle doit
@@ -82,8 +82,8 @@
 .linkButton {
   border: 0;
   background: transparent;
-  color: var(--rig-color-primary);
+  color: var(--rack-color-primary);
   padding: 0;
-  font-size: var(--rig-text-caption);
+  font-size: var(--rack-text-caption);
   min-height: 0;
 }

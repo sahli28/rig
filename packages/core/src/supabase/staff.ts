@@ -8,7 +8,7 @@
  */
 
 import { z } from 'zod';
-import type { RigClient } from './client';
+import type { RackClient } from './client';
 import type { Json } from './types.gen';
 import { MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES } from './me';
 
@@ -105,7 +105,7 @@ export function grantableRoles(actorRole: string): readonly string[] {
 
 /** Change le rôle d'une appartenance. Jamais un `update` : la base l'interdit. */
 export async function setMemberRole(
-  client: RigClient,
+  client: RackClient,
   membershipId: string,
   role: (typeof MEMBERSHIP_ROLES)[number],
 ): Promise<void> {
@@ -117,7 +117,7 @@ export async function setMemberRole(
 }
 
 /** Exclut un membre. Distinct d'un départ volontaire — cf. `membership_status`. */
-export async function removeMember(client: RigClient, membershipId: string): Promise<void> {
+export async function removeMember(client: RackClient, membershipId: string): Promise<void> {
   const { error } = await client.rpc('remove_member', { p_membership_id: membershipId });
   if (error) throw error;
 }
@@ -140,7 +140,7 @@ export type ImportResult = z.infer<typeof ImportResultSchema>;
  * en se connectant, par `acceptPendingInvitation()`.
  */
 export async function importMembers(
-  client: RigClient,
+  client: RackClient,
   tenantId: string,
   rows: readonly Record<string, unknown>[],
 ): Promise<ImportResult> {
@@ -160,7 +160,7 @@ export async function importMembers(
  * de « réafficher », seulement « régénérer ».
  */
 export async function createInvitation(
-  client: RigClient,
+  client: RackClient,
   input: { tenantId: string; email?: string | null; role: (typeof MEMBERSHIP_ROLES)[number] },
 ): Promise<string> {
   // Construit à la main : `exactOptionalPropertyTypes` distingue « clé absente »

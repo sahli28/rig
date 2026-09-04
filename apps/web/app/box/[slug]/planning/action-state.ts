@@ -1,4 +1,4 @@
-import type { TranslationKey } from '@rig/core';
+import type { TranslationKey } from '@rack/core';
 
 /**
  * Ce qu'une action du planning rend à son formulaire : une **clé** i18n, jamais

@@ -1,4 +1,4 @@
-import { fetchMe, findMembershipBySlug, tenantScope } from '@rig/core/supabase';
+import { fetchMe, findMembershipBySlug, tenantScope } from '@rack/core/supabase';
 import { serverClient } from '../../../../lib/supabase/server';
 import { Notice } from '../notice';
 import { SettingsTabs } from './tabs';

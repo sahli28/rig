@@ -2,7 +2,7 @@
  * D-004 — la langue, côté mobile.
  *
  * Trois choses vivent ici, et une seule est une décision : la règle des quatre
- * rangs est dans `@rig/core` (`resolve-locale.ts`), pure et testée. Ce fichier
+ * rangs est dans `@rack/core` (`resolve-locale.ts`), pure et testée. Ce fichier
  * n'apporte que les branchements de plateforme — lire l'appareil, écrire dans
  * le trousseau, remonter le choix dans `users.locale`.
  */
@@ -10,9 +10,9 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { getCalendars, getLocales } from 'expo-localization';
 import * as SecureStore from 'expo-secure-store';
-import { localeFromTagOrNull, profileLocaleToSync, type Locale } from '@rig/core';
-import { updateLocale } from '@rig/core/supabase';
-import type { LocaleStorage } from '@rig/ui/i18n';
+import { localeFromTagOrNull, profileLocaleToSync, type Locale } from '@rack/core';
+import { updateLocale } from '@rack/core/supabase';
+import type { LocaleStorage } from '@rack/ui/i18n';
 import { supabase } from './supabase';
 
 /**
@@ -20,7 +20,7 @@ import { supabase } from './supabase';
  * n'est pas un secret, mais c'est une dépendance de moins, et son effacement se
  * fait au même endroit que celui de la session.
  */
-const LOCALE_KEY = 'rig.locale';
+const LOCALE_KEY = 'rack.locale';
 
 /**
  * Langue de l'appareil — **rang 3**.

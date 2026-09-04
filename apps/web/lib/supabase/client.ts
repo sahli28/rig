@@ -7,13 +7,13 @@
  */
 
 import { createBrowserClient } from '@supabase/ssr';
-import type { Database, RigClient } from '@rig/core/supabase';
+import type { Database, RackClient } from '@rack/core/supabase';
 import { webSupabaseConfig } from './config';
 
-let client: RigClient | null = null;
+let client: RackClient | null = null;
 
 /** Un seul client par onglet : deux instances se disputeraient le rafraîchissement du jeton. */
-export function browserClient(): RigClient {
+export function browserClient(): RackClient {
   if (client === null) {
     const { url, anonKey } = webSupabaseConfig();
     client = createBrowserClient<Database>(url, anonKey);

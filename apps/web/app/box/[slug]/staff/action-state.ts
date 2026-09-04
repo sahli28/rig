@@ -1,4 +1,4 @@
-import type { TranslationKey } from '@rig/core';
+import type { TranslationKey } from '@rack/core';
 
 /**
  * Ce qu'une action de l'écran Staff rend à son formulaire.

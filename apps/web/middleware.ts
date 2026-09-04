@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import type { Database } from '@rig/core/supabase';
+import type { Database } from '@rack/core/supabase';
 import { supabaseConfigured, webSupabaseConfig } from './lib/supabase/config';
 
 /**

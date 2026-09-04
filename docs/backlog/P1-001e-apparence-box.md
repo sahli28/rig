@@ -30,7 +30,7 @@ tests unitaires mais n'ont jamais vu une couleur choisie par un humain.
   white-label, et la policy `themes_update` le fait déjà.
 - Aperçu en direct des tokens dérivés, avec le **ratio de contraste affiché** et
   un avertissement quand la couleur choisie oblige `ensureContrast()` à corriger.
-- **Deux constantes séparées.** `DEFAULT_BRAND.primary` (la couleur de RIG,
+- **Deux constantes séparées.** `DEFAULT_BRAND.primary` (la couleur de Rack,
   avant qu'une box soit résolue) et le défaut de `themes.primary_color` (le point
   de départ d'une box neuve) partageaient le même littéral : impossible de savoir,
   en regardant un écran, si on voyait « la plateforme faute de box » ou « cette

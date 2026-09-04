@@ -1,4 +1,4 @@
-import { readSupabaseConfig, type SupabaseConfig } from '@rig/core/supabase';
+import { readSupabaseConfig, type SupabaseConfig } from '@rack/core/supabase';
 
 /**
  * Variables lues **littéralement** : Next remplace le texte

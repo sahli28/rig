@@ -1,8 +1,8 @@
 import { Link } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
-import { useTheme } from '@rig/ui/theme';
-import { useI18n } from '@rig/ui/i18n';
-import { Banner, Button, Card, EmptyState, ListRow, SegmentedControl } from '@rig/ui/native';
+import { useTheme } from '@rack/ui/theme';
+import { useI18n } from '@rack/ui/i18n';
+import { Banner, Button, Card, EmptyState, ListRow, SegmentedControl } from '@rack/ui/native';
 import { useSession } from '../../lib/session';
 
 /**

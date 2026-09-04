@@ -11,8 +11,8 @@
 
 import { headers } from 'next/headers';
 import { z } from 'zod';
-import { acceptInvitation, invitationAcceptsEmail } from '@rig/core/supabase';
-import { errorMessageKeyOf } from '@rig/core';
+import { acceptInvitation, invitationAcceptsEmail } from '@rack/core/supabase';
+import { errorMessageKeyOf } from '@rack/core';
 import { serverClient } from '../../../lib/supabase/server';
 import type { ActionState } from './action-state';
 

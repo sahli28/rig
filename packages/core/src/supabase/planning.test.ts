@@ -14,7 +14,7 @@ import {
  * pourtant la seule règle non triviale du planning : dans quel jour tombe une
  * occurrence, selon le fuseau de la box.
  *
- * Les descendre dans `@rig/core` pour que le mobile les partage était la moitié
+ * Les descendre dans `@rack/core` pour que le mobile les partage était la moitié
  * du gain. L'autre moitié est ici.
  */
 

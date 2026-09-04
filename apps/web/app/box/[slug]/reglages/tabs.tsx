@@ -2,8 +2,8 @@
 
 import type { ReactNode } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
-import { useI18n } from '@rig/ui/i18n';
-import type { TranslationKey } from '@rig/core';
+import { useI18n } from '@rack/ui/i18n';
+import type { TranslationKey } from '@rack/core';
 import styles from './reglages.module.css';
 
 /**

@@ -4,8 +4,8 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { useI18n } from '@rig/ui/i18n';
-import type { TranslationKey } from '@rig/core';
+import { useI18n } from '@rack/ui/i18n';
+import type { TranslationKey } from '@rack/core';
 import { browserClient } from '../../../lib/supabase/client';
 import styles from './shell.module.css';
 

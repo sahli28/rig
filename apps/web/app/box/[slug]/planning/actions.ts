@@ -24,11 +24,11 @@ import {
   fetchMe,
   findMembershipBySlug,
   parseWeeklyRrule,
-  type RigClient,
+  type RackClient,
   type RruleDay,
   tenantScope,
-} from '@rig/core/supabase';
-import { errorMessageKeyOf } from '@rig/core';
+} from '@rack/core/supabase';
+import { errorMessageKeyOf } from '@rack/core';
 import { serverClient } from '../../../../lib/supabase/server';
 import { HORIZON_DAYS, type ActionState } from './action-state';
 
@@ -36,7 +36,7 @@ const INVALID: ActionState = { status: 'error', key: 'planning.error_invalid' };
 const FORBIDDEN: ActionState = { status: 'error', key: 'errors.forbidden_role' };
 const OK: ActionState = { status: 'ok' };
 
-type Contexte = { client: RigClient; tenantId: string };
+type Contexte = { client: RackClient; tenantId: string };
 
 /** Résout la box et le rôle depuis la session. `null` = ni box, ni droit. */
 async function contexte(slug: string): Promise<Contexte | null> {

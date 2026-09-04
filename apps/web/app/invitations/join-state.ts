@@ -1,4 +1,4 @@
-import type { TranslationKey } from '@rig/core';
+import type { TranslationKey } from '@rack/core';
 
 /**
  * Module distinct d'`actions.ts` : un fichier `'use server'` ne peut exporter

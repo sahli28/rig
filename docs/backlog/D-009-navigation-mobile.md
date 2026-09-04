@@ -79,7 +79,7 @@ C'est aussi le seul défaut de la passe qui **empire tout seul**.
 ## Critères d'acceptation
 
 - [x] Aucun écran n'affiche un titre tiré d'un nom de fichier — vérifié sur
-      `pnpm --filter @rig/mobile web` : le bandeau `(app)/index` a disparu de
+      `pnpm --filter @rack/mobile web` : le bandeau `(app)/index` a disparu de
       l'accueil, et l'écran du système de design garde le sien, traduit
 - [x] **Aucun nom de route ne subsiste dans l'arbre d'accessibilité** — critère
       ajouté en cours de route, parce que le harnais a trouvé la rémanence :

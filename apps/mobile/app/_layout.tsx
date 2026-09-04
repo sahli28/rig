@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { ActivityIndicator, useColorScheme, View } from 'react-native';
-import { ThemeProvider, brandFromTheme, useTheme } from '@rig/ui/theme';
-import { I18nProvider } from '@rig/ui/i18n';
-import { resolveLocale } from '@rig/core';
+import { ThemeProvider, brandFromTheme, useTheme } from '@rack/ui/theme';
+import { I18nProvider } from '@rack/ui/i18n';
+import { resolveLocale } from '@rack/core';
 import { BrandProvider, useBrand } from '../lib/brand';
 import { deviceLocale, deviceTimeZone, useLocaleStorage } from '../lib/locale';
 import { SessionProvider, useSession } from '../lib/session';
@@ -118,7 +118,7 @@ function ThemedStack() {
          * défaut cessait d'être visible sans cesser d'exister.
          *
          * Trouvé en lisant l'arbre d'accessibilité, pas en regardant l'écran.
-         * D'où un titre par défaut qui a du sens : le nom de la box, ou « RIG »
+         * D'où un titre par défaut qui a du sens : le nom de la box, ou « Rack »
          * tant qu'aucune n'est résolue.
          */
         title: theme.appName,
@@ -134,7 +134,7 @@ function ThemedStack() {
 /**
  * Arbitre la marque et le fuseau. Trois sources, dans cet ordre : la box
  * active de la session, la box du lien d'invitation, puis rien — c'est-à-dire
- * le thème RIG neutre. Jamais la dernière box vue : afficher les couleurs d'une
+ * le thème Rack neutre. Jamais la dernière box vue : afficher les couleurs d'une
  * box qu'on ne rejoindra peut-être pas serait un mensonge visuel.
  */
 function Branded() {

@@ -16,7 +16,7 @@ create type public.ledger_direction as enum ('CREDIT', 'DEBIT');
 -- consents — table hybride, seule du schéma
 -- ---------------------------------------------------------------------------
 
--- `tenant_id` est **nullable** : un consentement plateforme (CGU RIG, politique
+-- `tenant_id` est **nullable** : un consentement plateforme (CGU Rack, politique
 -- de confidentialité) n'appartient à aucune box, un consentement de box en
 -- porte une. C'est l'unique exception au `tenant_id not null`, justifiée ici et
 -- consignée dans `.claude/rules/database.md`.
@@ -229,7 +229,7 @@ create policy consents_self_insert on public.consents for insert to authenticate
 -- de service, qui donnerait bien plus.
 --
 -- Strictement borné : uniquement les consentements **portant son tenant_id**.
--- Les consentements plateforme (`tenant_id is null` : CGU RIG, politique de
+-- Les consentements plateforme (`tenant_id is null` : CGU Rack, politique de
 -- confidentialité) ne la regardent pas et restent invisibles.
 create policy consents_box_accountability_select on public.consents for select to authenticated
   using (

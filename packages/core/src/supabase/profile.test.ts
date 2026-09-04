@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { RigClient } from './client';
+import type { RackClient } from './client';
 import {
   CONSENT_PURPOSES,
   PLATFORM_CONSENT_PURPOSES,
@@ -42,7 +42,7 @@ function fakeClient() {
     },
   };
 
-  return { client: client as unknown as RigClient, calls };
+  return { client: client as unknown as RackClient, calls };
 }
 
 const USER = '33333333-0000-4000-8000-000000000001';
@@ -120,7 +120,7 @@ describe('recordConsents', () => {
       ],
     });
 
-    // `tenant_id` nul : la box n'est pas responsable de traitement des CGU RIG
+    // `tenant_id` nul : la box n'est pas responsable de traitement des CGU Rack
     // et n'a donc pas à les voir (`.claude/rules/privacy.md`).
     expect(calls[0]?.payload).toEqual([
       {

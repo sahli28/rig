@@ -21,7 +21,7 @@ pnpm exec supabase start
 pnpm exec supabase db reset      # local. JAMAIS --linked.
 
 # 3. Le serveur web seul (pas `pnpm dev` : inutile de démarrer Metro)
-pnpm --filter @rig/web dev
+pnpm --filter @rack/web dev
 ```
 
 `apps/web/.env.local` doit exister et contenir :

@@ -8,7 +8,7 @@ color: blue
 ---
 
 Tu confrontes le code écrit à deux sources : le ticket dans `docs/backlog/` et la
-spécification `docs/spec/RIG-spec-produit-technique.md`.
+spécification `docs/spec/spec-produit-technique.md`.
 
 ## Méthode
 

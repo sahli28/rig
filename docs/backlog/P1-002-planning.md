@@ -17,7 +17,7 @@ est le job `pg_cron`, déclaré dans la migration. Celui-là est fermé.
 | ----- | -------- | ---- |
 | `refresh_class_schedule()` | la grille de semaine | ❌ **ouvert** — lot d'interface de ce ticket |
 | `materialize_class_occurrences()` | `refresh_class_schedule()` et le job | ✅ fermé |
-| `maintain_class_occurrences()` | `cron.schedule('rig-maintain-class-occurrences')` | ✅ fermé |
+| `maintain_class_occurrences()` | `cron.schedule('rack-maintain-class-occurrences')` | ✅ fermé |
 | `classes` | la réservation | ⏳ P1-003 |
 
 ## Ce que ce ticket suppose et qui doit exister

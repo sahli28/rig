@@ -10,7 +10,7 @@
  * déjà remanié (`primary`). Les deux se ramènent ici à un `TenantBrand` unique,
  * plutôt que dans chaque écran — un mapping recopié est un mapping qui dérive.
  *
- * Les formes attendues sont décrites structurellement : `@rig/ui` n'a pas besoin
+ * Les formes attendues sont décrites structurellement : `@rack/ui` n'a pas besoin
  * de dépendre du client Supabase pour savoir lire un thème.
  */
 
@@ -68,7 +68,7 @@ export function brandFromPublicProfile(profile: TenantPublicProfileRow): TenantB
 
 /**
  * Marque à appliquer quand aucune box n'est encore résolue : ouverture à froid
- * sans lien d'invitation, ou slug inconnu. Le thème RIG neutre, jamais celui de
+ * sans lien d'invitation, ou slug inconnu. Le thème Rack neutre, jamais celui de
  * la dernière box vue — afficher les couleurs d'une box qu'on ne rejoindra
  * peut-être pas serait un mensonge visuel.
  */

@@ -13,13 +13,13 @@
 
 .title {
   margin: 0;
-  font-size: var(--rig-text-title);
+  font-size: var(--rack-text-title);
 }
 
 .body {
   margin: 0;
   max-width: 46ch;
-  color: var(--rig-color-text-muted);
+  color: var(--rack-color-text-muted);
 }
 
 .link {
@@ -27,7 +27,7 @@
   display: inline-block;
   border: 0;
   background: transparent;
-  color: var(--rig-color-primary);
+  color: var(--rack-color-primary);
   padding: 0;
-  font-size: var(--rig-text-body);
+  font-size: var(--rack-text-body);
 }

@@ -1,4 +1,4 @@
-import type { TranslationKey } from '@rig/core';
+import type { TranslationKey } from '@rack/core';
 
 /**
  * Les quatre états du parcours d'invitation.

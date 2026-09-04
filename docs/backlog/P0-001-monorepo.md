@@ -56,7 +56,7 @@ au commit. Version Node figée dans `.nvmrc` et dans la CI.
   adaptative Android, hérité du template Expo). C'est de la configuration native
   de build, pas un composant : elle échappe légitimement à la règle « zéro couleur
   en dur », mais devra devenir paramétrable au white-label N2.
-- Aucune app n'importe encore `@rig/core` ni `@rig/ui`. La résolution des packages
+- Aucune app n'importe encore `@rack/core` ni `@rack/ui`. La résolution des packages
   du workspace par Metro est donc vérifiée pour les dépendances tierces, pas pour
   les packages internes. Premier vrai test au ticket P0-002.
 - `node-linker=hoisted` affaiblit l'isolation des dépendances : une app peut

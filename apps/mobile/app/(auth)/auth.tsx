@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { z } from 'zod';
-import { useTheme } from '@rig/ui/theme';
-import { useI18n } from '@rig/ui/i18n';
-import { Banner, Button, Input } from '@rig/ui/native';
-import { errorMessageKeyOf, type TranslationKey } from '@rig/core';
-import { acceptInvitation } from '@rig/core/supabase';
+import { useTheme } from '@rack/ui/theme';
+import { useI18n } from '@rack/ui/i18n';
+import { Banner, Button, Input } from '@rack/ui/native';
+import { errorMessageKeyOf, type TranslationKey } from '@rack/core';
+import { acceptInvitation } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useBrand } from '../../lib/brand';
 import { useSession } from '../../lib/session';

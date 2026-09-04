@@ -44,7 +44,7 @@ Deux autres exceptions, d'une autre nature :
   la rend invisible et intouchable pour `authenticated`.
 
 Cas particulier — `consents` : `tenant_id uuid null`. Un consentement plateforme
-(CGU RIG, politique de confidentialité) a `tenant_id null` ; un consentement propre
+(CGU Rack, politique de confidentialité) a `tenant_id null` ; un consentement propre
 à une box (CGV, leaderboard, partage inter-box) porte son `tenant_id`. Elle est donc
 exemptée du `not null` et du motif de policy standard :
 

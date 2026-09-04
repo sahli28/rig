@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { useTheme } from '@rig/ui/theme';
-import { useI18n } from '@rig/ui/i18n';
-import { Banner, Button, Switch } from '@rig/ui/native';
-import { errorMessageKeyOf, type TranslationKey } from '@rig/core';
-import { fetchPolicyVersion, recordConsents, type ConsentChoice } from '@rig/core/supabase';
+import { useTheme } from '@rack/ui/theme';
+import { useI18n } from '@rack/ui/i18n';
+import { Banner, Button, Switch } from '@rack/ui/native';
+import { errorMessageKeyOf, type TranslationKey } from '@rack/core';
+import { fetchPolicyVersion, recordConsents, type ConsentChoice } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
 

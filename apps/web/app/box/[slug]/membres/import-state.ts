@@ -1,5 +1,5 @@
-import type { TranslationKey } from '@rig/core';
-import type { ImportResult } from '@rig/core/supabase';
+import type { TranslationKey } from '@rack/core';
+import type { ImportResult } from '@rack/core/supabase';
 
 /**
  * Module distinct d'`actions.ts` : un fichier `'use server'` ne peut exporter

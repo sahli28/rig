@@ -1,5 +1,5 @@
 /**
- * Point d'entrée `@rig/ui/theme` — sans dépendance plateforme.
+ * Point d'entrée `@rack/ui/theme` — sans dépendance plateforme.
  * Importable depuis Next comme depuis Expo.
  */
 

@@ -121,7 +121,7 @@ export interface Theme {
  * ces trois-là en rejoint un autre.
  */
 export const DEFAULT_BRAND: TenantBrand = {
-  appName: 'RIG',
+  appName: 'Rack',
   logoUrl: null,
   primary: '#1F2933',
   radius: 16,
