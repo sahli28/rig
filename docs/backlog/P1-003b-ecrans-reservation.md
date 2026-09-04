@@ -1,7 +1,13 @@
 # P1-003b — Réserver depuis le mobile (lot 2 de P1-003)
 
-**Phase** P1 · **Estimation** 5 j·h · **Dépend de** P1-003 ✅, D-004 ✅, D-009 ✅, P1-002b ✅ · **Spec** §4-P2, RM2.1–2.8
+**Phase** P1 · **Estimation** 5,5 j·h · **Dépend de** P1-003 ✅, D-004 ✅, D-009 ✅, P1-002b ✅ · **Spec** §4-P2, RM2.1–2.8
 
+> **5 → 5,5 j·h le 4 septembre 2026**, et le demi-jour est le prix de trois
+> choses décidées ici plutôt qu'en route : la réponse à un cours complet, le
+> libellé et l'annonce accessibles du bouton, et le câblage d'`expo-crypto`. Les
+> trois explosions d'estimation du projet ont toutes commencé par une question
+> qu'on s'est posée l'écran ouvert.
+>
 > **Toutes les dépendances sont closes depuis le 4 septembre 2026** — D-009,
 > P1-002b et P1-010, cette dernière repassée sur appareil. Le tableau ci-dessous
 > a été relu à cette date : les trois `❌` qui portaient sur elles sont tombés.
@@ -45,7 +51,9 @@ fermeture de D-009, P1-002b et P1-010. Pas supposé.
 | **L'écran Planning mobile** (le jour, les filtres, le cache) | **P1-002b** ✅ | ✅ **existe et est clos** — planning du jour, filtres type **et coach**, cache hors ligne daté, hors ligne repassé sur appareil le 4 septembre 2026. Ce qui reste du ticket est parti en `D-011` (relecture du cache) et ne bloque rien ici |
 | **La langue de l'app sur un iPhone français** | **D-004** | ✅ **réparée et vérifiée sur appareil le 4 septembre 2026.** L'app s'ouvre en français. La section « Ce lot attend D-004 » ci-dessous devient l'historique d'une décision tenue, pas une attente |
 | **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** ✅ | ✅ **faite.** La convention du premier écran à retour légitime — le détail d'un cours — est écrite dans `.claude/rules/ui.md`, section « La convention de navigation mobile », et le balayage de retour a été exercé sur iPhone le 4 septembre. Reste le bouton retour Android, sans appareil pour l'exercer |
-| **Un identifiant unique généré sur l'appareil** | — | ❌ **rien.** Aucun code du dépôt ne génère d'UUID côté client, et rien ne fournit `crypto.randomUUID()` : le runtime « winter » d'`expo@57.0.18` installe `fetch`, `URL`, `TextEncoder`, `structuredClone` et les streams — **pas `crypto`** (vérifié dans `node_modules/expo/src/winter`, et la doc SDK 57 de `expo` ne le liste pas). Dépendance **`expo-crypto`** à ajouter et à justifier au commit. **Sans elle, la règle 4 de `CLAUDE.md` n'a aucune implémentation côté appelant** |
+| **Une réponse produit à `CLASS_FULL`** | la liste d'attente, **P1-006**, après ce lot | ❌ **absente, et rien ne la remplace** — voir « Un cours complet » ci-dessous. Décidée dans ce ticket plutôt que découverte à l'écran |
+| **Une annonce vocale de la confirmation sur iOS** | `Toast` (`packages/ui/src/native/toast.tsx:30`) | ⚠️ **à moitié** : `accessibilityLiveRegion` est **Android uniquement**. Sur l'appareil de nos passes, rien n'est annoncé — voir « Le bouton dit ce qu'il réserve » |
+| **Un identifiant unique généré sur l'appareil** | `uuidV7()`, `packages/core/src/crypto.ts` | ✅ **existe depuis le 4 septembre 2026**, avec sa source d'aléa à installer au démarrage. `crypto` est **absent** sous Hermes (pas incomplet) : ESLint l'interdit hors de cette façade, et elle lève plutôt que de se rabattre sur `Math.random()`. **Reste à faire ici** : ajouter `expo-crypto`, la justifier au commit, et appeler `installRandomBytesSource()` dans `_layout.tsx` |
 | Un harnais de test mobile | Maestro, annoncé par `CLAUDE.md` | ❌ **rien** — et `apps/mobile` n'a même pas de script `test`. Les critères de parcours se vérifient **à la main**, et ce ticket le dit plutôt que de faire semblant. Un ticket « harnais mobile » reste à écrire ; il n'est pas bloquant ici, il est seulement absent |
 | Places restantes en temps réel | P1-005 | ❌ hors périmètre : mise à jour optimiste seulement |
 | Annulation | P1-004 | ❌ à créer par P1-004. **Conséquence à dire à la box pilote** : après ce ticket, un membre qui a réservé ne peut pas se désinscrire |
@@ -167,16 +175,107 @@ alors, et seulement alors, que la condition posée par D-001 sera remplie. Les
 trois décisions et l'argument qui les tranche restent en fin de
 `P1-003-reservation.md` ; ils ne sont pas perdus.
 
+## Un cours complet : ce que voit un membre entre ce lot et P1-006
+
+`book_class()` lève `CLASS_FULL`, et la réponse produit à `CLASS_FULL` est la
+liste d'attente — **P1-006**, six jours-homme plus loin dans la file. La question
+« que voit un membre qui touche Réserver sur un cours complet, en attendant ? »
+n'a pas de réponse par défaut acceptable : le §12.3 interdit d'afficher un code
+brut, et « Ce cours est complet. » — le texte actuel d'`errors.class_full` — est
+une impasse, pas une réponse.
+
+**Trois choses vérifiées dans le dépôt avant de trancher**, parce que les trois
+suites qu'on écrirait spontanément sont fausses :
+
+1. **« Demande à ta box de t'ajouter » est faux.** `book_class()` ne réserve que
+   pour soi — le contrôle est explicite (`…_bookings_and_book_class.sql:159` :
+   « on ne réserve que pour soi »), et `bookings` n'a **aucune policy
+   d'écriture** : il n'existe aucun chemin, ni écran ni SQL applicatif, par
+   lequel un coach place un membre ;
+2. **« Repasse plus tard, une place va peut-être se libérer » est faux dans la
+   première fenêtre.** Une place ne se libère que par une annulation, et
+   l'annulation est **P1-004**, *après* ce lot. Entre P1-003b et P1-004, un
+   cours complet est **définitivement** clos. La phrase ne redevient vraie qu'à
+   P1-004, et visible qu'à P1-005 ;
+3. **« Ta box peut ouvrir une place » est vrai en base et faux à l'écran.** La
+   policy `classes_update` autorise un admin à relever `classes.capacity`, mais
+   aucun écran du back-office ne le fait **pour une occurrence** :
+   `series-form.tsx` édite la **série**. Personne ne portera ce besoin tant que
+   P1-006 n'existe pas, et ce ticket ne s'appuie donc pas dessus.
+
+**La décision : une impasse se répare par une porte de sortie, pas par une
+promesse.** Le bouton passe à l'état « Complet » — désactivé, comme les quatre
+autres refus, et son libellé dit pourquoi — et l'écran offre **l'action qui
+reste vraie** : revenir au planning voir les autres créneaux du jour. C'est le
+seul geste que le produit sait honorer aujourd'hui, et il ne coûte rien : le
+planning existe.
+
+Deux chaînes, dans les deux langues :
+
+| Clé | fr | en |
+| --- | --- | --- |
+| `booking.full_title` | « Ce cours est complet » | « This class is full » |
+| `booking.full_hint` | « Il n'y a pas encore de liste d'attente. Regarde les autres créneaux du jour. » | « There's no waitlist yet. Take a look at the other slots today. » |
+
+`errors.class_full` **reste** et ne change pas : il sert le cas de course — la
+place est partie entre l'affichage et le tap. Le `Toast` le dit, puis le bouton
+bascule sur l'état ci-dessus. Les deux chemins finissent au même endroit, ce qui
+est la moitié du travail : un refus au tap et un cours déjà complet à
+l'affichage ne doivent pas raconter deux histoires différentes.
+
+**Ce que la box pilote doit savoir, et qui s'ajoute à la liste de P1-004** :
+avant P1-004 et P1-006, un cours plein est un cours fermé. Si elle veut ouvrir
+une place, elle n'a aujourd'hui aucun écran pour le faire sur une occasion
+précise. Aucun ticket ne porte ce manque — il est ici pour cesser d'être
+invisible, pas pour être absorbé en route.
+
+## Le bouton dit ce qu'il réserve, et la confirmation s'annonce
+
+`.claude/rules/ui.md` l'avait prévu par écrit avant que l'écran existe : « un
+bouton "Réserver" qui ne dit pas ce qu'il réserve » y est nommé comme l'un des
+deux pièges prévisibles. Un écran qui porte un bouton par cours en porte autant
+que de cours, **tous identiques à l'oreille**.
+
+- **Le libellé accessible nomme le cours et son heure locale de box** —
+  « Réserver CrossFit à 18:30 », pas « Réserver ». Le texte visible reste court ;
+  c'est `accessibilityLabel` qui porte la phrase entière ;
+- **la confirmation est annoncée, pas seulement affichée** (§12.4). Et c'est ici
+  qu'un piège attend : `Toast` porte `accessibilityRole="alert"` **et**
+  `accessibilityLiveRegion="polite"` — or `accessibilityLiveRegion` **n'existe
+  que sous Android** dans React Native. Sur iPhone, l'appareil de toutes nos
+  passes, le `Toast` s'affiche **sans être annoncé**. La confirmation d'une
+  réservation est exactement le changement d'état qu'un lecteur d'écran doit
+  entendre sans avoir à chercher.
+
+  C'est la règle des sœurs, côté interface : un chemin gardé (Android), son
+  jumeau oublié (iOS). L'annonce passe donc par
+  `AccessibilityInfo.announceForAccessibility()` en plus du `Toast`, et ce
+  ticket la met **dans le kit** (`packages/ui/src/native/toast.tsx`) plutôt que
+  dans l'écran : le défaut vaut pour tous les `Toast` du produit, pas seulement
+  pour celui-ci.
+
 ## Périmètre
 
 - **`bookClass()`** dans `packages/core/src/supabase/bookings.ts` : appel RPC,
   **clé d'idempotence générée une fois par tentative** et réutilisée telle quelle
   à chaque rejeu, traduction du code d'erreur en clé i18n. Testable sans écran,
   donc testé avant l'écran.
+- **La source d'aléa du mobile** : dépendance `expo-crypto`, justifiée au commit,
+  et `installRandomBytesSource()` appelée dans `_layout.tsx` **au démarrage**.
+  La clé vient de `uuidV7()` (`@rig/core`) : sous Hermes, sans cet appel, le
+  premier tap lève — ce qui est le comportement voulu, et pas une clé fabriquée
+  avec `Math.random()`.
 - **Détail du cours** : type, coach, salle, créneau **en heure locale de la
   box**, places restantes, et un bouton unique dont l'état désactivé **dit
   pourquoi** — fenêtre pas encore ouverte, fenêtre close, cours complet, déjà
-  réservé, plafond de réservations atteint.
+  réservé, plafond de réservations atteint. Le libellé accessible du bouton
+  **nomme le cours et son heure** (voir la section dédiée).
+- **Un cours complet a une sortie** : l'état « Complet », les deux chaînes
+  `booking.full_title` / `booking.full_hint`, et le retour au planning. C'est la
+  décision de la section « Un cours complet », prise avant le code.
+- **L'annonce de la confirmation sur iOS** : `AccessibilityInfo.announceForAccessibility()`
+  ajoutée au `Toast` du kit — `accessibilityLiveRegion` est Android seul, et
+  l'écart vaut pour tous les `Toast`, pas seulement celui-ci.
 - **Confirmation** : un état de l'écran de détail, pas un écran de plus. Le
   critère est « deux taps », et un écran intercalaire en coûte un.
 - **Mes réservations** : les cours à venir, à l'heure locale de la box.
@@ -214,20 +313,38 @@ Automatisables :
 - [ ] Deux taps rapides sur le bouton → **une seule** réservation
 - [ ] Mode avion pendant l'appel, réseau rétabli, nouvel essai → **une seule**
       réservation (la clé n'a pas changé)
-- [ ] Cours complet → « ce cours est complet », et le bouton l'annonçait déjà
+- [ ] Cours complet → l'état « Complet », **et une sortie** : la phrase dit qu'il
+      n'y a pas encore de liste d'attente, et le retour au planning est à un tap.
+      Aucune impasse, aucune promesse que le produit ne tient pas (§12.3)
+- [ ] Le cas de course dit la même chose : cours affiché libre, complet au tap →
+      `Toast` `errors.class_full`, puis le bouton bascule sur ce même état
 - [ ] Membre sans droits → « Choisir une formule », jamais une erreur brute
 - [ ] Fenêtre close → la raison, exprimée en heure locale de la box
 - [ ] Un refus fait **revenir** la place affichée à sa valeur réelle, visiblement
 - [ ] **Sur une journée venue du cache, aucune action de réservation n'est
-      proposée** — critère hérité de P1-002b, qui l'annonçait porté ici alors
+      proposée.** Critère hérité de P1-002b, qui l'annonçait porté ici alors
       qu'il n'y était pas. Le type l'impose déjà à moitié : un `LoadedSchedule`
       d'origine `'cache'` ne fait jamais autorité sur une place
       (`apps/mobile/lib/schedule-cache.ts:41`). L'écran doit finir le travail —
-      pas de bouton grisé qui laisse croire qu'un tap suffirait
+      pas de bouton grisé qui laisse croire qu'un tap suffirait.
+
+      **Le geste, et c'est le même qu'à la passe du 4 septembre 2026** : ouvrir
+      un jour **déjà visité**, passer en mode avion, revenir sur ce jour. Le
+      bandeau « Hors ligne. Planning enregistré… » s'affiche, les cours aussi,
+      et aucun d'eux n'offre de réserver. Dix secondes, pas un raisonnement —
+      c'est la différence entre un critère qu'on vérifie et un critère qu'on
+      croit
 - [ ] La réservation apparaît dans « Mes réservations » et survit à la fermeture
       complète de l'app
 - [ ] Un iPhone réglé en français fait tout le parcours **en français** — D-004
       est livrée, ce critère vérifie que les **nouvelles** chaînes le sont aussi
+- [ ] **VoiceOver, sur l'appareil** : chaque bouton de réservation s'annonce par
+      le cours qu'il réserve et son heure — trois cours d'affilée donnent trois
+      annonces différentes, pas trois fois « Réserver »
+- [ ] **VoiceOver annonce la confirmation sans qu'on aille la chercher.** C'est
+      le critère qui prouve que `announceForAccessibility()` a bien été ajoutée :
+      `accessibilityLiveRegion` seul le laisserait vert sous Android et muet sur
+      l'iPhone qui sert à toutes nos passes
 - [ ] p95 de l'appel `book_class` **< 800 ms**, mesuré sur appareil sur au moins
       20 appels, la valeur notée dans le rapport de session. C'est la moitié de
       T1 que le harnais de concurrence ne prouve pas : il n'y a pas d'appel HTTP
