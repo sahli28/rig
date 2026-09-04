@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { ActivityIndicator, useColorScheme, View } from 'react-native';
 import { ThemeProvider, brandFromTheme, useTheme } from '@rig/ui/theme';
@@ -27,26 +27,49 @@ function useAuthRedirect() {
    */
   const onInvitation = segments.includes('invitation');
 
+  /**
+   * Un aiguillage ne laisse rien derrière lui (D-009).
+   *
+   * `replace()` seul remplace l'écran courant et **garde ceux d'en dessous**.
+   * Après `welcome → auth → profile-setup → consents → /`, la pile finissait
+   * donc à `[welcome, /]` : on touchait le chevron, on revenait sur l'écran de
+   * bienvenue, cette fonction refoulait aussitôt, et le chevron disparaissait.
+   * Rien ne plantait — l'app se contredisait sous le doigt.
+   *
+   * La règle, et elle vaut sans exception : **cette fonction ne se déclenche
+   * que lorsque l'écran courant est le mauvais.** Ce qu'il y a derrière un
+   * mauvais écran est, par construction, tout aussi mauvais. Le seul retour
+   * légitime est une navigation que la personne a demandée elle-même — le
+   * bouton « Continuer » de l'écran de bienvenue, qui reste un `push`.
+   */
+  const redirect = useCallback(
+    (href: '/welcome' | '/profile-setup' | '/consents' | '/') => {
+      if (router.canDismiss()) router.dismissAll();
+      router.replace(href);
+    },
+    [router],
+  );
+
   useEffect(() => {
     if (status === 'loading' || onInvitation) return;
 
     if (status === 'signed_out') {
-      if (!inAuthGroup) router.replace('/welcome');
+      if (!inAuthGroup) redirect('/welcome');
       return;
     }
 
     // Les actions restantes sont calculées par `me()`, pas devinées ici : le
     // client n'a pas à connaître la version courante des CGU.
     if (me?.required_actions.includes('COMPLETE_PROFILE')) {
-      router.replace('/profile-setup');
+      redirect('/profile-setup');
       return;
     }
     if (me?.required_actions.includes('ACCEPT_CONSENTS')) {
-      router.replace('/consents');
+      redirect('/consents');
       return;
     }
-    if (inAuthGroup) router.replace('/');
-  }, [status, me, inAuthGroup, onInvitation, router]);
+    if (inAuthGroup) redirect('/');
+  }, [status, me, inAuthGroup, onInvitation, redirect]);
 }
 
 /** Les options de navigation ont besoin du thème : elles vivent sous le fournisseur. */
@@ -73,6 +96,32 @@ function ThemedStack() {
   return (
     <Stack
       screenOptions={{
+        /**
+         * **Pas d'en-tête par défaut** (D-009).
+         *
+         * Sans cette ligne, un écran qui ne dit rien hérite du nom de sa route
+         * en guise de titre : l'accueil s'annonçait `(app)/index`. Cinq écrans
+         * sur six déclaraient bien le leur — ce qui montre le vrai défaut. Une
+         * convention qui repose sur la mémoire de chacun tombe au premier oubli.
+         *
+         * Ce défaut-ci se corrige tout seul : oublier de déclarer donne « pas
+         * d'en-tête », qui est visible et inoffensif, plutôt qu'un titre faux,
+         * qui est invisible et faux. Un écran qui a besoin d'un retour déclare
+         * `headerShown: true` **et** un titre traduit — voir `design-system.tsx`.
+         */
+        headerShown: false,
+        /**
+         * **`headerShown: false` ne suffit pas.** Masquer l'en-tête n'empêche
+         * pas le routeur d'employer le nom de la route comme *titre* de
+         * l'écran — et ce titre ressort ailleurs : le bouton retour de l'écran
+         * suivant s'annonce « (app)/index, back » aux lecteurs d'écran. Le
+         * défaut cessait d'être visible sans cesser d'exister.
+         *
+         * Trouvé en lisant l'arbre d'accessibilité, pas en regardant l'écran.
+         * D'où un titre par défaut qui a du sens : le nom de la box, ou « RIG »
+         * tant qu'aucune n'est résolue.
+         */
+        title: theme.appName,
         headerStyle: { backgroundColor: theme.colors.surface },
         headerTintColor: theme.colors.text,
         headerTitleStyle: { fontFamily: theme.fontFamily },

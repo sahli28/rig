@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import { Stack } from 'expo-router';
 import { z } from 'zod';
 import { useTheme } from '@rig/ui/theme';
 import { useI18n } from '@rig/ui/i18n';
@@ -123,8 +122,6 @@ export default function AuthScreen() {
         justifyContent: 'center',
       }}
     >
-      <Stack.Screen options={{ headerShown: false }} />
-
       <Text
         style={{
           color: theme.colors.text,

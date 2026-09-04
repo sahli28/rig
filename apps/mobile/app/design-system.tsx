@@ -73,7 +73,10 @@ export default function DesignSystemScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t('design_system.title') }} />
+      {/* Le seul écran à retour légitime aujourd'hui : il s'atteint depuis
+          l'accueil, et on en revient. Il déclare donc les deux — l'en-tête
+          **et** son titre traduit (D-009). */}
+      <Stack.Screen options={{ headerShown: true, title: t('design_system.title') }} />
       {/* Les contrôles restent sous le thème de l'app ; seule la galerie
           bascule, pour comparer sans perdre la navigation. */}
       <Controls scheme={scheme} onScheme={setScheme} primary={primary} onPrimary={setPrimary} />

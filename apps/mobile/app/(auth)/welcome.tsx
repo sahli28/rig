@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Image, Text, View } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@rig/ui/theme';
 import { useI18n } from '@rig/ui/i18n';
 import { Banner, Button } from '@rig/ui/native';
@@ -46,8 +46,6 @@ export default function WelcomeScreen() {
         justifyContent: 'center',
       }}
     >
-      <Stack.Screen options={{ headerShown: false }} />
-
       {brand?.logoUrl ? (
         <Image
           source={{ uri: brand.logoUrl }}

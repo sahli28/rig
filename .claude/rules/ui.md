@@ -60,6 +60,48 @@ ses propres appartenances** (`findMembershipBySlug`), jamais par
 `tenant_public_profile()` : « box inconnue » et « accès refusé » doivent rester
 indiscernables.
 
+## La convention de navigation mobile (D-009)
+
+**La pile n'affiche pas d'en-tête par défaut.** Un écran qui en veut un déclare
+les deux : `headerShown: true` **et** un titre traduit.
+
+```tsx
+<Stack.Screen options={{ headerShown: true, title: t('design_system.title') }} />
+```
+
+Le sens de ce défaut compte : oublier de déclarer donne « pas d'en-tête », qui
+est visible et inoffensif, plutôt qu'un titre technique tiré du nom de fichier,
+qui est invisible et faux. L'accueil s'est annoncé `(app)/index` pendant deux
+semaines — cinq écrans sur six déclaraient pourtant bien le leur, ce qui montre
+qu'une convention reposant sur la mémoire tombe au premier oubli.
+
+**`headerShown: false` ne suffit pas à faire disparaître un nom de route.** Le
+routeur s'en sert quand même comme *titre* de l'écran, et ce titre ressort
+ailleurs : le bouton retour de l'écran suivant s'annonce « (app)/index, back »
+aux lecteurs d'écran. D'où un `title` par défaut qui a du sens — le nom de la
+box — dans les `screenOptions` de la pile. Ce reste ne se voit pas à l'écran,
+seulement dans l'arbre d'accessibilité.
+
+**Un aiguillage ne laisse rien derrière lui.** `router.replace()` remplace
+l'écran courant et garde ceux d'en dessous ; après le parcours d'inscription, la
+pile finissait à `[welcome, /]` et le chevron ramenait sur un écran interdit,
+d'où l'aiguillage refoulait aussitôt. Toute redirection de `useAuthRedirect`
+passe donc par un `dismissAll()` avant son `replace()` :
+
+```tsx
+if (router.canDismiss()) router.dismissAll();
+router.replace(href);
+```
+
+La règle qui le justifie : **l'aiguillage ne se déclenche que lorsque l'écran
+courant est le mauvais**, et ce qu'il y a derrière un mauvais écran est tout
+aussi mauvais. Le seul retour légitime est une navigation que la personne a
+demandée — le « Continuer » de l'écran de bienvenue, qui reste un `push`.
+
+Ces trois points se vérifient sur `pnpm --filter @rig/mobile web`, et le
+troisième **seulement à moitié** : le balayage iOS et le bouton retour Android
+demandent un appareil.
+
 ## White-label
 
 - **Aucune couleur littérale** (`#E4572E`, `rgb(...)`, `red`) dans un composant,

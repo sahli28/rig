@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@rig/ui/theme';
 import { useBrand } from '../../../lib/brand';
 
@@ -48,7 +48,6 @@ export default function InvitationScreen() {
         backgroundColor: theme.colors.surface,
       }}
     >
-      <Stack.Screen options={{ headerShown: false }} />
       <ActivityIndicator color={theme.colors.primary} />
     </View>
   );

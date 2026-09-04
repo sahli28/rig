@@ -114,7 +114,7 @@ sait pas lui répondre.
 | P1-001f | Logo et couche Storage                            |      1 | à faire — après la démo |
 | P1-002  | Planning récurrent (RRULE)                        |      9 | ✅ fusionné (PR #17) |
 | D-004   | La langue du mobile — **entrée au chemin critique** |    2 | ✅ fusionné (PR #21) — vérifiée sur appareil le 4 sept. 2026 |
-| D-009   | Navigation mobile : en-tête, historique, retours  |      1 | à faire — **ouvre la chaîne mobile**, empire à chaque écran ajouté |
+| D-009   | Navigation mobile : en-tête, historique, retours  |      1 | ✅ fait — reste le balayage iOS, à la prochaine passe |
 | P1-002b | Planning mobile et cache hors ligne               |    3,5 | à faire — sorti de P1-002 |
 | P1-003  | Réservation — lot 1, le SQL                       |      4 | ✅ fusionné (PR #18) — prouvé sous contention réelle en CI |
 | P1-003b | Réserver depuis le mobile — lot 2, les écrans     |      5 | à faire — après D-004 et P1-002b |

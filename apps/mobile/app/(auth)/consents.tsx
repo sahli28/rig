@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { Stack } from 'expo-router';
 import { useTheme } from '@rig/ui/theme';
 import { useI18n } from '@rig/ui/i18n';
 import { Banner, Button, Switch } from '@rig/ui/native';
@@ -79,8 +78,6 @@ export default function ConsentsScreen() {
         justifyContent: 'center',
       }}
     >
-      <Stack.Screen options={{ headerShown: false }} />
-
       <Text
         style={{
           color: theme.colors.text,
