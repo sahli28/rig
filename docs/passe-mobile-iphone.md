@@ -140,6 +140,28 @@ Il ne coche **aucun** critère de cette page, et il attrape ce que refaire une
 passe coûte trop cher à attraper : c'est lui qui a montré, en une navigation,
 que `/invitation/<jeton>` tombait sur « Unmatched Route ».
 
+## Ce que le moteur offre — à regarder quand un écran plante « à la construction »
+
+Le produit tourne sous **Hermes**, qui n'a qu'une partie d'`Intl`. Les tests,
+eux, tournent sous Node : ils ne peuvent pas voir ce qui manque.
+
+Le symptôme à reconnaître d'un coup d'œil :
+
+    Render Error — undefined cannot be used as a constructor
+
+C'est presque toujours un `new Quelquechose(...)` où `Quelquechose` n'existe pas
+sur ce moteur. Le 4 septembre 2026, c'était `Intl.PluralRules`, sur la première
+clé au pluriel jamais rendue par le mobile.
+
+Ce qui est **prouvé** sur appareil à ce jour : `Intl.DateTimeFormat` avec un
+`timeZone` — la même trace montre que l'en-tête de jour et les heures s'étaient
+affichés avant le plantage. Ce qui ne l'est **pas** : `Intl.NumberFormat`, jamais
+exercé faute d'écran affichant un montant.
+
+Le reste de la réponse est dans `packages/core/src/i18n/intl.ts`, seul module
+autorisé à toucher `Intl`, où chaque fonction dit ce qu'elle suppose. Et
+`D-010` chiffre ce que coûterait un filet qui s'exécute vraiment sous Hermes.
+
 ## Journal des passes
 
 Une passe se périme — Expo bouge, l'IP change, le trousseau se vide. Les dates

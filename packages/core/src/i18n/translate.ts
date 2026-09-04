@@ -7,10 +7,10 @@
  * une clé inexistante casse le typecheck, pas l'écran.
  */
 
+import { pluralCategory } from './intl';
 import en from './locales/en.json';
 import fr from './locales/fr.json';
 import {
-  LOCALE_TAGS,
   type Locale,
   type Messages,
   type PluralKey,
@@ -57,7 +57,11 @@ export function translate(
   let template = messages[key as TranslationKey];
 
   if (count !== undefined) {
-    const category = new Intl.PluralRules(LOCALE_TAGS[locale]).select(count);
+    // `pluralCategory` et non `Intl.PluralRules` : ce dernier **n'existe pas
+    // sous Hermes**, et c'est ici que le planning a planté sur appareil le
+    // 4 septembre 2026, sur la première clé au pluriel jamais rendue par le
+    // mobile. Voir `intl.ts`.
+    const category = pluralCategory(locale, count);
     const plural = messages[`${key}_${category}` as TranslationKey];
     // `other` sert de repli : toutes les langues l'ont, `one` non.
     const fallback = messages[`${key}_other` as TranslationKey];
