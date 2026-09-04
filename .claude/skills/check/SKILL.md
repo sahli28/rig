@@ -11,6 +11,13 @@ en expliquant la cause avant de corriger.
 
 1. `pnpm typecheck`
 2. `pnpm lint`
+2bis. `pnpm lint:sondes` — **les interdits mordent-ils encore ?** Un lint vert ne
+   dit pas qu'une règle s'applique, seulement qu'elle n'a rien trouvé. Le
+   3 septembre 2026, ajouter un second bloc `no-restricted-syntax` a désactivé
+   le premier sans qu'aucune commande le signale. Ces sondes lint un texte
+   imaginaire à un chemin donné et vérifient l'erreur attendue — y compris dans
+   les fichiers d'exception, où une exception trop large **est** un interdit
+   supprimé.
 3. `pnpm test`
 4. `pnpm test:db` — inclut le test anti-fuite inter-tenant. **Échec ici = blocage absolu.**
 
@@ -35,6 +42,13 @@ en expliquant la cause avant de corriger.
     retirés à `anon` et `authenticated` (D-006) : sans grant, la table est
     inaccessible, ce qui est le bon défaut mais se diagnostique mal si on
     l'ignore. `pnpm test:db` confronte droits et policies dans les deux sens.
+9bis0. **Le moteur du produit** : `Intl` et `crypto` sont interdits hors de leurs
+    façades (`packages/core/src/i18n/intl.ts`, `packages/core/src/crypto.ts`),
+    parce que Hermes n'a qu'une partie du premier et pas du tout le second, et
+    qu'aucun de nos filets ne tourne sous Hermes. `pnpm lint` le refuse. Ce qui
+    reste à faire à la main : quand le diff **ajoute une fonction à une façade**,
+    elle dit ce qu'elle suppose du moteur et si c'est **prouvé sur appareil** ou
+    seulement cru. Une supposition non écrite est le défaut suivant.
 9bis. **Box active** : `pnpm lint` refuse déjà tout `.from('<table de box>')` hors
     `packages/core/src/supabase/` (règle `no-restricted-syntax` dans
     `eslint.config.mjs`). Ce qu'il reste à faire à la main, parce qu'aucune règle

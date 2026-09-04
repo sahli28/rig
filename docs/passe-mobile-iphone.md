@@ -160,6 +160,14 @@ C'est presque toujours un `new Quelquechose(...)` où `Quelquechose` n'existe pa
 sur ce moteur. Le 4 septembre 2026, c'était `Intl.PluralRules`, sur la première
 clé au pluriel jamais rendue par le mobile.
 
+`crypto` relève du même symptôme et n'a **jamais** été exercé sur appareil :
+Hermes ne l'a pas du tout, et le runtime « winter » d'Expo ne l'installe pas.
+L'app doit poser sa source d'aléa au démarrage (`installRandomBytesSource()`,
+`packages/core/src/crypto.ts`) ; si elle ne l'a pas fait, le premier tap sur
+« Réserver » lève une erreur qui le dit en toutes lettres, au lieu de fabriquer
+une clé d'idempotence avec `Math.random()`. C'est **le premier de la famille
+qu'on a vu venir** plutôt que subi.
+
 Ce qui est **prouvé** sur appareil à ce jour : `Intl.DateTimeFormat` avec un
 `timeZone` — la même trace montre que l'en-tête de jour et les heures s'étaient
 affichés avant le plantage. Ce qui ne l'est **pas** : `Intl.NumberFormat`, jamais

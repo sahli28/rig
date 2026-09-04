@@ -36,7 +36,13 @@ Backlog exécutable : `docs/backlog/` — un fichier par ticket.
   eu cette cause, dont un plantage sur appareil (`Intl.PluralRules` absent).
   D'où : **`Intl` est interdit hors de `packages/core/src/i18n/intl.ts`**, où
   chaque fonction dit ce qu'elle suppose du moteur et si c'est prouvé. ESLint
-  l'impose. La question de fond — un filet qui tourne sur le vrai moteur — est
+  l'impose. **`crypto` l'est aussi**, hors de `packages/core/src/crypto.ts` —
+  absent sous Hermes, pas seulement incomplet — et celui-là est le premier de la
+  famille à avoir été interdit **avant** son premier appel : il serait arrivé
+  avec la clé d'idempotence de P1-003b. La façade lève au lieu de se rabattre sur
+  `Math.random()`, parce qu'un repli silencieux rend le manque invisible là où
+  il coûte le plus cher. `pnpm lint:sondes` vérifie que ces interdits **mordent
+  encore** : un lint vert ne dit pas qu'une règle s'applique. La question de fond — un filet qui tourne sur le vrai moteur — est
   chiffrée dans `docs/backlog/D-010-filet-sur-le-vrai-moteur.md`, à arbitrer.
 - **Un test qui lit un fichier hors de son paquet le déclare dans les
   `globalDependencies` de `turbo.json`**, dans le même commit. Sinon le cache

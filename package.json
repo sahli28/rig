@@ -12,6 +12,7 @@
     "typecheck": "turbo run typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "lint:sondes": "node scripts/eslint-sondes.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "turbo run test",
