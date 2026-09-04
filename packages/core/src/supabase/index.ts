@@ -59,7 +59,7 @@ export {
   type InvitationPreview,
   type TenantPublicProfile,
 } from './tenant';
-export { INVITATION_PATH_SEGMENT, invitationPath, invitationTokenFromUrl } from './invitation-link';
+export { INVITATION_PATH_SEGMENT, invitationPath } from './invitation-link';
 export {
   fetchPolicyVersion,
   isPlatformConsent,

@@ -1,5 +1,7 @@
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { invitationPath, invitationTokenFromUrl } from './invitation-link';
+import { invitationPath } from './invitation-link';
 
 describe('invitationPath', () => {
   it('produit le chemin que le back-office affiche et que le QR encode', () => {
@@ -11,65 +13,53 @@ describe('invitationPath', () => {
   });
 });
 
-describe('invitationTokenFromUrl', () => {
-  it('lit le lien du back-office', () => {
-    // Le cas qui a échoué le 3 septembre 2026 : cette URL ouvrait l'app sur
-    // « Unmatched Route », `useAuthRedirect` renvoyait sur `/welcome` sans les
-    // paramètres, et personne n'était rattaché à sa box.
-    expect(invitationTokenFromUrl('https://rig.app/invitation/inv-rueil-0001')).toBe(
-      'inv-rueil-0001',
+/**
+ * Le test que le 3 septembre 2026 réclamait.
+ *
+ * `apps/web` fabriquait `/invitation/<jeton>` — le lien du back-office, celui
+ * du QR mural — et `apps/mobile` n'avait **aucune route** pour le recevoir.
+ * Ouvert sur l'iPhone, ce lien tombait sur « Unmatched Route » ; le layout
+ * renvoyait sur `/welcome` sans les paramètres, et le jeton mourait là. Le
+ * parcours d'entrée du produit était cassé de bout en bout, sans message.
+ *
+ * Aucun test unitaire ne pouvait le voir : les deux côtés étaient corrects
+ * séparément. C'est leur **jointure** qui manquait, et une jointure faite d'un
+ * littéral d'un côté et d'un nom de fichier de l'autre ne se vérifie pas à la
+ * relecture. Elle se vérifie ici.
+ *
+ * Structurel, donc partiel : ce test dit que la route existe, pas qu'elle fait
+ * quelque chose d'utile. Le comportement, lui, se voit dans
+ * `docs/passe-mobile-iphone.md` § 5 bis — ou en une navigation sur
+ * `pnpm --filter @rig/mobile web`.
+ */
+describe('parité web ↔ mobile de la route d’invitation', () => {
+  const token = 'jeton-de-test';
+  const path = invitationPath(token);
+
+  it('le mobile a une route pour le lien que le web distribue', () => {
+    // `[token]` est la forme expo-router du segment dynamique : le chemin
+    // `/invitation/<jeton>` se lit `app/**/invitation/[token].tsx`.
+    const routes = [
+      'apps/mobile/app/(auth)/invitation/[token].tsx',
+      'apps/mobile/app/invitation/[token].tsx',
+    ];
+
+    const found = routes.some((route) =>
+      existsSync(fileURLToPath(new URL(`../../../../${route}`, import.meta.url))),
     );
+
+    expect(
+      found,
+      `Aucune route mobile ne reçoit \`${path}\`. Le lien que le back-office ` +
+        'distribue tomberait sur « Unmatched Route », et le jeton serait perdu ' +
+        'à la redirection qui suit. Routes cherchées :\n  ' +
+        routes.join('\n  '),
+    ).toBe(true);
   });
 
-  it('lit le schéma de l’app', () => {
-    // `new URL()` prendrait ici « invitation » pour un nom d'hôte et rendrait
-    // le mauvais segment. C'est pourquoi l'analyse est textuelle.
-    expect(invitationTokenFromUrl('rig://invitation/inv-rueil-0001')).toBe('inv-rueil-0001');
-  });
-
-  it('lit une URL Expo Go, avec son séparateur `/--/`', () => {
-    expect(invitationTokenFromUrl('exp://192.168.1.133:8081/--/invitation/inv-rueil-0001')).toBe(
-      'inv-rueil-0001',
-    );
-  });
-
-  it('lit la forme historique en paramètre de requête', () => {
-    expect(invitationTokenFromUrl('rig://welcome?token=inv-rueil-0001')).toBe('inv-rueil-0001');
-    expect(invitationTokenFromUrl('/welcome?slug=crossfit-rueil&token=abc123')).toBe('abc123');
-  });
-
-  it('décode ce que le chemin a échappé', () => {
-    expect(invitationTokenFromUrl(invitationPath('a-b~c.d_e'))).toBe('a-b~c.d_e');
-  });
-
-  it('rend `null` pour une URL qui n’est pas une invitation', () => {
-    // Ouverture à froid : cas nominal, pas erreur. D'où `null` plutôt qu'une
-    // exception, qui ferait planter le démarrage de l'app.
-    expect(invitationTokenFromUrl('rig://welcome')).toBeNull();
-    expect(invitationTokenFromUrl('https://rig.app/')).toBeNull();
-    expect(invitationTokenFromUrl(null)).toBeNull();
-    expect(invitationTokenFromUrl('')).toBeNull();
-  });
-
-  it('rend `null` quand le segment `invitation` ne porte pas de jeton', () => {
-    expect(invitationTokenFromUrl('https://rig.app/invitation')).toBeNull();
-    expect(invitationTokenFromUrl('https://rig.app/invitation/')).toBeNull();
-  });
-
-  it('refuse un segment qui n’a pas la forme d’un jeton', () => {
-    expect(invitationTokenFromUrl('https://rig.app/invitation/pas un jeton')).toBeNull();
-    expect(invitationTokenFromUrl('https://rig.app/invitation/' + 'a'.repeat(129))).toBeNull();
-  });
-
-  it('tolère un échappement invalide sans lever', () => {
-    expect(invitationTokenFromUrl('https://rig.app/invitation/%E0%A4%A')).toBeNull();
-  });
-
-  it('fait l’aller-retour avec `invitationPath`', () => {
-    // L'invariant qui compte : celui qui fabrique et celui qui lit ne peuvent
-    // plus diverger, parce qu'ils partagent ce module.
-    for (const token of ['inv-rueil-0001', 'inv-nanterre-0001', 'A1b2C3d4']) {
-      expect(invitationTokenFromUrl(`https://rig.app${invitationPath(token)}`)).toBe(token);
-    }
+  it('le chemin attendu par la route est bien celui que `invitationPath` produit', () => {
+    // Si le segment change ici, il faut renommer le dossier de la route — ce
+    // qu'aucun compilateur ne dira. Ce test le dit.
+    expect(path.split('/')[1]).toBe('invitation');
   });
 });
