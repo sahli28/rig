@@ -103,10 +103,17 @@ session en morceaux de 2 Ko dans le trousseau (`chunkedStore`) — du code écri
 le 31 août, testé unitairement, jamais exécuté sur un vrai trousseau iOS. Si
 quelque chose casse dans cette passe, c'est probablement là.
 
-Bonus utile : passer en mode avion et rouvrir l'app. Le cache hors ligne est
-P1-002b, donc la dégradation est **attendue** — noter simplement ce qu'elle
-donne : un écran vide, un message clair, ou un plantage. Les trois ne se
-corrigent pas de la même façon.
+**Sixième vérification, depuis que P1-002b est clos : le mode avion.** Ce n'est
+plus un bonus et la dégradation n'est plus « attendue », elle est spécifiée.
+
+| Geste | Attendu |
+|---|---|
+| Mode avion, rouvrir l'app sur un jour **déjà visité** | Le planning s'affiche, avec « Hors ligne. Planning enregistré … » et l'heure d'enregistrement |
+| Mode avion, aller sur un jour **jamais visité** | Un message qui dit qu'il n'a rien pu charger — **pas** « aucun cours ce jour-là », **pas** de squelette — et il arrive tout de suite, le même à chaque essai |
+
+Le bandeau parle du **jour affiché**, jamais de la dernière écriture du cache :
+c'est le défaut trouvé le 4 septembre 2026, et le geste qui le vérifie est de
+changer de jour hors ligne sans quitter l'écran.
 
 ## 5 bis. Le parcours d'invitation
 
@@ -171,6 +178,7 @@ sont donc la moitié de l'information.
 | --- | --- | --- |
 | **3 sept. 2026** | iPhone 12 Pro Max, Expo Go, SDK 57 | Les cinq vérifications passent. **Quatre défauts trouvés**, aucun visible en test : la langue (D-004), le parcours d'invitation cassé de bout en bout (corrigé), le sélecteur de box sans retour (P1-009), les retours de navigation vers des écrans interdits (D-009) |
 | **4 sept. 2026** | idem | Tout passe, contrôle négatif compris : `/welcome` sans jeton est graphite, `/invitation/<jeton>` est orange et nomme la box, `nouveau@example.com` atterrit membre de CrossFit Rueil. Thème sombre et texte à 200 % tiennent ; la reconnexion après déconnexion est propre |
+| **4 sept. 2026**, après PR #27 | idem, `lea@example.com` | Le hors ligne repasse : mode avion sur un jour jamais visité, message final immédiat et identique à chaque essai, bandeau qui parle du jour affiché. **Ferme P1-002b.** Trois gestes n'y étaient pas et sont partis en `D-011` : le fuseau du téléphone, la relecture du contenu du cache, ce qui reste du compte précédent |
 
 ## 6. Ce qu'on note, et ce qu'on ne commite pas
 

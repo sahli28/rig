@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **36,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **37 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 76 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -68,7 +68,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 92,25 j·h, dont **36,5 restants**
+## ① Jalon pilote — 92,75 j·h, dont **37 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -78,6 +78,7 @@ Objectif : une box réelle utilise l'app en production pendant deux semaines.
 ```
 P0-005b                                (SSO Google)
 D-009 ✅ → P1-002b ✅ → P1-010 ✅ → P1-003b → P1-003c   (navigation, planning, coachs, réservation, pairs)
+D-011                                  (trois gestes de relecture du cache, à la prochaine passe appareil — non bloquant)
 P1-004 → P1-005                        (annulation, temps réel)
 P1-007 → P1-006 → P1-008               (push, waitlist, check-in)
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
@@ -115,18 +116,19 @@ sait pas lui répondre.
 | P1-002  | Planning récurrent (RRULE)                        |      9 | ✅ fusionné (PR #17) |
 | D-004   | La langue du mobile — **entrée au chemin critique** |    2 | ✅ fusionné (PR #21) — vérifiée sur appareil le 4 sept. 2026 |
 | D-009   | Navigation mobile : en-tête, historique, retours  |      1 | ✅ fait — reste le balayage iOS, à la prochaine passe |
-| P1-002b | Planning mobile et cache hors ligne               |    3,5 | ✅ fait — **sans le filtre coach**, faute de source (P1-010). Reste la passe appareil |
-| P1-010  | Annuaire des coachs, lisible par un membre        |      1 | ✅ fait — et porte la **règle d'exposition d'identité**, citée par P1-003c |
+| P1-002b | Planning mobile et cache hors ligne               |    3,5 | ✅ **clos** — hors ligne repassé sur appareil le 4 sept. 2026 (`lea@example.com`), après PR #27. Trois gestes de relecture du cache partis en D-011 |
+| P1-010  | Annuaire des coachs, lisible par un membre        |      1 | ✅ **clos** — filtre coach exercé sur appareil le 4 sept. 2026. Porte la **règle d'exposition d'identité**, citée par P1-003c |
 | P1-003c | La feuille d'inscrits : en quoi un pair diffère d'un coach |  2 | à faire — **après P1-003b**, la décision se prend avec l'écran |
 | P1-003  | Réservation — lot 1, le SQL                       |      4 | ✅ fusionné (PR #18) — prouvé sous contention réelle en CI |
-| P1-003b | Réserver depuis le mobile — lot 2, les écrans     |      5 | à faire — après D-004 et P1-002b |
+| P1-003b | Réserver depuis le mobile — lot 2, les écrans     |      5 | **à faire — prêt à démarrer**, D-004 et P1-002b sont clos |
 | P1-004  | Annulation et fenêtres                            |      4 | à faire              |
 | P1-005  | Places restantes en temps réel                    |      3 | à faire              |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire              |
 | P1-007  | Notifications push                                |      4 | à faire              |
 | P1-008  | Check-in QR et mode kiosque                       |      6 | à faire              |
-| P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. La place lui est laissée dans l'en-tête du planning |
-|         | **Total ①**                                       | **92,25** | dont **55,75 faits**, **36,5 restants** |
+| P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
+| D-011   | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | à faire — à la prochaine passe appareil, non bloquant |
+|         | **Total ①**                                       | **92,75** | dont **55,75 faits**, **37 restants** |
 
 **Ce que les passes sur appareil ont coûté au total ①, et pourquoi c'est une
 bonne nouvelle.** P1-003 est passé de 8 à 9 j·h (règle 8 sur son lot 2), D-004

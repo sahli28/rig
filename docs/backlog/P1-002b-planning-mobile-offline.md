@@ -165,7 +165,7 @@ déconnexion.
 - [ ] Les heures s'affichent dans le fuseau de la **box**, pas du téléphone —
       **à vérifier sur appareil** en changeant le fuseau du téléphone. Le calcul
       est testé (12 tests sur `localDay` / `instantLocal`), son effet à l'écran
-      ne l'est pas
+      ne l'est pas. **Reporté en D-011** — geste non exercé le 4 septembre
 - [x] Sans réseau, le dernier planning chargé est consultable, **avec sa date de
       mise à jour affichée** — « Hors ligne. Planning enregistré aujourd'hui à
       11:04. Les places affichées peuvent avoir changé… », relevé sur le harnais
@@ -176,13 +176,17 @@ déconnexion.
       chargement échoué, et seul le corps du message disait la vérité
 - [ ] Sans réseau, **aucune action de réservation n'est proposée** — structurel
       aujourd'hui, puisque la réservation n'existe pas encore. **C'est P1-003b
-      qui devra l'honorer**, et son ticket le porte
+      qui l'honore** : il ne le portait pas quand cette ligne l'affirmait, la
+      relecture du 4 septembre 2026 l'a trouvé et son critère est écrit depuis
 - [ ] Le contenu du cache est relu à la main après une session : aucune adresse
       e-mail, aucun nom de participant, aucun jeton. La **forme** l'interdit
-      déjà (`DayClass` dans `@rig/core`), la relecture le confirme sur appareil
+      déjà (`DayClass` dans `@rig/core`), la relecture le confirme sur appareil.
+      **Reporté en D-011** — geste non exercé le 4 septembre
 - [ ] Deux membres et deux boxes sur le même téléphone ne partagent jamais leur
       cache — la clé est `(utilisateur, box, jour)` ; **à exercer avec deux
-      comptes sur un appareil**
+      comptes sur un appareil**. **Reporté en D-011** : la passe du 4 septembre
+      n'a eu qu'un compte, `lea@example.com`, et un compte ne prouve rien d'un
+      cloisonnement
 - [x] **Le mode hors ligne dit ce qu'il montre** — le bandeau parle du **jour
       affiché**, jamais de la dernière écriture du cache. La passe iPhone du **4 septembre 2026** l'a trouvé
       faux : « Planning enregistré aujourd'hui à 15:44 » s'affichait au-dessus de
@@ -219,9 +223,11 @@ déconnexion.
 - [x] Un appareil réel exerce le parcours — passe iPhone du **4 septembre 2026**. Le planning se rend, les
       deux filtres fonctionnent, VoiceOver annonce les lignes correctement, et le
       balayage de retour est correct y compris après connexion
-- [ ] **Le hors ligne repasse sur appareil** — les deux correctifs ci-dessus
-      n'ont été exercés qu'au harnais et en test. Le mode avion sur un jour
-      jamais visité est le geste à refaire
+- [x] **Le hors ligne repasse sur appareil** — refait le **4 septembre 2026**
+      après la PR #27, en `lea@example.com`, mode avion sur un jour jamais
+      visité. Le message final arrive tout de suite, il est le même à chaque
+      essai, et le bandeau parle du jour affiché. C'est le geste qui manquait :
+      les deux correctifs n'avaient été exercés qu'au harnais et en test
 
 ## Ce que la passe du 4 septembre a corrigé
 
@@ -244,6 +250,22 @@ trois jours différents.
 **`expo-network` est incluse dans Expo Go** (SDK 57, vérifié sur la doc avant de
 s'appuyer dessus, comme `expo-crypto` et `expo-localization`) : aucun
 development build, donc aucun compte Apple payant.
+
+## Ce que la seconde passe du 4 septembre a fermé, et ce qu'elle n'a pas touché
+
+Le geste qui manquait est fait : mode avion sur un jour jamais visité, en
+`lea@example.com`, après la PR #27. Le message final tombe tout de suite et il
+est le même à chaque essai — l'app **sait** qu'elle est hors ligne au lieu
+d'attendre qu'une requête abandonne — et le bandeau parle du jour affiché. Les
+deux défauts trouvés le matin sont donc vérifiés là où ils étaient nés, sur
+l'appareil, et non plus seulement au harnais. **Ce ticket est clos.**
+
+Trois gestes n'étaient pas dans cette passe et ne le seront pas dans celle-ci :
+le fuseau du téléphone, la relecture du contenu du cache, et ce qui reste du
+compte précédent. Ils ne parlent plus du hors ligne mais de **ce que vaut une
+copie de données posée hors RLS** — sujet différent, ticket différent :
+`D-011`. Les laisser en cases ouvertes sous un ✅ aurait produit le faux vert
+que ce dépôt passe son temps à traquer.
 
 ## Notes
 
