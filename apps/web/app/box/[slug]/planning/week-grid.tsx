@@ -8,7 +8,7 @@ import { cancelClass, restoreClass } from './actions';
 import { Feedback, SubmitButton } from './form-bits';
 import { IDLE } from './action-state';
 import styles from './planning.module.css';
-import { DAY_LABELS, groupByDay, localDayIn, type Occurrence } from './view-model';
+import { DAY_LABELS, groupByDay, localDayIn, type Occurrence } from '@rig/core/supabase';
 
 /**
  * La semaine, en tableau.

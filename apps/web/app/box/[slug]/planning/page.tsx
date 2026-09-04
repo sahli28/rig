@@ -8,11 +8,15 @@ import {
   shiftWeeks,
   tenantScope,
   weekDates,
+  instantLocal,
+  localDay,
+  type Choice,
+  type Occurrence,
+  type Serie,
 } from '@rig/core/supabase';
 import { serverClient } from '../../../../lib/supabase/server';
 import { Notice } from '../notice';
 import { PlanningScreen } from './planning-screen';
-import { instantLocal, localDay, type Choice, type Occurrence, type Serie } from './view-model';
 
 /**
  * Le planning de la box.

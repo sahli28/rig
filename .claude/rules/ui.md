@@ -130,6 +130,43 @@ demandent un appareil.
 - Respecter `prefers-reduced-motion`.
 - Support du texte dynamique jusqu'à 200 % sans casse de mise en page.
 
+### Lire l'arbre d'accessibilité fait partie de la livraison
+
+**Ce n'est pas une passe de fin de projet, c'est une étape du harnais**, au même
+titre que regarder la console. Sur chaque écran livré :
+
+```
+pnpm --filter @rig/mobile web     # ou le serveur web
+# puis, dans le harnais : read_page filter=interactive
+```
+
+Trois choses à lire, dans cet ordre :
+
+1. **chaque élément interactif s'annonce-t-il par ce qu'il fait ?** Un bouton
+   icône sans `accessibilityLabel` s'annonce par son contenu — « × » — ou par
+   rien ;
+2. **un nombre qui porte du sens est-il annoncé avec son unité ?** « 3 » ne dit
+   pas « 3 places restantes ». Le voyant lit ce qui l'entoure, le lecteur
+   d'écran ne lit que l'élément ;
+3. **l'ordre de l'arbre suit-il l'ordre de lecture ?** C'est l'ordre de focus,
+   et il ne se déduit pas d'une capture.
+
+C'est §12.4 de la spec — « labels explicites sur tous les boutons et icônes,
+ordre de focus logique » — et l'European Accessibility Act n'en fait pas une
+option.
+
+**Ce que cette lecture a déjà trouvé, et qu'aucune capture ni aucun test ne
+pouvait voir** : le bouton retour du système de design s'annonçait
+« (app)/index, back ». `headerShown: false` avait masqué l'en-tête sans empêcher
+le routeur d'employer le nom de la route comme titre d'écran. Le défaut avait
+cessé d'être visible sans cesser d'exister.
+
+Les deux pièges suivants sont prévisibles, donc à vérifier nommément quand les
+écrans arriveront : **une place restante annoncée comme un nombre nu** sur le
+planning, et **un bouton « Réserver » qui ne dit pas ce qu'il réserve** sur la
+réservation. Un écran qui n'a qu'un bouton « Réserver » par cours en a autant
+que de cours, tous identiques à l'oreille.
+
 ## Comportement
 
 - Une seule action primaire par écran.

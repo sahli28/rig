@@ -127,6 +127,16 @@ export {
   type RruleDay,
   type WeeklyRecurrence,
 } from './class-schedules';
+export {
+  DAY_LABELS,
+  groupByDay,
+  instantLocal,
+  localDay,
+  localDayIn,
+  type Choice,
+  type Occurrence,
+  type Serie,
+} from './planning';
 
 export {
   tenantScope,
