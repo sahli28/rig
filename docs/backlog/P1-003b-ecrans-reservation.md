@@ -43,7 +43,7 @@ fermeture de D-009, P1-002b et P1-010. Pas supposé.
 | `book_class(class, membership, idempotency_key)` | `20260903090000_bookings_and_book_class.sql` | ✅ existe, `grant execute` à `authenticated`, **aucun appelant** — c'est l'objet de ce ticket |
 | `bookings` et ses policies de lecture | idem — `bookings_own_select`, `bookings_staff_select` | ✅ existent. Aucune policy d'écriture, et c'est voulu : `book_class()` est le seul chemin |
 | Les six codes d'erreur, leurs clés i18n, et `errorMessageKeyOf()` | `packages/core/src/errors.ts` | ✅ existent dans les deux langues, avec le test de parité qui relit les migrations |
-| `classes` matérialisées et lisibles par un simple membre | P1-002 — policy `classes_select` sur `current_tenant_ids()` | ✅ existe. L'horizon est entretenu par `pg_cron` (`rig-maintain-class-occurrences`, 00 h 05), pas par un passage humain |
+| `classes` matérialisées et lisibles par un simple membre | P1-002 — policy `classes_select` sur `current_tenant_ids()` | ✅ existe. L'horizon est entretenu par `pg_cron` (`rack-maintain-class-occurrences`, 00 h 05), pas par un passage humain |
 | Les fenêtres de réservation côté client | `me()` → `BookingRulesSchema` (P0-005a, éditées en P1-001b) | ✅ existent : l'écran peut dire « ouvre dans 3 jours » sans le deviner |
 | Le fuseau de la box appliqué à l'affichage | `_layout.tsx:106` → `I18nProvider timeZone` | ✅ existe (règle 9) |
 | L'app mobile ayant tourné sur un appareil réel | `docs/passe-mobile-iphone.md` | ✅ trois passes, les 3 et 4 septembre 2026, la dernière en `lea@example.com` — **et périssable** |
@@ -284,7 +284,7 @@ que de cours, **tous identiques à l'oreille**.
   donc testé avant l'écran.
 - **La source d'aléa du mobile** : dépendance `expo-crypto`, justifiée au commit,
   et `installRandomBytesSource()` appelée dans `_layout.tsx` **au démarrage**.
-  La clé vient de `uuidV7()` (`@rig/core`) : sous Hermes, sans cet appel, le
+  La clé vient de `uuidV7()` (`@rack/core`) : sous Hermes, sans cet appel, le
   premier tap lève — ce qui est le comportement voulu, et pas une clé fabriquée
   avec `Math.random()`.
 - **Détail du cours** : type, coach, salle, créneau **en heure locale de la

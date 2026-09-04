@@ -11,7 +11,7 @@ connexion. Ce chemin marche quand **l'app est déjà installée**.
 Il ne marche pas dans le cas le plus fréquent en vrai : une personne reçoit le
 lien de sa box, ne l'a pas installée, atterrit sur le store, installe, ouvre — et
 l'app démarre nue. Le `slug` et le `token` ont été perdus entre le navigateur et
-la première ouverture. Elle voit le thème RIG neutre et n'a aucun moyen de
+la première ouverture. Elle voit le thème Rack neutre et n'a aucun moyen de
 rejoindre sa box, alors qu'elle vient de cliquer sur son invitation.
 
 C'est le *deferred deep link*, explicitement reporté au commit de P0-005a.

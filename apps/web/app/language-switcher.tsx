@@ -1,7 +1,7 @@
 'use client';
 
-import { useI18n } from '@rig/ui/i18n';
-import { LOCALES } from '@rig/core';
+import { useI18n } from '@rack/ui/i18n';
+import { LOCALES } from '@rack/core';
 
 /**
  * Prouve le critère du ticket : l'interface bascule sans rechargement.
@@ -13,8 +13,8 @@ export function LanguageSwitcher() {
   return (
     <fieldset
       style={{
-        border: '1px solid var(--rig-color-border)',
-        borderRadius: 'var(--rig-radius-md)',
+        border: '1px solid var(--rack-color-border)',
+        borderRadius: 'var(--rack-radius-md)',
         padding: 12,
         margin: '16px 0',
         display: 'flex',
@@ -22,7 +22,7 @@ export function LanguageSwitcher() {
         alignItems: 'center',
       }}
     >
-      <legend style={{ fontSize: 'var(--rig-text-caption)' }}>{t('language.label')}</legend>
+      <legend style={{ fontSize: 'var(--rack-text-caption)' }}>{t('language.label')}</legend>
       {LOCALES.map((value) => (
         <label key={value} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <input

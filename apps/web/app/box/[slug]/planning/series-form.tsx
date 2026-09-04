@@ -2,13 +2,13 @@
 
 import { useActionState, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { useI18n } from '@rig/ui/i18n';
-import { RRULE_DAYS, parseWeeklyRrule } from '@rig/core/supabase';
+import { useI18n } from '@rack/ui/i18n';
+import { RRULE_DAYS, parseWeeklyRrule } from '@rack/core/supabase';
 import { archiveSchedule, createSchedule, updateSchedule } from './actions';
 import { Feedback, SubmitButton } from './form-bits';
 import { IDLE } from './action-state';
 import styles from './planning.module.css';
-import { DAY_LABELS, type Choice, type Serie } from '@rig/core/supabase';
+import { DAY_LABELS, type Choice, type Serie } from '@rack/core/supabase';
 
 /**
  * Créer ou modifier une série.

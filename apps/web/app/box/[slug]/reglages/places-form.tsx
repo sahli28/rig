@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { useI18n } from '@rig/ui/i18n';
+import { useI18n } from '@rack/ui/i18n';
 import styles from './reglages.module.css';
 import { Feedback, SubmitButton } from './form-bits';
 import { addLocation, addRoom, archiveRoom } from './actions';

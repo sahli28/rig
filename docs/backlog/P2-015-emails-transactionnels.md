@@ -8,7 +8,7 @@
 trois tickets s'appuient pourtant dessus :
 
 - **M19** exige « i18n FR/EN complet (UI + **e-mails** + push) ». Aujourd'hui,
-  `supabase/config.toml:260` porte `subject = "Ton code RIG / Your RIG code"` —
+  `supabase/config.toml:260` porte `subject = "Ton code Rack / Your Rack code"` —
   les deux langues dans la même chaîne. C'est un contournement de P0-005a, pas
   de l'internationalisation, et il ne passe pas à l'échelle d'une facture.
 - **P1-007** écrit dans son périmètre : « les notifications transactionnelles
@@ -58,7 +58,7 @@ avant** P2-006, et le README l'ordonne ainsi.
   - suppression de compte demandée, et confirmée (P2-002).
 - Résolution de la langue : locale de la personne, sinon `default_locale` de la
   box, sinon `fr`. Une seule fonction, testée.
-- Marque de la box dans les e-mails de box ; marque **RIG** dans les e-mails de
+- Marque de la box dans les e-mails de box ; marque **Rack** dans les e-mails de
   plateforme. C'est la même distinction que `DEFAULT_BRAND` contre le défaut
   d'une box neuve, tranchée en P1-001e — la refaire ici serait la refaire à
   l'envers.
@@ -81,7 +81,7 @@ avant** P2-006, et le README l'ordonne ainsi.
 - [ ] Un e-mail part en FR pour un membre en FR, en EN pour un membre en EN, et
       en `default_locale` de la box pour un membre sans préférence
 - [ ] Un e-mail de box porte la couleur de la box ; un e-mail de plateforme porte
-      celle de RIG
+      celle de Rack
 - [ ] `pnpm i18n:check` couvre les clés des gabarits et **échoue** si une
       traduction manque
 - [ ] Aucun e-mail ne contient de jeton d'invitation en clair dans une URL

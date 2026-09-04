@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DAY_SCHEDULE_TIMEOUT_MS, fetchDaySchedule } from './planning';
-import type { RigClient } from './client';
+import type { RackClient } from './client';
 
 /**
  * **Le critère de déterminisme, rendu exécutable.**
@@ -22,7 +22,7 @@ import type { RigClient } from './client';
  * du wifi qui capte mal, pas le mode avion. Il ne rejette qu'à l'abandon, comme
  * le fait `supabase-js` sur un `abortSignal`.
  */
-function clientSansReponse(): RigClient {
+function clientSansReponse(): RackClient {
   const chaine = {
     signal: undefined as AbortSignal | undefined,
     select: () => chaine,
@@ -44,7 +44,7 @@ function clientSansReponse(): RigClient {
     },
   };
 
-  return { from: () => chaine } as unknown as RigClient;
+  return { from: () => chaine } as unknown as RackClient;
 }
 
 const requete = {

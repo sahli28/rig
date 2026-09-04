@@ -71,25 +71,25 @@ describe('chunkedStore', () => {
 
     await expect(store.setItem('brut', session)).rejects.toThrow();
 
-    await chunked.setItem('rig.session', session);
-    expect(await chunked.getItem('rig.session')).toBe(session);
+    await chunked.setItem('rack.session', session);
+    expect(await chunked.getItem('rack.session')).toBe(session);
   });
 
   it('laisse une petite valeur lisible telle quelle', async () => {
     const { store, values } = fakeSecureStore();
     const chunked = chunkedStore(store);
 
-    await chunked.setItem('rig.locale', 'fr');
+    await chunked.setItem('rack.locale', 'fr');
 
-    expect(values.get('rig.locale')).toBe('fr');
-    expect(await chunked.getItem('rig.locale')).toBe('fr');
+    expect(values.get('rack.locale')).toBe('fr');
+    expect(await chunked.getItem('rack.locale')).toBe('fr');
   });
 
   it('relit une valeur écrite avant le découpage', async () => {
     const { store } = fakeSecureStore();
-    await store.setItem('rig.session', 'écrite par une version antérieure');
+    await store.setItem('rack.session', 'écrite par une version antérieure');
 
-    expect(await chunkedStore(store).getItem('rig.session')).toBe(
+    expect(await chunkedStore(store).getItem('rack.session')).toBe(
       'écrite par une version antérieure',
     );
   });

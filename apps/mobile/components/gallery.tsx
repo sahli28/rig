@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { useTheme } from '@rig/ui/theme';
+import { useTheme } from '@rack/ui/theme';
 import {
   Avatar,
   Badge,
@@ -18,7 +18,7 @@ import {
   Switch,
   Tabs,
   Toast,
-} from '@rig/ui/native';
+} from '@rack/ui/native';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const theme = useTheme();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { RigClient } from './client';
+import type { RackClient } from './client';
 import { tenantScope } from './active-tenant';
 
 interface Call {
@@ -52,7 +52,7 @@ function fakeClient() {
     return call;
   }
 
-  return { client: client as unknown as RigClient, calls };
+  return { client: client as unknown as RackClient, calls };
 }
 
 const TENANT = '11111111-0000-4000-8000-000000000001';

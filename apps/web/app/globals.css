@@ -9,30 +9,30 @@
 
 body {
   margin: 0;
-  background: var(--rig-color-surface);
-  color: var(--rig-color-text);
-  font-family: var(--rig-font-family), system-ui, sans-serif;
-  font-size: var(--rig-text-body);
+  background: var(--rack-color-surface);
+  color: var(--rack-color-text);
+  font-family: var(--rack-font-family), system-ui, sans-serif;
+  font-size: var(--rack-text-body);
   line-height: 1.5;
 }
 
 a {
-  color: var(--rig-color-primary);
+  color: var(--rack-color-primary);
 }
 
 /* Cible tactile minimale, y compris à la souris : les mêmes règles que le mobile. */
 button,
 [role='button'] {
-  min-height: var(--rig-touch-target);
-  min-width: var(--rig-touch-target);
-  border-radius: var(--rig-radius-md);
+  min-height: var(--rack-touch-target);
+  min-width: var(--rack-touch-target);
+  border-radius: var(--rack-radius-md);
   font-family: inherit;
-  font-size: var(--rig-text-body);
+  font-size: var(--rack-text-body);
   cursor: pointer;
 }
 
 :focus-visible {
-  outline: 2px solid var(--rig-color-primary);
+  outline: 2px solid var(--rack-color-primary);
   outline-offset: 2px;
 }
 

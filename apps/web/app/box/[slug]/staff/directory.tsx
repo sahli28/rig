@@ -2,7 +2,7 @@
 
 import { useActionState, useMemo, useState } from 'react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { useI18n } from '@rig/ui/i18n';
+import { useI18n } from '@rack/ui/i18n';
 import {
   MEMBERSHIP_ROLES,
   MEMBERSHIP_STATUSES,
@@ -10,8 +10,8 @@ import {
   filterDirectory,
   grantableRoles,
   type DirectoryRow,
-} from '@rig/core/supabase';
-import type { TranslationKey } from '@rig/core';
+} from '@rack/core/supabase';
+import type { TranslationKey } from '@rack/core';
 import styles from './staff.module.css';
 import { IDLE, type ActionState } from './action-state';
 import { changeRole, excludeMember } from './actions';

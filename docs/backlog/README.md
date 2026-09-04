@@ -42,7 +42,7 @@ test, ni la CI ne les rappellera.
 | **Trois `client_id` Google** (web, iOS, Android) | P0-005b, puis P2-003 | Bloqué depuis cinq sessions. URI de redirection **exactement** `http://127.0.0.1:55321/auth/v1/callback` en local : Google compare au caractère près, et `localhost` n'est pas `127.0.0.1` pour lui |
 | **Compte développeur Apple**, 99 $/an | P2-003, et toute publication | Vérification d'identité, délai d'enrôlement variable. Câbler Google engage sur Apple avant soumission (guideline 4.8) |
 | **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société |
-| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, et le retour Apple | **Trois éléments bloqués par une seule absence** |
+| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, et le retour Apple | **Trois éléments bloqués par une seule absence** — et depuis le 4 sept. 2026 le nom est connu (**Rack**), donc le domaine est achetable : c'est la seule des quatre démarches qui ne dépende que d'une carte bancaire |
 
 Le constat qui a fait écrire cette section : pendant quatre tickets d'affilée,
 le choix du ticket suivant s'est fait par élimination — c'était le seul travail
@@ -68,7 +68,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 93,75 j·h, dont **37,5 restants**
+## ① Jalon pilote — 94,25 j·h, dont **37,5 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -80,6 +80,7 @@ P0-005b                                (SSO Google)
 D-009 ✅ → P1-002b ✅ → P1-010 ✅ → P1-003b → P1-003c   (navigation, planning, coachs, réservation, pairs)
 D-011                                  (trois gestes de relecture du cache, à la prochaine passe appareil — non bloquant)
 D-010 ✅ arbitré et clos · D-012 ✅ fait  (le moteur du produit : rien de plus maintenant, et la façade crypto comptée)
+D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'il touche les mêmes fichiers)
 P1-004 → P1-005                        (annulation, temps réel)
 P1-007 → P1-006 → P1-008               (push, waitlist, check-in)
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
@@ -130,7 +131,8 @@ sait pas lui répondre.
 | P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
 | D-011   | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | à faire — à la prochaine passe appareil, non bloquant |
 | D-012   | Façade `crypto` et sondes de lint *(rétroactif)*  |    0,5 | ✅ fait le 4 sept. 2026 — écrit après coup pour que le total cesse d'être faux de 0,5 |
-|         | **Total ①**                                       | **93,75** | dont **56,25 faits**, **37,5 restants** |
+| D-013   | **RIG devient Rack** — le renommage, d'un seul geste |  0,5 | ✅ fait le 4 sept. 2026 — avant P1-003b, qui touche les mêmes fichiers. Reste la vérification du `scheme` sur appareil |
+|         | **Total ①**                                       | **94,25** | dont **56,75 faits**, **37,5 restants** |
 
 **Un demi-jour retrouvé, et pourquoi on l'écrit.** Le lot du 4 septembre —
 façade `crypto`, sondes, refonte de la configuration ESLint — n'apparaissait dans
@@ -250,6 +252,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-010  | Un filet qui s'exécute sur le moteur du produit | 0 | Plantage du 4 sept. 2026 — **✅ arbitré et clos le 4 sept.** : rien maintenant ; Maestro en local quand la passe manuelle dépassera dix minutes ; Maestro en CI jamais avant que le produit encaisse. Le quatrième défaut de la famille a été arrêté sur le papier, l'écran de diagnostic n'aurait pas fait mieux. Ce que la décision **accepte de ne pas couvrir** est écrit dans le ticket |
 | D-011  | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | P1-002b — **comptée dans ①**, à faire à la prochaine passe appareil |
 | D-012  | Façade `crypto` et sondes de lint *(rétroactif)* | 0,5 | Revue du 4 sept. 2026 — **✅ fait**, et **comptée dans ①** : le travail existait sans figurer dans aucun total |
+| D-013  | RIG devient Rack                               | 0,5 | Décision produit du 4 sept. 2026 — **✅ fait**, **comptée dans ①**. Fait avant P1-003b : `bundleIdentifier` définitif après la première soumission, clés de stockage gratuites à renommer tant qu'aucune app n'est installée |
 |        | **Ouvert, hors totaux**                        | **5,75** | D-002, D-003, D-007, D-008 — D-004, D-011 et D-012 sont dans ①, D-010 est clos |
 
 Ces 5,75 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :

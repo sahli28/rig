@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { Image, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useTheme } from '@rig/ui/theme';
-import { useI18n } from '@rig/ui/i18n';
-import { Banner, Button } from '@rig/ui/native';
+import { useTheme } from '@rack/ui/theme';
+import { useI18n } from '@rack/ui/i18n';
+import { Banner, Button } from '@rack/ui/native';
 import { useBrand } from '../../lib/brand';
 
 /**
@@ -19,7 +19,7 @@ import { useBrand } from '../../lib/brand';
  * - un **slug**, forme historique conservée pour les liens déjà distribués.
  *
  * Sans l'un ni l'autre — ouverture à froid, app téléchargée sans lien — le thème
- * RIG neutre s'applique et la marque de la box arrive après `me()`.
+ * Rack neutre s'applique et la marque de la box arrive après `me()`.
  */
 export default function WelcomeScreen() {
   const theme = useTheme();

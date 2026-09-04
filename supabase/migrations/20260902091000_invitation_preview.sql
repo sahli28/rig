@@ -18,7 +18,7 @@
 
 -- Les sept premières colonnes reprennent **exactement** la forme de
 -- `tenant_public_profile()`, pour que `brandFromPublicProfile()` de
--- `@rig/ui/theme` se réutilise tel quel plutôt que d'avoir une seconde
+-- `@rack/ui/theme` se réutilise tel quel plutôt que d'avoir une seconde
 -- conversion à tenir.
 --
 -- **Zéro ligne** pour un jeton inconnu, expiré, déjà consommé, révoqué, ou dont

@@ -13,8 +13,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { fetchMe, findMembershipBySlug, importMembers } from '@rig/core/supabase';
-import { ImportRowSchema, MAX_IMPORT_ROWS, errorMessageKeyOf } from '@rig/core';
+import { fetchMe, findMembershipBySlug, importMembers } from '@rack/core/supabase';
+import { ImportRowSchema, MAX_IMPORT_ROWS, errorMessageKeyOf } from '@rack/core';
 import { serverClient } from '../../../../lib/supabase/server';
 import type { ImportState } from './import-state';
 

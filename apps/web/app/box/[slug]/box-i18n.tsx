@@ -1,8 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { I18nProvider } from '@rig/ui/i18n';
-import { resolveLocale } from '@rig/core';
+import { I18nProvider } from '@rack/ui/i18n';
+import { resolveLocale } from '@rack/core';
 import { useWebSession } from '../../../lib/session';
 import { useLocaleStorage } from '../../../lib/use-locale-storage';
 

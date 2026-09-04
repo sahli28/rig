@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useI18n } from '@rig/ui/i18n';
-import type { TranslationKey } from '@rig/core';
+import { useI18n } from '@rack/ui/i18n';
+import type { TranslationKey } from '@rack/core';
 import { browserClient } from '../../../lib/supabase/client';
 import styles from './notice.module.css';
 

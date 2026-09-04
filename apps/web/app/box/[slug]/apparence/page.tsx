@@ -3,7 +3,7 @@ import {
   fetchMe,
   findMembershipBySlug,
   tenantScope,
-} from '@rig/core/supabase';
+} from '@rack/core/supabase';
 import { serverClient } from '../../../../lib/supabase/server';
 import { Notice } from '../notice';
 import { AppearanceForm } from './appearance-form';

@@ -11,7 +11,7 @@
  *
  * 1. **ce qui entre** est décidé par la forme de `DaySchedule` : créneaux,
  *    capacité, compteur, type de cours, salle. Jamais d'adresse, jamais un
- *    inscrit, jamais un jeton. La forme est dans `@rig/core` pour que l'ajout
+ *    inscrit, jamais un jeton. La forme est dans `@rack/core` pour que l'ajout
  *    d'un champ soit une décision visible, pas un `select *` qui déborde ;
  * 2. **la clé est `(utilisateur, box, jour)`.** Une clé par box seule ferait
  *    voir à deux membres d'un téléphone partagé les données l'un de l'autre ;
@@ -25,10 +25,10 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DayScheduleSchema, type DaySchedule } from '@rig/core/supabase';
+import { DayScheduleSchema, type DaySchedule } from '@rack/core/supabase';
 
 /** Préfixe commun : c'est lui qui rend l'effacement complet possible. */
-const PREFIX = 'rig.schedule.';
+const PREFIX = 'rack.schedule.';
 
 function keyFor(userId: string, tenantId: string, date: string): string {
   return `${PREFIX}${userId}.${tenantId}.${date}`;

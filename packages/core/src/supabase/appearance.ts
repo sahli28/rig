@@ -16,7 +16,7 @@ import { z } from 'zod';
  * Polices proposées.
  *
  * Une liste, pas un champ libre : une famille arbitraire ne se charge pas,
- * `--rig-font-family` retombe sur `system-ui`, et la box croirait avoir changé
+ * `--rack-font-family` retombe sur `system-ui`, et la box croirait avoir changé
  * quelque chose. Celles-ci sont présentes sur les systèmes courants ou se
  * dégradent sur une famille générique du même genre.
  *
@@ -53,8 +53,8 @@ export function fontOptions(current: string): string[] {
  * qu'une jointure interne sur `themes` nous a déjà coûté un défaut (P1-001c),
  * et qu'on ne suppose plus que la ligne est là.
  *
- * À ne pas confondre avec `DEFAULT_BRAND.primary` de `@rig/ui/theme`, qui est
- * la couleur de **RIG** avant qu'une box soit résolue. Deux concepts, deux
+ * À ne pas confondre avec `DEFAULT_BRAND.primary` de `@rack/ui/theme`, qui est
+ * la couleur de **Rack** avant qu'une box soit résolue. Deux concepts, deux
  * valeurs — c'était tout l'objet de la migration qui les a séparés.
  */
 export const UNCONFIGURED_BOX_PRIMARY = '#4A5568';

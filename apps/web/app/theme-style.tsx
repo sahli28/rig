@@ -1,10 +1,10 @@
-import { buildTheme, themeToCssRule, DEFAULT_BRAND, type TenantBrand } from '@rig/ui/theme';
+import { buildTheme, themeToCssRule, DEFAULT_BRAND, type TenantBrand } from '@rack/ui/theme';
 
 /**
  * Injecte le thème de la box en variables CSS, côté serveur.
  *
  * Le web n'utilise pas le kit React Native (spec §12.2) mais il porte
- * exactement les mêmes couleurs : `@rig/ui/theme` reste la seule source de
+ * exactement les mêmes couleurs : `@rack/ui/theme` reste la seule source de
  * vérité du white-label. Rendu en SSR pour éviter tout flash de thème.
  */
 export function ThemeStyle({ brand = DEFAULT_BRAND }: { brand?: TenantBrand }) {

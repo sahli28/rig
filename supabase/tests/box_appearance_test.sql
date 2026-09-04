@@ -24,7 +24,7 @@ select lives_ok(
   'une box se crée'
 );
 
--- `#E4572E` est la couleur de **RIG**, pas celle d'une box qui vient de naître.
+-- `#E4572E` est la couleur de **Rack**, pas celle d'une box qui vient de naître.
 -- Les deux ont partagé le même littéral jusqu'ici, ce qui rendait impossible de
 -- distinguer « la plateforme faute de box » de « cette box, au défaut ».
 select isnt(

@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import type { RigClient } from './client';
+import type { RackClient } from './client';
 import { Constants } from './types.gen';
 
 /**
@@ -37,7 +37,7 @@ export const MembershipSchema = z.object({
   joined_at: Timestamp,
 });
 
-/** Thème de la box active. Alimente les tokens de `@rig/ui/theme`, sans exception. */
+/** Thème de la box active. Alimente les tokens de `@rack/ui/theme`, sans exception. */
 export const TenantThemeSchema = z.object({
   app_name: z.string(),
   logo_url: z.string().nullable(),
@@ -149,7 +149,7 @@ export function chooseActiveTenant(
  * L'erreur PostgREST est relancée telle quelle : elle porte le code applicatif
  * dans `details`, que `errorMessageKeyOf` sait traduire.
  */
-export async function fetchMe(client: RigClient, tenantId?: string | null): Promise<Me> {
+export async function fetchMe(client: RackClient, tenantId?: string | null): Promise<Me> {
   const { data, error } = await client.rpc('me', tenantId ? { p_tenant_id: tenantId } : {});
   if (error) throw error;
   return MeSchema.parse(data);

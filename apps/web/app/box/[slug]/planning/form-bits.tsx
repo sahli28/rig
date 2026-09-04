@@ -1,7 +1,7 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
-import { useI18n } from '@rig/ui/i18n';
+import { useI18n } from '@rack/ui/i18n';
 import styles from './planning.module.css';
 import type { ActionState } from './action-state';
 

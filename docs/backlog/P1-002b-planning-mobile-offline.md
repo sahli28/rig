@@ -14,14 +14,14 @@ Vérifié dans le dépôt le 4 septembre 2026.
 
 | Prérequis | Où il vit | État |
 | --------- | --------- | ---- |
-| `classes` matérialisées, lisibles par un simple membre | P1-002 — policy `classes_select` sur `current_tenant_ids()` | ✅ existe. `pg_cron` entretient l'horizon (`rig-maintain-class-occurrences`, 00 h 05) : le planning ne s'arrête pas parce que personne n'a touché le back-office |
+| `classes` matérialisées, lisibles par un simple membre | P1-002 — policy `classes_select` sur `current_tenant_ids()` | ✅ existe. `pg_cron` entretient l'horizon (`rack-maintain-class-occurrences`, 00 h 05) : le planning ne s'arrête pas parce que personne n'a touché le back-office |
 | Types de cours, salles, coachs | P1-001b, P1-001c | ✅ existent, avec `name_i18n` et une couleur par type |
 | L'app mobile ayant tourné sur un appareil | passes des 3 et 4 septembre 2026 | ✅ — et **ça se périme**. `docs/passe-mobile-iphone.md` |
 | La langue de l'app | D-004 | ✅ livrée, vérifiée sur appareil le 4 septembre |
 | `me()` — identité, appartenances, fuseau et thème de la box | P0-005a | ✅ existe. Nécessaire pour partitionner le cache **et** pour afficher les heures en heure locale de la box (règle 9) |
-| Helpers de semaine et de date : `weekDates`, `mondayOf`, `shiftWeeks`, `isCalendarDate` | `@rig/core/supabase/class-schedules.ts` | ✅ existent, testés (61 tests) |
+| Helpers de semaine et de date : `weekDates`, `mondayOf`, `shiftWeeks`, `isCalendarDate` | `@rack/core/supabase/class-schedules.ts` | ✅ existent, testés (61 tests) |
 | `groupByDay()`, `localDayIn()` — ranger des occurrences dans les jours **du fuseau de la box** | `apps/web/app/box/[slug]/planning/view-model.ts` | ⚠️ **existent, au mauvais endroit.** Fonctions pures, enfermées dans un dossier d'app web. Voir la contrainte 3 |
-| Composants natifs : liste, filtres, état vide, squelette | `@rig/ui/native` — `ListRow`, `SegmentedControl`, `EmptyState`, `Skeleton`, `Badge`, `Banner` | ✅ existent |
+| Composants natifs : liste, filtres, état vide, squelette | `@rack/ui/native` — `ListRow`, `SegmentedControl`, `EmptyState`, `Skeleton`, `Badge`, `Banner` | ✅ existent |
 | **Stockage persistant React Native** | `apps/mobile` | ❌ à ajouter : `@react-native-async-storage/async-storage`, dépendance à justifier au commit. **Vérifié le 3 septembre 2026 : incluse dans Expo Go (SDK 57)** — aucun development build, donc aucun compte Apple payant. Installer avec `npx expo install`, qui pose la version du binaire (`2.2.0`) |
 | **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** | ✅ fait et fusionné (PR #23). L'écran déclare son en-tête et son titre traduit, comme la convention l'exige |
 | **Une source du nom du coach, lisible par un membre** | **P1-010** | ✅ livrée depuis — `tenant_coaches`. Elle **n'existait pas** quand ce ticket a été écrit, et il l'avait supposée. `users` est en `id = auth.uid()`, `memberships` ne porte aucun nom, et `member_admin_directory` est réservée à OWNER/MANAGER — elle porte les e-mails. Le planning est donc livré **sans la dimension coach** ; P1-010 la rend possible |
@@ -36,7 +36,7 @@ Vérifié dans le dépôt le 4 septembre 2026.
 | --------------- | ---------- | ------ |
 | Écran Planning mobile | le membre | celui-ci |
 | Le cache partitionné, et son effacement | l'écran Planning ; **P1-009** l'effacera aussi au changement de box | celui-ci, P1-009 |
-| Le modèle de vue du planning, descendu dans `@rig/core` | la grille web **et** la liste mobile | celui-ci |
+| Le modèle de vue du planning, descendu dans `@rack/core` | la grille web **et** la liste mobile | celui-ci |
 | L'entrée vers le détail d'un cours | l'écran de réservation | **P1-003b** |
 
 ## Contrainte 1 — ce que le cache a le droit de contenir
@@ -110,7 +110,7 @@ diverger, et la divergence serait silencieuse : les deux écrans afficheraient
 quelque chose de plausible. C'est `isCalendarDate` en plus gros — une règle de
 date dupliquée qui ne se corrige que d'un côté.
 
-**Ce qui descend dans `@rig/core`** : `groupByDay`, `localDayIn`, `localDay`,
+**Ce qui descend dans `@rack/core`** : `groupByDay`, `localDayIn`, `localDay`,
 `instantLocal`, et les types `Occurrence` / `Serie`. Aucune de ces fonctions ne
 touche React ni une plateforme, et elles ont déjà leurs tests.
 
@@ -131,7 +131,7 @@ ne se fera jamais.
 - Réseau prioritaire ; repli sur le cache **seulement** en cas d'échec réseau,
   jamais pour économiser une requête.
 - Effacement du cache à la déconnexion.
-- Le modèle de vue descendu dans `@rig/core`, web réaligné.
+- Le modèle de vue descendu dans `@rack/core`, web réaligné.
 
 ## Hors périmètre
 
@@ -180,7 +180,7 @@ déconnexion.
       relecture du 4 septembre 2026 l'a trouvé et son critère est écrit depuis
 - [ ] Le contenu du cache est relu à la main après une session : aucune adresse
       e-mail, aucun nom de participant, aucun jeton. La **forme** l'interdit
-      déjà (`DayClass` dans `@rig/core`), la relecture le confirme sur appareil.
+      déjà (`DayClass` dans `@rack/core`), la relecture le confirme sur appareil.
       **Reporté en D-011** — geste non exercé le 4 septembre
 - [ ] Deux membres et deux boxes sur le même téléphone ne partagent jamais leur
       cache — la clé est `(utilisateur, box, jour)` ; **à exercer avec deux
@@ -218,7 +218,7 @@ déconnexion.
 - [x] Une déconnexion supprime les caches du compte local — `clearScheduleCache()`
       appelée dans `signOut()`, à côté de l'effacement de la langue
 - [x] `groupByDay` et ses voisines n'existent qu'à **un** endroit —
-      `view-model.ts` a disparu, le web importe `@rig/core/supabase`, et
+      `view-model.ts` a disparu, le web importe `@rack/core/supabase`, et
       `next build` est vert
 - [x] Un appareil réel exerce le parcours — passe iPhone du **4 septembre 2026**. Le planning se rend, les
       deux filtres fonctionnent, VoiceOver annonce les lignes correctement, et le

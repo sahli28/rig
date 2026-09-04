@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { useNetworkState } from 'expo-network';
-import { useTheme } from '@rig/ui/theme';
-import { useI18n } from '@rig/ui/i18n';
-import { Badge, Banner, Button, EmptyState, ListRow, Select, Skeleton } from '@rig/ui/native';
-import { fetchDaySchedule, localDay, seatsLeft, shiftDays } from '@rig/core/supabase';
-import type { DayClass, DaySchedule } from '@rig/core/supabase';
+import { useTheme } from '@rack/ui/theme';
+import { useI18n } from '@rack/ui/i18n';
+import { Badge, Banner, Button, EmptyState, ListRow, Select, Skeleton } from '@rack/ui/native';
+import { fetchDaySchedule, localDay, seatsLeft, shiftDays } from '@rack/core/supabase';
+import type { DayClass, DaySchedule } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
 import { readDay, writeDay, type ScheduleOrigin } from '../../lib/schedule-cache';
@@ -16,7 +16,7 @@ import { readDay, writeDay, type ScheduleOrigin } from '../../lib/schedule-cache
  *
  * **Une liste, pas une grille.** Le back-office a sept colonnes parce qu'on y
  * conçoit une semaine à la souris ; ici on consulte un jour au pouce. Le modèle
- * de vue est partagé (`@rig/core/supabase/planning.ts`), la présentation ne
+ * de vue est partagé (`@rack/core/supabase/planning.ts`), la présentation ne
  * l'est pas — et il ne faut pas essayer d'en faire une seule.
  *
  * **Le cache ne fait jamais autorité sur une place.** Hors ligne, l'écran

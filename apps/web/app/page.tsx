@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useI18n } from '@rig/ui/i18n';
+import { useI18n } from '@rack/ui/i18n';
 import { LanguageSwitcher } from './language-switcher';
 import { PendingBanner } from './pending-banner';
 
@@ -15,8 +15,8 @@ export default function HomePage() {
 
   return (
     <main style={{ maxWidth: 880, margin: '0 auto', padding: 24 }}>
-      <h1 style={{ fontSize: 'var(--rig-text-display)' }}>RIG</h1>
-      <p style={{ color: 'var(--rig-color-text-muted)' }}>{t('home.placeholder_web')}</p>
+      <h1 style={{ fontSize: 'var(--rack-text-display)' }}>Rack</h1>
+      <p style={{ color: 'var(--rack-color-text-muted)' }}>{t('home.placeholder_web')}</p>
       <PendingBanner />
       <LanguageSwitcher />
       <p>

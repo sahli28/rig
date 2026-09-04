@@ -18,7 +18,7 @@ données.
 C'est la décision qui structure ce ticket, et elle ne coûte rien aujourd'hui.
 
 Un programme appartient soit à une box (« Cycle Force Automne » chez CrossFit
-Lyon 7), soit à **la plateforme** — un programme RIG, un programme vendu par un
+Lyon 7), soit à **la plateforme** — un programme Rack, un programme vendu par un
 coach en marketplace (S11), un programme suivi par quelqu'un qui n'est membre
 d'aucune box. Ce dernier cas est le B2C, et il n'est pas au programme. Mais si
 `tenant_id` est `not null` en 2026, l'ouvrir en 2028 veut dire migrer une table
@@ -46,7 +46,7 @@ Ce ticket ajoute une **huitième vérification** et sa liste d'exceptions :
 
     create temporary table tenant_id_nullable_exempt (table_name text primary key, reason text);
     insert into tenant_id_nullable_exempt values
-      ('consents', 'consentement plateforme (CGU RIG) vs consentement de box'),
+      ('consents', 'consentement plateforme (CGU Rack) vs consentement de box'),
       ('programs', 'programme de plateforme ou de marketplace vs programme de box');
 
 Le contrôle : toute table hors de cette liste a `tenant_id not null`. Une

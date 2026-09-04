@@ -1,8 +1,8 @@
 /**
- * Point d'entrée `@rig/ui/native` — kit de composants React Native.
+ * Point d'entrée `@rack/ui/native` — kit de composants React Native.
  *
  * Réservé à `apps/mobile`. Le web consomme les mêmes tokens via
- * `@rig/ui/theme` et ses variables CSS, sans embarquer React Native
+ * `@rack/ui/theme` et ses variables CSS, sans embarquer React Native
  * (cf. spec §12.2 : sur le web, on s'appuie sur une base accessible existante).
  */
 

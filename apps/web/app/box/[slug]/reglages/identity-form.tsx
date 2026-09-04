@@ -1,9 +1,9 @@
 'use client';
 
 import { useActionState } from 'react';
-import { useI18n } from '@rig/ui/i18n';
-import { LOCALES } from '@rig/core';
-import { timeZoneOptions } from '@rig/core/supabase';
+import { useI18n } from '@rack/ui/i18n';
+import { LOCALES } from '@rack/core';
+import { timeZoneOptions } from '@rack/core/supabase';
 import styles from './reglages.module.css';
 import { Feedback, SubmitButton } from './form-bits';
 import { saveIdentity } from './actions';

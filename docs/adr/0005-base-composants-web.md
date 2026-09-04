@@ -12,7 +12,7 @@ P1-001a construit le premier écran web réel — la porte du back-office. La
 décision se prend maintenant, ou se subit au milieu d'un ticket, sous la pression
 d'un `<Select>` accessible à livrer.
 
-La contrainte qui tranche est celle de l'ADR 0003 : **`@rig/ui/theme` est la
+La contrainte qui tranche est celle de l'ADR 0003 : **`@rack/ui/theme` est la
 seule source de vérité des couleurs**, injectée en variables CSS par
 `themeToCssRule()`. C'est ce qui fait tenir la promesse white-label — changer la
 couleur d'une box dans un seul objet repeint toute l'app, correction de contraste
@@ -28,7 +28,7 @@ exactement ce que la spec §12.2 dit de ne jamais recoder en solo, et rien de pl
 
 Les styles vivent dans des fichiers `.module.css` à côté de leur composant, et
 **toute** valeur de couleur, de rayon, de typographie ou de cible tactile vient
-d'une variable `--rig-*`. Aucune valeur littérale, aucune seconde convention.
+d'une variable `--rack-*`. Aucune valeur littérale, aucune seconde convention.
 
 Les paquets Radix s'installent **un par un, à l'usage**, chacun justifié dans son
 commit. La coquille en a demandé un seul, `@radix-ui/react-dropdown-menu`.
@@ -38,7 +38,7 @@ commit. La coquille en a demandé un seul, `@radix-ui/react-dropdown-menu`.
 **shadcn/ui.** Tentant — des composants déjà stylés, sur Radix, en code copié
 donc modifiable. Écarté pour une seule raison, mais décisive : il apporte
 **Tailwind**, et donc un second système de thème en parallèle de
-`@rig/ui/theme`. Deux endroits où une couleur peut être définie, c'est la
+`@rack/ui/theme`. Deux endroits où une couleur peut être définie, c'est la
 promesse white-label qui se casse — et elle se casserait silencieusement, un
 `bg-slate-100` à la fois.
 

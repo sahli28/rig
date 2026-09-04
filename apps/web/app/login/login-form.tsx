@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { z } from 'zod';
-import { useI18n } from '@rig/ui/i18n';
-import { errorMessageKeyOf, type TranslationKey } from '@rig/core';
+import { useI18n } from '@rack/ui/i18n';
+import { errorMessageKeyOf, type TranslationKey } from '@rack/core';
 import { browserClient } from '../../lib/supabase/client';
 import { supabaseConfigured } from '../../lib/supabase/config';
 import styles from './login.module.css';

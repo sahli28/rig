@@ -1,6 +1,6 @@
 /**
- * Point d'entrée `@rig/ui/i18n` — liant React de l'i18n.
- * Le moteur pur reste dans `@rig/core`.
+ * Point d'entrée `@rack/ui/i18n` — liant React de l'i18n.
+ * Le moteur pur reste dans `@rack/core`.
  */
 export {
   I18nProvider,

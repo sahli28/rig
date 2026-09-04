@@ -17,26 +17,26 @@
   flex-direction: column;
   gap: 16px;
   padding: 32px;
-  background: var(--rig-color-surface-2);
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-lg);
+  background: var(--rack-color-surface-2);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-lg);
 }
 
 .title {
   margin: 0;
-  font-size: var(--rig-text-display);
+  font-size: var(--rack-text-display);
   font-weight: 700;
 }
 
 .subtitle {
   margin: 0;
-  font-size: var(--rig-text-title);
+  font-size: var(--rack-text-title);
   font-weight: 700;
 }
 
 .muted {
   margin: 0;
-  color: var(--rig-color-text-muted);
+  color: var(--rack-color-text-muted);
 }
 
 .form {
@@ -46,32 +46,32 @@
 }
 
 .label {
-  font-size: var(--rig-text-small);
+  font-size: var(--rack-text-small);
   font-weight: 500;
 }
 
 .input {
   padding: 12px;
-  min-height: var(--rig-touch-target);
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
-  background: var(--rig-color-surface);
-  color: var(--rig-color-text);
+  min-height: var(--rack-touch-target);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-surface);
+  color: var(--rack-color-text);
   font: inherit;
 }
 
 .hint {
   margin: 0;
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-small);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-small);
 }
 
 .primary {
   margin-top: 8px;
   border: none;
   padding: 12px 16px;
-  background: var(--rig-color-primary);
-  color: var(--rig-color-on-primary);
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
   font-weight: 600;
 }
 
@@ -81,9 +81,9 @@
 }
 
 .ghost {
-  border: 1px solid var(--rig-color-border);
+  border: 1px solid var(--rack-color-border);
   background: transparent;
-  color: var(--rig-color-text);
+  color: var(--rack-color-text);
   padding: 12px 16px;
 }
 
@@ -95,7 +95,7 @@
 .error {
   margin: 0;
   padding: 12px;
-  border-left: 4px solid var(--rig-color-danger);
-  background: var(--rig-color-surface);
-  border-radius: var(--rig-radius-md);
+  border-left: 4px solid var(--rack-color-danger);
+  background: var(--rack-color-surface);
+  border-radius: var(--rack-radius-md);
 }

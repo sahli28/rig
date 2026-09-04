@@ -7,20 +7,20 @@
 }
 
 .card {
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-lg);
-  background: var(--rig-color-surface-2);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-lg);
+  background: var(--rack-color-surface-2);
   padding: 20px;
 }
 
 .cardTitle {
-  font-size: var(--rig-text-title);
+  font-size: var(--rack-text-title);
   margin: 0 0 4px;
 }
 
 .help {
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
   margin: 0 0 16px;
 }
 
@@ -39,20 +39,20 @@
 }
 
 .label {
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-text-muted);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-text-muted);
 }
 
 .input,
 .select {
-  min-height: var(--rig-touch-target);
+  min-height: var(--rack-touch-target);
   padding: 8px 12px;
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
-  background: var(--rig-color-surface);
-  color: var(--rig-color-text);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-surface);
+  color: var(--rack-color-text);
   font-family: inherit;
-  font-size: var(--rig-text-body);
+  font-size: var(--rack-text-body);
   width: 100%;
 }
 
@@ -71,9 +71,9 @@
   align-items: center;
   flex-wrap: wrap;
   padding: 10px 12px;
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-md);
-  background: var(--rig-color-surface);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-surface);
 }
 
 .rowMain {
@@ -82,17 +82,17 @@
 }
 
 .rowMeta {
-  color: var(--rig-color-text-muted);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
 }
 
 /* Le statut n'est pas porté par la couleur : c'est un mot. */
 .badge {
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-full);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-full);
   padding: 2px 10px;
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-text-muted);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-text-muted);
 }
 
 .inline {
@@ -104,38 +104,38 @@
 .primary {
   border: 0;
   padding: 10px 18px;
-  background: var(--rig-color-primary);
-  color: var(--rig-color-on-primary);
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
   font-weight: 600;
 }
 
 .ghost {
-  border: 1px solid var(--rig-color-border);
+  border: 1px solid var(--rack-color-border);
   background: transparent;
-  color: var(--rig-color-text);
+  color: var(--rack-color-text);
   padding: 8px 14px;
 }
 
 .danger {
-  border: 1px solid var(--rig-color-danger);
+  border: 1px solid var(--rack-color-danger);
   background: transparent;
-  color: var(--rig-color-danger);
+  color: var(--rack-color-danger);
   padding: 8px 14px;
 }
 
 .empty {
-  color: var(--rig-color-text-muted);
+  color: var(--rack-color-text-muted);
   margin: 0 0 16px;
 }
 
 .feedback {
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-success);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-success);
 }
 
 .error {
-  font-size: var(--rig-text-caption);
-  color: var(--rig-color-danger);
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-danger);
 }
 
 /* --- Le lien d'invitation, montré une seule fois ------------------------- */
@@ -143,9 +143,9 @@
 .issued {
   margin-top: 16px;
   padding: 14px;
-  border: 1px solid var(--rig-color-warning);
-  border-radius: var(--rig-radius-md);
-  background: var(--rig-color-surface);
+  border: 1px solid var(--rack-color-warning);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-surface);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -154,15 +154,15 @@
 
 .warning {
   margin: 0;
-  color: var(--rig-color-warning);
-  font-size: var(--rig-text-caption);
+  color: var(--rack-color-warning);
+  font-size: var(--rack-text-caption);
 }
 
 .token {
   font-family: ui-monospace, monospace;
-  font-size: var(--rig-text-small);
+  font-size: var(--rack-text-small);
   word-break: break-all;
-  color: var(--rig-color-text);
+  color: var(--rack-color-text);
 }
 
 /* --- Boîte de confirmation Radix ---------------------------------------- */
@@ -170,7 +170,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: var(--rig-color-overlay);
+  background: var(--rack-color-overlay);
 }
 
 .dialog {
@@ -180,9 +180,9 @@
   transform: translate(-50%, -50%);
   width: min(440px, calc(100vw - 32px));
   padding: 20px;
-  border: 1px solid var(--rig-color-border);
-  border-radius: var(--rig-radius-lg);
-  background: var(--rig-color-surface-2);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-lg);
+  background: var(--rack-color-surface-2);
 }
 
 .dialogActions {

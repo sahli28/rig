@@ -4,18 +4,18 @@
  * D-004 — la langue, côté web.
  *
  * Le **rang 1** : la préférence de ce navigateur, et sa remontée dans
- * `users.locale`. La règle des quatre rangs, elle, est dans `@rig/core`
+ * `users.locale`. La règle des quatre rangs, elle, est dans `@rack/core`
  * (`resolve-locale.ts`), pure et testée.
  */
 
 import { useMemo, useRef } from 'react';
-import type { LocaleStorage } from '@rig/ui/i18n';
-import type { Locale } from '@rig/core';
-import { updateLocale } from '@rig/core/supabase';
+import type { LocaleStorage } from '@rack/ui/i18n';
+import type { Locale } from '@rack/core';
+import { updateLocale } from '@rack/core/supabase';
 import { browserClient } from './supabase/client';
 import { supabaseConfigured } from './supabase/config';
 
-const STORAGE_KEY = 'rig.locale';
+const STORAGE_KEY = 'rack.locale';
 
 /**
  * L'adaptateur de stockage à passer à `I18nProvider`.

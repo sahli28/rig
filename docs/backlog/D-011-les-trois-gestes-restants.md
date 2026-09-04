@@ -25,7 +25,7 @@ exactement le faux vert que le dépôt passe son temps à traquer.
 | Un second membre dans la même box | `supabase/seed.sql:28` — `sarah@example.com` | ✅ existe |
 | Un membre appartenant à **deux** boxes | `supabase/seed.sql:140` — `julie@example.com` | ✅ existe en base |
 | **De quoi changer de box depuis le mobile** | sélecteur de box | ❌ **P1-009** — donc la moitié « deux boxes » du geste ne se fait pas encore, voir Hors périmètre |
-| Un moyen de lire `AsyncStorage` à la main | console du débogueur JS d'Expo Go, ou harnais web où `AsyncStorage` retombe sur `localStorage` (`pnpm --filter @rig/mobile web`) | ⚠️ existe, jamais utilisé pour ça — c'est la seule inconnue de méthode du ticket |
+| Un moyen de lire `AsyncStorage` à la main | console du débogueur JS d'Expo Go, ou harnais web où `AsyncStorage` retombe sur `localStorage` (`pnpm --filter @rack/mobile web`) | ⚠️ existe, jamais utilisé pour ça — c'est la seule inconnue de méthode du ticket |
 
 ## Ce que ce ticket rend possible, et qui l'appellera
 
@@ -43,7 +43,7 @@ extension de périmètre autorisée.
   qui ne se confond avec rien), rouvrir le planning : les heures restent celles
   de la box. Le calcul a douze tests, son effet à l'écran n'en a aucun.
 - **Le contenu du cache.** Après une session normale, lire les valeurs sous le
-  préfixe `rig.schedule.` : aucune adresse e-mail, aucun nom d'inscrit, aucun
+  préfixe `rack.schedule.` : aucune adresse e-mail, aucun nom d'inscrit, aucun
   jeton. La forme (`DaySchedule`) l'interdit déjà — c'est la relecture qui le
   prouve.
 - **Ce qui reste du compte précédent.** Se connecter en `lea@example.com`,
@@ -62,7 +62,7 @@ extension de périmètre autorisée.
 ## Critères d'acceptation
 
 - [ ] Le fuseau du téléphone est changé et les heures affichées ne bougent pas
-- [ ] Les valeurs sous `rig.schedule.` sont relues à la main et ne contiennent
+- [ ] Les valeurs sous `rack.schedule.` sont relues à la main et ne contiennent
       ni adresse, ni nom d'inscrit, ni jeton
 - [ ] Un second compte arrive **sans déconnexion préalable** et ne voit rien du
       premier

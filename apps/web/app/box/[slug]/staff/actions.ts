@@ -19,9 +19,9 @@ import {
   removeMember,
   setMemberRole,
   tenantScope,
-  type RigClient,
-} from '@rig/core/supabase';
-import { errorMessageKeyOf } from '@rig/core';
+  type RackClient,
+} from '@rack/core/supabase';
+import { errorMessageKeyOf } from '@rack/core';
 import { serverClient } from '../../../../lib/supabase/server';
 import type { ActionState } from './action-state';
 
@@ -32,7 +32,7 @@ const RoleSchema = z.enum(MEMBERSHIP_ROLES);
 const IdSchema = z.string().uuid();
 const EmailSchema = z.string().trim().email();
 
-type Contexte = { client: RigClient; tenantId: string; role: string };
+type Contexte = { client: RackClient; tenantId: string; role: string };
 
 /** Box et rôle redérivés de la session, jamais reçus du formulaire. */
 async function contexte(slug: string): Promise<Contexte | null> {

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useI18n } from '@rig/ui/i18n';
-import { fetchPendingInvitations } from '@rig/core/supabase';
+import { useI18n } from '@rack/ui/i18n';
+import { fetchPendingInvitations } from '@rack/core/supabase';
 import { browserClient } from '../lib/supabase/client';
 import { supabaseConfigured } from '../lib/supabase/config';
 import { useWebSession } from '../lib/session';

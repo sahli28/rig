@@ -34,7 +34,7 @@ const PAS_DE_FROM_DIRECT = {
   selector:
     "CallExpression[callee.object.name!='Array'][callee.property.name='from'][arguments.0.type='Literal']:not([arguments.0.value=/^(users|devices|processed_webhook_events)$/])",
   message:
-    'Accès direct à une table de box : la RLS ne vous garde pas dans la box active. Passez par `tenantScope()` de @rig/core/supabase, ou ajoutez la fonction manquante dans packages/core/src/supabase/. Voir .claude/rules/api.md.',
+    'Accès direct à une table de box : la RLS ne vous garde pas dans la box active. Passez par `tenantScope()` de @rack/core/supabase, ou ajoutez la fonction manquante dans packages/core/src/supabase/. Voir .claude/rules/api.md.',
 };
 
 /**
@@ -102,7 +102,7 @@ const PAS_DE_CRYPTO = {
 const PAS_D_IMPORT_EXPO_CRYPTO = {
   name: 'expo-crypto',
   message:
-    "`expo-crypto` ne s'importe que là où l'app installe sa source d'aléa (`installRandomBytesSource()`, au démarrage). Partout ailleurs, passez par `uuidV7()` de @rig/core : `Crypto.randomUUID()` rend un v4 et court-circuite la façade sans qu'aucun interdit de global ne le voie.",
+    "`expo-crypto` ne s'importe que là où l'app installe sa source d'aléa (`installRandomBytesSource()`, au démarrage). Partout ailleurs, passez par `uuidV7()` de @rack/core : `Crypto.randomUUID()` rend un v4 et court-circuite la façade sans qu'aucun interdit de global ne le voie.",
 };
 
 export default tseslint.config(

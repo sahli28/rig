@@ -1,5 +1,5 @@
 {
-  "name": "@rig/mobile",
+  "name": "@rack/mobile",
   "version": "0.0.0",
   "private": true,
   "main": "expo-router/entry",
@@ -14,8 +14,8 @@
   "dependencies": {
     "@expo/metro-runtime": "~57.0.15",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "@rig/core": "workspace:*",
-    "@rig/ui": "workspace:*",
+    "@rack/core": "workspace:*",
+    "@rack/ui": "workspace:*",
     "@supabase/supabase-js": "^2.112.4",
     "expo": "~57.0.18",
     "expo-constants": "~57.0.16",

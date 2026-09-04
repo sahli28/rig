@@ -6,7 +6,7 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "--filter",
-        "@rig/web",
+        "@rack/web",
         "dev"
       ],
       "port": 3000,
@@ -17,7 +17,7 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "--filter",
-        "@rig/mobile",
+        "@rack/mobile",
         "exec",
         "expo",
         "start",

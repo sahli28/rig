@@ -29,8 +29,8 @@ un chemin qu'on ne repasse jamais.
 | --------- | --------- | ---- |
 | `me().memberships` — toutes les appartenances actives | P0-005a | ✅ existe, déjà lu par l'écran d'accueil |
 | `setActiveTenant(tenantId)` — persiste et recharge `me()` | `lib/session.tsx:125` | ✅ existe, et **c'est l'appelant qui manque** |
-| `chooseActiveTenant()` — la préférence mémorisée | `@rig/core/supabase` | ✅ existe |
-| Un composant de liste sélectionnable | `@rig/ui/native` — `ListRow`, `Sheet` | ✅ existent tous les deux |
+| `chooseActiveTenant()` — la préférence mémorisée | `@rack/core/supabase` | ✅ existe |
+| Un composant de liste sélectionnable | `@rack/ui/native` — `ListRow`, `Sheet` | ✅ existent tous les deux |
 | Un endroit dans la navigation où loger l'entrée | `apps/mobile` | ⚠️ l'accueil n'a ni en-tête utile ni menu de compte. **Voir D-009** : l'en-tête de la pile est celui d'expo-router par défaut, et il faut d'abord le reprendre |
 | Le cache du planning, partitionné par box | P1-002b | ❌ n'existe pas encore — et **changer de box devra le vider** (contrainte inscrite dans P1-002b) |
 

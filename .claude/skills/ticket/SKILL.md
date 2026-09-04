@@ -11,7 +11,7 @@ Implémente le ticket **$0** du backlog.
 
 - Ouvre `docs/backlog/$0*.md`. Si aucun fichier ne correspond, liste les tickets
   disponibles et arrête-toi.
-- Lis les sections de `docs/spec/RIG-spec-produit-technique.md` que le ticket référence.
+- Lis les sections de `docs/spec/spec-produit-technique.md` que le ticket référence.
 - Relis les règles applicables dans `CLAUDE.md` et `.claude/rules/`.
 
 ## 2. Planifier — avant toute écriture

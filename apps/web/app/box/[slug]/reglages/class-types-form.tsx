@@ -1,8 +1,8 @@
 'use client';
 
 import { useActionState } from 'react';
-import { useI18n } from '@rig/ui/i18n';
-import { DEFAULT_CLASS_TYPE_COLOR, localizedText } from '@rig/core/supabase';
+import { useI18n } from '@rack/ui/i18n';
+import { DEFAULT_CLASS_TYPE_COLOR, localizedText } from '@rack/core/supabase';
 import styles from './reglages.module.css';
 import { Feedback, SubmitButton } from './form-bits';
 import { addClassType, archiveClassType, saveClassType } from './actions';

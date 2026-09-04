@@ -388,7 +388,7 @@ grant execute on function public.refresh_class_schedule(uuid, date, date) to aut
 -- processus Node qui peut s'arrêter entre deux déploiements.
 create extension if not exists pg_cron;
 select cron.schedule(
-  'rig-maintain-class-occurrences',
+  'rack-maintain-class-occurrences',
   '5 0 * * *',
   $$select public.maintain_class_occurrences();$$
 );

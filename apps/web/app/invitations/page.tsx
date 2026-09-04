@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { fetchPendingInvitations } from '@rig/core/supabase';
+import { fetchPendingInvitations } from '@rack/core/supabase';
 import { serverClient } from '../../lib/supabase/server';
 import { supabaseConfigured } from '../../lib/supabase/config';
 import { Notice } from '../box/[slug]/notice';

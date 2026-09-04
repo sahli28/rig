@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import Papa from 'papaparse';
-import { useI18n } from '@rig/ui/i18n';
+import { useI18n } from '@rack/ui/i18n';
 import {
   IMPORT_FIELDS,
   MAX_CSV_BYTES,
@@ -14,8 +14,8 @@ import {
   guessMapping,
   type ImportAnalysis,
   type ImportField,
-} from '@rig/core';
-import type { TranslationKey } from '@rig/core';
+} from '@rack/core';
+import type { TranslationKey } from '@rack/core';
 import styles from './membres.module.css';
 import { IDLE, type ImportState } from './import-state';
 import { runImport } from './actions';
@@ -36,7 +36,7 @@ const VERDICT_KEYS: Record<string, TranslationKey> = {
 };
 
 /** Ce que la correspondance mémorisée d'un import à l'autre occupe. */
-const STORAGE_KEY = 'rig.import.mapping';
+const STORAGE_KEY = 'rack.import.mapping';
 
 type Fichier = {
   nom: string;

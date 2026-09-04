@@ -83,8 +83,8 @@ const TENANT = 'dddddddd-0000-4000-8000-000000000001';
 const CLASS = 'dd000000-0000-4000-8000-000000000001';
 
 /** Les sessions de la ruée, et l'échantillonneur qui les compte. */
-const STAMPEDE_APP = 'rig-stampede';
-const SAMPLER_APP = 'rig-peak-sampler';
+const STAMPEDE_APP = 'rack-stampede';
+const SAMPLER_APP = 'rack-peak-sampler';
 
 /**
  * Un `psql` dans le conteneur. Le mot de passe n'entre jamais en jeu.
@@ -93,7 +93,7 @@ const SAMPLER_APP = 'rig-peak-sampler';
  * pose à l'ouverture de la connexion, donc avant la première instruction, et il
  * survit à l'échec de la transaction.
  */
-function psql(sql, { async: isAsync = false, appName = 'rig-harness' } = {}) {
+function psql(sql, { async: isAsync = false, appName = 'rack-harness' } = {}) {
   const args = [
     'exec',
     '-i',
@@ -284,7 +284,7 @@ function startPeakSampler(startAt) {
         exit when clock_timestamp() > v_deadline;
         perform pg_sleep(0.002);
       end loop;
-      raise notice 'RIG_PEAK=%', v_peak;
+      raise notice 'RACK_PEAK=%', v_peak;
     end $sampler$;
   `,
     { async: true, appName: SAMPLER_APP },
@@ -294,7 +294,7 @@ function startPeakSampler(startAt) {
     let err = '';
     child.stderr.on('data', (c) => (err += c));
     child.on('close', () => {
-      const found = /RIG_PEAK=([0-9]+)/.exec(err);
+      const found = /RACK_PEAK=([0-9]+)/.exec(err);
       resolve(found === null ? 0 : Number(found[1]));
     });
   });

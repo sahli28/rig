@@ -3,10 +3,10 @@
 import { useActionState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useI18n } from '@rig/ui/i18n';
+import { useI18n } from '@rack/ui/i18n';
 import { browserClient } from '../../../lib/supabase/client';
-import type { InvitationPreview } from '@rig/core/supabase';
-import type { TranslationKey } from '@rig/core';
+import type { InvitationPreview } from '@rack/core/supabase';
+import type { TranslationKey } from '@rack/core';
 import styles from './invitation.module.css';
 import { IDLE, type ActionState } from './action-state';
 import { joinBox, sendInvitationLink } from './actions';

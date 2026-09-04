@@ -9,7 +9,7 @@
 
 import type { Theme } from './tokens';
 
-const PREFIX = '--rig';
+const PREFIX = '--rack';
 
 export function themeToCssVars(theme: Theme): Record<string, string> {
   const vars: Record<string, string> = {

@@ -20,8 +20,8 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { fetchInvitationPreview, fetchTenantPublicProfile } from '@rig/core/supabase';
-import { brandFromPublicProfile, type TenantBrand } from '@rig/ui/theme';
+import { fetchInvitationPreview, fetchTenantPublicProfile } from '@rack/core/supabase';
+import { brandFromPublicProfile, type TenantBrand } from '@rack/ui/theme';
 import { supabase } from './supabase';
 
 export type BrandStatus = 'idle' | 'loading' | 'resolved' | 'unknown';

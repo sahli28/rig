@@ -60,7 +60,7 @@ jobs:
       # `Unable to resolve "react-native-web/dist/index"`. Une cible revendiquée
       # et jamais construite est une cible morte, et personne ne le remarque.
       - name: Bundle web de l'app mobile
-        run: pnpm --filter @rig/mobile build:web
+        run: pnpm --filter @rack/mobile build:web
 
   database:
     name: base · isolation multi-tenant · T1 concurrence

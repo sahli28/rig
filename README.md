@@ -1,4 +1,4 @@
-# RIG
+# Rack
 
 SaaS multi-tenant pour boxes CrossFit / Hyrox — réservation, programmation,
 coopération inter-box.
@@ -190,7 +190,7 @@ et on repart : `CLAUDE.md` et les règles se rechargent seuls.
 
 | Question                         | Fichier                                                 |
 | -------------------------------- | ------------------------------------------------------- |
-| Que construit-on et pourquoi ?   | `docs/spec/RIG-spec-produit-technique.md`               |
+| Que construit-on et pourquoi ?   | `docs/spec/spec-produit-technique.md`                   |
 | Comment code-t-on ici ?          | `CLAUDE.md` et `.claude/rules/`                         |
 | Pourquoi ce choix technique ?    | `docs/adr/`                                             |
 | Quoi faire maintenant ?          | `docs/backlog/README.md`                                |

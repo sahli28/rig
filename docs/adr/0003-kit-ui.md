@@ -16,10 +16,10 @@ planning, listes de membres, finances). Leurs besoins d'interface se recoupent p
 
 ## Décision
 
-- Le **thème** est partagé et sans dépendance plateforme : `@rig/ui/theme` —
+- Le **thème** est partagé et sans dépendance plateforme : `@rack/ui/theme` —
   tokens, `buildTheme()`, correction de contraste, `ThemeProvider`. Importable
   aussi bien par Expo que par Next.
-- Le **kit de composants** est React Native : `@rig/ui/native`, réservé à
+- Le **kit de composants** est React Native : `@rack/ui/native`, réservé à
   `apps/mobile`.
 - Le **web** consomme les mêmes tokens via `themeToCssRule()`, injecté en variables
   CSS au rendu serveur, et s'appuiera sur une base accessible existante (Radix,
@@ -36,7 +36,7 @@ supérieur au bénéfice, pour une personne seule.
 
 ## Conséquences
 
-- La promesse white-label tient : `@rig/ui/theme` reste la **seule** source de
+- La promesse white-label tient : `@rack/ui/theme` reste la **seule** source de
   vérité des couleurs, quel que soit le support. Changer la couleur d'une box
   repeint les deux applications.
 - Le web devra écrire ses propres composants. C'est un coût réel, accepté, et
@@ -45,4 +45,4 @@ supérieur au bénéfice, pour une personne seule.
   import. Ce qui doit être partagé entre les deux est de la **logique**, et vit
   dans `packages/core`.
 - `packages/ui` a deux points d'entrée qu'il ne faut pas confondre : importer
-  `@rig/ui/native` depuis `apps/web` casserait le build.
+  `@rack/ui/native` depuis `apps/web` casserait le build.

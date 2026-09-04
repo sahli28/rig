@@ -1,5 +1,5 @@
 // Metro dans un monorepo pnpm : il faut lui dire de surveiller la racine et d'y
-// chercher les modules, sinon les packages @rig/* et les dépendances hissées
+// chercher les modules, sinon les packages @rack/* et les dépendances hissées
 // sont introuvables.
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('node:path');

@@ -24,7 +24,7 @@ export interface KeyValueStore {
  * écrite avant ce découpage, ou par un autre code, ne peut pas lui ressembler
  * par accident, et se relit telle quelle.
  */
-const MANIFEST_PREFIX = '__rig_chunks__:';
+const MANIFEST_PREFIX = '__rack_chunks__:';
 
 /** Marge sous la limite d'`expo-secure-store` : le manifeste et la clé comptent aussi. */
 const DEFAULT_MAX_BYTES = 1800;

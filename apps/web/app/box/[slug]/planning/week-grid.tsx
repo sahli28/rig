@@ -2,13 +2,13 @@
 
 import { useActionState, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { useI18n } from '@rig/ui/i18n';
-import { dayOfWeekday } from '@rig/core/supabase';
+import { useI18n } from '@rack/ui/i18n';
+import { dayOfWeekday } from '@rack/core/supabase';
 import { cancelClass, restoreClass } from './actions';
 import { Feedback, SubmitButton } from './form-bits';
 import { IDLE } from './action-state';
 import styles from './planning.module.css';
-import { DAY_LABELS, groupByDay, localDayIn, type Occurrence } from '@rig/core/supabase';
+import { DAY_LABELS, groupByDay, localDayIn, type Occurrence } from '@rack/core/supabase';
 
 /**
  * La semaine, en tableau.
