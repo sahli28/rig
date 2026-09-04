@@ -205,6 +205,8 @@
   "planning.field_until": "Fin de la série",
   "planning.field_until_hint": "Laisse vide pour une série sans fin.",
   "planning.filter_all": "Tous les cours",
+  "planning.filter_all_coaches": "Tous les coachs",
+  "planning.filter_coach": "Coach",
   "planning.filter_type": "Type de cours",
   "planning.full": "Complet",
   "planning.grid_label": "Grille de la semaine",

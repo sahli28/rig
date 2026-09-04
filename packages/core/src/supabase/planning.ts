@@ -173,6 +173,14 @@ export interface DayClass {
   className: string;
   classColor: string;
   roomName: string;
+  /**
+   * « Sarah D. » — prénom et initiale, jamais le nom complet ni l'adresse.
+   *
+   * Vide quand la box n'a pas renseigné de coach, ou quand l'appelant n'a pas
+   * le droit de le lire : l'écran affiche alors le cours sans coach plutôt que
+   * de refuser la journée entière.
+   */
+  coachName: string;
 }
 
 /** Une journée telle qu'elle s'affiche, cache compris. */
@@ -208,6 +216,7 @@ export const DayScheduleSchema = z.object({
       className: z.string(),
       classColor: z.string(),
       roomName: z.string(),
+      coachName: z.string(),
     }),
   ),
 });
@@ -220,10 +229,15 @@ export const DayScheduleSchema = z.object({
  * Sydney tombe le 4 pour la requête et le 3 pour l'affichage. Même raisonnement
  * que la grille du web, et désormais le même code.
  *
- * Trois lectures en parallèle plutôt qu'une jointure PostgREST : `class_types`
- * et `rooms` sont des référentiels de quelques lignes, déjà filtrés par la RLS,
- * et les demander à part garde `tenantScope()` sur son chemin — celui qui pose
- * `.eq('tenant_id', …)` sans qu'on ait à y penser (`.claude/rules/api.md`).
+ * Quatre lectures en parallèle plutôt qu'une jointure PostgREST : `class_types`,
+ * `rooms` et `tenant_coaches` sont des référentiels de quelques lignes, déjà
+ * filtrés par la RLS, et les demander à part garde `tenantScope()` sur son
+ * chemin — celui qui pose `.eq('tenant_id', …)` sans qu'on ait à y penser
+ * (`.claude/rules/api.md`).
+ *
+ * `tenant_coaches` ne rend qu'un prénom et une initiale (P1-010). C'est la seule
+ * source d'identité qu'un membre peut lire, et c'est délibéré : la règle
+ * d'exposition est dans `.claude/rules/privacy.md`.
  */
 export async function fetchDaySchedule(
   client: RigClient,
@@ -236,7 +250,7 @@ export async function fetchDaySchedule(
 ): Promise<DaySchedule> {
   const scope = tenantScope(client, tenantId);
 
-  const [classesRows, typesRows, roomsRows] = await Promise.all([
+  const [classesRows, typesRows, roomsRows, coachesRows] = await Promise.all([
     scope
       .select('classes')
       .is('deleted_at', null)
@@ -245,6 +259,7 @@ export async function fetchDaySchedule(
       .order('starts_at'),
     scope.select('class_types').is('deleted_at', null),
     scope.select('rooms').is('deleted_at', null),
+    scope.selectView('tenant_coaches'),
   ]);
 
   if (classesRows.error !== null) throw classesRows.error;
@@ -256,6 +271,11 @@ export async function fetchDaySchedule(
     ]),
   );
   const rooms = new Map((roomsRows.data ?? []).map((row) => [row.id, row.name]));
+  const coaches = new Map(
+    CoachRowSchema.array()
+      .parse(coachesRows.data ?? [])
+      .map((row) => [row.membership_id, coachDisplayName(row)]),
+  );
 
   return {
     date,
@@ -271,8 +291,40 @@ export async function fetchDaySchedule(
       className: types.get(row.class_type_id)?.label ?? '',
       classColor: types.get(row.class_type_id)?.color ?? '',
       roomName: rooms.get(row.room_id) ?? '',
+      coachName: coaches.get(row.coach_membership_id) ?? '',
     })),
   };
+}
+
+/**
+ * Ce que `tenant_coaches` rend. Zod comme frontière de type, comme l'écran
+ * Staff : `selectView()` rend des lignes `GenericStringError` faute de liste de
+ * colonnes — c'est le compromis assumé d'`active-tenant.ts`, où typer les
+ * colonnes fait exploser `tsc` en « heap out of memory ».
+ */
+export const CoachRowSchema = z.object({
+  membership_id: z.string(),
+  first_name: z.string().nullable(),
+  last_initial: z.string().nullable(),
+});
+
+/**
+ * « Sarah D. » — et rien de plus.
+ *
+ * La composition est ici plutôt qu'en base parce que c'est de la présentation,
+ * et ici plutôt que dans chaque écran parce que le planning et le détail d'un
+ * cours l'afficheront tous les deux. Ce qui **n'est pas** ici : le nom complet.
+ * Il n'existe pas dans la vue, donc aucune version de cette fonction ne peut le
+ * reconstituer.
+ */
+export function coachDisplayName(coach: {
+  first_name: string | null;
+  last_initial: string | null;
+}): string {
+  const prenom = coach.first_name?.trim() ?? '';
+  const initiale = coach.last_initial?.trim() ?? '';
+  if (prenom === '') return '';
+  return initiale === '' ? prenom : `${prenom} ${initiale}.`;
 }
 
 /** Places restantes, jamais négatives — le compteur est borné en base, l'écran ne parie pas dessus. */

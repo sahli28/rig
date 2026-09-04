@@ -5,7 +5,7 @@ import { useTheme } from '@rig/ui/theme';
 import { useI18n } from '@rig/ui/i18n';
 import { Badge, Banner, Button, EmptyState, ListRow, Select, Skeleton } from '@rig/ui/native';
 import { fetchDaySchedule, localDay, seatsLeft, shiftDays } from '@rig/core/supabase';
-import type { DaySchedule } from '@rig/core/supabase';
+import type { DayClass, DaySchedule } from '@rig/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
 import { readDay, writeDay, type ScheduleOrigin } from '../../lib/schedule-cache';
@@ -40,6 +40,7 @@ export default function PlanningScreen() {
   const [origin, setOrigin] = useState<ScheduleOrigin>('network');
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [coachFilter, setCoachFilter] = useState<string | null>(null);
 
   /**
    * Réseau d'abord, cache **seulement** en cas d'échec réseau.
@@ -77,14 +78,27 @@ export default function PlanningScreen() {
     void load(date);
   }, [load, date]);
 
-  const types = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const item of schedule?.classes ?? []) seen.set(item.className, item.className);
-    return [...seen.keys()].sort((a, b) => a.localeCompare(b));
-  }, [schedule]);
+  /**
+   * Les filtres se dérivent de ce qui est **affiché**, pas des référentiels de
+   * la box. Proposer « Haltérophilie » un jour où il n'y en a pas mènerait à une
+   * liste vide par construction — un filtre qui ne peut rien trouver n'est pas
+   * un filtre, c'est un piège.
+   */
+  const valeursDe = useCallback(
+    (champ: (item: DayClass) => string) =>
+      [...new Set((schedule?.classes ?? []).map(champ).filter((v) => v !== ''))].sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [schedule],
+  );
+
+  const types = useMemo(() => valeursDe((item) => item.className), [valeursDe]);
+  const coaches = useMemo(() => valeursDe((item) => item.coachName), [valeursDe]);
 
   const shown = (schedule?.classes ?? []).filter(
-    (item) => typeFilter === null || item.className === typeFilter,
+    (item) =>
+      (typeFilter === null || item.className === typeFilter) &&
+      (coachFilter === null || item.coachName === coachFilter),
   );
 
   const offline = origin === 'cache' && schedule !== null;
@@ -165,6 +179,19 @@ export default function PlanningScreen() {
         />
       )}
 
+      {coaches.length < 2 ? null : (
+        <Select
+          label={t('planning.filter_coach')}
+          value={coachFilter}
+          placeholder={t('planning.filter_all_coaches')}
+          onChange={(value) => setCoachFilter(value === '' ? null : value)}
+          options={[
+            { value: '', label: t('planning.filter_all_coaches') },
+            ...coaches.map((name) => ({ value: name, label: name })),
+          ]}
+        />
+      )}
+
       {loading ? (
         <View style={{ gap: theme.space(2) }}>
           <Skeleton height={64} />
@@ -192,7 +219,15 @@ export default function PlanningScreen() {
               key={item.id}
               title={item.className}
               // L'heure d'abord : c'est ce qu'on cherche dans un planning.
-              subtitle={`${formatTime(item.starts_at)} – ${formatTime(item.ends_at)} · ${item.roomName}`}
+              // Le coach n'est ajouté que s'il existe : « 18:30 – 19:30 · Salle · »
+              // avec une fin vide serait pire que pas de coach du tout.
+              subtitle={[
+                `${formatTime(item.starts_at)} – ${formatTime(item.ends_at)}`,
+                item.roomName,
+                item.coachName,
+              ]
+                .filter((part) => part !== '')
+                .join(' · ')}
               trailing={
                 <Badge
                   // **Avec l'unité, toujours.** « 3 » ne dit rien à un lecteur

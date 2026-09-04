@@ -46,7 +46,8 @@ Vérifié dans le dépôt le 3 septembre 2026, pas supposé.
 | Annulation | P1-004 | ❌ à créer par P1-004. **Conséquence à dire à la box pilote** : après ce ticket, un membre qui a réservé ne peut pas se désinscrire |
 | Liste d'attente | P1-006 | ❌ à créer par P1-006. « Cours complet » est une fin de parcours, pas une porte |
 | Droits de réservation réels (abonnement, crédits) | P2-006, P2-007 | ❌ volontairement absents. `member_has_booking_right()` rend `true` pour tout membre actif : « la box accorde à la main » |
-| Feuille d'inscrits (la vue des pairs) | — | ❌ hors périmètre → **P1-003c**, à écrire quand l'écran existera |
+| Feuille d'inscrits (la vue des pairs) | — | ❌ hors périmètre → **P1-003c**, écrit depuis, et qui attend cet écran pour se lancer. La règle d'exposition qu'il applique est déjà posée (P1-010, `.claude/rules/privacy.md`) |
+| Le nom du coach sur le détail d'un cours | **P1-010** ✅ | ✅ `tenant_coaches` existe, et `coachDisplayName()` compose « Sarah D. » |
 
 ## Toute la chaîne mobile tient-elle dans Expo Go ?
 
