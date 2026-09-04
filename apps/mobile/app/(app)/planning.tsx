@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useNetworkState } from 'expo-network';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
@@ -54,6 +54,7 @@ export default function PlanningScreen() {
   const theme = useTheme();
   const { t, formatDate, formatTime, formatRelativeDate, locale } = useI18n();
   const { me, activeTenantId } = useSession();
+  const router = useRouter();
 
   const tenant = me?.current_tenant ?? null;
   const timeZone = tenant?.timezone ?? 'Europe/Paris';
@@ -310,6 +311,13 @@ export default function PlanningScreen() {
           return (
             <ListRow
               key={item.id}
+              // **Le détail n'est atteignable qu'en ligne.** Hors ligne, la
+              // journée vient du cache : ses places datent, et l'écran de détail
+              // ne saurait rien en faire d'autre que le redire. Une ligne inerte
+              // est plus honnête qu'une navigation vers un écran qui s'excuse.
+              {...(vue.origine === 'cache' || !enLigne
+                ? {}
+                : { onPress: () => router.push(`/class/${item.id}`) })}
               title={item.className}
               // L'heure d'abord : c'est ce qu'on cherche dans un planning.
               // Le coach n'est ajouté que s'il existe : « 18:30 – 19:30 · Salle · »

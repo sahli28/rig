@@ -261,3 +261,63 @@ values
    date_trunc('week', current_date)::date, '19:30', 'FREQ=WEEKLY;BYDAY=WE', 12);
 
 select public.materialize_class_occurrences(current_date - 14, current_date + 14, null);
+
+-- ---------------------------------------------------------------------------
+-- Un cours complet — la seule situation de refus que le seed doit fabriquer
+-- ---------------------------------------------------------------------------
+--
+-- Les cinq refus de `book_class()` s'atteignent presque tous **sans fixture**,
+-- grâce aux valeurs par défaut de `tenant_settings` : la fenêtre close en
+-- ouvrant un cours déjà commencé (`close_minutes_before = 15`), la fenêtre pas
+-- encore ouverte en avançant de huit jours dans le planning
+-- (`open_days_before = 7`), le plafond en réservant trois cours
+-- (`max_upcoming_bookings = 3`), et « déjà réservé » en retouchant le bouton.
+--
+-- `CLASS_FULL` est le seul qui n'a rien à exercer : aucune occurrence du seed
+-- n'est pleine, et remplir un cours de seize places à la main pendant une passe
+-- manuelle n'est pas une vérification, c'est une punition.
+--
+-- **Hugo, et le choix a été fait deux fois.** Ni Léa — c'est le compte des
+-- passes manuelles, et l'inscrire au cours complet lui montrerait « Réservé » là
+-- où on veut voir « Complet ». Ni Julie : `booking_test.sql` l'emploie comme
+-- **son** sujet et affirme qu'elle n'a aucune réservation — une fixture de seed
+-- qui la contredit rend le test rouge, ce qui est arrivé et a coûté le détour.
+-- Ni Sarah, qui est COACH et encadre deux séries : un coach inscrit à son propre
+-- cours est un cas réel (P1-008) mais ce n'est pas celui-ci, et une fixture qui
+-- mélange deux questions n'en documente aucune. Reste Hugo, MANAGER, qu'aucun
+-- test pgTAP ne nomme.
+--
+-- Ce que ce détour apprend, et qui vaut au-delà de ce ticket : plusieurs tests
+-- affirment des comptes **globaux** par appartenance (« Julie n'a aucune
+-- réservation »). Ces assertions parlent autant du seed que de la fonction, donc
+-- toute fixture ajoutée doit vérifier qu'elle ne prend pas leur sujet.
+--
+-- La cible est choisie **par requête et non par identifiant** : le seed se
+-- rejoue n'importe quel jour de la semaine, et une occurrence codée en dur
+-- serait dans le passé un jour sur deux.
+with cible as (
+  select c.id, c.tenant_id
+  from public.classes c
+  where c.tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'
+    and c.status = 'SCHEDULED'
+    and c.starts_at > now() + interval '1 day'
+  order by c.starts_at
+  limit 1
+),
+plein as (
+  update public.classes c
+     set capacity = 1,
+         booked_count = 1,
+         -- `is_override` : un rafraîchissement de série ne doit pas réécrire
+         -- cette occurrence et faire disparaître la fixture en silence.
+         is_override = true
+    from cible
+   where c.id = cible.id
+  returning c.id, c.tenant_id
+)
+insert into public.bookings (tenant_id, class_id, membership_id, idempotency_key)
+select plein.tenant_id,
+       plein.id,
+       'a3000000-0000-4000-8000-000000000005',  -- Hugo, MANAGER de Rueil
+       'seed-cours-complet'
+from plein;
