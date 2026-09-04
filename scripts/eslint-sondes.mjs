@@ -21,12 +21,13 @@
 
 import { ESLint } from 'eslint';
 
-const RÈGLE = 'no-restricted-syntax';
+const RÈGLES = ['no-restricted-syntax', 'no-restricted-imports'];
 
-/** Les trois interdits, reconnus au début de leur message. */
+/** Les quatre interdits, reconnus à un fragment distinctif de leur message. */
 const FROM = 'Accès direct à une table de box';
 const INTL = '`Intl` n’est pas complet';
 const CRYPTO = '`crypto` n’existe pas';
+const IMPORT_EXPO_CRYPTO = "`expo-crypto` ne s'importe que";
 
 /**
  * Les sondes. `attendu` liste les interdits qui **doivent** mordre sur ce
@@ -109,6 +110,24 @@ const SONDES = [
       "export const a = client.from('classes');\nexport const b = new Intl.PluralRules('fr');\nexport const c = crypto.randomUUID();\n",
     attendu: [FROM, INTL],
   },
+  {
+    nom: 'importer `expo-crypto` ailleurs court-circuite la façade : ça mord',
+    chemin: 'apps/mobile/lib/booking.ts',
+    source: [
+      "import * as Crypto from 'expo-crypto';",
+      'export const k = Crypto.randomUUID();',
+    ].join('\n'),
+    attendu: [IMPORT_EXPO_CRYPTO],
+  },
+  {
+    nom: 'le fichier qui installe la source d’aléa a le droit de l’importer',
+    chemin: 'apps/mobile/app/_layout.tsx',
+    source: [
+      "import * as Crypto from 'expo-crypto';",
+      'export const octets = Crypto.getRandomBytes(16);',
+    ].join('\n'),
+    attendu: [],
+  },
 ];
 
 /**
@@ -121,7 +140,11 @@ const SONDES = [
  */
 function interditDe(message) {
   const texte = message.replaceAll('’', "'");
-  const trouvé = [FROM, INTL, CRYPTO].find((m) => texte.startsWith(m.replaceAll('’', "'")));
+  // `includes` et non `startsWith` : `no-restricted-imports` préfixe le message
+  // par « 'expo-crypto' import is restricted from being used. »
+  const trouvé = [FROM, INTL, CRYPTO, IMPORT_EXPO_CRYPTO].find((m) =>
+    texte.includes(m.replaceAll('’', "'")),
+  );
   return trouvé ?? `(message inconnu) ${texte.slice(0, 40)}`;
 }
 
@@ -131,7 +154,7 @@ let échecs = 0;
 for (const sonde of SONDES) {
   const [résultat] = await eslint.lintText(sonde.source, { filePath: sonde.chemin });
   const obtenus = (résultat?.messages ?? [])
-    .filter((m) => m.ruleId === RÈGLE)
+    .filter((m) => RÈGLES.includes(m.ruleId))
     .map((m) => interditDe(m.message))
     .sort();
   const voulus = [...sonde.attendu].sort();

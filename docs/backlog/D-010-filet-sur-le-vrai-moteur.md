@@ -1,6 +1,6 @@
 # D-010 — Un filet qui s'exécute sur le moteur du produit
 
-**Phase** dette · **Estimation** 0,5 à 6 j·h selon l'option · **Origine** plantage du 4 septembre 2026 · **À arbitrer, pas à construire**
+**Phase** dette · **Estimation** 0,5 à 6 j·h selon l'option · **Origine** plantage du 4 septembre 2026 · **✅ ARBITRÉ ET CLOS le 4 septembre 2026**
 
 ## Le problème, énoncé une fois
 
@@ -113,7 +113,63 @@ fait, et `docs/passe-mobile-iphone.md` en est le mode d'emploi. Sa faiblesse
 n'est pas d'être manuelle, c'est d'être **rare** : entre deux passes, tout ce
 qui touche le moteur est écrit à l'aveugle.
 
+## La décision — 4 septembre 2026
+
+**Rien maintenant. B quand la passe manuelle dépassera dix minutes. C jamais
+avant que le produit encaisse.** Ce ticket est clos sur cette phrase ; il n'a
+jamais été un travail, et un arbitrage qui reste ouvert une semaine de plus
+n'arbitre rien.
+
+**Ce qui a changé depuis la recommandation ci-dessus, et qui la périme.** Elle
+plaçait l'option A en tête parce que « ce qui nous a coûté trois défauts, c'est
+de ne pas savoir ce que le moteur offre ». Un quatrième défaut de la même
+famille est arrivé depuis — `crypto`, absent sous Hermes — et il a été arrêté
+**sur le papier**, avant sa première ligne : la question « P1-003b va générer une
+clé, avec quoi ? » a suffi. L'écran de diagnostic n'aurait pas fait mieux ; il
+serait arrivé après. C'est le premier de la famille qu'on voit venir, et il a été
+vu par le raisonnement, pas par un outil.
+
+Ce que le lot du 4 septembre a livré à la place, et qui n'était pas dans les
+options chiffrées : l'interdit ESLint étendu à `crypto` **et à l'import
+d'`expo-crypto`**, une façade qui lève au lieu de se dégrader en silence, et
+`pnpm lint:sondes` — treize sondes qui vérifient que les interdits **mordent
+encore**, en CI depuis ce jour. Aucune n'est un filet sur Hermes ; toutes
+réduisent le nombre d'endroits où le moteur peut nous surprendre.
+
+## Ce que cette décision accepte de ne pas couvrir
+
+À écrire noir sur blanc, sinon la décision se relit dans six mois comme un
+« c'est réglé » — ce qu'elle n'est pas.
+
+**Le raisonnement répond bien à « le moteur a-t-il X ? » pour un X qu'on
+nomme.** Il ne répond pas à « X se comporte-t-il pareil ? », et cette
+seconde classe a déjà produit un de nos quatre défauts : le
+`resolvedOptions().locale` du 3 septembre n'était pas une absence, c'était une
+**différence de comportement**. Rien de ce qui a été livré ne l'attrape. Le seul
+filet qui la voit reste **la passe sur appareil**, et sa faiblesse est d'être
+rare, pas d'être manuelle.
+
+Deux suppositions vivent aujourd'hui dans `packages/core/src/i18n/intl.ts` avec
+la mention « non prouvée sur appareil ». Elles sont la dette exacte que cette
+décision accepte :
+
+| Supposition | Preuve | Ce qui la prouvera |
+| --- | --- | --- |
+| `Intl.NumberFormat` existe et connaît le style `currency` | ❌ aucune | **P2-005**, premier écran affichant un montant |
+| Les données ICU françaises (noms de mois et de jours) sont embarquées | ⚠️ vues le 4 sept., sur **cet** appareil et **cette** version d'Expo Go | chaque passe, tant que l'en-tête de jour s'affiche en toutes lettres |
+
+## Ce qui rouvrirait ce ticket
+
+Trois signaux, et il suffit d'un :
+
+1. **la passe manuelle dépasse dix minutes** — celle de P1-003b en compte
+   quatorze critères et va la frôler. C'est le déclencheur de l'option B, et il
+   est le plus proche ;
+2. **un cinquième défaut de la famille arrive sans avoir été vu venir** — le
+   raisonnement aurait alors montré sa limite, et l'option A redeviendrait le
+   moins cher des filets ;
+3. **le produit encaisse** — l'option C cesse d'être un second projet.
+
 ## Critères d'acceptation
 
-À écrire quand l'option sera choisie. Ce ticket est un **arbitrage**, pas un
-travail.
+Sans objet : ce ticket était un arbitrage. Il est rendu, daté, et fermé.

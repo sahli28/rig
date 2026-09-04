@@ -28,6 +28,16 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # **Les interdits mordent-ils encore ?** `pnpm lint` au vert ne dit pas
+      # qu'une règle s'applique, seulement qu'elle n'a rien trouvé — et le
+      # 3 septembre 2026, ajouter un second bloc `no-restricted-syntax` a
+      # désactivé le premier sans qu'aucune commande le signale.
+      #
+      # Cette étape est ici et pas seulement dans `/check` parce qu'un garde qui
+      # ne s'exécute que si on y pense a exactement la faiblesse qu'il garde.
+      - name: Les interdits ESLint mordent-ils encore ?
+        run: pnpm lint:sondes
+
       - name: Typecheck
         run: pnpm typecheck
 
