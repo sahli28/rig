@@ -68,7 +68,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 93,25 j·h, dont **37,5 restants**
+## ① Jalon pilote — 93,75 j·h, dont **37,5 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -79,6 +79,7 @@ Objectif : une box réelle utilise l'app en production pendant deux semaines.
 P0-005b                                (SSO Google)
 D-009 ✅ → P1-002b ✅ → P1-010 ✅ → P1-003b → P1-003c   (navigation, planning, coachs, réservation, pairs)
 D-011                                  (trois gestes de relecture du cache, à la prochaine passe appareil — non bloquant)
+D-010 ✅ arbitré et clos · D-012 ✅ fait  (le moteur du produit : rien de plus maintenant, et la façade crypto comptée)
 P1-004 → P1-005                        (annulation, temps réel)
 P1-007 → P1-006 → P1-008               (push, waitlist, check-in)
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
@@ -128,7 +129,16 @@ sait pas lui répondre.
 | P1-008  | Check-in QR et mode kiosque                       |      6 | à faire              |
 | P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
 | D-011   | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | à faire — à la prochaine passe appareil, non bloquant |
-|         | **Total ①**                                       | **93,25** | dont **55,75 faits**, **37,5 restants** |
+| D-012   | Façade `crypto` et sondes de lint *(rétroactif)*  |    0,5 | ✅ fait le 4 sept. 2026 — écrit après coup pour que le total cesse d'être faux de 0,5 |
+|         | **Total ①**                                       | **93,75** | dont **56,25 faits**, **37,5 restants** |
+
+**Un demi-jour retrouvé, et pourquoi on l'écrit.** Le lot du 4 septembre —
+façade `crypto`, sondes, refonte de la configuration ESLint — n'apparaissait dans
+aucun total. Le +0,5 ajouté à P1-003b le même jour ne le couvrait pas : il paie
+trois décisions du ticket, pas du code déjà écrit. D'où `D-012`, rétroactif et
+marqué fait. Le total monte de 0,5, les travaux faits aussi, et **les 37,5 j·h
+restants ne bougent pas** — c'est le seul chiffre sur lequel des décisions se
+prennent.
 
 **Ce que les passes sur appareil ont coûté au total ①, et pourquoi c'est une
 bonne nouvelle.** P1-003 est passé de 8 à 9 j·h (règle 8 sur son lot 2), D-004
@@ -237,8 +247,10 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-006  | Défense en profondeur sur `public.users`       | 0,5 | P0-004 — ✅ fait |
 | D-007  | Contraste de la page de démo                   | 0,25 | P0-002 |
 | D-008  | Lien d'invitation qui survit à l'installation  | 1,5 | P0-005a — **attend un domaine**, comme P2-015 |
-| D-010  | Un filet qui s'exécute sur le moteur du produit | 0,5 à 6 | Plantage du 4 sept. 2026 — **arbitrage**, trois options chiffrées. Nos tests tournent sous Node, le produit sous Hermes |
-|        | **Ouvert, hors totaux**                        | **5,75** | D-002, D-003, D-007, D-008 — D-004 est passée dans ① |
+| D-010  | Un filet qui s'exécute sur le moteur du produit | 0 | Plantage du 4 sept. 2026 — **✅ arbitré et clos le 4 sept.** : rien maintenant ; Maestro en local quand la passe manuelle dépassera dix minutes ; Maestro en CI jamais avant que le produit encaisse. Le quatrième défaut de la famille a été arrêté sur le papier, l'écran de diagnostic n'aurait pas fait mieux. Ce que la décision **accepte de ne pas couvrir** est écrit dans le ticket |
+| D-011  | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | P1-002b — **comptée dans ①**, à faire à la prochaine passe appareil |
+| D-012  | Façade `crypto` et sondes de lint *(rétroactif)* | 0,5 | Revue du 4 sept. 2026 — **✅ fait**, et **comptée dans ①** : le travail existait sans figurer dans aucun total |
+|        | **Ouvert, hors totaux**                        | **5,75** | D-002, D-003, D-007, D-008 — D-004, D-011 et D-012 sont dans ①, D-010 est clos |
 
 Ces 5,75 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
 une dette qu'on additionne au chemin critique le rend indiscutable, une dette

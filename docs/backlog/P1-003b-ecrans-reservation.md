@@ -51,6 +51,7 @@ fermeture de D-009, P1-002b et P1-010. Pas supposé.
 | **L'écran Planning mobile** (le jour, les filtres, le cache) | **P1-002b** ✅ | ✅ **existe et est clos** — planning du jour, filtres type **et coach**, cache hors ligne daté, hors ligne repassé sur appareil le 4 septembre 2026. Ce qui reste du ticket est parti en `D-011` (relecture du cache) et ne bloque rien ici |
 | **La langue de l'app sur un iPhone français** | **D-004** | ✅ **réparée et vérifiée sur appareil le 4 septembre 2026.** L'app s'ouvre en français. La section « Ce lot attend D-004 » ci-dessous devient l'historique d'une décision tenue, pas une attente |
 | **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** ✅ | ✅ **faite.** La convention du premier écran à retour légitime — le détail d'un cours — est écrite dans `.claude/rules/ui.md`, section « La convention de navigation mobile », et le balayage de retour a été exercé sur iPhone le 4 septembre. Reste le bouton retour Android, sans appareil pour l'exercer |
+| **Des situations de refus dans le seed** — un cours complet, une fenêtre close, un plafond atteint | `supabase/seed.sql` | ❌ **aucune.** `bookings` est vide et aucune occurrence n'est pleine : trois des quatorze critères manuels n'ont aujourd'hui **rien à exercer**. Ajoutées par ce ticket, comme P1-002b avait dû ajouter les séries |
 | **Une réponse produit à `CLASS_FULL`** | la liste d'attente, **P1-006**, après ce lot | ❌ **absente, et rien ne la remplace** — voir « Un cours complet » ci-dessous. Décidée dans ce ticket plutôt que découverte à l'écran |
 | **Une annonce vocale de la confirmation sur iOS** | `Toast` (`packages/ui/src/native/toast.tsx:30`) | ⚠️ **à moitié** : `accessibilityLiveRegion` est **Android uniquement**. Sur l'appareil de nos passes, rien n'est annoncé — voir « Le bouton dit ce qu'il réserve » |
 | **Un identifiant unique généré sur l'appareil** | `uuidV7()`, `packages/core/src/crypto.ts` | ✅ **existe depuis le 4 septembre 2026**, avec sa source d'aléa à installer au démarrage. `crypto` est **absent** sous Hermes (pas incomplet) : ESLint l'interdit hors de cette façade, et elle lève plutôt que de se rabattre sur `Math.random()`. **Reste à faire ici** : ajouter `expo-crypto`, la justifier au commit, et appeler `installRandomBytesSource()` dans `_layout.tsx` |
@@ -95,12 +96,33 @@ Les trois dépendances natives que la chaîne D-004 → P1-002b → P1-003b ajou
    la main donnerait un module JavaScript qui ne correspond plus au binaire
    natif — un décalage qui ne se voit qu'à l'exécution, sur l'appareil.
 
-**Un détail à ne pas confondre avec une entorse à la règle 12** :
-`Crypto.randomUUID()` rend un **UUID v4**, pas un v7. Ce n'est pas un
-identifiant de ligne — `bookings.id` reste `uuid_generate_v7()`, posé par la
-base. C'est une **clé d'idempotence opaque**, stockée en `text`, dont la seule
-propriété utile est d'être unique et imprévisible. La règle 12 parle des
-identifiants ; celui-ci n'en est pas un.
+### Ce qu'`expo-crypto` fait ici, et ce qu'on n'appelle pas
+
+**`expo-crypto` ne sert qu'à une chose : fournir `getRandomBytes()` à
+`installRandomBytesSource()`, une fois, au démarrage.** La clé d'idempotence
+vient ensuite de `uuidV7()` (`packages/core/src/crypto.ts`), comme tout
+identifiant du produit. **`Crypto.randomUUID()` n'est appelée nulle part**, et
+ce paragraphe existe pour que personne ne la rappelle par mégarde.
+
+Il datait d'avant la façade, il justifiait `Crypto.randomUUID()` comme clé
+opaque, et **il était dangereux** : `Crypto.randomUUID()` est un appel de
+**module**, pas un accès au global `crypto`. L'interdit ESLint vise `crypto.` et
+`globalThis.crypto` — il ne l'aurait pas vue passer. On pouvait donc
+court-circuiter la façade *en croyant suivre le ticket*, sans qu'aucun filet ne
+bronche : le chemin gardé, et son jumeau qui ne l'est pas.
+
+Le trou est fermé des deux côtés : ici par la décision, et dans
+`eslint.config.mjs` par un interdit d'**import** de `expo-crypto` hors du seul
+fichier qui installe la source. Deux sondes le vérifient.
+
+**L'argument v4 / règle 12 garde sa valeur, et on ne s'en sert pas.** Il disait
+ceci : `Crypto.randomUUID()` rend un **UUID v4**, mais une clé d'idempotence
+n'est pas un identifiant de ligne — `bookings.id` reste `uuid_generate_v7()`,
+posé par la base — c'est une chaîne opaque stockée en `text`, dont les seules
+propriétés utiles sont d'être unique et imprévisible ; la règle 12 n'était donc
+pas en cause. Tout cela reste vrai. Simplement, un v7 coche les mêmes cases
+**et** les identifiants du produit ont une seule provenance au lieu de deux.
+C'est le genre de choix qu'on ne regrette que dans un sens.
 
 ## Ce que ce lot rend possible, et qui l'appellera
 
@@ -282,6 +304,12 @@ que de cours, **tous identiques à l'oreille**.
 - **Accueil** : la carte du prochain cours réservable, d'où partent les deux taps.
 - **Mise à jour optimiste** de la place et du compteur, avec **retour en arrière
   visible** si le serveur refuse (`Toast`).
+- **Trois situations de refus dans le seed** : une occurrence complète (capacité
+  1, déjà réservée par une autre membre), une à fenêtre close, et de quoi
+  atteindre le plafond. Sans elles, trois critères manuels n'ont rien à exercer
+  et se cocheraient « par raisonnement ». Compris dans les 5,5 j·h.
+- **La durée de l'appel écrite en console, en développement seulement** — c'est
+  ce qui rend le p95 mesurable au lieu d'être une impression. Compris aussi.
 - Toute chaîne visible en `fr.json` et `en.json` (règle 8 des règles non
   négociables), tout message d'erreur issu d'un **code**, jamais d'un texte SQL.
 
@@ -295,6 +323,69 @@ que de cours, **tous identiques à l'oreille**.
 - **« Choisir une formule »** : le message existe, l'écran d'achat est P2-005.
 - **Un harnais de test mobile** : absent du dépôt, non créé ici. Les critères de
   parcours se vérifient à la main, et la liste ci-dessous le dit pour chacun.
+
+## Préparer la passe sur appareil — elle doit tenir d'une traite
+
+**Quatorze critères manuels, dont deux au lecteur d'écran et un p95 sur vingt
+appels, sans harnais Maestro.** C'est la plus grosse passe du projet, et une
+passe qu'on improvise est une passe qu'on écourte : on saute le geste pénible,
+qui est presque toujours celui qui trouve quelque chose. L'ordre ci-dessous
+existe pour qu'aucun geste ne demande de revenir en arrière.
+
+**La préparation se périme** — l'IP de la machine change, le trousseau se vide,
+Expo bouge. Elle n'est pas recopiée ici : `docs/passe-mobile-iphone.md`, §1 à 3,
+et l'étape 3 (Safari sur `http://<IP>:55321/rest/v1/`) décide de tout le reste.
+Compter dix minutes avant de toucher au téléphone.
+
+### Avant de démarrer Expo
+
+1. `pnpm db:reset` — seed neuf. Les situations de refus (cours complet, fenêtre
+   close, plafond) en viennent, et l'invitation à usage unique est remise à
+   `PENDING` ;
+2. `.env.local` relu : l'IP est-elle encore la bonne ?
+3. `pnpm exec expo start --clear` — le cache de Metro survit aux changements de
+   dépendance et rend des erreurs qui ne correspondent plus au code.
+
+### L'ordre des gestes, en une traite
+
+| # | Geste | Ce qu'on regarde |
+|---|---|---|
+| 1 | Ouvrir l'app, aller au planning, ouvrir un cours | Le détail : type, coach, salle, heure **locale de la box** |
+| 2 | Réserver depuis l'accueil, en comptant les taps | **Deux**, pas trois |
+| 3 | Rouvrir le même cours, taper deux fois vite | **Une seule** réservation |
+| 4 | Mode avion pendant l'appel, rétablir, réessayer | **Une seule** réservation — la clé n'a pas changé |
+| 5 | Le cours complet du seed | « Complet », la phrase, et le retour au planning à un tap |
+| 6 | Le cours à fenêtre close | La raison, en heure locale de la box |
+| 7 | Le membre au plafond | « Choisir une formule » ou le plafond, jamais une erreur brute |
+| 8 | Un jour **déjà visité**, puis mode avion, puis retour sur ce jour | Le bandeau hors ligne, les cours, **et aucune action de réservation** |
+| 9 | VoiceOver : parcourir trois cours d'affilée | Trois annonces **différentes**, chacune nommant son cours et son heure |
+| 10 | VoiceOver : réserver | La confirmation **s'annonce** sans qu'on aille la chercher |
+| 11 | « Mes réservations », puis tuer l'app et rouvrir | La réservation est toujours là |
+| 12 | Les vingt appels du p95 | Voir ci-dessous |
+
+Les gestes 9 et 10 viennent **après** les refus et non avant : VoiceOver ralentit
+tout, et l'activer tôt fait écourter le reste.
+
+### Ce qu'on note au passage, parce que ça ne se retrouve pas après
+
+- **Les vingt mesures du p95.** `bookClass()` entoure son appel de
+  `performance.now()` et écrit la durée en console **en développement
+  seulement** ; les vingt valeurs se lisent dans le terminal Metro et se copient
+  dans le rapport de session. Sans cette ligne, « mesuré sur vingt appels »
+  redevient une impression ;
+- **la première ligne de tout écran rouge**, et les dernières lignes de Metro.
+  Rien d'autre — surtout pas une capture où figure une clé ;
+- **ce qui a été pénible**, même sans être faux. C'est la matière de `D-010` :
+  le déclencheur de Maestro en local est « la passe manuelle dépasse dix
+  minutes », et personne ne s'en souviendra si ce n'est pas noté le jour même ;
+- **`git status -s` après avoir arrêté Expo.** `expo start` réécrit
+  `apps/mobile/tsconfig.json` et `app.json` — ces modifications ne font pas
+  partie de la passe.
+
+### Ce que la passe ne prouvera pas, et qu'il faut dire
+
+Le bouton retour **Android** (dernier critère ouvert de D-009) : aucun appareil
+Android au projet. Il reste ouvert, et il vaut mieux qu'il le reste visiblement.
 
 ## Critères d'acceptation
 

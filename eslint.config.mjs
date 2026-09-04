@@ -85,6 +85,26 @@ const PAS_DE_CRYPTO = {
     "`crypto` n'existe pas sous Hermes : ni `randomUUID()`, ni `getRandomValues()`, et le runtime winter d'Expo ne l'installe pas. Un test sous Node ne peut pas le voir. Passez par packages/core/src/crypto.ts — `uuidV7()` pour un identifiant (règle 12), et la source d'aléa s'installe au démarrage de l'app.",
 };
 
+/**
+ * 4. **`expo-crypto` importé ailleurs que là où on installe la source d'aléa.**
+ *
+ *    Le jumeau de l'interdit précédent, et il ne se voit pas de la même
+ *    fenêtre : `Crypto.randomUUID()` est un appel de **module**, pas un accès au
+ *    global. Le sélecteur `MemberExpression[object.name='crypto']` ne l'attrape
+ *    pas. On pouvait donc court-circuiter la façade en important le module —
+ *    sans intention de contourner quoi que ce soit, juste en suivant une
+ *    documentation d'Expo.
+ *
+ *    L'import reste permis dans le fichier qui **installe** la source, et là
+ *    seulement (voir le bloc d'exception plus bas). Si ce câblage déménage, son
+ *    exception déménage avec lui — une ligne, visible dans le diff.
+ */
+const PAS_D_IMPORT_EXPO_CRYPTO = {
+  name: 'expo-crypto',
+  message:
+    "`expo-crypto` ne s'importe que là où l'app installe sa source d'aléa (`installRandomBytesSource()`, au démarrage). Partout ailleurs, passez par `uuidV7()` de @rig/core : `Crypto.randomUUID()` rend un v4 et court-circuite la façade sans qu'aucun interdit de global ne le voie.",
+};
+
 export default tseslint.config(
   {
     ignores: [
@@ -134,6 +154,21 @@ export default tseslint.config(
     files: ['apps/**/*.{ts,tsx}', 'packages/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-syntax': ['error', PAS_DE_FROM_DIRECT, PAS_D_INTL, PAS_DE_CRYPTO],
+      'no-restricted-imports': ['error', { paths: [PAS_D_IMPORT_EXPO_CRYPTO] }],
+    },
+  },
+  {
+    // … sauf ici. **Le seul fichier autorisé à importer `expo-crypto`** : celui
+    // qui pose la source d'aléa au démarrage de l'app mobile (P1-003b). Il
+    // n'existe pas encore ; l'exception est écrite d'avance pour que le jour où
+    // il arrive, le choix de l'endroit soit un choix et non un contournement.
+    //
+    // Les trois interdits de syntaxe continuent de s'y appliquer — un bloc qui
+    // redéclare une règle écrase la précédente, celui-ci ne redéclare que
+    // `no-restricted-imports`.
+    files: ['apps/mobile/app/_layout.tsx'],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
   {
