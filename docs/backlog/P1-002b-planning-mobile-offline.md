@@ -1,49 +1,173 @@
 # P1-002b — Planning mobile et cache hors ligne
 
-**Phase** P1 · **Estimation** 3,5 j·h · **Dépend de** P1-002 · **Spec** §4-P2, §6.1
+**Phase** P1 · **Estimation** 3,5 j·h · **Dépend de** P1-002 ✅, D-004 ✅, **D-009** · **Spec** §4-P2, §6.1
 
 ## Objectif
 
-Un membre consulte le planning quotidien, filtre par type ou coach, et retrouve
-la dernière version connue hors ligne. Le cache est un confort : la source de
-vérité reste la base, et le jalon pilote privilégie d'abord le planning fiable.
+Un membre ouvre l'app et voit **le planning de sa box**, filtré par type ou par
+coach. Sans réseau, il retrouve la dernière version connue, datée et annoncée
+comme telle.
 
 ## Ce que ce ticket suppose et qui doit exister
 
+Vérifié dans le dépôt le 4 septembre 2026.
+
 | Prérequis | Où il vit | État |
 | --------- | --------- | ---- |
-| `classes` matérialisées, et lecture membre | P1-002 | ✅ existent — policy `classes_select` sur `current_tenant_ids()`, horizon entretenu par `pg_cron` |
-| Types de cours, salles et coachs | P1-001b, P1-001c | ✅ existent |
-| Application mobile ayant exécuté au moins une fois | P0-005a | ✅ **passe faite le 3 septembre 2026** sur iPhone 12 Pro Max, Expo Go — `docs/passe-mobile-iphone.md`. Cette vérification se périme : Expo bouge, l’IP change |
-| Stockage persistant React Native | `apps/mobile` | ❌ à ajouter ici : `@react-native-async-storage/async-storage`, dépendance à justifier au commit. **Vérifié le 3 septembre 2026 : incluse dans Expo Go (SDK 57)** — aucun development build, donc aucun compte Apple payant. Installer avec `npx expo install`, qui pose la version du binaire (`2.2.0`) |
-| Identité du membre et memberships | `me()` (P0-005a) | ✅ existent — nécessaires pour partitionner le cache |
+| `classes` matérialisées, lisibles par un simple membre | P1-002 — policy `classes_select` sur `current_tenant_ids()` | ✅ existe. `pg_cron` entretient l'horizon (`rig-maintain-class-occurrences`, 00 h 05) : le planning ne s'arrête pas parce que personne n'a touché le back-office |
+| Types de cours, salles, coachs | P1-001b, P1-001c | ✅ existent, avec `name_i18n` et une couleur par type |
+| L'app mobile ayant tourné sur un appareil | passes des 3 et 4 septembre 2026 | ✅ — et **ça se périme**. `docs/passe-mobile-iphone.md` |
+| La langue de l'app | D-004 | ✅ livrée, vérifiée sur appareil le 4 septembre |
+| `me()` — identité, appartenances, fuseau et thème de la box | P0-005a | ✅ existe. Nécessaire pour partitionner le cache **et** pour afficher les heures en heure locale de la box (règle 9) |
+| Helpers de semaine et de date : `weekDates`, `mondayOf`, `shiftWeeks`, `isCalendarDate` | `@rig/core/supabase/class-schedules.ts` | ✅ existent, testés (61 tests) |
+| `groupByDay()`, `localDayIn()` — ranger des occurrences dans les jours **du fuseau de la box** | `apps/web/app/box/[slug]/planning/view-model.ts` | ⚠️ **existent, au mauvais endroit.** Fonctions pures, enfermées dans un dossier d'app web. Voir la contrainte 3 |
+| Composants natifs : liste, filtres, état vide, squelette | `@rig/ui/native` — `ListRow`, `SegmentedControl`, `EmptyState`, `Skeleton`, `Badge`, `Banner` | ✅ existent |
+| **Stockage persistant React Native** | `apps/mobile` | ❌ à ajouter : `@react-native-async-storage/async-storage`, dépendance à justifier au commit. **Vérifié le 3 septembre 2026 : incluse dans Expo Go (SDK 57)** — aucun development build, donc aucun compte Apple payant. Installer avec `npx expo install`, qui pose la version du binaire (`2.2.0`) |
+| **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** | ❌ à créer, **et à faire passer avant**. Ce ticket ajoute deux écrans à une pile déjà cassée : les ajouter d'abord double le correctif |
+| Le sélecteur de box | P1-009 | ❌ à créer par P1-009 — qui devra **vider ce cache** en changeant de box. La contrainte est inscrite des deux côtés |
+| Réserver depuis le planning | P1-003b | ❌ hors périmètre, et **volontairement absent de l'écran hors ligne** — voir la contrainte 2 |
+| Places restantes en temps réel | P1-005 | ❌ à créer par P1-005 |
 
 ## Ce que ce ticket rend possible, et qui l'appellera
 
 | Ce que je livre | Appelé par | Ticket |
 | --------------- | ---------- | ------ |
-| Écran mobile Schedule | le membre | celui-ci |
-| Cache partitionné par `user_id` et `tenant_id` | l'écran Schedule | celui-ci |
+| Écran Planning mobile | le membre | celui-ci |
+| Le cache partitionné, et son effacement | l'écran Planning ; **P1-009** l'effacera aussi au changement de box | celui-ci, P1-009 |
+| Le modèle de vue du planning, descendu dans `@rig/core` | la grille web **et** la liste mobile | celui-ci |
+| L'entrée vers le détail d'un cours | l'écran de réservation | **P1-003b** |
+
+## Contrainte 1 — ce que le cache a le droit de contenir
+
+**Le cache est une copie de données de box posée hors RLS.** Une fois écrite sur
+l'appareil, plus aucune policy ne la protège : elle survit à la déconnexion si
+personne ne l'efface, elle part dans une sauvegarde, elle appartient au téléphone
+et non plus à la base. La minimisation de `.claude/rules/privacy.md` — qui vaut
+**aussi à l'intérieur d'une box** — s'applique donc plus strictement ici qu'à une
+requête.
+
+**Mis en cache**, parce que l'écran les affiche et qu'ils ne désignent personne :
+
+| Donnée | Pourquoi c'est acceptable |
+| --- | --- |
+| `classes` : identifiant, début, fin, capacité, `booked_count`, statut | Ce sont les créneaux de la box, affichés à tous ses membres |
+| Nom du type de cours et sa couleur | Référentiel de la box |
+| Nom de la salle | Idem |
+| **Prénom** du coach, et son identifiant d'appartenance | Il figure sur le planning mural. Seule donnée nominative du lot, et déjà publique dans la salle |
+
+**Jamais mis en cache**, et cette liste compte autant que la précédente :
+
+- **aucune adresse e-mail**, ni celle du coach ni celle de personne ;
+- **aucune feuille d'inscrits**, donc aucun nom de participant. La vue des pairs
+  n'est pas tranchée (P1-003c) : la mettre en cache la trancherait par défaut,
+  et dans le sens le plus large ;
+- **aucune note de coach, aucune donnée de santé** (règle 11) ;
+- **aucun jeton** — ni d'invitation, ni de session. La session a son stockage,
+  le trousseau, et elle y reste ;
+- **aucune réservation personnelle.** « Qui s'entraîne quand » est exactement ce
+  que la spec protège. Le planning est le même pour tous les membres de la box ;
+  le cache doit l'être aussi.
+
+Cette dernière ligne a une conséquence à accepter : **le cache ne sait pas si
+vous êtes inscrit.** Hors ligne, l'écran montre le planning de la box, pas le
+vôtre. C'est moins riche, et c'est le bon compromis.
+
+**Clé de cache** : `(user_id, tenant_id)`. Une clé par tenant seul ferait voir à
+deux membres d'un téléphone partagé les données l'un de l'autre. Effacée à la
+déconnexion **et** au changement de box (P1-009).
+
+## Contrainte 2 — le cache ne fait jamais autorité sur une place
+
+Hors ligne, l'écran montre le planning **et dit qu'il est hors ligne, avec la
+date de la dernière mise à jour**. L'action de réservation est **indisponible** —
+pas seulement optimiste, pas seulement grisée en silence.
+
+Afficher « 3 places » depuis un cache de la veille et laisser toucher
+« Réserver » produirait exactement le mensonge que P1-003 a passé un lot entier
+à rendre impossible côté base : verrou de ligne, `check (booked_count between 0
+and capacity)`, index unique partiel, et une preuve de contention sous
+59 sessions simultanées. Tout ça pour qu'un compteur périmé sur un téléphone le
+contredise à l'écran.
+
+Le compteur en cache n'est pas faux, il est **daté** — et un nombre de places
+daté n'est pas un nombre de places. La différence se voit à l'écran, ou elle
+n'existe pas.
+
+C'est un **critère d'acceptation**, pas une intention.
+
+## Contrainte 3 — ne pas dupliquer le modèle de vue
+
+`groupByDay()` et `localDayIn()` sont des fonctions pures, aujourd'hui dans
+`apps/web/app/box/[slug]/planning/view-model.ts`. Elles portent la seule règle
+non triviale de l'écran : dans quel jour tombe une occurrence, **selon le fuseau
+de la box**. Un cours à 00 h 30 heure de Paris, lu depuis Londres, tombe la
+veille.
+
+Les recopier dans `apps/mobile` donnerait deux calculs de semaine libres de
+diverger, et la divergence serait silencieuse : les deux écrans afficheraient
+quelque chose de plausible. C'est `isCalendarDate` en plus gros — une règle de
+date dupliquée qui ne se corrige que d'un côté.
+
+**Ce qui descend dans `@rig/core`** : `groupByDay`, `localDayIn`, `localDay`,
+`instantLocal`, et les types `Occurrence` / `Serie`. Aucune de ces fonctions ne
+touche React ni une plateforme, et elles ont déjà leurs tests.
+
+**Ce qui reste dans chaque app** : la présentation seule. Le web garde sa grille
+de sept colonnes — souris, écran large, édition d'une série ; le mobile aura une
+liste par jour — pouce, écran étroit, lecture seule. Ce ne sont pas les mêmes
+écrans, et il ne faut pas essayer d'en faire un.
+
+Le déplacement se fait **dans ce ticket**, avec le web réaligné dessus. Sinon il
+ne se fera jamais.
 
 ## Périmètre
 
-- Écran quotidien et filtres type / coach.
-- Cache de la dernière réponse réussie, avec date de mise à jour visible.
-- Clé de cache partitionnée par utilisateur **et** tenant ; invalidation à la
-  déconnexion. Une clé tenant seule ferait voir à deux membres d'un téléphone
-  partagé les données l'un de l'autre.
-- Lecture réseau prioritaire ; repli sur cache seulement en cas d'échec réseau.
+- Écran Planning : le jour, navigation d'un jour à l'autre, filtres **type** et
+  **coach**, heures en heure locale de la box.
+- Cache de la dernière réponse réussie, avec sa date de mise à jour visible.
+- Réseau prioritaire ; repli sur le cache **seulement** en cas d'échec réseau,
+  jamais pour économiser une requête.
+- Effacement du cache à la déconnexion.
+- Le modèle de vue descendu dans `@rig/core`, web réaligné.
 
 ## Hors périmètre
 
-- Écriture offline, réservation offline et synchronisation différée : P1-003
-  interdit implicitement toute réservation hors de sa transaction PostgreSQL.
-- Check-in offline : P1-008.
+- **Écriture hors ligne, réservation différée** : P1-003 l'interdit par
+  construction — une réservation est une transaction PostgreSQL ou n'est pas.
+- **Check-in hors ligne** : P1-008.
+- **La grille de semaine** : le mobile affiche un jour. La semaine est un écran
+  de conception, elle appartient au back-office.
+- **Le sélecteur de box** : P1-009.
+- **La correction de la navigation** : D-009, qui passe avant.
 
 ## Critères d'acceptation
 
-- [ ] Un membre voit la journée, filtre par type et coach
-- [ ] Sans réseau, le dernier planning chargé est consultable avec sa date de mise à jour
-- [ ] Deux membres et deux boxes sur le même téléphone ne partagent jamais leur cache
+- [ ] Un membre voit la journée, filtre par type et par coach
+- [ ] Les heures s'affichent dans le fuseau de la **box**, pas du téléphone —
+      vérifié en changeant le fuseau du téléphone
+- [ ] Sans réseau, le dernier planning chargé est consultable, **avec sa date de
+      mise à jour affichée**
+- [ ] Sans réseau, **aucune action de réservation n'est proposée**, et l'écran
+      dit pourquoi
+- [ ] Le contenu du cache est relu à la main après une session : aucune adresse
+      e-mail, aucun nom de participant, aucun jeton
+- [ ] Deux membres et deux boxes sur le même téléphone ne partagent jamais leur
+      cache
 - [ ] Une déconnexion supprime les caches du compte local
-- [ ] Un appareil réel exerce le parcours ; Expo web seul ne coche pas le critère
+- [ ] `groupByDay` et ses voisines n'existent qu'à **un** endroit — vérifiable
+      par grep, et le web passe par `@rig/core`
+- [ ] Un appareil réel exerce le parcours ; Expo web ne coche aucun critère de
+      parcours
+
+## Notes
+
+**Le cache est un confort, la base est la source de vérité.** Chaque fois que
+les deux se contredisent, c'est la base qui a raison et l'écran qui doit le dire.
+
+Le mode avion était noté en bonus de la passe du 3 septembre, pour observer la
+dégradation avant de la corriger : c'est ce ticket qui la corrige.
+
+**Ce que ce ticket ne saura pas faire, et qu'il faut dire à la box pilote** :
+hors ligne, le planning affiché est celui de la dernière connexion. Un cours
+annulé le matin restera visible sur un téléphone resté en mode avion. La date de
+mise à jour est là pour ça — c'est le prix d'un cache honnête.

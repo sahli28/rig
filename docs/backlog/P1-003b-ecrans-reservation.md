@@ -1,6 +1,6 @@
 # P1-003b — Réserver depuis le mobile (lot 2 de P1-003)
 
-**Phase** P1 · **Estimation** 5 j·h · **Dépend de** P1-003 ✅, **D-004**, **P1-002b** · **Spec** §4-P2, RM2.1–2.8
+**Phase** P1 · **Estimation** 5 j·h · **Dépend de** P1-003 ✅, D-004 ✅, **D-009**, **P1-002b** · **Spec** §4-P2, RM2.1–2.8
 
 ## Objectif
 
@@ -38,7 +38,8 @@ Vérifié dans le dépôt le 3 septembre 2026, pas supposé.
 | L'app mobile ayant tourné sur un appareil réel | `docs/passe-mobile-iphone.md` | ✅ faite le 3 septembre 2026 — **et périssable** |
 | Kit de composants natifs | `packages/ui/src/native` — 16 composants (`Card`, `ListRow`, `Button`, `Banner`, `Sheet`, `Toast`, `Skeleton`, `EmptyState`…) | ✅ existe. Rien à construire avant de composer les écrans — c'est exactement ce qui avait coûté 7,5 j·h à P1-001 |
 | **L'écran Planning mobile** (le jour, les filtres, le cache) | **P1-002b** | ❌ **n'existe pas.** `apps/mobile/app` porte cinq écrans : `welcome`, `auth`, `consents`, `profile-setup`, `(app)/index`. Le planning est le livrable de P1-002b, qui doit passer **avant** — voir « L'ordre change » |
-| **La langue de l'app sur un iPhone français** | **D-004** | ❌ **cassée.** L'app s'ouvre en anglais sur un téléphone réglé en français. Ce ticket l'attend — voir « Ce lot attend D-004 » |
+| **La langue de l'app sur un iPhone français** | **D-004** | ✅ **réparée et vérifiée sur appareil le 4 septembre 2026.** L'app s'ouvre en français. La section « Ce lot attend D-004 » ci-dessous devient l'historique d'une décision tenue, pas une attente |
+| **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** | ❌ à créer, et à faire passer avant. Ce lot ajoute trois écrans, dont le **premier à retour légitime** du produit — le détail d'un cours. Il a besoin d'une convention, pas d'une pile à réparer en même temps |
 | **Un identifiant unique généré sur l'appareil** | — | ❌ **rien.** Aucun code du dépôt ne génère d'UUID côté client, et rien ne fournit `crypto.randomUUID()` : le runtime « winter » d'`expo@57.0.18` installe `fetch`, `URL`, `TextEncoder`, `structuredClone` et les streams — **pas `crypto`** (vérifié dans `node_modules/expo/src/winter`, et la doc SDK 57 de `expo` ne le liste pas). Dépendance **`expo-crypto`** à ajouter et à justifier au commit. **Sans elle, la règle 4 de `CLAUDE.md` n'a aucune implémentation côté appelant** |
 | Un harnais de test mobile | Maestro, annoncé par `CLAUDE.md` | ❌ **rien** — et `apps/mobile` n'a même pas de script `test`. Les critères de parcours se vérifient **à la main**, et ce ticket le dit plutôt que de faire semblant. Un ticket « harnais mobile » reste à écrire ; il n'est pas bloquant ici, il est seulement absent |
 | Places restantes en temps réel | P1-005 | ❌ hors périmètre : mise à jour optimiste seulement |
@@ -140,7 +141,8 @@ périmètre d'un ticket sur le dos d'un autre, et livrer deux listes de cours
 concurrentes dans la même app. Donc **P1-002b d'abord**, et ce ticket construit
 dessus : un cours du planning ouvre son détail, et le détail réserve.
 
-Nouvel ordre de la chaîne mobile : **D-004 → P1-002b → P1-003b**.
+Nouvel ordre de la chaîne mobile : **D-009 → P1-002b → P1-003b**, D-004 étant
+livrée depuis le 3 septembre et vérifiée sur appareil le 4.
 
 ## La vue des pairs reste hors périmètre
 
@@ -212,8 +214,8 @@ Automatisables :
 - [ ] Un refus fait **revenir** la place affichée à sa valeur réelle, visiblement
 - [ ] La réservation apparaît dans « Mes réservations » et survit à la fermeture
       complète de l'app
-- [ ] Un iPhone réglé en français fait tout le parcours **en français** — dépend
-      de D-004
+- [ ] Un iPhone réglé en français fait tout le parcours **en français** — D-004
+      est livrée, ce critère vérifie que les **nouvelles** chaînes le sont aussi
 - [ ] p95 de l'appel `book_class` **< 800 ms**, mesuré sur appareil sur au moins
       20 appels, la valeur notée dans le rapport de session. C'est la moitié de
       T1 que le harnais de concurrence ne prouve pas : il n'y a pas d'appel HTTP
