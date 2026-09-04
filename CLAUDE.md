@@ -30,6 +30,15 @@ Backlog exécutable : `docs/backlog/` — un fichier par ticket.
   un **contrôle comportemental** dit que ça se comporte bien.
   `rls_leak_test.sql` porte les deux depuis D-001 et D-006 — et le second a
   rattrapé un faux vert du premier.
+- **Un test qui lit un fichier hors de son paquet le déclare dans les
+  `globalDependencies` de `turbo.json`**, dans le même commit. Sinon le cache
+  ressert un vert calculé avant que le fichier change : le test rassure sans
+  avoir rien vu. Vérifier par `turbo run test --dry=json` avant et après une
+  modification réelle — `touch` ne prouve rien, Turbo hache le contenu.
+  Cette ligne est ici et pas seulement dans `.claude/rules/database.md`, dont le
+  `paths:` ne couvre pas `packages/ui/**` : la règle y était déjà, et elle n'a
+  pas empêché la récidive parce qu'aucun glob ne l'a chargée au moment d'écrire
+  le test.
 
 ## Stack
 

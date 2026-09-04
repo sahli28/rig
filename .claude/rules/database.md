@@ -248,42 +248,59 @@ et échoue si une table n'a pas de policy.
 - Toute migration doit être réversible ou documenter pourquoi elle ne l'est pas.
 - Pas de `drop column` sans étape de dépréciation préalable.
 
-### Une migration ajoutée doit invalider les tests qui lisent les migrations
+### Tout test qui lit hors de son paquet doit le déclarer à Turbo
 
-Deux tests de `packages/core` relisent `supabase/migrations/*.sql` **à
-l'exécution** : `errors.test.ts` (tout code levé par `app_error()` a-t-il sa clé
-i18n ?) et `me.test.ts`. Cette dépendance sort de leur paquet, et Turbo ne la
-déduit pas : sans déclaration, ajouter une migration ne change pas le hash de la
-tâche, et le cache ressert un résultat calculé **avant** que la migration
-existe.
+**Le titre a compté.** Cette section s'est d'abord appelée « une migration
+ajoutée doit invalider les tests qui lisent les migrations », et la règle
+générale était en dernière ligne. Une semaine plus tard, deux tests écrits
+**dans le commit qui appliquait la leçon** rouvraient la même faille sur
+d'autres fichiers. Un cas particulier en titre ne protège que ce cas.
 
-C'est arrivé en P1-003, et la forme du symptôme mérite d'être retenue :
+Un test qui lit un fichier à l'exécution crée une dépendance que Turbo **ne
+déduit pas** si elle sort du paquet. Sans déclaration, modifier ce fichier ne
+change pas le hash de la tâche : le cache ressert un résultat calculé **avant**,
+et le test rend vert sans avoir rien vu. C'est la panne la plus coûteuse, parce
+qu'elle rassure.
+
+La forme du symptôme, à reconnaître du premier coup d'œil :
 
     local : cache hit, replaying logs a8f090fa5772d266   → vert
     CI    : cache miss, executing    a8f090fa5772d266   → rouge
 
-**Le même hash.** Deux verts, un seul vrai, et un commit poussé sur la foi du
-mauvais. Six codes d'erreur manquaient dans `APP_ERROR_CODES` ; aucun n'était
-visible en local.
+**Le même hash.** Deux verts, un seul vrai. En P1-003, six codes d'erreur
+manquaient dans `APP_ERROR_CODES`, invisibles en local, rouges en CI.
 
-La parade est dans `turbo.json` :
+La parade est dans `turbo.json`, et son commentaire tient la liste **qui lit
+quoi** — à compléter en même temps qu'on écrit le test, pas après :
 
 ```json
-"globalDependencies": ["supabase/migrations/**"]
+"globalDependencies": ["supabase/migrations/**", "supabase/seed.sql", "apps/mobile/app/**"]
 ```
 
-`globalDependencies` plutôt que des `inputs` par tâche, pour deux raisons : ces
-fichiers sont hors de tout paquet, et la déclaration couvre **les deux** tests
-d'un coup — donc aussi le troisième, qu'on écrira sans y penser. Une migration
-change assez rarement pour que l'invalidation large ne coûte rien.
+| Fichiers | Lus par | Pour vérifier quoi |
+| --- | --- | --- |
+| `supabase/migrations/**` | `errors.test.ts`, `me.test.ts`, `default-brand.test.ts` | tout code levé a sa clé i18n ; la forme de `me()` ; le défaut de `primary_color` |
+| `supabase/seed.sql` | `default-brand.test.ts` | la couleur de la plateforme n'est celle d'aucune box |
+| `apps/mobile/app/**` | `invitation-link.test.ts` | le mobile a une route pour le lien que le web distribue |
 
-Vérifier plutôt que supposer : `turbo run test --dry=json` liste les fichiers du
-hash global sous `globalCacheInputs.files`. Et `touch` ne prouve rien — Turbo
-hache le contenu, pas la date.
+`globalDependencies` plutôt que des `inputs` par tâche. `..` dans un `inputs`
+**fonctionne** — mesuré sur turbo 2.10.12, les deux hashes bougent — mais c'est
+un comportement non documenté sur lequel on parierait la justesse du cache, et
+deux mécanismes pour un même souci finissent avec un seul entretenu. L'oubli
+d'aujourd'hui est déjà celui-là. L'invalidation est large ; elle ne coûte que du
+recalcul, jamais un faux vert.
 
-La règle générale, qui vaut au-delà de ce dépôt : **un test qui lit hors de son
-paquet doit le déclarer, sinon il ment** — et il ment dans le sens le plus
-coûteux, en rendant vert.
+**Vérifier, pas supposer.** `touch` ne prouve rien — Turbo hache le contenu, pas
+la date. Le protocole qui prouve, en trois mesures :
+
+```bash
+pnpm exec turbo run test --dry=json     # hash de la tâche, arbre propre
+# … modifier réellement le fichier surveillé …
+pnpm exec turbo run test --dry=json     # le hash doit avoir changé
+```
+
+`globalCacheInputs.files` du même JSON liste tout ce qui entre dans le hash
+global : si le fichier n'y est pas, la déclaration ne mord pas.
 
 ## Logique métier transactionnelle
 
