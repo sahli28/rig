@@ -160,3 +160,21 @@ export {
   type TenantScopedTable,
   type TenantScopedView,
 } from './active-tenant';
+
+export {
+  BookingFailed,
+  affordanceHint,
+  affordanceLabelKey,
+  bookClass,
+  bookingAffordance,
+  fetchClassDetail,
+  fetchUpcomingBookings,
+  type AffordanceClass,
+  type AffordanceInput,
+  type AffordanceRules,
+  type BookClassInput,
+  type BookClassOptions,
+  type BookingAffordance,
+  type ClassDetail,
+  type UpcomingBooking,
+} from './bookings';

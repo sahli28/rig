@@ -26,9 +26,17 @@ try {
   console.error(
     [
       'BLOQUE : cette migration est deja versionnee dans git.',
-      'Une migration appliquee est immuable (regle 1 de CLAUDE.md).',
-      'Cree une NOUVELLE migration avec un timestamp posterieur qui applique le correctif,',
-      'via : npx supabase migration new <nom_explicite>',
+      '',
+      'Le defaut est de ne PAS la modifier. Cree une nouvelle migration :',
+      '  npx supabase migration new <nom_explicite>',
+      '',
+      "L'exception, sa raison et sa date de peremption sont la regle 13 de CLAUDE.md :",
+      "tant qu'aucune base de production n'existe, une correction en place est plus",
+      'propre. Le jour ou une base de production existe, cette exception disparait.',
+      '',
+      "PORTEE DE CE GARDE : il ne s'execute que sur les outils Edit et Write. Un script",
+      "Node lance en Bash ecrit le meme fichier sans qu'il le voie (arrive au renommage",
+      'D-013). Il reduit les accidents, il ne rend pas le fichier immuable.',
     ].join('\n'),
   );
   process.exit(2); // 2 = bloque l'appel et renvoie stderr a Claude

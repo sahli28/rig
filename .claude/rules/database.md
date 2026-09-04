@@ -244,7 +244,20 @@ et échoue si une table n'a pas de policy.
 ## Migrations
 
 - Une migration = un changement cohérent, nommée `<timestamp>_<verbe>_<objet>.sql`.
-- **Jamais** de modification d'une migration déjà versionnée (le hook la bloque).
+- **Une migration déjà versionnée ne se modifie pas** — le hook
+  `.claude/hooks/guard-migrations.mjs` la bloque, et c'est le bon défaut. La
+  **règle 13 de `CLAUDE.md`** dit l'exception et sa date de péremption : tant
+  qu'aucune base de production n'existe, corriger en place est plus propre
+  qu'ajouter une migration de rattrapage, parce qu'une cicatrice dans
+  l'historique d'un projet sans données ne documente rien. **Le jour où une base
+  de production existe, l'exception disparaît sans discussion.**
+  Ces deux lignes disaient l'inverse l'une de l'autre entre le 4 et le
+  5 septembre 2026 : la règle 13 est arrivée ici sans que celle-ci bouge.
+- **Le garde ne couvre qu'un chemin sur deux.** Il s'exécute sur
+  `PreToolUse(Edit|Write)`. Un script Node lancé en Bash écrit le même fichier
+  sans qu'il voie rien — c'est ce qui s'est passé au renommage `D-013`, et le
+  hook n'a pas échoué : il n'était pas sur le chemin. Un garde qui se croit
+  étanche est plus dangereux qu'un garde qui dit sa portée.
 - Toute migration doit être réversible ou documenter pourquoi elle ne l'est pas.
 - Pas de `drop column` sans étape de dépréciation préalable.
 

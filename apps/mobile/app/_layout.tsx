@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { ActivityIndicator, useColorScheme, View } from 'react-native';
+import * as Crypto from 'expo-crypto';
 import { ThemeProvider, brandFromTheme, useTheme } from '@rack/ui/theme';
 import { I18nProvider } from '@rack/ui/i18n';
-import { resolveLocale } from '@rack/core';
+import { installRandomBytesSource, resolveLocale } from '@rack/core';
 import { BrandProvider, useBrand } from '../lib/brand';
 import { deviceLocale, deviceTimeZone, useLocaleStorage } from '../lib/locale';
 import { SessionProvider, useSession } from '../lib/session';
@@ -171,6 +172,25 @@ function Branded() {
     </ThemeProvider>
   );
 }
+
+/**
+ * **La source d'aléa du moteur, posée une fois, avant tout rendu.**
+ *
+ * `crypto` n'existe pas sous Hermes — ni `randomUUID()`, ni `getRandomValues()`,
+ * et le runtime « winter » d'Expo ne l'installe pas. Sans cette ligne, le premier
+ * tap sur « Réserver » lève une erreur qui le dit en toutes lettres, plutôt que
+ * de fabriquer une clé d'idempotence avec `Math.random()` : un repli silencieux
+ * rendrait le manque invisible là où il coûte le plus cher (règle 4).
+ *
+ * **Ce fichier est le seul autorisé à importer `expo-crypto`** — `eslint.config.mjs`
+ * le refuse partout ailleurs, parce que `Crypto.randomUUID()` est un appel de
+ * module qu'aucun interdit de global ne voit. La clé vient de `uuidV7()`, comme
+ * tout identifiant du produit (règle 12).
+ *
+ * Hors du composant : ça ne dépend d'aucun état, et l'exécuter au rendu le
+ * referait à chaque montage pour rien.
+ */
+installRandomBytesSource((n) => Crypto.getRandomBytes(n));
 
 export default function RootLayout() {
   return (
