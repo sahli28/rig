@@ -244,7 +244,19 @@ export function weekDates(monday: string): string[] {
 
 /** Décale d'un nombre de semaines. Négatif pour reculer. */
 export function shiftWeeks(monday: string, weeks: number): string {
-  const start = new Date(`${monday}T00:00:00Z`);
-  start.setUTCDate(start.getUTCDate() + weeks * 7);
+  return shiftDays(monday, weeks * 7);
+}
+
+/**
+ * Décale d'un nombre de jours. Négatif pour reculer.
+ *
+ * En UTC comme ses sœurs, et pour la même raison : ce sont des **étiquettes de
+ * calendrier**, pas des instants. Passer par l'heure locale ferait changer de
+ * jour selon le fuseau de qui regarde, alors que le jour affiché est celui de
+ * la box.
+ */
+export function shiftDays(date: string, days: number): string {
+  const start = new Date(`${date}T00:00:00Z`);
+  start.setUTCDate(start.getUTCDate() + days);
   return start.toISOString().slice(0, 10);
 }

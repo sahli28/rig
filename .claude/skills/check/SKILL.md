@@ -19,6 +19,14 @@ en expliquant la cause avant de corriger.
 5. **Couleurs en dur** : cherche `#[0-9a-fA-F]{3,8}`, `rgb(`, `rgba(` dans
    `apps/**` et `packages/ui/**`. Toute occurrence hors fichier de thème est un échec.
 6. **Chaînes en dur** : tout texte visible dans un composant qui ne passe pas par `t(`.
+6bis. **Arbre d'accessibilité** — pour tout écran ajouté ou modifié dans le diff.
+   Ouvrir le harnais web, `read_page filter=interactive`, et vérifier trois
+   choses : chaque élément interactif s'annonce par **ce qu'il fait** (pas par
+   son icône, pas par un nom de route) ; un nombre porteur de sens est annoncé
+   **avec son unité** (« 3 places », pas « 3 ») ; l'ordre de l'arbre suit
+   l'ordre de lecture. Détail et pièges connus dans `.claude/rules/ui.md`.
+   Aucun test ni aucune capture ne voit ces défauts — c'est pour ça que l'étape
+   est ici et pas dans la partie automatique.
 7. **Parité i18n** : toute clé ajoutée dans `fr.json` existe dans `en.json`, et l'inverse.
 8. **Argent** : aucun `parseFloat`, `toFixed`, `*100` ou `/100` sur un montant
    dans le diff. Les montants sont des entiers de centimes.

@@ -6,7 +6,7 @@ import { parseWeeklyRrule } from '@rig/core/supabase';
 import { SeriesForm } from './series-form';
 import { WeekGrid } from './week-grid';
 import styles from './planning.module.css';
-import { DAY_LABELS, type Choice, type Occurrence, type Serie } from './view-model';
+import { DAY_LABELS, type Choice, type Occurrence, type Serie } from '@rig/core/supabase';
 
 /**
  * Le planning : la semaine affichée, puis les séries qui la produisent.

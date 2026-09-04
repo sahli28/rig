@@ -43,6 +43,13 @@ export function SegmentedControl({
             key={option.value}
             onPress={() => onChange(option.value)}
             accessibilityRole="radio"
+            // **Le libellé est porté par le segment, pas seulement par son
+            // texte.** Sans lui, l'arbre d'accessibilité rend un `radio` sans
+            // nom, dont le mot n'existe que dans un nœud enfant : le groupe
+            // s'annonce « Langue » et les choix ne s'annoncent pas du tout.
+            // Trouvé en lisant l'arbre de l'accueil, deux semaines après
+            // l'écriture du composant, et invisible à l'écran.
+            accessibilityLabel={option.label}
             accessibilityState={{ selected }}
             style={{
               flex: 1,

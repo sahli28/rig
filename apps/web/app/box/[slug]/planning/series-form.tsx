@@ -8,7 +8,7 @@ import { archiveSchedule, createSchedule, updateSchedule } from './actions';
 import { Feedback, SubmitButton } from './form-bits';
 import { IDLE } from './action-state';
 import styles from './planning.module.css';
-import { DAY_LABELS, type Choice, type Serie } from './view-model';
+import { DAY_LABELS, type Choice, type Serie } from '@rig/core/supabase';
 
 /**
  * Créer ou modifier une série.
