@@ -72,6 +72,81 @@ export type Database = {
           },
         ];
       };
+      bookings: {
+        Row: {
+          booked_at: string;
+          cancelled_at: string | null;
+          class_id: string;
+          created_at: string;
+          id: string;
+          idempotency_key: string;
+          membership_id: string;
+          status: Database['public']['Enums']['booking_status'];
+          tenant_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          booked_at?: string;
+          cancelled_at?: string | null;
+          class_id: string;
+          created_at?: string;
+          id?: string;
+          idempotency_key: string;
+          membership_id: string;
+          status?: Database['public']['Enums']['booking_status'];
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          booked_at?: string;
+          cancelled_at?: string | null;
+          class_id?: string;
+          created_at?: string;
+          id?: string;
+          idempotency_key?: string;
+          membership_id?: string;
+          status?: Database['public']['Enums']['booking_status'];
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bookings_class_same_tenant';
+            columns: ['class_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'classes';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'bookings_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'bookings_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'memberships';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'bookings_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenant_coaches';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'bookings_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       class_schedules: {
         Row: {
           capacity: number;
@@ -129,6 +204,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'memberships';
             referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'class_schedules_coach_same_tenant';
+            columns: ['coach_membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenant_coaches';
+            referencedColumns: ['membership_id', 'tenant_id'];
           },
           {
             foreignKeyName: 'class_schedules_room_same_tenant';
@@ -269,6 +351,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'memberships';
             referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'classes_coach_same_tenant';
+            columns: ['coach_membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenant_coaches';
+            referencedColumns: ['membership_id', 'tenant_id'];
           },
           {
             foreignKeyName: 'classes_room_same_tenant';
@@ -455,6 +544,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'memberships';
             referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'invitations_inviter_same_tenant';
+            columns: ['invited_by', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenant_coaches';
+            referencedColumns: ['membership_id', 'tenant_id'];
           },
           {
             foreignKeyName: 'invitations_tenant_id_fkey';
@@ -917,6 +1013,23 @@ export type Database = {
           },
         ];
       };
+      tenant_coaches: {
+        Row: {
+          first_name: string | null;
+          last_initial: string | null;
+          membership_id: string | null;
+          tenant_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'memberships_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string };
@@ -927,6 +1040,14 @@ export type Database = {
       app_error: {
         Args: { p_code: string; p_message: string; p_sqlstate?: string };
         Returns: undefined;
+      };
+      book_class: {
+        Args: {
+          p_class_id: string;
+          p_idempotency_key: string;
+          p_membership_id: string;
+        };
+        Returns: string;
       };
       claim_invitation: { Args: { p_invitation_id: string }; Returns: string };
       create_invitation: {
@@ -1009,6 +1130,10 @@ export type Database = {
         Returns: number;
       };
       me: { Args: { p_tenant_id?: string }; Returns: Json };
+      member_has_booking_right: {
+        Args: { p_class_starts_at: string; p_membership_id: string };
+        Returns: boolean;
+      };
       pending_invitations_for_me: {
         Args: never;
         Returns: {
@@ -1053,6 +1178,7 @@ export type Database = {
       uuid_generate_v7: { Args: never; Returns: string };
     };
     Enums: {
+      booking_status: 'CONFIRMED' | 'CANCELLED';
       class_status: 'SCHEDULED' | 'CANCELLED';
       consent_purpose:
         | 'TERMS'
@@ -1191,6 +1317,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      booking_status: ['CONFIRMED', 'CANCELLED'],
       class_status: ['SCHEDULED', 'CANCELLED'],
       consent_purpose: [
         'TERMS',

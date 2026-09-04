@@ -16,6 +16,23 @@ Deux garde-fous rendent ce report tenable :
    d'une demande. C'est ce qui rend le droit **exerçable pendant le pilote**, et
    c'est la condition de ce report.
 
+## Un obstacle à l'effacement, trouvé en P1-010
+
+`class_schedules_coach_same_tenant` est en **`on delete restrict`** : une
+appartenance qui encadre une série ne peut pas être supprimée. Le comportement
+est correct — on n'orpheline pas une série en silence — mais il a une
+conséquence directe ici : **l'effacement d'un compte de coach échoue tant que
+ses séries ne sont pas réattribuées.**
+
+Trouvé sans le chercher, en donnant un cours du matin à Marc dans le seed :
+`account_deletion_test` est tombé sur-le-champ. Ce ticket doit donc prévoir le
+chemin — réattribution des séries, ou refus explicite avec la liste de ce qui
+bloque — et pas découvrir l'erreur brute de Postgres devant une personne qui
+exerce un droit.
+
+Même famille du côté des réservations : `bookings` référence
+`memberships (id, tenant_id)` en `restrict` aussi.
+
 ## Ce que ce ticket suppose et qui doit exister
 
 Section ajoutée le 2 septembre 2026 (règle 8 de `CLAUDE.md`), rétroactivement :

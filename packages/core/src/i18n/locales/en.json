@@ -205,6 +205,8 @@
   "planning.field_until": "Series end",
   "planning.field_until_hint": "Leave empty for a series with no end.",
   "planning.filter_all": "All classes",
+  "planning.filter_all_coaches": "All coaches",
+  "planning.filter_coach": "Coach",
   "planning.filter_type": "Class type",
   "planning.full": "Full",
   "planning.grid_label": "Week grid",

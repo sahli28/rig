@@ -75,3 +75,50 @@ chaque session.
   comptables sous forme anonymisée (obligation de conservation 10 ans).
 - Scrubbing PII activé dans Sentry ; vérifier avant chaque release que rien de nominatif
   ne remonte.
+
+## La règle d'exposition d'identité
+
+**Une seule règle pour toutes les audiences, écrite une fois** (P1-010). La
+question « qui peut lire le nom de qui » s'est posée trois fois — admins, coachs,
+pairs — et une quatrième arrive : la feuille de présence d'un coach. Trois vues
+ad hoc aux règles différentes, ce sont trois surfaces qu'on ne compare jamais.
+
+| Audience | Ce qui est exposé | Base | Où |
+| --- | --- | --- | --- |
+| **Admin** — OWNER/MANAGER sur tous les membres | tout, **e-mail compris** | responsabilité de traitement de la box | `member_admin_directory` (D-001) |
+| **Coach** — un membre sur qui anime son cours | prénom, **initiale** du nom | exécution du contrat du coach : son nom est déjà au mur et sur le site | `tenant_coaches` (P1-010) |
+| **Pair** — un membre sur les autres inscrits | à trancher | à trancher | P1-003c |
+| **Présence** — un coach sur son propre cours | à trancher | à trancher | pas de ticket |
+
+Ce qui vaut pour **toute** audience non administrative :
+
+1. **Jamais d'e-mail, de téléphone, de date de naissance ni de sexe.** C'est là
+   que tombe la ligne : ce qui distingue une personne d'un pseudonyme, c'est le
+   nom et les moyens de la contacter.
+2. **Les identifiants techniques, oui**, quand une jointure les réclame et
+   qu'ils sont déjà lisibles par l'appelant. `classes.coach_membership_id` est
+   en clair pour tout membre depuis P1-002, et `memberships` rend `user_id`,
+   rôles et dates à tous les membres d'une box : interdire un `membership_id`
+   dans une vue ne retirerait rien du produit, ça rendrait la vue injoignable.
+3. **Le nom se réduit à « prénom + initiale ».** Une vue qui ne transporte qu'un
+   caractère ne peut pas laisser fuir un patronyme par inadvertance. C'est déjà
+   la ligne du partage inter-box, réutilisée plutôt que réinventée.
+4. **Une photo est du consentement**, jamais de l'exécution du contrat : elle
+   n'est pas nécessaire pour animer un cours. Et elle attend un producteur —
+   il n'y a ni stockage ni téléversement avant P1-001f.
+5. **Une base qui n'est pas le consentement n'exempte pas de l'information.**
+   Elle exempte de la case à cocher. La box est responsable de traitement ;
+   l'interface des droits est P2-002.
+6. **Une vue par audience, jamais une vue unique à colonnes conditionnelles.**
+   Le contrôle doit être un seul `WHERE`, pas un `case` par colonne sensible :
+   un `case` oublié sur une colonne ajoutée plus tard est invisible en revue,
+   un `WHERE` faux rend zéro ligne.
+7. **Filtrée par appartenance, toujours** : `security_invoker = false`, un seul
+   `WHERE` dérivé d'`auth.uid()`, aucun paramètre venant du client, et un test
+   pgTAP qui le prouve **dans les deux sens**.
+
+**Une surface que personne n'a choisie**, notée ici pour qu'elle soit comparée
+et non redécouverte : `memberships` rend à tout membre de la box, pour tous les
+autres, `user_id`, `role`, `status`, `joined_at` et `left_at`. Aucun nom, donc
+aucune fuite d'identité — mais de quoi compter l'effectif, lire les rôles et
+dater les arrivées. Elle vient des grants de table de P0-004, pas d'un arbitrage.

@@ -24,7 +24,7 @@ Vérifié dans le dépôt le 4 septembre 2026.
 | Composants natifs : liste, filtres, état vide, squelette | `@rig/ui/native` — `ListRow`, `SegmentedControl`, `EmptyState`, `Skeleton`, `Badge`, `Banner` | ✅ existent |
 | **Stockage persistant React Native** | `apps/mobile` | ❌ à ajouter : `@react-native-async-storage/async-storage`, dépendance à justifier au commit. **Vérifié le 3 septembre 2026 : incluse dans Expo Go (SDK 57)** — aucun development build, donc aucun compte Apple payant. Installer avec `npx expo install`, qui pose la version du binaire (`2.2.0`) |
 | **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** | ✅ fait et fusionné (PR #23). L'écran déclare son en-tête et son titre traduit, comme la convention l'exige |
-| **Une source du nom du coach, lisible par un membre** | **P1-010** | ❌ **n'existe pas, et ce ticket l'avait supposée.** `users` est en `id = auth.uid()`, `memberships` ne porte aucun nom, et `member_admin_directory` est réservée à OWNER/MANAGER — elle porte les e-mails. Le planning est donc livré **sans la dimension coach** ; P1-010 la rend possible |
+| **Une source du nom du coach, lisible par un membre** | **P1-010** | ✅ livrée depuis — `tenant_coaches`. Elle **n'existait pas** quand ce ticket a été écrit, et il l'avait supposée. `users` est en `id = auth.uid()`, `memberships` ne porte aucun nom, et `member_admin_directory` est réservée à OWNER/MANAGER — elle porte les e-mails. Le planning est donc livré **sans la dimension coach** ; P1-010 la rend possible |
 | **Des séries et des cours dans le seed** | `supabase/seed.sql` | ❌ **il n'y en avait aucun.** Ajoutés par ce ticket : sans données, un planning en lecture seule ne peut afficher que son état vide, et aucune passe ne prouve rien |
 | Le sélecteur de box | P1-009 | ❌ à créer par P1-009 — qui devra **vider ce cache** en changeant de box. La contrainte est inscrite des deux côtés |
 | Réserver depuis le planning | P1-003b | ❌ hors périmètre, et **volontairement absent de l'écran hors ligne** — voir la contrainte 2 |
@@ -160,8 +160,8 @@ déconnexion.
 
 ## Critères d'acceptation
 
-- [x] Un membre voit la journée et filtre par type — vérifié sur le harnais web,
-      seed du 4 septembre. **Le filtre coach part avec P1-010**
+- [x] Un membre voit la journée et filtre par type **et par coach** — le filtre
+      coach est arrivé avec P1-010, comme prévu
 - [ ] Les heures s'affichent dans le fuseau de la **box**, pas du téléphone —
       **à vérifier sur appareil** en changeant le fuseau du téléphone. Le calcul
       est testé (12 tests sur `localDay` / `instantLocal`), son effet à l'écran

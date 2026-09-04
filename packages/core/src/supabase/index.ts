@@ -129,6 +129,8 @@ export {
   type WeeklyRecurrence,
 } from './class-schedules';
 export {
+  CoachRowSchema,
+  coachDisplayName,
   DAY_LABELS,
   DayScheduleSchema,
   fetchDaySchedule,

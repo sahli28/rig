@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { groupByDay, instantLocal, localDay, localDayIn, type Occurrence } from './planning';
+import {
+  coachDisplayName,
+  groupByDay,
+  instantLocal,
+  localDay,
+  localDayIn,
+  type Occurrence,
+} from './planning';
 
 /**
  * Ces fonctions ont vécu deux semaines dans `apps/web` **sans un seul test** —
@@ -133,5 +140,32 @@ describe('groupByDay', () => {
     // parce qu'il manque une ligne, pas parce que tout est blanc.
     const jours = groupByDay(monday, [occurrence('avant', '2026-08-01T10:00:00Z')], dayOf);
     expect(jours.flatMap((j) => j.occurrences)).toHaveLength(0);
+  });
+});
+
+describe('coachDisplayName — prénom et initiale, jamais plus', () => {
+  it('compose « Sarah D. »', () => {
+    expect(coachDisplayName({ first_name: 'Sarah', last_initial: 'D' })).toBe('Sarah D.');
+  });
+
+  it('se contente du prénom quand il n’y a pas de nom', () => {
+    // Un profil sans nom de famille est un cas nominal : `users.last_name` est
+    // nullable, et l'écran de profil le présente comme facultatif.
+    expect(coachDisplayName({ first_name: 'Sarah', last_initial: null })).toBe('Sarah');
+    expect(coachDisplayName({ first_name: 'Sarah', last_initial: '' })).toBe('Sarah');
+  });
+
+  it('rend une chaîne vide plutôt qu’un fragment quand le prénom manque', () => {
+    // « D. » tout seul n'est pas un nom, c'est un débris. L'écran affiche alors
+    // le cours sans coach, ce qui est honnête.
+    expect(coachDisplayName({ first_name: null, last_initial: 'D' })).toBe('');
+    expect(coachDisplayName({ first_name: '  ', last_initial: 'D' })).toBe('');
+  });
+
+  it('ne peut pas reconstituer un nom complet, par construction', () => {
+    // La vue ne transporte qu'un caractère : même une version fautive de cette
+    // fonction n'aurait rien de plus à afficher. C'est la propriété qui compte,
+    // et elle est tenue en base, pas ici.
+    expect(coachDisplayName({ first_name: 'Sarah', last_initial: 'Dupont' })).toBe('Sarah Dupont.');
   });
 });
