@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **38,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **39 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 76 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -68,7 +68,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 86,75 j·h, dont **38,5 restants**
+## ① Jalon pilote — 89,25 j·h, dont **39 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -77,19 +77,24 @@ Objectif : une box réelle utilise l'app en production pendant deux semaines.
 
 ```
 P0-005b                                (SSO Google)
-D-004 → P1-002b → P1-003b              (langue, planning mobile, réserver depuis le mobile)
+D-009 → P1-002b → P1-003b              (navigation, planning mobile, réserver depuis le mobile)
 P1-004 → P1-005                        (annulation, temps réel)
 P1-007 → P1-006 → P1-008               (push, waitlist, check-in)
-P1-001f                                (logo — après la première démo)
+P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
         ↓
   ═══ JALON : mise en production chez la box pilote ═══
 ```
 
-**D-004 ouvre la chaîne mobile**, et ce n'est pas un caprice : les critères de
-P1-002b et de P1-003b sont des critères de parcours, jugés à la main sur un
-appareil. Une app qui s'ouvre en anglais sur un iPhone français les fait juger
-sur les mauvais mots. Cette dette entre donc dans le total ① — voir P1-003b,
-section « Ce lot attend D-004 ».
+**D-009 ouvre la chaîne mobile, comme D-004 l'a ouverte avant elle.** La règle
+est la même à chaque fois : ce qui empire avec le nombre d'écrans se corrige
+avant d'en ajouter, pas après. D-004 était la langue — des critères de parcours
+ne se jugent pas dans la mauvaise langue ; D-009 est la navigation — trois
+écrans aujourd'hui, huit après P1-002b et P1-003b. Ces deux dettes entrent donc
+dans le total ①.
+
+**P1-009 reste après le jalon.** Le sélecteur de box ne bloque pas une box
+pilote, qui n'a qu'une box — mais le seed a Julie dans deux, et le produit ne
+sait pas lui répondre.
 
 ### État
 
@@ -108,7 +113,8 @@ section « Ce lot attend D-004 ».
 | P1-001e | Apparence de la box (branding)                    |      1 | ✅ fusionné (PR #14) |
 | P1-001f | Logo et couche Storage                            |      1 | à faire — après la démo |
 | P1-002  | Planning récurrent (RRULE)                        |      9 | ✅ fusionné (PR #17) |
-| D-004   | La langue du mobile — **entrée au chemin critique** |    2 | ✅ code écrit — **reste la passe sur appareil** (`expo-localization`, trousseau, absence de clignotement) |
+| D-004   | La langue du mobile — **entrée au chemin critique** |    2 | ✅ fusionné (PR #21) — vérifiée sur appareil le 4 sept. 2026 |
+| D-009   | Navigation mobile : en-tête, historique, retours  |      1 | à faire — **ouvre la chaîne mobile**, empire à chaque écran ajouté |
 | P1-002b | Planning mobile et cache hors ligne               |    3,5 | à faire — sorti de P1-002 |
 | P1-003  | Réservation — lot 1, le SQL                       |      4 | ✅ fusionné (PR #18) — prouvé sous contention réelle en CI |
 | P1-003b | Réserver depuis le mobile — lot 2, les écrans     |      5 | à faire — après D-004 et P1-002b |
@@ -117,13 +123,18 @@ section « Ce lot attend D-004 ».
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire              |
 | P1-007  | Notifications push                                |      4 | à faire              |
 | P1-008  | Check-in QR et mode kiosque                       |      6 | à faire              |
-|         | **Total ①**                                       | **86,75** | dont **48,25 faits**, **38,5 restants** |
+| P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon |
+|         | **Total ①**                                       | **89,25** | dont **50,25 faits**, **39 restants** |
 
-Deux mouvements de chiffres, tous deux dus à la règle 8 appliquée au lot 2 de
-P1-003 : **P1-003 passe de 8 à 9 j·h** (4 pour le SQL livré, 5 pour les écrans —
-l'écran Planning en est sorti, il appartient à P1-002b), et **D-004 rejoint le
-total ① pour 2 j·h**. C'est le deuxième ticket où la section de prérequis coûte
-avant le code plutôt qu'après.
+**Ce que les passes sur appareil ont coûté au total ①, et pourquoi c'est une
+bonne nouvelle.** P1-003 est passé de 8 à 9 j·h (règle 8 sur son lot 2), D-004
+et D-009 y sont entrées pour 3 j·h, et P1-009 s'y ajoute pour 1,5. Rien de tout
+cela n'a été trouvé par un test : il a fallu un iPhone les 3 et 4 septembre 2026.
+
+Quatre défauts, dont trois n'auraient été vus qu'en production chez la box
+pilote — la langue, le parcours d'invitation cassé de bout en bout, le sélecteur
+de box sans retour. Un total qui monte parce qu'on a regardé vaut mieux qu'un
+total juste sur le papier.
 
 ---
 

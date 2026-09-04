@@ -134,14 +134,29 @@ allemand ou en espagnol. À trancher explicitement, pas à subir.
 préférence enregistrée l'emporte sur la langue du navigateur, survit au
 rechargement, et `setLocale` l'écrit. Aucune erreur de console.
 
-**Ce qui ne peut se vérifier que sur un téléphone** : tout ce qui touche
-`expo-localization`, le trousseau, et l'absence de clignotement au passage du
-rang 3 au rang 2. Ces critères restent décochés exprès.
+**Vérifié sur appareil le 4 septembre 2026** : le rang 3 (`expo-localization`)
+et le repli. L'app s'ouvre en français sur un iPhone français, avant connexion.
+
+**Ce qui reste décoché, et ce que ça coûterait de le fermer** — quatre gestes,
+tous à faire dans la même passe que la prochaine :
+
+| Critère | Le geste |
+| --- | --- |
+| La langue choisie survit à la fermeture complète | basculer en anglais depuis l'accueil, tuer l'app, rouvrir |
+| Le passage rang 3 → rang 2 ne clignote pas | ouvrir l'app déconnectée, se connecter, regarder l'instant de bascule |
+| Une préférence l'emporte sur le profil **et écrit le profil** | basculer en anglais, puis `select locale from public.users where email = …` |
+| Elle suit le compte d'un appareil à l'autre | demande un second téléphone — le seul qui ne tienne pas dans une passe |
+
+Le repli allemand ne se vérifie qu'en changeant la langue du système : à faire
+une fois, pas à chaque passe.
 
 ## Critères d'acceptation
 
-- [ ] Un iPhone réglé en français ouvre l'app **en français**, avant toute
-      connexion — *sur appareil*
+- [x] Un iPhone réglé en français ouvre l'app **en français**, avant toute
+      connexion — passe du **4 septembre 2026**, iPhone 12 Pro Max, Expo Go,
+      SDK 57. L'écran de bienvenue dit « Bienvenue chez CF Rueil » sur un lien
+      d'invitation, donc avant toute session. C'est le défaut d'origine, et il
+      est fermé : `expo-localization` lit ce qu'`Intl` ne savait pas dire
 - [ ] La langue choisie survit à la fermeture complète de l'app — *sur appareil*
 - [ ] Elle suit le compte d'un appareil à l'autre : se connecter sur un second
       téléphone donne la langue du profil, pas celle de l'appareil

@@ -23,7 +23,7 @@ se demande si un webhook est arrivé.
 | Schémas Zod partagés | `packages/core` | ✅ existe |
 | Un champ « montant en centimes » dans le kit web | `packages/ui` / `apps/web` | ❌ **à créer ici.** Aucun écran n'a encore saisi d'argent : le formatage, la locale (virgule décimale en FR), et l'interdiction du float sont à poser une fois |
 | Un composant de liste réordonnable | — | ⚠️ non nécessaire : l'ordre d'affichage est une colonne `sort_order`, saisie au clavier. Pas de drag & drop pour trois formules |
-| Écran membre où afficher le catalogue | `apps/mobile` | ⚠️ existe partiellement — les écrans mobiles n'ont **jamais tourné** (P0-005a, passe appareil en attente). En dépendre suppose cette passe faite |
+| Écran membre où afficher le catalogue | `apps/mobile` | ⚠️ existe partiellement. Les écrans mobiles **ont tourné** sur appareil (passes des 3 et 4 septembre 2026) ; ce qui manque ici est l'écran de catalogue lui-même, pas la confiance dans le socle |
 
 ## Ce que ce ticket rend possible, et qui l'appellera
 
