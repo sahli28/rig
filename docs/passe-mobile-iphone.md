@@ -140,6 +140,16 @@ Il ne coche **aucun** critère de cette page, et il attrape ce que refaire une
 passe coûte trop cher à attraper : c'est lui qui a montré, en une navigation,
 que `/invitation/<jeton>` tombait sur « Unmatched Route ».
 
+## Journal des passes
+
+Une passe se périme — Expo bouge, l'IP change, le trousseau se vide. Les dates
+sont donc la moitié de l'information.
+
+| Date | Appareil | Résultat |
+| --- | --- | --- |
+| **3 sept. 2026** | iPhone 12 Pro Max, Expo Go, SDK 57 | Les cinq vérifications passent. **Quatre défauts trouvés**, aucun visible en test : la langue (D-004), le parcours d'invitation cassé de bout en bout (corrigé), le sélecteur de box sans retour (P1-009), les retours de navigation vers des écrans interdits (D-009) |
+| **4 sept. 2026** | idem | Tout passe, contrôle négatif compris : `/welcome` sans jeton est graphite, `/invitation/<jeton>` est orange et nomme la box, `nouveau@example.com` atterrit membre de CrossFit Rueil. Thème sombre et texte à 200 % tiennent ; la reconnexion après déconnexion est propre |
+
 ## 6. Ce qu'on note, et ce qu'on ne commite pas
 
 En cas d'écran rouge : la première ligne du message, et les dernières lignes du

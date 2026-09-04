@@ -62,7 +62,11 @@ visibles. Sans lui, la programmation est un back-office que personne ne lit.
 
 ## Notes
 
-**Ce ticket paie la dette mobile de P0-005a ou il la subit.** Quatre écrans
-mobiles n'ont jamais exécuté une ligne. En ajouter un cinquième sans avoir fait
-la passe Expo, c'est empiler du non-vérifié. La passe est un préalable, pas une
-formalité.
+**La dette mobile de P0-005a est payée.** Les passes des 3 et 4 septembre 2026
+ont exercé les écrans sur un iPhone 12 Pro Max : session, trousseau, langue,
+parcours d'invitation de bout en bout. Ce ticket n'empile plus du non-vérifié.
+
+Ce qu'il reste à savoir, et qui vaut pour tout écran mobile ajouté après :
+**cette vérification se périme.** Expo bouge, l'IP de la machine change, le
+trousseau se vide. `docs/passe-mobile-iphone.md` prend trois minutes une fois
+la première faite.

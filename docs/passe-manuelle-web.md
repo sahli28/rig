@@ -108,9 +108,9 @@ Connectée en `marc@rueil.example`.
 Aucune table de planning, de réservation, de programmation ni de paiement
 n'existe à ce jour. Ne cherche donc pas : planning, réservation, liste
 d'attente, check-in QR, WOD, score, leaderboard, abonnement, crédits.
-Le mobile n'a jamais tourné sur un appareil : c'est une passe distincte, qui
-demande `apps/mobile/.env.local` pointant sur l'**IP LAN** de la machine, pas
-sur `127.0.0.1`.
+Le mobile a sa propre passe — `docs/passe-mobile-iphone.md` — qui demande
+`apps/mobile/.env.local` pointant sur l'**IP LAN** de la machine, pas sur
+`127.0.0.1`. Faite les 3 et 4 septembre 2026.
 
 ## En cas d'échec
 

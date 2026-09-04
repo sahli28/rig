@@ -42,7 +42,18 @@ inter-box), gestion des invitations côté OWNER (P1-001 avec les réglages).
 ## Critères d'acceptation
 
 - [x] Un lien d'invitation ouvre un écran de bienvenue **aux couleurs de la box,
-      avant toute connexion** — `tenant_public_profile` en clé `anon`, vérifié
+      avant toute connexion** — passe sur appareil du **4 septembre 2026** — iPhone 12 Pro Max, Expo Go, Expo SDK 57.
+
+      **Ce critère a été coché une semaine trop tôt, et c'est instructif.** Il
+      l'était sur la foi de `tenant_public_profile` répondant en clé `anon` :
+      vrai, vérifié, et **au mauvais niveau**. Dans le produit, le lien ne
+      portait pas de slug mais un jeton, l'écran ne savait résoudre qu'un slug,
+      et l'URL du produit n'avait aucune route côté mobile. Trois maillons
+      cassés sous une fonction SQL qui marchait.
+
+      Vérifier une brique n'est pas vérifier le parcours. Un critère écrit du
+      point de vue de la personne — « un lien ouvre un écran » — ne se coche pas
+      depuis une console SQL.
 - [x] **Mobile** : le code à six chiffres arrive dans Mailpit et connecte —
       vérifié de bout en bout par appels HTTP réels (gabarits `supabase/templates/`)
 - [x] **Web** : le **lien** du même e-mail connecte aussi — vérifié de bout en

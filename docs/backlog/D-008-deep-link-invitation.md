@@ -16,6 +16,13 @@ rejoindre sa box, alors qu'elle vient de cliquer sur son invitation.
 
 C'est le *deferred deep link*, explicitement reporté au commit de P0-005a.
 
+**Ce que ce ticket ajoute est désormais net.** Le chemin « app déjà installée »
+a été prouvé de bout en bout le 4 septembre 2026 sur iPhone : lien →
+`/invitation/<jeton>` → écran brandé → code → appartenance. Il ne l'était pas
+avant, et il était même cassé de trois façons (voir P0-005a). D-008 ne couvre
+donc **que** le trou restant : le jeton qui doit survivre à un passage par le
+store.
+
 ## Périmètre
 
 - Universal Links (iOS) et App Links (Android) : `apple-app-site-association` et

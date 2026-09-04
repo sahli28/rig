@@ -61,8 +61,15 @@ de défaut ci-dessus.
       (4,5:1) et explique pourquoi
 - [x] Le thème par défaut d'une box nouvellement créée cesse d'être la couleur
       d'exemple de la spec (test pgTAP)
-- [ ] **L'app mobile** prend la couleur au chargement suivant — reste sur la
-      passe Expo en attente, comme le reste du mobile
+- [x] **L'app mobile** prend la couleur au chargement suivant — passe sur appareil du **4 septembre 2026** — iPhone 12 Pro Max, Expo Go, Expo SDK 57.
+      L'écran de bienvenue ouvert sur `/invitation/inv-rueil-0001` s'affiche à
+      l'orange de CF Rueil, **avant toute connexion**, et l'accueil la garde
+      après. La couleur vient de `themes` en base, via `invitation_preview()`.
+
+      Le **contrôle négatif** fait partie du critère : `/welcome` sans jeton est
+      graphite. Tant que la marque de la plateforme partageait la couleur de
+      Rueil, cocher cette ligne n'aurait rien prouvé — les deux écrans étaient
+      identiques.
 
 ### Une correction au cahier des charges
 
