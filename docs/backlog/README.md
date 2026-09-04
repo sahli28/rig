@@ -235,6 +235,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-006  | Défense en profondeur sur `public.users`       | 0,5 | P0-004 — ✅ fait |
 | D-007  | Contraste de la page de démo                   | 0,25 | P0-002 |
 | D-008  | Lien d'invitation qui survit à l'installation  | 1,5 | P0-005a — **attend un domaine**, comme P2-015 |
+| D-010  | Un filet qui s'exécute sur le moteur du produit | 0,5 à 6 | Plantage du 4 sept. 2026 — **arbitrage**, trois options chiffrées. Nos tests tournent sous Node, le produit sous Hermes |
 |        | **Ouvert, hors totaux**                        | **5,75** | D-002, D-003, D-007, D-008 — D-004 est passée dans ① |
 
 Ces 5,75 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :

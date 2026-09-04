@@ -8,8 +8,9 @@
  *   l'appareil. Un membre en déplacement doit lire l'heure du cours, pas la sienne.
  */
 
+import { dateTimeFormat, numberFormat, relativeDayKey } from './intl';
 import { translate } from './translate';
-import { LOCALE_TAGS, type Locale } from './types';
+import { type Locale } from './types';
 
 export interface MoneyOptions {
   locale: Locale;
@@ -27,10 +28,7 @@ export function formatMoney(
     );
   }
 
-  return new Intl.NumberFormat(LOCALE_TAGS[locale], {
-    style: 'currency',
-    currency,
-  }).format(amountCents / 100);
+  return numberFormat(locale, { style: 'currency', currency }).format(amountCents / 100);
 }
 
 export interface DateOptions {
@@ -53,11 +51,11 @@ export function formatDate(
       ? { timeZone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }
       : { timeZone, day: '2-digit', month: '2-digit', year: 'numeric' };
 
-  return new Intl.DateTimeFormat(LOCALE_TAGS[locale], options).format(date);
+  return dateTimeFormat(locale, options).format(date);
 }
 
 export function formatTime(value: Date | string, { locale, timeZone }: DateOptions): string {
-  return new Intl.DateTimeFormat(LOCALE_TAGS[locale], {
+  return dateTimeFormat(locale, {
     timeZone,
     hour: '2-digit',
     minute: '2-digit',
@@ -82,10 +80,13 @@ export function formatRelativeDate(
   const date = toDate(value);
   const diff = calendarDayDiff(date, now, timeZone);
 
-  const day =
-    Math.abs(diff) <= 2
-      ? new Intl.RelativeTimeFormat(LOCALE_TAGS[locale], { numeric: 'auto' }).format(diff, 'day')
-      : formatDate(date, { locale, timeZone });
+  // `relativeDayKey` et non `Intl.RelativeTimeFormat` : celui-ci **n'existe pas
+  // non plus sous Hermes**. Il n'avait pas encore planté parce qu'aucun écran
+  // mobile n'affichait de date relative — P1-003b en affichera. Traité dans le
+  // même lot que `PluralRules`, sans quoi le prochain plantage aurait été
+  // identique au mot près.
+  const key = relativeDayKey(diff);
+  const day = key === null ? formatDate(date, { locale, timeZone }) : translate(locale, key);
 
   return translate(locale, 'datetime.day_at_time', {
     day,
@@ -104,7 +105,7 @@ function toDate(value: Date | string): Date {
 /** Jour calendaire `YYYY-MM-DD` tel que vu dans le fuseau donné. */
 function calendarDay(date: Date, timeZone: string): string {
   // `en-CA` produit nativement `2026-08-31`, ce qui évite un assemblage manuel.
-  return new Intl.DateTimeFormat('en-CA', {
+  return dateTimeFormat('en-CA', {
     timeZone,
     year: 'numeric',
     month: '2-digit',

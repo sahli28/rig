@@ -30,6 +30,14 @@ Backlog exécutable : `docs/backlog/` — un fichier par ticket.
   un **contrôle comportemental** dit que ça se comporte bien.
   `rls_leak_test.sql` porte les deux depuis D-001 et D-006 — et le second a
   rattrapé un faux vert du premier.
+- **Nos filets ne s'exécutent pas sur le moteur du produit.** Vitest tourne
+  sous Node, le harnais web dans un navigateur ; le produit tourne sous
+  **Hermes**, qui n'a qu'une partie d'`Intl`. Trois défauts en une semaine ont
+  eu cette cause, dont un plantage sur appareil (`Intl.PluralRules` absent).
+  D'où : **`Intl` est interdit hors de `packages/core/src/i18n/intl.ts`**, où
+  chaque fonction dit ce qu'elle suppose du moteur et si c'est prouvé. ESLint
+  l'impose. La question de fond — un filet qui tourne sur le vrai moteur — est
+  chiffrée dans `docs/backlog/D-010-filet-sur-le-vrai-moteur.md`, à arbitrer.
 - **Un test qui lit un fichier hors de son paquet le déclare dans les
   `globalDependencies` de `turbo.json`**, dans le même commit. Sinon le cache
   ressert un vert calculé avant que le fichier change : le test rassure sans

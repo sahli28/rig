@@ -16,6 +16,7 @@
  */
 
 import { z } from 'zod';
+import { dateTimeFormat } from '../i18n/intl';
 import type { TranslationKey } from '../i18n/types';
 import { tenantScope } from './active-tenant';
 import { localizedText } from './box-settings';
@@ -87,7 +88,7 @@ export function groupByDay(
  * est la seule source qui connaisse les règles d'heure d'été.
  */
 export function localDayIn(timeZone: string): (isoInstant: string) => string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
+  const formatter = dateTimeFormat('en-CA', {
     timeZone,
     year: 'numeric',
     month: '2-digit',
@@ -121,11 +122,7 @@ export function localDay(isoInstant: string, timeZone: string): string {
 export function instantLocal(naiveLocal: string, timeZone: string): string {
   const supposed = new Date(`${naiveLocal}Z`);
   const seen = new Date(
-    `${new Intl.DateTimeFormat('sv-SE', {
-      timeZone,
-      dateStyle: 'short',
-      timeStyle: 'medium',
-    })
+    `${dateTimeFormat('sv-SE', { timeZone, dateStyle: 'short', timeStyle: 'medium' })
       .format(supposed)
       .replace(' ', 'T')}Z`,
   );

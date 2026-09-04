@@ -7,6 +7,7 @@
  * peut pas contrôler à un prix raisonnable.
  */
 
+import { timeZoneExists } from '../i18n/intl';
 import { z } from 'zod';
 import { LOCALES } from '../i18n/types';
 
@@ -82,12 +83,7 @@ export type BoxIdentity = z.infer<typeof BoxIdentitySchema>;
  * une liste écrite à la main vieillit en silence.
  */
 export function isSupportedTimeZone(timeZone: string): boolean {
-  try {
-    new Intl.DateTimeFormat('en-GB', { timeZone });
-    return true;
-  } catch {
-    return false;
-  }
+  return timeZoneExists(timeZone);
 }
 
 /**
