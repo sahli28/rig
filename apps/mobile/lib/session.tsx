@@ -13,6 +13,7 @@ import type { Session } from '@supabase/supabase-js';
 import { chooseActiveTenant, fetchMe, type Me } from '@rig/core/supabase';
 import { errorMessageKeyOf, type TranslationKey } from '@rig/core';
 import { forgetLocale } from './locale';
+import { clearScheduleCache } from './schedule-cache';
 import { startSessionAutoRefresh, supabase } from './supabase';
 
 /**
@@ -158,6 +159,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // la personne suivante hériterait de la langue de la précédente, et la
     // réconciliation irait écraser **son** profil avec.
     await forgetLocale();
+    // Le cache du planning est une copie de données de box **hors RLS** : ce
+    // qui reste du compte précédent sur un téléphone partagé est précisément ce
+    // qu'on ne veut pas garder (P1-002b, contrainte 1).
+    await clearScheduleCache();
     await supabase.auth.signOut();
   }, []);
 

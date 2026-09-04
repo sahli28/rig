@@ -120,6 +120,7 @@ export {
   isPilotRrule,
   mondayOf,
   parseWeeklyRrule,
+  shiftDays,
   shiftWeeks,
   weekDates,
   weekdayOf,
@@ -129,11 +130,16 @@ export {
 } from './class-schedules';
 export {
   DAY_LABELS,
+  DayScheduleSchema,
+  fetchDaySchedule,
   groupByDay,
   instantLocal,
   localDay,
   localDayIn,
+  seatsLeft,
   type Choice,
+  type DayClass,
+  type DaySchedule,
   type Occurrence,
   type Serie,
 } from './planning';

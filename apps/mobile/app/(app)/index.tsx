@@ -105,6 +105,15 @@ export default function HomeScreen() {
         ]}
       />
 
+      {/* L'action principale de l'accueil. Elle n'apparaît qu'une fois une box
+          résolue : sans box, il n'y a pas de planning à montrer, et une porte
+          qui se ferme est pire que pas de porte. */}
+      {activeTenantId === null ? null : (
+        <Link href="/planning" asChild>
+          <Button label={t('home.planning_cta')} onPress={() => {}} fullWidth />
+        </Link>
+      )}
+
       <Link href="/design-system" asChild>
         <Button label={t('home.design_system_cta')} onPress={() => {}} fullWidth />
       </Link>

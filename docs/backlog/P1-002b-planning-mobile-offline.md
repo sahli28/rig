@@ -23,7 +23,9 @@ Vérifié dans le dépôt le 4 septembre 2026.
 | `groupByDay()`, `localDayIn()` — ranger des occurrences dans les jours **du fuseau de la box** | `apps/web/app/box/[slug]/planning/view-model.ts` | ⚠️ **existent, au mauvais endroit.** Fonctions pures, enfermées dans un dossier d'app web. Voir la contrainte 3 |
 | Composants natifs : liste, filtres, état vide, squelette | `@rig/ui/native` — `ListRow`, `SegmentedControl`, `EmptyState`, `Skeleton`, `Badge`, `Banner` | ✅ existent |
 | **Stockage persistant React Native** | `apps/mobile` | ❌ à ajouter : `@react-native-async-storage/async-storage`, dépendance à justifier au commit. **Vérifié le 3 septembre 2026 : incluse dans Expo Go (SDK 57)** — aucun development build, donc aucun compte Apple payant. Installer avec `npx expo install`, qui pose la version du binaire (`2.2.0`) |
-| **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** | ❌ à créer, **et à faire passer avant**. Ce ticket ajoute deux écrans à une pile déjà cassée : les ajouter d'abord double le correctif |
+| **Une pile de navigation dont les retours ne mènent nulle part d'interdit** | **D-009** | ✅ fait et fusionné (PR #23). L'écran déclare son en-tête et son titre traduit, comme la convention l'exige |
+| **Une source du nom du coach, lisible par un membre** | **P1-010** | ❌ **n'existe pas, et ce ticket l'avait supposée.** `users` est en `id = auth.uid()`, `memberships` ne porte aucun nom, et `member_admin_directory` est réservée à OWNER/MANAGER — elle porte les e-mails. Le planning est donc livré **sans la dimension coach** ; P1-010 la rend possible |
+| **Des séries et des cours dans le seed** | `supabase/seed.sql` | ❌ **il n'y en avait aucun.** Ajoutés par ce ticket : sans données, un planning en lecture seule ne peut afficher que son état vide, et aucune passe ne prouve rien |
 | Le sélecteur de box | P1-009 | ❌ à créer par P1-009 — qui devra **vider ce cache** en changeant de box. La contrainte est inscrite des deux côtés |
 | Réserver depuis le planning | P1-003b | ❌ hors périmètre, et **volontairement absent de l'écran hors ligne** — voir la contrainte 2 |
 | Places restantes en temps réel | P1-005 | ❌ à créer par P1-005 |
@@ -122,8 +124,9 @@ ne se fera jamais.
 
 ## Périmètre
 
-- Écran Planning : le jour, navigation d'un jour à l'autre, filtres **type** et
-  **coach**, heures en heure locale de la box.
+- Écran Planning : le jour, navigation d'un jour à l'autre, filtre **type**,
+  heures en heure locale de la box. **Le filtre coach part avec P1-010**, faute
+  de source lisible par un membre — voir la section ci-dessous.
 - Cache de la dernière réponse réussie, avec sa date de mise à jour visible.
 - Réseau prioritaire ; repli sur le cache **seulement** en cas d'échec réseau,
   jamais pour économiser une requête.
@@ -138,24 +141,53 @@ ne se fera jamais.
 - **La grille de semaine** : le mobile affiche un jour. La semaine est un écran
   de conception, elle appartient au back-office.
 - **Le sélecteur de box** : P1-009.
-- **La correction de la navigation** : D-009, qui passe avant.
+- **La correction de la navigation** : D-009, faite avant.
+- **Le nom et le filtre du coach** : P1-010, écrit pendant ce ticket.
+
+## Ce que P1-009 trouvera en arrivant
+
+**La place lui est laissée, pas construite.** L'écran déclare son en-tête et son
+titre traduit (convention D-009) ; `headerRight` est **libre**, et c'est là que
+le sélecteur de box se posera. Rien n'y est réservé — un emplacement vide serait
+du code mort — mais rien ne l'occupe, et le commentaire de l'écran le dit.
+
+Ce que P1-009 devra faire en plus, et qui est inscrit des deux côtés :
+**`clearScheduleCache()` au changement de box**. Le cache est partitionné par
+`(utilisateur, box, jour)`, donc changer de box ne montrerait jamais les données
+de l'autre — mais laisser traîner une copie hors RLS d'une box qu'on vient de
+quitter n'a aucune raison d'être. La fonction existe et est déjà appelée à la
+déconnexion.
 
 ## Critères d'acceptation
 
-- [ ] Un membre voit la journée, filtre par type et par coach
+- [x] Un membre voit la journée et filtre par type — vérifié sur le harnais web,
+      seed du 4 septembre. **Le filtre coach part avec P1-010**
 - [ ] Les heures s'affichent dans le fuseau de la **box**, pas du téléphone —
-      vérifié en changeant le fuseau du téléphone
-- [ ] Sans réseau, le dernier planning chargé est consultable, **avec sa date de
-      mise à jour affichée**
-- [ ] Sans réseau, **aucune action de réservation n'est proposée**, et l'écran
-      dit pourquoi
+      **à vérifier sur appareil** en changeant le fuseau du téléphone. Le calcul
+      est testé (12 tests sur `localDay` / `instantLocal`), son effet à l'écran
+      ne l'est pas
+- [x] Sans réseau, le dernier planning chargé est consultable, **avec sa date de
+      mise à jour affichée** — « Hors ligne. Planning enregistré aujourd'hui à
+      11:04. Les places affichées peuvent avoir changé… », relevé sur le harnais
+      en coupant `fetch`
+- [x] Sans version enregistrée non plus, l'écran **dit qu'il n'a rien pu
+      charger** au lieu d'affirmer qu'il n'y a pas cours. Critère ajouté en
+      cours de route : le premier jet titrait « Aucun cours ce jour-là » sur un
+      chargement échoué, et seul le corps du message disait la vérité
+- [ ] Sans réseau, **aucune action de réservation n'est proposée** — structurel
+      aujourd'hui, puisque la réservation n'existe pas encore. **C'est P1-003b
+      qui devra l'honorer**, et son ticket le porte
 - [ ] Le contenu du cache est relu à la main après une session : aucune adresse
-      e-mail, aucun nom de participant, aucun jeton
+      e-mail, aucun nom de participant, aucun jeton. La **forme** l'interdit
+      déjà (`DayClass` dans `@rig/core`), la relecture le confirme sur appareil
 - [ ] Deux membres et deux boxes sur le même téléphone ne partagent jamais leur
-      cache
-- [ ] Une déconnexion supprime les caches du compte local
-- [ ] `groupByDay` et ses voisines n'existent qu'à **un** endroit — vérifiable
-      par grep, et le web passe par `@rig/core`
+      cache — la clé est `(utilisateur, box, jour)` ; **à exercer avec deux
+      comptes sur un appareil**
+- [x] Une déconnexion supprime les caches du compte local — `clearScheduleCache()`
+      appelée dans `signOut()`, à côté de l'effacement de la langue
+- [x] `groupByDay` et ses voisines n'existent qu'à **un** endroit —
+      `view-model.ts` a disparu, le web importe `@rig/core/supabase`, et
+      `next build` est vert
 - [ ] Un appareil réel exerce le parcours ; Expo web ne coche aucun critère de
       parcours
 
