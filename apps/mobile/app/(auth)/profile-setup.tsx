@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import { Stack } from 'expo-router';
 import { useTheme } from '@rig/ui/theme';
 import { useI18n } from '@rig/ui/i18n';
 import { Banner, Button, Input } from '@rig/ui/native';
@@ -64,8 +63,6 @@ export default function ProfileSetupScreen() {
         justifyContent: 'center',
       }}
     >
-      <Stack.Screen options={{ headerShown: false }} />
-
       <Text
         style={{
           color: theme.colors.text,

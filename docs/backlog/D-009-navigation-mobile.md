@@ -14,7 +14,13 @@ Deux causes qui se rencontrent :
    des `screenOptions` de couleur et de police, mais ne dit jamais quels écrans
    ont un titre, lequel, ni s'ils ont un bouton retour. Chaque écran hérite donc
    d'un chevron et d'un titre technique — la passe a relevé `(app)/index` en
-   titre d'écran d'accueil ;
+   titre d'écran d'accueil.
+
+   **Précision trouvée en corrigeant** : cinq écrans sur six déclaraient bien
+   `headerShown: false`. Seul l'accueil ne disait rien. Le défaut n'est donc pas
+   « personne ne déclare » mais « la convention repose sur la mémoire, et elle
+   tombe au premier oubli » — ce qui change le correctif : un défaut sûr, pas un
+   rappel de plus ;
 2. **les redirections d'aiguillage ne vident pas l'historique.**
    `useAuthRedirect` utilise `router.replace()`, qui remplace l'entrée courante
    mais laisse celles d'avant. Après `welcome → auth → profile-setup →
@@ -41,7 +47,7 @@ C'est aussi le seul défaut de la passe qui **empire tout seul**.
 | `useAuthRedirect()` — la règle d'aiguillage, en un seul endroit | `apps/mobile/app/_layout.tsx` | ✅ existe, et c'est ce qui rend le correctif petit |
 | Les groupes de routes `(auth)` et `(app)` | `apps/mobile/app` | ✅ existent |
 | `Stack.Screen options` par écran | expo-router | ✅ disponible — déjà utilisé pour `headerShown: false` sur trois écrans, un par un |
-| Des titres d'écran traduits | `fr.json` / `en.json` | ❌ **à créer** : il n'existe aucune clé de titre de navigation. Les trois écrans qui masquent l'en-tête n'en ont jamais eu besoin |
+| Des titres d'écran traduits | `fr.json` / `en.json` | ✅ **existent déjà** — ce ❌ était faux. `design_system.title` est en place depuis P0-002, et l'écran s'en sert. Aucune clé nouvelle n'a été nécessaire : le seul écran à en-tête avait déjà le sien |
 | Un écran avec un vrai retour légitime | — | ❌ aucun aujourd'hui. Le premier sera le détail d'un cours (P1-003b) : ce ticket doit donc **poser la convention**, pas seulement éteindre les chevrons |
 
 ## Ce que ce ticket rend possible, et qui l'appellera
@@ -72,16 +78,32 @@ C'est aussi le seul défaut de la passe qui **empire tout seul**.
 
 ## Critères d'acceptation
 
-- [ ] Aucun écran n'affiche un titre tiré d'un nom de fichier
-- [ ] Depuis l'accueil connecté, aucun geste de retour ne mène à un écran
-      d'authentification — ni chevron, ni balayage iOS, ni bouton retour Android
-- [ ] Après connexion, la pile ne contient plus `welcome`, `auth`,
-      `profile-setup` ni `consents`
-- [ ] Le premier écran à retour légitime (détail d'un cours, P1-003b) trouve la
-      convention écrite plutôt qu'à inventer
-- [ ] Vérifié sur appareil : le balayage iOS ne se teste pas au navigateur
+- [x] Aucun écran n'affiche un titre tiré d'un nom de fichier — vérifié sur
+      `pnpm --filter @rig/mobile web` : le bandeau `(app)/index` a disparu de
+      l'accueil, et l'écran du système de design garde le sien, traduit
+- [x] **Aucun nom de route ne subsiste dans l'arbre d'accessibilité** — critère
+      ajouté en cours de route, parce que le harnais a trouvé la rémanence :
+      `headerShown: false` masque l'en-tête mais laisse le routeur employer le
+      nom de route comme titre, et le bouton retour de l'écran suivant
+      s'annonçait « (app)/index, back ». Il dit désormais « CF Rueil, back »
+- [x] Après connexion, la pile ne contient plus `welcome`, `auth`,
+      `profile-setup` ni `consents` — parcours complet rejoué depuis
+      `/invitation/inv-rueil-0001` sur seed neuf ; le retour laisse sur l'accueil
+      au lieu de rebondir sur l'écran de bienvenue
+- [x] Le premier écran à retour légitime (détail d'un cours, P1-003b) trouve la
+      convention écrite — `.claude/rules/ui.md`, section « La convention de
+      navigation mobile »
+- [ ] **Vérifié sur appareil** : le balayage iOS et le bouton retour Android ne
+      se testent pas au navigateur. C'est le seul critère qui reste, et il tient
+      dans la prochaine passe — § 5 bis de `docs/passe-mobile-iphone.md`
 
 ## Notes
+
+**Ce que le harnais web prouve, et ce qu'il ne prouve pas.** Il exerce le
+routeur, donc l'en-tête, le titre, l'arbre d'accessibilité et l'état de la pile
+après redirection — c'est lui qui a trouvé la rémanence du nom de route. Il
+n'exerce ni le balayage iOS ni le bouton matériel Android, qui restent le
+dernier critère.
 
 **Ce n'est pas un défaut de sécurité.** `useAuthRedirect` refoule bien, et les
 policies refusent de toute façon — un retour sur `/consents` ne montre aucune
