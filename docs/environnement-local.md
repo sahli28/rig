@@ -83,6 +83,22 @@ Le piège est le temps perdu à chercher l'erreur dans son propre travail : elle
 apparaît juste après un changement de code, alors qu'elle vient de l'installation
 d'à côté.
 
+## Une mesure prise pendant que le panneau est masqué rend zéro
+
+Le panneau du navigateur peut être **masqué** tout en restant fonctionnel :
+`get_page_text` et `read_page` répondent, les clics passent. Mais toute mesure
+de **mise en page** — `clientWidth`, `scrollWidth`, `getBoundingClientRect` —
+rend **zéro**, parce que rien n'est composé.
+
+Le piège n'est pas la valeur nulle, c'est ce qu'on en conclut : le 5 septembre
+2026, un bandeau mesuré ainsi donnait « des pages de 0 pixel, donc rien à
+faire défiler », ce qui ressemblait à s'y méprendre au défaut qu'on cherchait.
+Le même relevé, panneau affiché : quatre pages de 1248 px et un contenu de
+4992. **Fausse cause, trouvée à une minute près.**
+
+Le contrôle : `tabs_context` dit « displayed » ou « hidden ». Une capture
+d'écran force l'affichage — la prendre **avant** de mesurer, pas après.
+
 ## Le harnais mobile en préréglage « mobile » : les clics expirent
 
 Après `resize_window` en préréglage **mobile**, les clics du harnais expirent au
