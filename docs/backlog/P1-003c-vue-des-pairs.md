@@ -149,4 +149,33 @@ lequel tout le reste était un faux vert.
 - [ ] **Sur appareil** : la feuille est lisible et annoncée, l'opposition la fait
       disparaître, la réactivation la fait revenir. Trois gestes, à la prochaine
       passe — le harnais web les a tous exercés, mais il ne coche aucun critère
-      de parcours
+      de parcours.
+
+      **Passe du 5 septembre 2026 : geste 1 conforme, gestes 2 et 3 ont trouvé un
+      défaut**, corrigé ci-dessous. Le critère reste ouvert jusqu'à ce que les
+      trois soient rejoués sur l'appareil avec le correctif.
+
+## Le défaut de la passe : l'écran affirmait le contraire de la base
+
+Couper « Apparaître dans la liste des inscrits », revenir sur la fiche du cours :
+**on s'y voyait toujours**. Il fallait remonter au planning et rouvrir la séance
+pour que la feuille dise la vérité.
+
+Rien n'était faux en base — l'opposition était bien enregistrée, et les autres
+inscrits ne voyaient plus la personne. C'est l'écran qui mentait, et il mentait
+**dans le sens qui coûte le plus cher** : quelqu'un qui vient de demander à
+disparaître se voit encore, et n'a aucune raison de croire que le reste a marché.
+Un affichage périmé sur un contrôle de vie privée n'est pas un défaut cosmétique.
+
+**La cause n'a rien à voir avec la feuille.** `class/[id].tsx` chargeait ses
+données dans un `useEffect` monté une fois. L'écran de préférences est *poussé
+par-dessus* celui-là, et `router.back()` rend la main à la **même instance** :
+aucun effet ne rejoue. Corrigé par un `useFocusEffect` — premier passage avec son
+squelette, retours rafraîchis en silence, et un rafraîchissement qui échoue
+laisse à l'écran ce qui s'y trouve plutôt que d'y mettre une erreur.
+
+**Et les trois autres écrans ont exactement le même montage** —
+`planning.tsx:103`, `index.tsx:48`, `bookings.tsx:55`. Le plus visible : on
+réserve depuis une fiche, on revient au planning, **le nombre de places
+restantes n'a pas bougé**. Ce n'est plus le sujet de ce ticket-ci, c'est
+`D-016` — écrit le jour même, avec la forme déjà éprouvée ici à reprendre.
