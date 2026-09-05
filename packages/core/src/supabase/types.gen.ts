@@ -658,6 +658,7 @@ export type Database = {
       memberships: {
         Row: {
           created_at: string;
+          hidden_from_roster: boolean;
           id: string;
           joined_at: string;
           left_at: string | null;
@@ -669,6 +670,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          hidden_from_roster?: boolean;
           id?: string;
           joined_at?: string;
           left_at?: string | null;
@@ -680,6 +682,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          hidden_from_roster?: boolean;
           id?: string;
           joined_at?: string;
           left_at?: string | null;
@@ -988,6 +991,31 @@ export type Database = {
       };
     };
     Views: {
+      class_roster: {
+        Row: {
+          class_id: string | null;
+          first_name: string | null;
+          last_initial: string | null;
+          membership_id: string | null;
+          tenant_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bookings_class_same_tenant';
+            columns: ['class_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'classes';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'bookings_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       member_admin_directory: {
         Row: {
           avatar_url: string | null;
@@ -1074,6 +1102,7 @@ export type Database = {
         Args: { p_email: string; p_tenant_id: string };
         Returns: undefined;
       };
+      get_roster_visibility: { Args: { p_tenant_id: string }; Returns: boolean };
       import_members: {
         Args: { p_expires_in?: string; p_rows: Json; p_tenant_id: string };
         Returns: Json;
@@ -1161,6 +1190,10 @@ export type Database = {
           p_membership_id: string;
           p_role: Database['public']['Enums']['membership_role'];
         };
+        Returns: undefined;
+      };
+      set_roster_visibility: {
+        Args: { p_hidden: boolean; p_tenant_id: string };
         Returns: undefined;
       };
       tenant_public_profile: {

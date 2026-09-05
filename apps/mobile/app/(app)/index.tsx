@@ -232,6 +232,9 @@ export default function HomeScreen() {
               fullWidth
             />
           </Link>
+          <Link href="/preferences" asChild>
+            <Button label={t('preferences.cta')} onPress={() => {}} variant="ghost" fullWidth />
+          </Link>
         </>
       )}
 
