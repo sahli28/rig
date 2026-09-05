@@ -70,6 +70,23 @@ export function formatWeekday(value: Date | string, { locale, timeZone }: DateOp
   return dateTimeFormat(locale, { timeZone, weekday: 'short' }).format(toDate(value));
 }
 
+/**
+ * Le mois et son année — « septembre 2026 », « September 2026 ».
+ *
+ * Séparé de `formatDate` pour la même raison que `formatWeekday` : la grille du
+ * mois (P1-014) titre un mois **sans jour**. L'obtenir en découpant une date
+ * longue ne survivrait pas au changement de langue — l'ordre des composants
+ * n'est pas le même d'une locale à l'autre.
+ *
+ * **Supposition sur le moteur** : les mêmes données ICU que `style: 'long'`,
+ * qui affiche « vendredi 4 septembre 2026 » sur appareil depuis le 4 septembre
+ * 2026. C'est le même formatteur avec moins d'options ; le risque est de la
+ * famille d'`Intl.PluralRules` et se vérifie **à la passe**, pas au harnais.
+ */
+export function formatMonth(value: Date | string, { locale, timeZone }: DateOptions): string {
+  return dateTimeFormat(locale, { timeZone, month: 'long', year: 'numeric' }).format(toDate(value));
+}
+
 /** Le numéro du jour dans le mois, sans zéro devant — « 7 », pas « 07 ». */
 export function formatDayOfMonth(value: Date | string, { locale, timeZone }: DateOptions): string {
   return dateTimeFormat(locale, { timeZone, day: 'numeric' }).format(toDate(value));

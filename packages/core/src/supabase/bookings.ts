@@ -33,7 +33,8 @@ import type { PluralKey, TranslationKey } from '../i18n/types';
 import { tenantScope } from './active-tenant';
 import type { RackClient } from './client';
 import { localizedText } from './box-settings';
-import { CoachRowSchema, coachDisplayName } from './planning';
+import { CoachRowSchema, coachDisplayName, instantLocal, localDay } from './planning';
+import { shiftDays } from './class-schedules';
 
 // ---------------------------------------------------------------------------
 // La décision, avant l'appel
@@ -430,6 +431,94 @@ export async function fetchUpcomingBookings(
         coachName: coachsParId.get(row.coach_membership_id) ?? '',
       };
     });
+}
+
+/** Combien de réservations confirmées par jour, en dates locales de la box. */
+export type BookedDays = Record<string, number>;
+
+/**
+ * Les **jours** d'un intervalle où la personne a au moins une réservation
+ * confirmée, et **combien** — en dates locales de la box (P1-014).
+ *
+ * **Des dates et un compte, rien d'autre.** Ni heure, ni nom de cours, ni
+ * identifiant : c'est tout ce qu'une pastille de calendrier demande, et c'est
+ * aussi tout ce qui finira dans le cache de l'appareil.
+ *
+ * **Le compte n'est pas décoratif.** Une pastille est un marqueur visuel : sans
+ * le nombre, l'étiquette d'accessibilité ne peut dire que « réservé » là où
+ * l'écran montre « ce jour-là, il y a quelque chose, et il y en a deux ». Le
+ * rendre ici plutôt que de le laisser deviner par l'écran évite aussi qu'il
+ * diverge entre le réseau et le cache.
+ *
+ * **Pourquoi une fonction de plus, et pas `fetchUpcomingBookings()`.** Celle-ci
+ * lit **toutes** les réservations de la personne, puis ne garde que les cours
+ * `starts_at > now()`. Elle ne sait pas regarder en arrière, et c'est exactement
+ * la moitié de ce que la grille du mois doit montrer : « j'ai réservé plusieurs
+ * jours ce mois-ci » est une question d'historique. Élargir l'autre fonction
+ * aurait fait porter deux besoins à un seul lecteur, dont l'un est un **plafond
+ * de réservations à venir** — celui de `book_class()`. Ce compteur-là ne doit
+ * jamais se mettre à compter le passé.
+ *
+ * **Les bornes sont locales, la requête est en instants.** `from` et `to` sont
+ * des étiquettes de calendrier de la box (`AAAA-MM-JJ`, `to` inclus) ;
+ * `instantLocal()` les convertit en instants UTC pour filtrer `starts_at`.
+ * Filtrer sur une chaîne UTC ferait manquer les cours de fin de soirée et
+ * déborder sur le mois suivant — deux fois par an, et seulement en production.
+ */
+export async function fetchBookedDays(
+  client: RackClient,
+  {
+    tenantId,
+    membershipId,
+    timeZone,
+    from,
+    to,
+  }: {
+    tenantId: string;
+    membershipId: string;
+    timeZone: string;
+    /** Premier jour affiché, en date locale de la box. */
+    from: string;
+    /** Dernier jour affiché, **inclus**. */
+    to: string;
+  },
+): Promise<BookedDays> {
+  const scope = tenantScope(client, tenantId);
+
+  const { data: rows, error } = await scope
+    .select('bookings')
+    .eq('membership_id', membershipId)
+    .eq('status', 'CONFIRMED');
+
+  if (error !== null) throw error;
+
+  const reservés = new Set((rows ?? []).map((row) => row.class_id));
+  if (reservés.size === 0) return {};
+
+  // Deux requêtes plutôt qu'une jointure : PostgREST n'en fait pas sans
+  // relation déclarée, et la première est déjà bornée par la RLS à ses propres
+  // réservations. La seconde est bornée par le mois affiché — c'est elle qui
+  // empêche « toutes mes réservations depuis toujours » de traverser le réseau.
+  const { data: classes, error: erreurCours } = await scope
+    .select('classes')
+    .is('deleted_at', null)
+    .gte('starts_at', instantLocal(`${from}T00:00:00`, timeZone))
+    .lt('starts_at', instantLocal(`${shiftDays(to, 1)}T00:00:00`, timeZone));
+
+  if (erreurCours !== null) throw erreurCours;
+
+  const jours: BookedDays = {};
+  for (const row of classes ?? []) {
+    if (!reservés.has(row.id)) continue;
+    // **`localDay()` et pas `starts_at.slice(0, 10)`.** Un cours à 00h30 le
+    // 1er octobre à Paris est le 30 septembre à 22h30 en UTC : la découpe de
+    // chaîne poserait la pastille sur le mauvais jour, et sur le mauvais
+    // **mois** une fois par mois. Règle 9 de `CLAUDE.md`.
+    const jour = localDay(row.starts_at, timeZone);
+    jours[jour] = (jours[jour] ?? 0) + 1;
+  }
+
+  return jours;
 }
 
 /**

@@ -13,6 +13,7 @@ import type { ReactNode } from 'react';
 import {
   formatDate as coreFormatDate,
   formatDayOfMonth as coreFormatDayOfMonth,
+  formatMonth as coreFormatMonth,
   formatMoney as coreFormatMoney,
   formatRelativeDate as coreFormatRelativeDate,
   formatTime as coreFormatTime,
@@ -54,6 +55,8 @@ export interface I18nContextValue {
   /** « lun. » — le bandeau de semaine les met sur deux lignes (P1-011). */
   formatWeekday: (value: Date | string) => string;
   formatDayOfMonth: (value: Date | string) => string;
+  /** « septembre 2026 » — le titre de la grille du mois (P1-014). */
+  formatMonth: (value: Date | string) => string;
   formatRelativeDate: (value: Date | string, options?: Pick<RelativeDateOptions, 'now'>) => string;
 }
 
@@ -153,6 +156,7 @@ export function I18nProvider({
       formatTime: (date) => coreFormatTime(date, { locale, timeZone }),
       formatWeekday: (date) => coreFormatWeekday(date, { locale, timeZone }),
       formatDayOfMonth: (date) => coreFormatDayOfMonth(date, { locale, timeZone }),
+      formatMonth: (date) => coreFormatMonth(date, { locale, timeZone }),
       formatRelativeDate: (date, options) =>
         coreFormatRelativeDate(date, { ...options, locale, timeZone }),
     }),

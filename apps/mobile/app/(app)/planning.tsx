@@ -1,16 +1,29 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { useNetworkState } from 'expo-network';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
 import { Badge, Banner, Button, EmptyState, ListRow, Select, Skeleton } from '@rack/ui/native';
-import { fetchDaySchedule, localDay, seatsLeft, shiftDays } from '@rack/core/supabase';
-import type { DayClass, DaySchedule } from '@rack/core/supabase';
+import {
+  fetchBookedDays,
+  fetchDaySchedule,
+  localDay,
+  seatsLeft,
+  shiftDays,
+} from '@rack/core/supabase';
+import type { BookedDays, DayClass, DaySchedule } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
-import { readDay, writeDay, type ScheduleOrigin } from '../../lib/schedule-cache';
-import { WeekStrip } from '../../components/week-strip';
+import {
+  readBookedDays,
+  readDay,
+  writeBookedDays,
+  writeDay,
+  type ScheduleOrigin,
+} from '../../lib/schedule-cache';
+import { MonthCalendar } from '../../components/month-calendar';
+import { dernierJourDu, moisDe, premierJourDu } from '../../components/month-grid-state';
 
 /**
  * Le planning du jour, côté membre.
@@ -63,6 +76,30 @@ export default function PlanningScreen() {
 
   const today = useMemo(() => localDay(new Date().toISOString(), timeZone), [timeZone]);
   const [date, setDate] = useState(today);
+
+  /**
+   * Le mois affiché, et les pastilles qui vont avec (P1-014).
+   *
+   * **Le mois est posé, jamais déduit puis corrigé.** `allerAu()` écrit les
+   * deux d'un coup ; les flèches de mois n'écrivent que le mois. C'est la leçon
+   * du bandeau qu'il remplace, appliquée par le seul moyen qui la garantisse :
+   * ne pas avoir deux valeurs à tenir d'accord après coup.
+   */
+  const [mois, setMois] = useState(() => moisDe(today));
+  const [joursReserves, setJoursReserves] = useState<BookedDays>({});
+
+  const membership = me?.memberships.find((m) => m.tenant_id === activeTenantId) ?? null;
+  const membershipId = membership?.id ?? null;
+  const moisDAdhesion = useMemo(
+    () => (membership === null ? null : moisDe(localDay(membership.joined_at, timeZone))),
+    [membership, timeZone],
+  );
+
+  /** Aller à un jour, et amener le mois avec lui. */
+  const allerAu = useCallback((jour: string) => {
+    setDate(jour);
+    setMois(moisDe(jour));
+  }, []);
   const [etat, setEtat] = useState<VueJour>({
     jour: today,
     phase: 'chargement',
@@ -154,6 +191,62 @@ export default function PlanningScreen() {
   }, [userId, activeTenantId, timeZone, locale, date, enLigne]);
 
   /**
+   * Les pastilles du mois affiché (P1-014).
+   *
+   * **Une requête par mois, rien de préchargé.** Le mois voisin se charge quand
+   * on y va, pas avant : trente jours atteignables ne sont pas trente jours à
+   * charger, et c'est déjà la règle du composant.
+   *
+   * Réseau d'abord, cache en repli — le même ordre que le planning, pour la même
+   * raison. Ici l'enjeu est moindre : une pastille périmée n'est pas une place
+   * périmée, et personne ne réserve depuis une pastille.
+   */
+  const chargerPastilles = useCallback(async () => {
+    if (userId === null || activeTenantId === null || membershipId === null) return;
+
+    const demande = mois;
+    if (enLigne) {
+      try {
+        const jours = await fetchBookedDays(supabase, {
+          tenantId: activeTenantId,
+          membershipId,
+          timeZone,
+          from: premierJourDu(demande),
+          to: dernierJourDu(demande),
+        });
+        setJoursReserves(jours);
+        await writeBookedDays(userId, activeTenantId, demande, jours);
+        return;
+      } catch {
+        /* on retombe sur le cache, comme le planning */
+      }
+    }
+    setJoursReserves(await readBookedDays(userId, activeTenantId, demande));
+  }, [userId, activeTenantId, membershipId, timeZone, mois, enLigne]);
+
+  useEffect(() => {
+    void chargerPastilles();
+  }, [chargerPastilles]);
+
+  /**
+   * **Au retour sur l'écran, les pastilles se relisent.**
+   *
+   * Une pastille est un état dérivé de la base, et les états dérivés de cet
+   * écran ont affiché le contraire de la base deux fois (P1-003c, puis D-016).
+   * Annuler depuis le détail d'un cours puis revenir ici doit retirer le point,
+   * sans relancer l'app.
+   *
+   * La **liste du jour**, elle, ne se relit pas au retour : c'est D-016, et ce
+   * ticket ne l'absorbe pas. Rien de ce qu'elle affiche ne dépend d'une
+   * réservation — le badge « Réservé » sur la ligne est P1-012.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      void chargerPastilles();
+    }, [chargerPastilles]),
+  );
+
+  /**
    * L'invariant, rendu explicite : **on n'affiche jamais l'état d'un autre
    * jour**. Il tient déjà par construction — l'effet remet l'état à zéro de
    * façon synchrone — et cette ligne le dit à qui lit le rendu.
@@ -210,7 +303,7 @@ export default function PlanningScreen() {
         <Button
           label={t('planning.previous_day')}
           variant="ghost"
-          onPress={() => setDate(shiftDays(date, -1))}
+          onPress={() => allerAu(shiftDays(date, -1))}
         />
         <Text
           style={{
@@ -227,20 +320,32 @@ export default function PlanningScreen() {
         <Button
           label={t('planning.next_day')}
           variant="ghost"
-          onPress={() => setDate(shiftDays(date, 1))}
+          onPress={() => allerAu(shiftDays(date, 1))}
         />
       </View>
 
-      {/* **Le bandeau, sous la date et au-dessus de tout le reste** (P1-011).
-          Il ne remplace pas les flèches : elles restent le seul chemin annoncé
-          au clavier et au contrôle vocal. */}
-      <WeekStrip value={date} onChange={setDate} today={today} />
+      {/* **La grille du mois, sous la date et au-dessus de tout le reste**
+          (P1-014). Elle ne remplace pas les flèches : elles restent le seul
+          chemin annoncé au clavier et au contrôle vocal.
+
+          `onChange` va au jour **et** au mois ; `onMoisChange` ne déplace que le
+          mois — c'est ce qui permet de feuilleter octobre sans quitter le jour
+          qu'on regarde. */}
+      <MonthCalendar
+        value={date}
+        onChange={allerAu}
+        mois={mois}
+        onMoisChange={setMois}
+        today={today}
+        joursReserves={joursReserves}
+        moisDAdhesion={moisDAdhesion}
+      />
 
       {date === today ? null : (
         <Button
           label={t('planning.back_to_today')}
           variant="ghost"
-          onPress={() => setDate(today)}
+          onPress={() => allerAu(today)}
         />
       )}
 

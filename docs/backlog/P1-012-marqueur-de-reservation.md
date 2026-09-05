@@ -17,9 +17,16 @@ Deux niveaux, parce que ce sont deux questions différentes :
 
 1. **Sur la ligne du cours** — un badge « Réservé ». La question est « suis-je
    inscrite à *celui-là* ? ».
-2. **Sur le jour, dans le bandeau de semaine** — une pastille. La question est
-   « ai-je quelque chose cette semaine, et quand ? », à laquelle on ne doit pas
-   avoir à répondre en ouvrant sept journées l'une après l'autre.
+2. ~~**Sur le jour, dans le bandeau de semaine** — une pastille.~~ **Parti en
+   P1-014**, le 5 septembre 2026. Le bandeau de semaine est remplacé par une
+   grille de mois, et la pastille arrive avec elle — sur un mois entier, passé
+   compris, ce que ce ticket-ci ne prévoyait pas. Le laisser ici ferait livrer
+   la même pastille deux fois.
+
+**Ce ticket se réduit donc à son premier niveau.** Il reste utile : « ai-je
+quelque chose ce jour-là » et « suis-je inscrite à *ce cours-là* » sont deux
+questions, et la seconde se pose sur une ligne, pas sur une case de calendrier.
+Estimation à revoir à la baisse quand il sera lancé.
 
 **Le badge est un texte, jamais une couleur seule** (`.claude/rules/ui.md`). La
 pastille du bandeau, elle, est un marqueur visuel : elle doit donc porter son

@@ -25,13 +25,31 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DayScheduleSchema, type DaySchedule } from '@rack/core/supabase';
+import { z } from 'zod';
+import { DayScheduleSchema, type BookedDays, type DaySchedule } from '@rack/core/supabase';
+
+/** Jour → compte. Écrit ici et non dans `@rack/core` : c'est la forme du cache,
+ * pas celle de la lecture réseau — et un schéma partagé aurait fait croire que
+ * les deux doivent rester identiques. */
+const BookedDaysSchema = z.record(z.string(), z.number().int().nonnegative());
 
 /** Préfixe commun : c'est lui qui rend l'effacement complet possible. */
 const PREFIX = 'rack.schedule.';
 
+/**
+ * Les jours réservés d'un mois (P1-014). **Préfixe distinct, purge commune** :
+ * ce sont deux formes différentes, mais une seule règle d'effacement — et une
+ * seconde purge à tenir d'accord avec la première serait une purge qui finit
+ * par oublier une moitié.
+ */
+const PREFIX_JOURS = 'rack.bookeddays.';
+
 function keyFor(userId: string, tenantId: string, date: string): string {
   return `${PREFIX}${userId}.${tenantId}.${date}`;
+}
+
+function keyForMonth(userId: string, tenantId: string, mois: string): string {
+  return `${PREFIX_JOURS}${userId}.${tenantId}.${mois}`;
 }
 
 /**
@@ -88,6 +106,53 @@ export async function readDay(
 }
 
 /**
+ * Les jours réservés d'un mois — **des dates et un compte, rien d'autre**
+ * (P1-014).
+ *
+ * C'est un cran en dessous de ce que P1-012 proposait de garder : ni
+ * identifiant de cours, ni heure, ni nom. Ce que ce cache révèle à qui prend le
+ * téléphone, c'est « quelqu'un s'est entraîné ces jours-là » — et la personne
+ * qui le lit est celle qui y était.
+ *
+ * Même clé `(utilisateur, box, …)` que le planning, pour la même raison : sur
+ * un téléphone partagé, deux membres ne se voient pas.
+ */
+export async function writeBookedDays(
+  userId: string,
+  tenantId: string,
+  mois: string,
+  jours: BookedDays,
+): Promise<void> {
+  try {
+    await AsyncStorage.setItem(keyForMonth(userId, tenantId, mois), JSON.stringify(jours));
+  } catch {
+    /* pas de cache ce mois-ci ; les pastilles reviendront avec le réseau */
+  }
+}
+
+/**
+ * Relit les jours réservés d'un mois, ou `{}`.
+ *
+ * **Validé, pas transtypé**, comme `readDay()` : ce que le disque rend a pu être
+ * écrit par une version antérieure. Un cache illisible se jette — une pastille
+ * absente est un désagrément, un écran cassé hors ligne en est un autre.
+ */
+export async function readBookedDays(
+  userId: string,
+  tenantId: string,
+  mois: string,
+): Promise<BookedDays> {
+  try {
+    const raw = await AsyncStorage.getItem(keyForMonth(userId, tenantId, mois));
+    if (raw === null) return {};
+    const parsed = BookedDaysSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
  * Efface tout ce que ce module a écrit sur cet appareil.
  *
  * Appelé à la **déconnexion**, et il le sera au **changement de box** (P1-009) :
@@ -100,7 +165,10 @@ export async function readDay(
 export async function clearScheduleCache(): Promise<void> {
   try {
     const keys = await AsyncStorage.getAllKeys();
-    const ours = keys.filter((key) => key.startsWith(PREFIX));
+    // **Les deux préfixes, une seule purge.** Une seconde fonction d'effacement
+    // serait une fonction qu'on oublie d'appeler le jour où la déconnexion
+    // change de forme.
+    const ours = keys.filter((key) => key.startsWith(PREFIX) || key.startsWith(PREFIX_JOURS));
     if (ours.length > 0) await AsyncStorage.multiRemove(ours);
   } catch {
     /* rien à faire : les clés suivantes écraseront celles-ci */
