@@ -1,6 +1,10 @@
 # `P1-011` — Le bandeau de semaine : atteindre un jour en un tap
 
-**Phase** P1 · **Estimation** `1,5` j·h · **Dépend de** P1-002b ✅, P1-003b ✅, P1-003c ✅ · **Spec** §4-P2, §12.4 · **✅ fait le 5 septembre 2026**
+**Phase** P1 · **Estimation** `2` j·h · **Dépend de** P1-002b ✅, P1-003b ✅, P1-003c ✅ · **Spec** §4-P2, §12.4 · **✅ fait le 5 septembre 2026**
+
+> **1,5 → 2 j·h**, et le demi-jour est celui de deux correctifs manqués sur le
+> même geste. Il est compté plutôt que caché : c'est le prix d'avoir conçu un
+> mécanisme qu'aucun filet du dépôt ne pouvait exercer.
 
 ## Objectif
 
@@ -91,7 +95,45 @@ condition est levée.
       et c'est le seul reste de ce ticket. À la prochaine passe, avec les trois
       gestes de P1-003c
 
-## Le défaut du 5 septembre : le bandeau ne défilait pas
+## Le troisième essai, et pourquoi il n'y en aura pas de quatrième
+
+Deux correctifs ont échoué sur le même geste. Le second avait pourtant un test,
+vert, avec contrôle négatif — il testait une logique **que le geste n'atteignait
+jamais**.
+
+**Le défaut de fond n'était aucun des deux bugs corrigés : c'était d'avoir un
+état à tenir d'accord avec une position de défilement.** Cette synchronisation
+dépend d'un événement de geste (`onMomentumScrollEnd`), de l'ordre entre une
+mesure de largeur et un `scrollTo`, et de ce qu'iOS fait d'un `scrollTo` émis
+avant que la taille du contenu soit connue. Aucun de ces trois éléments n'est
+exerçable ici — le SDK web n'émet pas le geste — donc **chaque correctif était un
+pari**, et deux paris de suite sont une méthode, pas de la malchance.
+
+La conception actuelle n'a **rien à synchroniser** :
+
+- les pages sont la semaine du jour choisi et **les trois suivantes** ;
+- le défilement va où le doigt le porte, et **aucun `scrollTo` ne le ramène** ;
+- le seul défilement par programme est un retour à `x = 0` quand le jour change
+  depuis l'extérieur — le seul décalage qui ne dépend d'aucune mesure ;
+- `onScroll` remplace `onMomentumScrollEnd`, et ne sert plus qu'à **afficher** la
+  semaine regardée. Si l'événement manquait, le bandeau défilerait quand même.
+
+**Et cela rend le geste vérifiable au harnais**, ce qui n'avait jamais été le
+cas : `onScroll` est émis par React Native Web. Relevé après un balayage d'une
+page, panneau affiché — position 1248 sur quatre pages de 1248, **inchangée après
+1,5 s**, libellé « Semaine du lundi 7 septembre 2026 », jour choisi toujours
+samedi 5. Puis trois pages plus loin, et au-delà du contenu : la semaine se borne
+à la dernière au lieu de sortir de la fenêtre. Enfin un tap sur le mercredi
+23 septembre : sélection, rebase de la fenêtre, retour à `x = 0`.
+
+**Ce qui est perdu, et assumé** : on ne balaie plus vers le passé. La fenêtre de
+réservation par défaut est de sept jours, un cours passé ne se réserve pas, et
+les flèches de jour restent là pour reculer.
+
+## Les deux défauts corrigés en chemin
+
+Ils étaient réels, et les corriger n'a pas suffi — c'est précisément ce qui a
+mené à changer de conception.
 
 Trouvé sur iPhone, le jour même de la livraison. **Le balayage changeait la
 semaine pour une image, puis revenait.** Les taps fonctionnaient.
