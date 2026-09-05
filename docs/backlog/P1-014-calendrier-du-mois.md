@@ -67,7 +67,7 @@ pas ». C'était juste pour un sélecteur de réservation ; ça ne l'est plus po
 ## Périmètre
 
 - **La grille.** Titre du mois, en-têtes de jours de semaine dans la langue
-  active, six lignes de sept cases, jours hors mois vides. Le jour choisi est un
+  active, quatre à six lignes de sept cases selon le mois, jours voisins en retrait. Le jour choisi est un
   disque plein ; aujourd'hui est marqué **autrement** — la capture les confond,
   nous non : deux états différents ne portent pas le même signe.
 - **Les flèches de mois**, et le retour au mois courant.
@@ -106,12 +106,17 @@ deux existent, écrits pour exactement ce piège en P1-002.
 C'est la règle 9 de `CLAUDE.md`, et c'est le seul endroit de ce ticket où une
 erreur ne se verrait pas à l'écran.
 
-### 2. Hors ligne : on met en cache **des dates**, rien d'autre
+### 2. Hors ligne : on met en cache **des dates et un compte**, rien d'autre
 
 Même arbitrage que P1-012, un cran plus bas. P1-012 proposait de cacher des
-identifiants de cours ; ici il suffit d'une **liste de dates** `AAAA-MM-JJ` par
-mois. Aucune donnée d'autrui, aucun nom, aucune heure — la personne connaît déjà
-ses propres jours.
+identifiants de cours ; ici il suffit d'un **jour → compte** par mois. Aucune
+donnée d'autrui, aucun nom, aucune heure, aucun identifiant — la personne connaît
+déjà ses propres jours.
+
+**Le compte, et pas un booléen** : une pastille est un marqueur visuel, et son
+étiquette d'accessibilité doit dire « 2 réservations », pas « réservé ». Le
+rendre depuis la base plutôt que de le laisser deviner à l'écran évite aussi
+qu'il diverge entre le réseau et le cache.
 
 Les deux garde-fous de P1-012 valent tels quels : clé partitionnée par
 `user_id` **et** `tenant_id`, et **purge à la déconnexion** en se branchant sur
@@ -136,15 +141,15 @@ promettent la même pastille et le second la livrera une seconde fois.
 
 ## Critères d'acceptation
 
-- [ ] La grille montre le mois entier, jours de semaine et titre dans la langue
+- [x] La grille montre le mois entier, jours de semaine et titre dans la langue
       active — vérifié en `fr` **et** en `en`
-- [ ] Une pastille apparaît sur chaque jour portant au moins une réservation
+- [x] Une pastille apparaît sur chaque jour portant au moins une réservation
       confirmée, **y compris dans un mois passé**
-- [ ] Le jour choisi et aujourd'hui sont **deux signes différents**, et aucun des
+- [x] Le jour choisi et aujourd'hui sont **deux signes différents**, et aucun des
       deux n'est porté par la couleur seule (`.claude/rules/ui.md`)
-- [ ] L'étiquette d'accessibilité du jour dit la pastille en toutes lettres —
+- [x] L'étiquette d'accessibilité du jour dit la pastille en toutes lettres —
       « mardi 8 septembre, 2 réservations » — et non « mardi 8 »
-- [ ] Un cours à 00h30 heure de la box tombe sur **son** jour local, pas sur la
+- [x] Un cours à 00h30 heure de la box tombe sur **son** jour local, pas sur la
       veille : test aux deux bornes de minuit, et autour d'un changement d'heure
 - [ ] Annuler une réservation (P1-004) fait disparaître la pastille **au retour
       sur le planning**, sans relancer l'app — geste 3 de `D-016`, déjà pris deux
@@ -152,8 +157,8 @@ promettent la même pastille et le second la livrera une seconde fois.
 - [ ] Hors ligne, les pastilles du mois déjà visité restent affichées
 - [ ] Se déconnecter efface ce cache : le compte suivant sur le même téléphone ne
       voit aucune pastille du précédent
-- [ ] La flèche du passé s'arrête à l'adhésion, et dit pourquoi
-- [ ] `month-grid-state.ts` est testé sans appareil : mois à 28, 30 et 31 jours,
+- [x] La flèche du passé s'arrête à l'adhésion, et dit pourquoi
+- [x] `month-grid-state.ts` est testé sans appareil : mois à 28, 30 et 31 jours,
       mois commençant un dimanche, année bissextile
 
 ## Notes

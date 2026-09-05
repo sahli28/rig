@@ -8,6 +8,7 @@ export {
   formatMoney,
   formatDate,
   formatDayOfMonth,
+  formatMonth,
   formatTime,
   formatRelativeDate,
   formatWeekday,

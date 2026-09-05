@@ -6,6 +6,7 @@ import {
   bookingAffordance,
   cancelBooking,
   cancelConsequence,
+  fetchBookedDays,
   affordanceLabelKey,
   affordanceHint,
   type AffordanceInput,
@@ -491,5 +492,163 @@ describe('cancelBooking', () => {
   it('refuse un null silencieux', async () => {
     const { client } = fakeClient({});
     await expect(cancelBooking(client, RÉSERVATION)).rejects.toBeInstanceOf(BookingFailed);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchBookedDays — P1-014
+// ---------------------------------------------------------------------------
+
+/**
+ * Client simulé avec un constructeur de requête **attendable**, contrairement à
+ * `fakeClient()` plus haut qui ne connaît que `rpc()`. Il rend une réponse par
+ * table et retient les filtres — ce sont eux qui portent tout le risque de cette
+ * fonction : mal borner, c'est ramener un mois qu'on n'affiche pas, ou en
+ * manquer un bout.
+ */
+function fakeTableClient(parTable: Record<string, unknown[]>) {
+  const filtres: Record<string, [string, unknown][]> = {};
+
+  function builder(table: string) {
+    filtres[table] ??= [];
+    const chaine = {
+      eq(colonne: string, valeur: unknown) {
+        filtres[table]?.push([colonne, valeur]);
+        return chaine;
+      },
+      is(colonne: string, valeur: unknown) {
+        filtres[table]?.push([`is:${colonne}`, valeur]);
+        return chaine;
+      },
+      gte(colonne: string, valeur: unknown) {
+        filtres[table]?.push([`gte:${colonne}`, valeur]);
+        return chaine;
+      },
+      lt(colonne: string, valeur: unknown) {
+        filtres[table]?.push([`lt:${colonne}`, valeur]);
+        return chaine;
+      },
+      then(resolve: (r: { data: unknown[]; error: null }) => unknown) {
+        return Promise.resolve({ data: parTable[table] ?? [], error: null }).then(resolve);
+      },
+    };
+    return chaine;
+  }
+
+  const client = {
+    from(table: string) {
+      return { select: () => builder(table) };
+    },
+  };
+
+  return { client: client as unknown as RackClient, filtres };
+}
+
+const TENANT = 'aaaaaaaa-0000-4000-8000-000000000001';
+
+describe('fetchBookedDays', () => {
+  it('ne part pas chercher les cours quand il n’y a aucune réservation', async () => {
+    const { client, filtres } = fakeTableClient({ bookings: [] });
+    await expect(
+      fetchBookedDays(client, {
+        tenantId: TENANT,
+        membershipId: 'm1',
+        timeZone: 'Europe/Paris',
+        from: '2026-09-01',
+        to: '2026-09-30',
+      }),
+    ).resolves.toEqual({});
+    // La seconde requête n'a pas eu lieu : rien à croiser, rien à demander.
+    expect(filtres.classes).toBeUndefined();
+  });
+
+  it('compte les réservations par jour, et ignore les cours non réservés', async () => {
+    const { client } = fakeTableClient({
+      bookings: [{ class_id: 'c1' }, { class_id: 'c2' }, { class_id: 'c3' }],
+      classes: [
+        { id: 'c1', starts_at: '2026-09-07T16:30:00.000Z' },
+        { id: 'c2', starts_at: '2026-09-07T05:00:00.000Z' },
+        { id: 'c3', starts_at: '2026-09-11T16:30:00.000Z' },
+        // Celui-là est dans l'intervalle mais n'est pas réservé.
+        { id: 'c9', starts_at: '2026-09-09T16:30:00.000Z' },
+      ],
+    });
+
+    await expect(
+      fetchBookedDays(client, {
+        tenantId: TENANT,
+        membershipId: 'm1',
+        timeZone: 'Europe/Paris',
+        from: '2026-09-01',
+        to: '2026-09-30',
+      }),
+    ).resolves.toEqual({ '2026-09-07': 2, '2026-09-11': 1 });
+  });
+
+  /**
+   * **Le piège de tout ce ticket, et le seul qui ne se verrait pas à l'écran.**
+   *
+   * Un cours à 00h30 le 1er octobre à Paris est le 30 septembre à 22h30 en UTC.
+   * Un `starts_at.slice(0, 10)` poserait la pastille sur le 30 septembre — donc
+   * sur le mauvais jour **et le mauvais mois**, une fois par mois, et seulement
+   * pour les cours de fin de soirée. Règle 9 de `CLAUDE.md`.
+   */
+  it('pose la pastille sur la date locale de la box, jamais sur l’UTC', async () => {
+    const { client } = fakeTableClient({
+      bookings: [{ class_id: 'nuit' }],
+      classes: [{ id: 'nuit', starts_at: '2026-09-30T22:30:00.000Z' }],
+    });
+
+    await expect(
+      fetchBookedDays(client, {
+        tenantId: TENANT,
+        membershipId: 'm1',
+        timeZone: 'Europe/Paris',
+        from: '2026-10-01',
+        to: '2026-10-31',
+      }),
+    ).resolves.toEqual({ '2026-10-01': 1 });
+  });
+
+  it('borne la requête sur la journée locale, pas sur minuit UTC', async () => {
+    const { client, filtres } = fakeTableClient({
+      bookings: [{ class_id: 'c1' }],
+      classes: [],
+    });
+
+    await fetchBookedDays(client, {
+      tenantId: TENANT,
+      membershipId: 'm1',
+      timeZone: 'Europe/Paris',
+      from: '2026-09-01',
+      to: '2026-09-30',
+    });
+
+    // Septembre à Paris est en heure d'été : minuit local est 22 h la veille.
+    // La borne haute est **le 1er octobre local**, exclu — sans quoi un cours du
+    // 30 septembre à 23 h manquerait au mois qui l'affiche.
+    expect(filtres.classes).toEqual([
+      ['tenant_id', TENANT],
+      ['is:deleted_at', null],
+      ['gte:starts_at', '2026-08-31T22:00:00.000Z'],
+      ['lt:starts_at', '2026-09-30T22:00:00.000Z'],
+    ]);
+  });
+
+  it('ne lit que ses propres réservations confirmées', async () => {
+    const { client, filtres } = fakeTableClient({ bookings: [] });
+    await fetchBookedDays(client, {
+      tenantId: TENANT,
+      membershipId: 'm1',
+      timeZone: 'Europe/Paris',
+      from: '2026-09-01',
+      to: '2026-09-30',
+    });
+    // `tenant_id` est posé par `tenantScope()`, les deux autres par la fonction.
+    expect(filtres.bookings).toEqual([
+      ['tenant_id', TENANT],
+      ['membership_id', 'm1'],
+      ['status', 'CONFIRMED'],
+    ]);
   });
 });
