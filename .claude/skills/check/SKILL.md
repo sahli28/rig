@@ -60,6 +60,14 @@ en expliquant la cause avant de corriger.
     ajoutée sur une opération doit être confrontée à ses jumelles —
     `insert`/`update`/`delete`, la table et sa jointure, la fonction et le
     trigger qui l'appelle. Trois trous sur trois depuis P0-004 avaient cette forme.
+9quater. **`rls-auditor`** : si le diff touche `supabase/`, lance le sous-agent —
+    **toute** migration, pas seulement celles qui créent une table. `VERDICT: LEAK`
+    est bloquant. Ce contrôle est ici en second filet : la règle vit dans
+    `.claude/rules/database.md`, qui se charge à l'ouverture d'un `.sql`, donc
+    bien avant cette porte. Deux défauts que rien d'autre n'avait vus le
+    justifient — une colonne d'opposition RGPD exposée en P1-003c, un défaut de
+    concurrence en P1-004 que le harnais et les tests déclaraient impossible.
+    Son silence ne prouve rien : il dit « rien trouvé », pas « rien à trouver ».
 10. **Idempotence** : toute nouvelle route d'écriture financière ou de réservation
     exige et persiste une `Idempotency-Key`.
 11. **Secrets** : aucune clé, token ou URL de connexion dans le diff.

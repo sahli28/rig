@@ -130,3 +130,19 @@ jobs:
       - name: T1 · aucune double réservation sous contention
         if: steps.detect.outputs.found == 'true'
         run: pnpm test:db:concurrency 60
+
+      # P1-004 — la sœur de T1, et son invariant n'est pas le même.
+      #
+      # Ici on ne compte pas les réservations confirmées : on vérifie que
+      # `booked_count` **égale** leur nombre après la tempête. Un décrément perdu
+      # fait dériver le compteur vers le haut, et le cours reste complet pour
+      # toujours alors qu'il a des places — personne ne peut plus réserver, et
+      # rien ne le signale. C'est la panne la plus coûteuse de cette famille :
+      # silencieuse, et elle dure.
+      #
+      # Un tiers des sessions détient une place et l'annule, deux tiers tentent
+      # de réserver, tous au même instant : les incréments croisent les
+      # décréments sur toute la ruée.
+      - name: P1-004 · le compteur survit à annuler et réserver ensemble
+        if: steps.detect.outputs.found == 'true'
+        run: pnpm test:db:concurrency 60 --scenario cancel

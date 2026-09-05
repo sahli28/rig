@@ -197,14 +197,39 @@ describe('isAppErrorCode', () => {
 
     // Ce cas portait `CLASS_FULL`, avec le commentaire « code d'API, pas de la
     // base ». C'était vrai jusqu'à P1-003 : `book_class()` le lève désormais
-    // par `app_error()`, donc il **vient** de la base et doit être reconnu. Le
-    // test disait juste, sur un monde qui a changé.
+    // par `app_error()`, donc il **vient** de la base et doit être reconnu.
     expect(isAppErrorCode('CLASS_FULL')).toBe(true);
 
-    // `CANCEL_WINDOW_PASSED` reprend le rôle : il est au catalogue de l'API et
-    // aucune fonction SQL ne le lève encore — P1-004 le fera, et ce jour-là ce
-    // cas devra bouger à son tour. C'est le signal, pas la panne.
-    expect(isAppErrorCode('CANCEL_WINDOW_PASSED')).toBe(false);
+    // **Le sujet est choisi à l'exécution**, et c'est la troisième version de ce
+    // cas. Il a d'abord porté `CLASS_FULL`, puis `CANCEL_WINDOW_PASSED` — deux
+    // codes qu'une fonction SQL a fini par lever, chaque fois en cassant le
+    // test. Déplacer le caillou une troisième fois l'aurait déplacé une
+    // quatrième.
+    //
+    // Le test demande donc à la source : n'importe quel code d'API que le SQL
+    // ne lève pas fait l'affaire, et le jour où il n'y en a plus, **c'est
+    // l'information**. Un test dont le sujet a disparu doit tomber, pas passer
+    // à vide.
+    const raised = codesRaisedInMigrations();
+    const jamaisLevés = API_ERROR_CODES.filter((code) => !raised.has(code));
+
+    expect(
+      jamaisLevés.length,
+      "Plus aucun code d'API_ERROR_CODES n'est absent des migrations : ce cas n'a " +
+        "plus de sujet, et son absence de sujet est l'information. Deux lectures " +
+        'possibles — soit tout le catalogue est désormais levé en SQL et ce cas ' +
+        "doit disparaître, soit un code a été ajouté à APP_ERROR_CODES sans qu'une " +
+        'fonction le lève, et c’est ce dernier qu’il faut regarder.',
+    ).toBeGreaterThan(0);
+
+    for (const code of jamaisLevés) {
+      expect(
+        isAppErrorCode(code),
+        `${code} est au catalogue de l'API et aucune migration ne le lève : ` +
+          'isAppErrorCode ne doit pas le reconnaître',
+      ).toBe(false);
+    }
+
     expect(isAppErrorCode(42)).toBe(false);
     expect(isAppErrorCode(null)).toBe(false);
   });

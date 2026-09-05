@@ -4,6 +4,8 @@ import {
   BookingFailed,
   bookClass,
   bookingAffordance,
+  cancelBooking,
+  cancelConsequence,
   affordanceLabelKey,
   affordanceHint,
   type AffordanceInput,
@@ -320,5 +322,174 @@ describe('bookClass', () => {
     }).catch((e: unknown) => e);
     expect(échec).toBeInstanceOf(BookingFailed);
     expect((échec as BookingFailed).messageKey).toBe('errors.unknown');
+  });
+});
+
+describe('cancelConsequence', () => {
+  const startsAt = '2026-09-10T18:30:00.000Z';
+  const à = (iso: string) => new Date(iso);
+
+  // Les bornes sont tout le sujet d'une fenêtre : le ticket demande un test
+  // explicite à J-4h01 et J-3h59, et les voici à la minute.
+  it('rend « libre » juste avant la borne', () => {
+    expect(
+      cancelConsequence({
+        startsAt,
+        cancelWindowMinutes: 240,
+        now: à('2026-09-10T14:29:00.000Z'), // 241 minutes avant
+      }),
+    ).toEqual({ kind: 'free' });
+  });
+
+  it('rend « tardive » juste après', () => {
+    expect(
+      cancelConsequence({
+        startsAt,
+        cancelWindowMinutes: 240,
+        now: à('2026-09-10T14:31:00.000Z'), // 239 minutes avant
+      }),
+    ).toEqual({ kind: 'late', minutesBefore: 239 });
+  });
+
+  // Pile sur la borne : `>=` côté base, donc libre. Les deux comparaisons
+  // doivent dire la même chose, sinon l'écran annonce autre chose que ce qui
+  // arrivera.
+  it('rend « libre » exactement sur la borne, comme la base', () => {
+    expect(
+      cancelConsequence({
+        startsAt,
+        cancelWindowMinutes: 240,
+        now: à('2026-09-10T14:30:00.000Z'),
+      }),
+    ).toEqual({ kind: 'free' });
+  });
+
+  it('suit le réglage de la box, pas une constante', () => {
+    const now = à('2026-09-10T17:00:00.000Z'); // 90 minutes avant
+    expect(cancelConsequence({ startsAt, cancelWindowMinutes: 240, now }).kind).toBe('late');
+    expect(cancelConsequence({ startsAt, cancelWindowMinutes: 60, now }).kind).toBe('free');
+  });
+
+  // ---------------------------------------------------------------------
+  // La seconde borne : le début du cours
+  // ---------------------------------------------------------------------
+  //
+  // Elle est arrivée après coup, et ce test-ci disait l'inverse : à J+12 min il
+  // attendait `{ late, minutesBefore: 0 }`, c'est-à-dire « tardif mais faisable
+  // ». Le titre — « ne rend jamais un nombre de minutes négatif » — décrivait
+  // un affichage à corriger, pas une règle métier : la règle manquait, et un
+  // cours déjà passé s'annulait.
+  //
+  // Ce que la garde protège est écrit dans `cancel_booking()` : le no-show de
+  // RM3.4 devenait effaçable, et `booked_count` était décrémenté sur un cours
+  // qui avait eu lieu.
+
+  it('rend « tardive » une minute avant le début', () => {
+    expect(
+      cancelConsequence({
+        startsAt,
+        cancelWindowMinutes: 240,
+        now: à('2026-09-10T18:29:00.000Z'),
+      }),
+    ).toEqual({ kind: 'late', minutesBefore: 1 });
+  });
+
+  it('rend « commencé » une minute après le début', () => {
+    expect(
+      cancelConsequence({
+        startsAt,
+        cancelWindowMinutes: 240,
+        now: à('2026-09-10T18:31:00.000Z'),
+      }),
+    ).toEqual({ kind: 'started' });
+  });
+
+  // Pile au début : `<=` côté base comme ici. À la seconde du début, le cours a
+  // commencé — les deux comparaisons doivent dire la même chose.
+  it('rend « commencé » exactement au début, comme la base', () => {
+    expect(
+      cancelConsequence({
+        startsAt,
+        cancelWindowMinutes: 240,
+        now: à('2026-09-10T18:30:00.000Z'),
+      }),
+    ).toEqual({ kind: 'started' });
+  });
+
+  // Le corollaire du cas ci-dessus : plus aucun chemin ne rend un compte à
+  // rebours négatif, puisqu'il n'y a plus de conséquence à annoncer passé le
+  // début. C'est ce que l'ancien `minutesBefore: 0` bricolait.
+  it('ne rend jamais un nombre de minutes négatif', () => {
+    const après = cancelConsequence({
+      startsAt,
+      cancelWindowMinutes: 240,
+      now: à('2026-09-10T18:42:00.000Z'),
+    });
+    expect(après).toEqual({ kind: 'started' });
+    expect(après).not.toHaveProperty('minutesBefore');
+  });
+
+  // Une box à zéro minute de fenêtre : tout est libre jusqu'au début. C'est un
+  // réglage valide (`cancel_window_minutes >= 0`), pas un cas limite absurde.
+  it('accepte une fenêtre nulle', () => {
+    expect(
+      cancelConsequence({
+        startsAt,
+        cancelWindowMinutes: 0,
+        now: à('2026-09-10T18:29:00.000Z'),
+      }),
+    ).toEqual({ kind: 'free' });
+  });
+});
+
+describe('cancelBooking', () => {
+  it('appelle cancel_booking avec le seul identifiant — il est l’idempotence', async () => {
+    const { client, appels } = fakeClient({ data: RÉSERVATION });
+    await cancelBooking(client, RÉSERVATION);
+    expect(appels).toEqual([{ fn: 'cancel_booking', args: { p_booking_id: RÉSERVATION } }]);
+  });
+
+  it('rejoue sans effet : la base rend la même réservation', async () => {
+    const { client } = fakeClient({ data: RÉSERVATION });
+    expect(await cancelBooking(client, RÉSERVATION)).toBe(RÉSERVATION);
+    expect(await cancelBooking(client, RÉSERVATION)).toBe(RÉSERVATION);
+  });
+
+  // Le refus qui a sa propre phrase : « ce cours a déjà eu lieu ». Il partage
+  // son SQLSTATE avec `BOOKING_WINDOW_CLOSED`, donc seul le code applicatif le
+  // distingue — et l'écran ne réagit qu'au code.
+  it('traduit CLASS_ALREADY_STARTED en une phrase qui dit quoi faire', async () => {
+    const { client } = fakeClient({
+      error: {
+        code: '23514',
+        message: 'Ce cours a déjà eu lieu.',
+        details: JSON.stringify({ code: 'CLASS_ALREADY_STARTED' }),
+      },
+    });
+    await expect(cancelBooking(client, RÉSERVATION)).rejects.toMatchObject({
+      code: 'CLASS_ALREADY_STARTED',
+      messageKey: 'errors.class_already_started',
+    });
+  });
+
+  it('traduit un refus au lieu de le laisser passer nu', async () => {
+    const { client } = fakeClient({
+      error: {
+        code: 'P0001',
+        message: 'refus',
+        details: JSON.stringify({ code: 'FORBIDDEN_ROLE' }),
+      },
+    });
+    await expect(cancelBooking(client, RÉSERVATION)).rejects.toMatchObject({
+      code: 'FORBIDDEN_ROLE',
+    });
+  });
+
+  // Même piège que `bookClass()` : PostgREST rend `null` sans erreur si la
+  // fonction ne rend rien. Le traiter comme une réussite afficherait « annulé »
+  // sur une place toujours prise.
+  it('refuse un null silencieux', async () => {
+    const { client } = fakeClient({});
+    await expect(cancelBooking(client, RÉSERVATION)).rejects.toBeInstanceOf(BookingFailed);
   });
 });

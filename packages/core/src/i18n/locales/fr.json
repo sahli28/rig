@@ -107,6 +107,7 @@
   "errors.auth_required": "Connecte-toi pour continuer.",
   "errors.booking_window_closed": "Les réservations ne sont pas encore ouvertes pour ce cours.",
   "errors.cancel_window_passed": "Le délai d'annulation est dépassé.",
+  "errors.class_already_started": "Ce cours a déjà eu lieu : il ne s'annule plus. Contacte ta box si c'est une erreur.",
   "errors.class_full": "Ce cours est complet.",
   "errors.currency_locked": "La devise ne peut plus changer : des écritures comptables existent déjà.",
   "errors.email_already_registered": "Un compte existe déjà avec cette adresse.",
@@ -437,5 +438,13 @@
   "staff.status_removed": "Exclu",
   "staff.status_suspended": "Suspendu",
   "waitlist.position_one": "Tu es {position}ᵉ sur la liste. On te prévient dès qu'une place se libère.",
-  "waitlist.position_other": "Tu es {position}ᵉ sur la liste, sur {total} personnes en attente."
+  "waitlist.position_other": "Tu es {position}ᵉ sur la liste, sur {total} personnes en attente.",
+  "booking.cancel": "Annuler ma réservation",
+  "booking.cancel_a11y": "Annuler ma réservation pour {class} à {time}",
+  "booking.cancel_confirm_title": "Annulation tardive",
+  "booking.cancel_confirm_late": "Il reste moins de {minutes} minutes avant le cours. Ta place sera libérée, et l’annulation enregistrée comme tardive — ta box applique sa propre règle.",
+  "booking.cancel_confirm_cta": "Annuler quand même",
+  "booking.cancel_keep": "Garder ma place",
+  "booking.cancelled_ok": "Réservation annulée. Ta place est libérée.",
+  "booking.cancelled_ok_announce": "Réservation annulée pour {class} à {time}. Ta place est libérée."
 }

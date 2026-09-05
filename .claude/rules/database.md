@@ -261,9 +261,38 @@ Après toute nouvelle table, ajouter son cas au test anti-fuite
 `supabase/tests/rls_leak_test.sql` — le test itère sur `information_schema.tables`
 et échoue si une table n'a pas de policy.
 
+## `rls-auditor` passe sur **chaque** migration, sans exception
+
+Pas seulement les migrations qui créent une table, pas seulement quand `/check`
+ou la compétence `migration` y pense : **toute migration touchant `supabase/`,
+avant le commit.** C'est deux minutes, et c'est la seule relecture du dépôt qui
+cherche ce qui *manque* plutôt que de vérifier ce qui est écrit.
+
+Ce qui fixe la règle, ce sont deux trouvailles qu'aucun autre filet n'a vues :
+
+- **P1-003c** — une colonne d'opposition RGPD (`hidden_from_roster`) lisible par
+  tout membre de la box, alors que la vue, ses six tests d'isolation et la suite
+  pgTAP étaient verts. Ajouter une colonne à une table déjà exposée est une
+  décision d'exposition, et rien d'automatique ne la pose ;
+- **P1-004** — un défaut de concurrence dans `cancel_booking()` que le harnais,
+  les tests pgTAP **et le commentaire de la fonction** déclaraient impossible.
+  Le commentaire décrivait le cas séquentiel qu'on avait testé, pas la fonction.
+
+Deux limites à garder en tête, sinon la règle donne une fausse assurance :
+
+1. **son silence ne prouve rien.** Les cinq trous de la « règle des sœurs »
+   ci-dessous lui ont échappé — dont les droits de table, qui laissaient
+   `TRUNCATE` à `authenticated` sur les treize tables. `VERDICT: SAFE` veut dire
+   « rien trouvé », jamais « rien à trouver » ;
+2. **il lit ce que le diff contient.** La question des sœurs — *qu'est-ce qui,
+   ailleurs, fait la même chose et n'a pas été touché ?* — se pose dans le
+   prompt, ou ne se pose pas.
+
 ## Migrations
 
 - Une migration = un changement cohérent, nommée `<timestamp>_<verbe>_<objet>.sql`.
+- **`rls-auditor` avant le commit, sur toute migration** — voir la section
+  ci-dessus. Un `VERDICT: LEAK` se corrige avant de rendre la main.
 - **Une migration déjà versionnée ne se modifie pas** — le hook
   `.claude/hooks/guard-migrations.mjs` la bloque, et c'est le bon défaut. La
   **règle 13 de `CLAUDE.md`** dit l'exception et sa date de péremption : tant

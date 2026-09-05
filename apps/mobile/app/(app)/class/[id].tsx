@@ -12,6 +12,7 @@ import {
   Card,
   EmptyState,
   ListRow,
+  Sheet,
   Skeleton,
   Toast,
 } from '@rack/ui/native';
@@ -21,6 +22,8 @@ import {
   affordanceHint,
   affordanceLabelKey,
   bookClass,
+  cancelBooking,
+  cancelConsequence,
   bookingAffordance,
   coachDisplayName,
   fetchClassDetail,
@@ -88,6 +91,8 @@ export default function ClassDetailScreen() {
     inscrits: [],
   });
   const [envoi, setEnvoi] = useState(false);
+  /** La feuille de confirmation, ouverte seulement hors fenêtre. */
+  const [confirmation, setConfirmation] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
     tone: 'success' | 'danger';
@@ -187,6 +192,64 @@ export default function ClassDetailScreen() {
       origin: 'network',
     });
   }, [vue.cours, vue.aVenir, tenant, enLigne]);
+
+  /**
+   * La conséquence, calculée **avant** de proposer le geste.
+   *
+   * Le critère du ticket est « la conséquence est affichée avant validation,
+   * jamais après ». Hors fenêtre, une feuille la dit et demande confirmation ;
+   * dans la fenêtre, il n'y a rien à annoncer et donc rien à confirmer — une
+   * friction sans information est du bruit.
+   */
+  const consequence = useMemo(() => {
+    if (vue.cours === null || tenant === null) return null;
+    return cancelConsequence({
+      startsAt: vue.cours.starts_at,
+      cancelWindowMinutes: tenant.booking_rules.cancel_window_minutes,
+      now: new Date(),
+    });
+  }, [vue.cours, tenant]);
+
+  const annuler = useCallback(async () => {
+    // Lier **puis** garder : un narrowing porté par `vue.cours.myBookingId` ne
+    // se transporte pas sur un `cours` rebindé ensuite.
+    const cours = vue.cours;
+    if (cours === null || cours.myBookingId === null) return;
+    const reservationId = cours.myBookingId;
+
+    setConfirmation(false);
+    setEnvoi(true);
+
+    // Mise à jour optimiste, comme à la réservation : la place se libère tout de
+    // suite, et revient visiblement si le serveur refuse.
+    setVue((v) =>
+      v.cours === null
+        ? v
+        : { ...v, cours: { ...v.cours, booked_count: Math.max(0, v.cours.booked_count - 1) } },
+    );
+
+    try {
+      await cancelBooking(supabase, reservationId);
+
+      setToast({
+        message: t('booking.cancelled_ok'),
+        tone: 'success',
+        // À l'oreille, « annulé » ne dit pas quoi — trois cours d'affilée
+        // donneraient trois annonces identiques.
+        announcement: t('booking.cancelled_ok_announce', {
+          class: cours.className,
+          time: formatTime(cours.starts_at),
+        }),
+      });
+      await charger();
+    } catch (error) {
+      const cléI18n = error instanceof BookingFailed ? error.messageKey : 'errors.unknown';
+      setToast({ message: t(cléI18n), tone: 'danger' });
+      await charger();
+    } finally {
+      setEnvoi(false);
+    }
+  }, [vue.cours, t, formatTime, charger]);
 
   const reserver = useCallback(async () => {
     if (vue.cours === null || membership === null) return;
@@ -396,6 +459,36 @@ export default function ClassDetailScreen() {
                 fullWidth
               />
 
+              {/* **Avoir sa place n'est pas une impasse.** C'était le seul état
+                  « déjà réservé » sans geste : on voyait qu'on était inscrit, et
+                  on ne pouvait rien en faire depuis l'écran qui le disait. */}
+              {/* Le cours commencé n'a pas de bouton : `cancel_booking()`
+                  refuse (`CLASS_ALREADY_STARTED`), et proposer un geste dont la
+                  seule issue est un refus est pire qu'un état sans geste. Le
+                  refus reste traité à l'arrivée — un écran ouvert traverse
+                  l'heure de début sans qu'on le relise. */}
+              {affordance.kind === 'already_booked' &&
+              cours.myBookingId !== null &&
+              consequence?.kind !== 'started' ? (
+                <Button
+                  label={t('booking.cancel')}
+                  accessibilityLabel={t('booking.cancel_a11y', {
+                    class: cours.className,
+                    time: formatTime(cours.starts_at),
+                  })}
+                  // Dans la fenêtre, rien à annoncer : on annule. Hors fenêtre,
+                  // la feuille dit la conséquence **avant** de valider.
+                  onPress={() => {
+                    if (consequence?.kind === 'late') setConfirmation(true);
+                    else void annuler();
+                  }}
+                  loading={envoi}
+                  disabled={envoi}
+                  variant="secondary"
+                  fullWidth
+                />
+              ) : null}
+
               {indice === null ? null : (
                 <Text
                   style={{
@@ -493,6 +586,55 @@ export default function ClassDetailScreen() {
               />
             </View>
           )}
+
+          {/* **La conséquence avant la validation, jamais après.**
+
+              Ce qu'elle ne dit pas est aussi important que ce qu'elle dit : la
+              spec §12.3 propose « ton crédit sera consommé », et aucune table de
+              crédits n'existe avant P2-007. Annoncer une conséquence qui
+              n'arrivera pas ferait annuler en croyant payer, ou renoncer en
+              croyant perdre. La phrase dit donc la vérité du pilote — la place
+              est libérée, l'annulation est enregistrée comme tardive, et la box
+              applique sa règle hors de l'app.
+
+              P2-007 remplacera cette phrase en même temps qu'il remplacera le
+              corps de `restore_booking_entitlement()`. */}
+          <Sheet
+            visible={confirmation}
+            onClose={() => setConfirmation(false)}
+            title={t('booking.cancel_confirm_title')}
+          >
+            <View style={{ gap: theme.space(3) }}>
+              <Text
+                style={{
+                  color: theme.colors.text,
+                  fontSize: theme.typography.body,
+                  fontFamily: theme.fontFamily,
+                }}
+              >
+                {t('booking.cancel_confirm_late', {
+                  minutes: consequence?.kind === 'late' ? consequence.minutesBefore : 0,
+                })}
+              </Text>
+
+              {/* L'action destructrice n'est pas la première : « garder ma
+                  place » est le geste qu'on veut rendre facile, et il est écrit
+                  en clair plutôt que d'être une croix dans un coin. */}
+              <Button
+                label={t('booking.cancel_keep')}
+                onPress={() => setConfirmation(false)}
+                variant="secondary"
+                fullWidth
+              />
+              <Button
+                label={t('booking.cancel_confirm_cta')}
+                onPress={() => void annuler()}
+                loading={envoi}
+                disabled={envoi}
+                fullWidth
+              />
+            </View>
+          </Sheet>
 
           {toast === null ? null : (
             <Toast

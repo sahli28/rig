@@ -75,7 +75,39 @@ const CONTAINER = findContainer();
  * Le nombre de tentatives. La spec §16.4 (T1) en demande 200 ; la CI en lance
  * moins, et le workflow dit pourquoi — voir `.github/workflows/ci.yml`.
  */
-const N = Number(process.argv[2] ?? 200);
+const N = Number(process.argv.find((a) => /^\d+$/.test(a)) ?? 200);
+
+/**
+ * Le scénario. Deux invariants différents, un seul mécanisme.
+ *
+ * - `book` (T1) — N réservations sur **une** place : exactement une confirmée ;
+ * - `cancel` (P1-004) — un cours plein, ses occupants annulent pendant que
+ *   d'autres réservent. L'invariant n'est **pas** « exactement une confirmée » :
+ *   c'est `booked_count = count(bookings CONFIRMED)`. Un décrément perdu fait
+ *   dériver le compteur vers le haut, et le cours reste complet pour toujours
+ *   alors qu'il a des places — silencieux, et la box perd des inscriptions sans
+ *   jamais savoir pourquoi.
+ *
+ * Les deux partagent le top commun, l'échantillonneur de pic et le refus des
+ * faux verts. Un second script les aurait dupliqués, puis laissé diverger.
+ */
+const SCENARIO = process.argv.includes('--scenario')
+  ? process.argv[process.argv.indexOf('--scenario') + 1]
+  : 'book';
+
+if (!['book', 'cancel'].includes(SCENARIO)) {
+  throw new Error(`Scénario inconnu : ${SCENARIO}. Attendu : book | cancel.`);
+}
+
+/**
+ * En scénario `cancel`, le tiers des sessions **détient** une place et l'annule ;
+ * les deux autres tiers tentent de réserver. Le cours part donc plein, et les
+ * incréments croisent les décréments sur toute la durée de la ruée — ce qui est
+ * exactement la situation qu'on veut mettre en défaut.
+ */
+const HOLDERS = SCENARIO === 'cancel' ? Math.max(1, Math.floor(N / 3)) : 0;
+const CAPACITY = SCENARIO === 'cancel' ? HOLDERS : 1;
+
 /** Marge avant le top de départ. Doit couvrir le démarrage de N processus. */
 const COUNTDOWN_SECONDS = Math.max(4, Math.ceil(N / 40));
 
@@ -202,18 +234,35 @@ function setUp() {
             'dd400000-0000-4000-8000-000000000001',
             'dd300000-0000-4000-8000-000000000001',
             'dd500000-0001-4000-8000-000000000001',
-            current_date, '18:30', 'FREQ=WEEKLY;BYDAY=MO', 1);
+            current_date, '18:30', 'FREQ=WEEKLY;BYDAY=MO', ${CAPACITY});
 
-    -- **Une place.** Tout le harnais tient dans ce chiffre.
+    -- La capacité : une place en scénario book, autant que de détenteurs en cancel.
     insert into public.classes (id, tenant_id, schedule_id, class_type_id, room_id,
                                 coach_membership_id, starts_at, ends_at, capacity)
     values ('${CLASS}', '${TENANT}', 'dd600000-0000-4000-8000-000000000001',
             'dd400000-0000-4000-8000-000000000001',
             'dd300000-0000-4000-8000-000000000001',
             'dd500000-0001-4000-8000-000000000001',
-            now() + interval '2 days', now() + interval '2 days 1 hour', 1);
+            now() + interval '2 days', now() + interval '2 days 1 hour', ${CAPACITY});
     commit;
   `);
+
+  if (SCENARIO === 'cancel') {
+    // Les détenteurs réservent **par `book_class()`**, pas par un `insert`
+    // direct : un décor qui court-circuite le vrai chemin ne prépare pas l'état
+    // que le vrai chemin produit (piège 9 de `.claude/rules/database.md`).
+    // Séquentiel et avant le top : ce n'est pas la partie qu'on mesure.
+    for (let i = 1; i <= HOLDERS; i++) {
+      psql(`
+        begin;
+        set local role authenticated;
+        set local request.jwt.claims = '{"sub":"dd1${String(i).padStart(5, '0')}-0000-4000-8000-000000000001","role":"authenticated","email":"charge${i}@example.test"}';
+        select public.book_class('${CLASS}', 'dd500000-${String(i).padStart(4, '0')}-4000-8000-000000000001', 'hold-${i}');
+        commit;
+      `);
+    }
+    log(`  ${HOLDERS} place(s) prise(s) avant la ruée — le cours part plein`);
+  }
 }
 
 function tearDown() {
@@ -315,18 +364,47 @@ async function stampede(first, count) {
 
   const sessions = Array.from({ length: count }, (_, index) => {
     const i = first + index;
-    const membership = `dd500000-${String(i).padStart(4, '0')}-4000-8000-000000000001`;
-    const user = `dd1${String(i).padStart(5, '0')}-0000-4000-8000-000000000001`;
+
+    // **Qui agit, et sur quoi.**
+    //
+    // En `cancel`, les sessions se répartissent en trois tiers :
+    //
+    //   1 … HOLDERS          un détenteur annule **sa** réservation ;
+    //   HOLDERS+1 … 2×HOLDERS le **jumeau** du même détenteur — deux onglets,
+    //                         même compte, même réservation, même instant ;
+    //   au-delà               les autres tentent de réserver.
+    //
+    // Le tiers du milieu est celui qui manquait, et son absence a coûté un
+    // défaut. Une première tentative faisait annuler **deux fois dans la même
+    // session** : séquentiel, donc le second appel sortait au contrôle
+    // pré-verrou et ne prouvait rien. Le harnais restait vert sur la version
+    // fautive — vérifié en la remettant exprès.
+    //
+    // Ce qu'il fallait, c'est deux **sessions** sur la même ligne : elles
+    // franchissent toutes les deux le contrôle avant le verrou, se sérialisent
+    // dessus, et la seconde décrémentait une seconde fois.
+    const jumeau = SCENARIO === 'cancel' && i > HOLDERS && i <= HOLDERS * 2;
+    const acteur = jumeau ? i - HOLDERS : i;
+    const annule = SCENARIO === 'cancel' && i <= HOLDERS * 2;
+
+    const membership = `dd500000-${String(acteur).padStart(4, '0')}-4000-8000-000000000001`;
+    const user = `dd1${String(acteur).padStart(5, '0')}-0000-4000-8000-000000000001`;
 
     // `set local role` + claims : la fonction voit un vrai `auth.uid()`, comme
     // en production. Un appel en `postgres` prouverait la sérialisation mais
-    // sauterait la garde « on ne réserve que pour soi ».
+    // sauterait la garde « on n'annule que pour soi ».
     const sql = `
       select pg_sleep(greatest(0, extract(epoch from (timestamptz '${startAt}' - clock_timestamp()))));
       begin;
       set local role authenticated;
-      set local request.jwt.claims = '{"sub":"${user}","role":"authenticated","email":"charge${i}@example.test"}';
-      select public.book_class('${CLASS}', '${membership}', 'charge-${i}');
+      set local request.jwt.claims = '{"sub":"${user}","role":"authenticated","email":"charge${acteur}@example.test"}';
+      ${
+        annule
+          ? `select public.cancel_booking(
+               (select b.id from public.bookings b where b.idempotency_key = 'hold-${acteur}')
+             );`
+          : `select public.book_class('${CLASS}', '${membership}', 'charge-${i}');`
+      }
       commit;
     `;
 
@@ -348,7 +426,93 @@ async function stampede(first, count) {
 // Le verdict
 // ---------------------------------------------------------------------------
 
+/**
+ * L'invariant de `cancel` : **`booked_count = count(bookings CONFIRMED)`**.
+ *
+ * Ce n'est pas « exactement une confirmée » — le nombre juste dépend de
+ * l'entrelacement, et prétendre le connaître d'avance serait tester
+ * l'ordonnanceur au lieu de la fonction. Ce qui doit tenir quel que soit
+ * l'ordre, c'est l'égalité entre le compteur et la réalité.
+ *
+ * Un décrément perdu fait dériver le compteur **vers le haut** : le cours reste
+ * complet alors qu'il a des places, personne ne peut plus réserver, et rien ne
+ * le signale. C'est la panne la plus coûteuse de cette famille, parce qu'elle
+ * est silencieuse et qu'elle dure.
+ */
+function verdictCancel(results, peak) {
+  const counter = Number(psql(`select booked_count from public.classes where id = '${CLASS}'`));
+  const confirmed = Number(
+    psql(`select count(*) from public.bookings
+          where class_id = '${CLASS}' and status = 'CONFIRMED'`),
+  );
+  const capacity = Number(psql(`select capacity from public.classes where id = '${CLASS}'`));
+  const cancelled = Number(
+    psql(`select count(*) from public.bookings
+          where class_id = '${CLASS}' and status = 'CANCELLED'`),
+  );
+
+  // Les trois tiers, comme les sessions les ont produits : détenteurs, jumeaux,
+  // réservants. Compter les jumeaux parmi les réservants ferait dire au verdict
+  // autre chose que ce qui s'est passé.
+  const annulations = results.filter((r) => r.i <= HOLDERS * 2);
+  const reservations = results.filter((r) => r.i > HOLDERS * 2);
+  const annulationsRatees = annulations.filter((r) => r.code !== 0);
+  const refusHorsMetier = reservations.filter(
+    (r) => r.code !== 0 && !/CLASS_FULL|complet/i.test(r.err),
+  );
+
+  const checks = [
+    // **L'invariant.** Tout le reste n'est que contexte.
+    [
+      'booked_count = nombre de réservations confirmées',
+      counter === confirmed,
+      `${counter} vs ${confirmed}`,
+    ],
+    [
+      'le compteur reste dans ses bornes',
+      counter >= 0 && counter <= capacity,
+      `${counter} / ${capacity}`,
+    ],
+    // Les jumeaux comptent : une annulation rejouée depuis un second onglet doit
+    // **réussir sans rien faire**, pas échouer. Un refus serait tout aussi faux
+    // qu'un double décrément — la personne a annulé, une fois.
+    [
+      `les ${annulations.length} annulations réussissent (dont ${HOLDERS} jumelles)`,
+      annulationsRatees.length === 0,
+      `${annulations.length - annulationsRatees.length} / ${annulations.length}`,
+    ],
+    ['toutes les places tenues ont été rendues', cancelled >= HOLDERS, `${cancelled} annulée(s)`],
+    // Sans ce contrôle, une session qui n'a jamais atteint la fonction — plus de
+    // connexion, par exemple — passerait pour un refus métier, et l'invariant
+    // paraîtrait tenu sans que la contention ait eu lieu.
+    [
+      'les refus de réservation sont tous « cours complet »',
+      refusHorsMetier.length === 0,
+      `${refusHorsMetier.length} refus d'une autre nature`,
+    ],
+    ['contention réelle sur le compteur', peak >= 2, `${peak} sessions en même temps`],
+  ];
+
+  log('');
+  for (const [label, ok, detail] of checks) {
+    log(`  ${ok ? '✓' : '✗'} ${label.padEnd(52)} ${detail}`);
+  }
+
+  if (refusHorsMetier.length > 0) {
+    log('\nRefus d’une autre nature (extrait) :');
+    for (const r of refusHorsMetier.slice(0, 3)) log(`    #${r.i} — ${r.err.split('\n')[0]}`);
+  }
+  if (annulationsRatees.length > 0) {
+    log('\nAnnulations en échec (extrait) :');
+    for (const r of annulationsRatees.slice(0, 3)) log(`    #${r.i} — ${r.err.split('\n')[0]}`);
+  }
+
+  return checks.every(([, ok]) => ok);
+}
+
 function verdict(results, peak) {
+  if (SCENARIO === 'cancel') return verdictCancel(results, peak);
+
   const confirmed = Number(
     psql(`select count(*) from public.bookings
           where class_id = '${CLASS}' and status = 'CONFIRMED'`),
@@ -400,7 +564,12 @@ function verdict(results, peak) {
 
 // ---------------------------------------------------------------------------
 
-log(`\nP1-003 · T1 — ${N} tentatives de réservation sur une place\n`);
+const TITRE =
+  SCENARIO === 'cancel'
+    ? `P1-004 — ${HOLDERS} annulations et ${N - HOLDERS} réservations, au même instant`
+    : `P1-003 · T1 — ${N} tentatives de réservation sur une place`;
+
+log(`\n${TITRE}\n`);
 
 let ok = false;
 try {
@@ -438,5 +607,10 @@ try {
   tearDown();
 }
 
-log(ok ? '\nT1 : PASS — aucune double réservation.\n' : '\nT1 : FAIL.\n');
+const VERDICT =
+  SCENARIO === 'cancel'
+    ? 'le compteur dit la vérité — aucun décrément perdu'
+    : 'aucune double réservation';
+
+log(ok ? `\nPASS — ${VERDICT}.\n` : `\nFAIL — ${TITRE}.\n`);
 process.exit(ok ? 0 : 1);

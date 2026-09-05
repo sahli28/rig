@@ -76,6 +76,7 @@ export type Database = {
         Row: {
           booked_at: string;
           cancelled_at: string | null;
+          cancelled_within_window: boolean | null;
           class_id: string;
           created_at: string;
           id: string;
@@ -88,6 +89,7 @@ export type Database = {
         Insert: {
           booked_at?: string;
           cancelled_at?: string | null;
+          cancelled_within_window?: boolean | null;
           class_id: string;
           created_at?: string;
           id?: string;
@@ -100,6 +102,7 @@ export type Database = {
         Update: {
           booked_at?: string;
           cancelled_at?: string | null;
+          cancelled_within_window?: boolean | null;
           class_id?: string;
           created_at?: string;
           id?: string;
@@ -1077,6 +1080,8 @@ export type Database = {
         };
         Returns: string;
       };
+      cancel_booking: { Args: { p_booking_id: string }; Returns: string };
+      cancel_class_bookings: { Args: { p_class_id: string }; Returns: number };
       claim_invitation: { Args: { p_invitation_id: string }; Returns: string };
       create_invitation: {
         Args: {
@@ -1185,6 +1190,10 @@ export type Database = {
         Returns: undefined;
       };
       remove_member: { Args: { p_membership_id: string }; Returns: undefined };
+      restore_booking_entitlement: {
+        Args: { p_booking_id: string; p_within_window: boolean };
+        Returns: undefined;
+      };
       set_member_role: {
         Args: {
           p_membership_id: string;

@@ -482,3 +482,105 @@ const RosterRowSchema = z.object({
   first_name: z.string().nullable(),
   last_initial: z.string().nullable(),
 });
+
+// ---------------------------------------------------------------------------
+// Annuler — P1-004
+// ---------------------------------------------------------------------------
+
+/**
+ * Ce que l'écran doit dire **avant** de valider une annulation.
+ *
+ * Le critère du ticket est « la conséquence est affichée avant validation,
+ * jamais après ». Encore faut-il que la conséquence annoncée soit vraie : la
+ * spec §12.3 propose « ton crédit sera consommé », et **aucune table de crédits
+ * n'existe** avant P2-007. Promettre une conséquence qui n'arrivera pas est
+ * pire que ne rien promettre — la personne annule en croyant payer, ou renonce
+ * en croyant perdre quelque chose.
+ *
+ * Le pilote dit donc la vérité du pilote : l'annulation est enregistrée comme
+ * tardive, et la box applique sa propre règle hors de l'app.
+ */
+export type CancelConsequence =
+  | { kind: 'free' }
+  | { kind: 'late'; minutesBefore: number }
+  /**
+   * Le cours a commencé : il n'y a plus de geste à proposer. `cancel_booking()`
+   * refuse par `CLASS_ALREADY_STARTED`, parce qu'annuler après coup effacerait
+   * le no-show de RM3.4 et fausserait le remplissage d'un cours qui a eu lieu.
+   *
+   * Ce n'est **pas** une décision d'autorisation prise ici (règle 2) : la base
+   * refuse, quoi qu'affiche l'écran. Ce cas existe pour que l'écran ne propose
+   * pas un bouton dont la seule issue est un refus — et le refus reste géré à
+   * l'arrivée, parce qu'un écran ouvert peut traverser l'heure de début.
+   */
+  | { kind: 'started' };
+
+/**
+ * Dans la fenêtre, hors fenêtre, ou trop tard tout court — **les mêmes
+ * comparaisons que `cancel_booking()`**, à la minute près.
+ *
+ * Écrite ici en pur, et injectée de `now`, parce qu'un écran qui lit l'heure
+ * lui-même n'est pas testable aux bornes — et que les bornes sont tout le sujet
+ * d'une fenêtre. La base reste juge : ce calcul sert à **annoncer**, jamais à
+ * décider. Si les deux divergeaient, c'est l'annonce qui aurait tort.
+ */
+export function cancelConsequence(input: {
+  startsAt: string;
+  cancelWindowMinutes: number;
+  now: Date;
+}): CancelConsequence {
+  const départ = new Date(input.startsAt).getTime() - input.now.getTime();
+
+  // **Le début d'abord** : la fenêtre juge une annulation possible, le début dit
+  // qu'il n'y en a plus. `<= 0` et non `< 0`, comme le `starts_at <= now()` du
+  // SQL — à la seconde du début, le cours a commencé.
+  if (départ <= 0) return { kind: 'started' };
+
+  // Passé ce point `départ` est strictement positif, donc `minutesBefore` aussi :
+  // le `Math.max(0, …)` qu'il y avait ici bornait un négatif que la garde du
+  // début rend impossible. Un garde-fou qui ne peut plus se déclencher laisse
+  // croire qu'il protège de quelque chose.
+  const minutesBefore = Math.floor(départ / MINUTE_MS);
+
+  return minutesBefore >= input.cancelWindowMinutes
+    ? { kind: 'free' }
+    : { kind: 'late', minutesBefore };
+}
+
+/**
+ * Annule une réservation.
+ *
+ * **Pas de clé d'idempotence**, contrairement à `bookClass()`, et ce n'est pas
+ * un oubli : réserver *crée* une ligne — il faut donc une clé pour reconnaître
+ * deux tentatives de la même création. Annuler *transitionne* une ligne
+ * existante vers un état terminal, et son identifiant suffit. Rejouer l'appel
+ * rend la même réservation sans rien décrémenter une seconde fois, ce que la
+ * base garantit sous son verrou.
+ *
+ * Les refus remontent traduits, comme pour `bookClass()` : l'écran n'a qu'un
+ * endroit pour afficher, et une panne réseau ne doit pas y arriver nue.
+ */
+export async function cancelBooking(client: RackClient, bookingId: string): Promise<string> {
+  try {
+    const { data, error } = await client.rpc('cancel_booking', {
+      p_booking_id: bookingId,
+    });
+
+    if (error !== null) {
+      const code = appErrorCodeOf(error);
+      throw new BookingFailed(code, errorMessageKey(code), error);
+    }
+
+    const parsed = IdentifiantRéservation.safeParse(data);
+    if (!parsed.success) {
+      // Même raisonnement que `bookClass()` : un `null` sans erreur afficherait
+      // « c'est annulé » sur une place toujours prise.
+      throw new BookingFailed(null, UNKNOWN_ERROR_MESSAGE_KEY, data);
+    }
+
+    return parsed.data;
+  } catch (cause) {
+    if (cause instanceof BookingFailed) throw cause;
+    throw new BookingFailed(null, UNKNOWN_ERROR_MESSAGE_KEY, cause);
+  }
+}
