@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatMoney, formatRelativeDate, formatTime } from './format';
+import {
+  formatDate,
+  formatDayOfMonth,
+  formatMoney,
+  formatRelativeDate,
+  formatTime,
+  formatWeekday,
+} from './format';
 
 /**
  * Intl insère des espaces insécables (U+00A0) et insécables étroites (U+202F)
@@ -66,6 +73,33 @@ describe('formatDate', () => {
   it('rend une date longue localisée', () => {
     expect(formatDate(COURS, { locale: 'fr', timeZone: PARIS, style: 'long' })).toContain('août');
     expect(formatDate(COURS, { locale: 'en', timeZone: PARIS, style: 'long' })).toContain('August');
+  });
+});
+
+describe('formatWeekday et formatDayOfMonth — le bandeau de semaine', () => {
+  it('rend le jour abrégé dans les deux langues', () => {
+    // 31 août 2026 est un lundi. L'abréviation porte un point en français et
+    // pas en anglais : c'est ICU qui décide, et c'est bien ce qu'on veut —
+    // aucune abréviation écrite à la main dans un fichier de traduction.
+    expect(formatWeekday(COURS, { locale: 'fr', timeZone: PARIS })).toBe('lun.');
+    expect(formatWeekday(COURS, { locale: 'en', timeZone: PARIS })).toBe('Mon');
+  });
+
+  it('rend le numéro du jour sans zéro devant', () => {
+    // « 7 », pas « 07 » : dans une pastille de bandeau, le zéro déséquilibre la
+    // colonne et n'apporte rien.
+    expect(
+      formatDayOfMonth(new Date('2026-09-07T10:00:00Z'), { locale: 'fr', timeZone: PARIS }),
+    ).toBe('7');
+  });
+
+  it('compte le jour dans le fuseau de la box, pas en UTC', () => {
+    // 13 h UTC le 8 septembre, c'est 23 h à Sydney — encore le 8 là-bas. Un
+    // bandeau calculé en UTC afficherait le bon jour ici et le mauvais à 14 h.
+    // Même piège que `localDay`, et il vaut aussi pour une pastille de date.
+    const tard = new Date('2026-09-08T13:00:00Z');
+    expect(formatDayOfMonth(tard, { locale: 'fr', timeZone: 'Australia/Sydney' })).toBe('8');
+    expect(formatWeekday(tard, { locale: 'fr', timeZone: 'Australia/Sydney' })).toBe('mar.');
   });
 });
 

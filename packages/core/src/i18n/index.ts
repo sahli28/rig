@@ -7,8 +7,10 @@ export { translate, interpolate, knownKeys, type TranslateOptions } from './tran
 export {
   formatMoney,
   formatDate,
+  formatDayOfMonth,
   formatTime,
   formatRelativeDate,
+  formatWeekday,
   type MoneyOptions,
   type DateOptions,
   type FormatDateOptions,

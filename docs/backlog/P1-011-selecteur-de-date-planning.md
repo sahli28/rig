@@ -1,6 +1,6 @@
 # `P1-011` — Le bandeau de semaine : atteindre un jour en un tap
 
-**Phase** P1 · **Estimation** `1,5` j·h · **Dépend de** P1-002b ✅, P1-003b ✅, P1-003c ✅ · **Spec** §4-P2, §12.4
+**Phase** P1 · **Estimation** `1,5` j·h · **Dépend de** P1-002b ✅, P1-003b ✅, P1-003c ✅ · **Spec** §4-P2, §12.4 · **✅ fait le 5 septembre 2026**
 
 ## Objectif
 
@@ -62,20 +62,46 @@ condition est levée.
 
 ## Critères d'acceptation
 
-- [ ] Depuis le planning d'aujourd'hui, atteindre samedi en **un tap**
-- [ ] Le jour courant et le jour sélectionné se distinguent **sans la couleur
-      seule** (règle d'accessibilité du projet) — un contour, une graisse, un
-      marqueur
-- [ ] Chaque jour s'annonce par sa date entière et son état, vérifié dans l'arbre
-      d'accessibilité au harnais (`read_page filter=interactive`)
-- [ ] Les flèches et « Revenir à aujourd'hui » fonctionnent toujours
-- [ ] Les jours sont ceux de la **semaine locale de la box** : un téléphone réglé
-      sur un autre fuseau affiche la même semaine
-- [ ] Rien n'est chargé avant d'être demandé — vérifié en comptant les requêtes
-      au harnais, pas en le supposant
+- [x] Depuis le planning d'aujourd'hui, atteindre samedi en **un tap** — vérifié
+      au harnais : un tap sur « lundi 7 » passe du samedi 5 au lundi 7
+- [x] Le jour courant et le jour sélectionné se distinguent **sans la couleur
+      seule** — le sélectionné a un **fond**, le jour courant un **contour** et
+      une graisse. Deux marqueurs de formes différentes, parce qu'ils se
+      superposent le plus souvent et se séparent dès qu'on navigue
+- [x] Chaque jour s'annonce par sa date entière et son état — lu dans l'arbre :
+      « samedi 5 septembre 2026, aujourd'hui, sélectionné », et « lundi
+      7 septembre 2026 » pour les autres
+- [x] Les flèches et « Revenir à aujourd'hui » fonctionnent toujours, et le
+      bandeau **suit** : revenir à aujourd'hui ramène la semaine avec le jour
+- [x] Les jours sont ceux de la **semaine locale de la box** — le formateur
+      reçoit le fuseau de la box, et un test le prouve à Sydney, où 13 h UTC est
+      encore le même jour
+- [x] **Rien n'est chargé avant d'être demandé** — mesuré, pas supposé. Cache
+      vidé, planning rouvert avec les vingt et un jours rendus : **une seule**
+      entrée `rack.schedule.*`, celle du jour affiché. Après un tap sur le 7 :
+      deux. C'est la propriété qui compte pour `D-011`, et elle se mesure mieux
+      en comptant les entrées de cache qu'en comptant des requêtes
 - [ ] **Sur appareil** : le balayage change de semaine, et les abréviations de
       jours s'affichent en français. C'est le seul critère que le harnais ne peut
       pas couvrir, et il porte la seule supposition non prouvée du ticket
+
+## Ce que le harnais a appris, et un piège d'outillage
+
+**Le composant ne peut pas précharger** : il n'importe ni `supabase` ni aucun
+lecteur. C'est plus fort qu'une discipline — il n'en a pas les moyens. La mesure
+des entrées de cache le confirme du dehors.
+
+**Le carrousel se repose au centre.** Trois pages, contenu de 1428 px pour une
+fenêtre de 476, position 476 : exactement la page du milieu, et stable sur trois
+mesures à 800 ms d'intervalle. Rien ne défile en continu.
+
+**Le piège d'outillage, noté dans `docs/environnement-local.md`** : après un
+`resize_window` en préréglage *mobile*, les clics du harnais **expirent** sur cet
+écran alors qu'ils atteignent bien la cible — l'état change, seule l'attente de
+stabilité de l'outil échoue. Le préréglage mobile active l'émulation tactile, et
+React Native Web n'émet pas le signal que l'outil attend. Une demi-heure perdue à
+chercher un défaut qui n'existait pas : la vérification fonctionnelle se fait en
+taille bureau, la vérification visuelle en taille mobile.
 
 ## Notes
 

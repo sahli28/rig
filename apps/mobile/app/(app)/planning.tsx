@@ -10,6 +10,7 @@ import type { DayClass, DaySchedule } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
 import { readDay, writeDay, type ScheduleOrigin } from '../../lib/schedule-cache';
+import { WeekStrip } from '../../components/week-strip';
 
 /**
  * Le planning du jour, côté membre.
@@ -229,6 +230,11 @@ export default function PlanningScreen() {
           onPress={() => setDate(shiftDays(date, 1))}
         />
       </View>
+
+      {/* **Le bandeau, sous la date et au-dessus de tout le reste** (P1-011).
+          Il ne remplace pas les flèches : elles restent le seul chemin annoncé
+          au clavier et au contrôle vocal. */}
+      <WeekStrip value={date} onChange={setDate} today={today} />
 
       {date === today ? null : (
         <Button

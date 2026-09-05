@@ -54,6 +54,27 @@ export function formatDate(
   return dateTimeFormat(locale, options).format(date);
 }
 
+/**
+ * Le jour de la semaine, abrégé — « lun. », « Mon ».
+ *
+ * Séparé de `formatDate` parce que le bandeau de semaine (P1-011) affiche le
+ * jour et le numéro sur **deux lignes** : les demander ensemble obligerait à
+ * découper une chaîne formatée, ce qui ne survit pas au changement de langue.
+ *
+ * **Supposition sur le moteur** : les mêmes données ICU que `style: 'long'`,
+ * qui affiche « vendredi 4 septembre 2026 » sur appareil depuis le 4 septembre
+ * 2026. L'abrégé vient du même jeu ; le risque est faible et de la même famille
+ * qu'`Intl.PluralRules`, donc il se vérifie **à la passe**, pas au harnais.
+ */
+export function formatWeekday(value: Date | string, { locale, timeZone }: DateOptions): string {
+  return dateTimeFormat(locale, { timeZone, weekday: 'short' }).format(toDate(value));
+}
+
+/** Le numéro du jour dans le mois, sans zéro devant — « 7 », pas « 07 ». */
+export function formatDayOfMonth(value: Date | string, { locale, timeZone }: DateOptions): string {
+  return dateTimeFormat(locale, { timeZone, day: 'numeric' }).format(toDate(value));
+}
+
 export function formatTime(value: Date | string, { locale, timeZone }: DateOptions): string {
   return dateTimeFormat(locale, {
     timeZone,

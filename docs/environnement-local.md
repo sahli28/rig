@@ -62,6 +62,21 @@ attendre quelques secondes et recharger.
 typecheck des types générés du routeur. Vérifier `git status` après avoir lancé
 Expo — la procédure complète est dans `docs/passe-mobile-iphone.md`, section 6.
 
+## Le harnais mobile en préréglage « mobile » : les clics expirent
+
+Après `resize_window` en préréglage **mobile**, les clics du harnais expirent au
+bout de trente secondes sur les écrans React Native Web — alors qu'ils
+**atteignent bien la cible** : l'état change, c'est l'attente de stabilité de
+l'outil qui échoue. Le préréglage mobile active l'émulation tactile, et RN Web
+n'émet pas le signal attendu.
+
+Symptôme trompeur : on croit à un écran figé, on cherche un défaut dans son code.
+Le contrôle qui tranche en dix secondes — `get_page_text` juste après le clic
+qui a « échoué » : si l'état a changé, le clic est passé.
+
+La règle qui évite le détour : **vérifier le fonctionnement en taille bureau, et
+l'apparence en taille mobile.** Trouvé en P1-011, une demi-heure perdue.
+
 ## Git Bash
 
 - **`UID` est en lecture seule.** Un script qui l'utilise comme nom de variable
