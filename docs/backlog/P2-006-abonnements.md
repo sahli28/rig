@@ -56,6 +56,32 @@ dangereux. Une erreur ici se voit sur un relevé bancaire.
   résiliation, historique de factures (liens Stripe hébergés — **on ne génère pas
   de PDF**).
 
+### Ce que `interval_count` change ici, et qui n'est pas rien
+
+P2-005 a été amendé le 5 septembre 2026 : une formule porte `interval` **et**
+`interval_count`, parce qu'une box vend des illimités de 1, 3 ou 6 mois. Trois
+conséquences, toutes sur cet écran plutôt que sur le modèle :
+
+1. **`current_period_end` ne bouge pas de forme, mais change d'ordre de
+   grandeur.** Il vient de l'objet Stripe et reste la borne des droits ; ce qui
+   change est qu'il peut être à six mois. Toute phrase du type « jusqu'à la fin
+   du mois » devient fausse : la date s'affiche **en toutes lettres**, ce que
+   RM4.5 demandait déjà et qui cesse d'être une préférence de style ;
+2. **« résilier à échéance » peut laisser six mois de droits.** C'est correct —
+   la période est payée — mais c'est surprenant si l'écran ne le dit pas.
+   Le bouton doit annoncer la conséquence **avant** le clic : « ton abonnement
+   s'arrête le 4 mars 2027 ; tu réserves jusque-là. » Une confirmation qui
+   n'énonce pas la date laisse croire à une coupure immédiate ;
+3. **la « prochaine échéance » n'est pas la « prochaine facture » pour un
+   trimestriel** — c'est la même date, mais l'intuition du membre est mensuelle.
+   Le libellé porte la périodicité : « 267 € tous les 3 mois · prochaine
+   échéance le 4 mars ».
+
+**Ce qui ne change pas** : `member_has_booking_right()` compare toujours
+`current_period_end` à la date du cours. Une période plus longue ne demande
+aucune arithmétique de calendrier de notre côté — Stripe la calcule, nous la
+lisons. C'est précisément ce que la forme Stripe achète.
+
 ## Ce qui n'est pas négociable
 
 1. **Le webhook fait foi.** Le retour de Payment Sheet est une information
@@ -90,6 +116,11 @@ dangereux. Une erreur ici se voit sur un relevé bancaire.
       cours**, pas avant celle de la réservation (RM2.8) — test pgTAP
 - [ ] Une résiliation affiche la date de fin de droits, et le membre réserve
       jusque-là
+- [ ] **Sur un illimité 3 mois**, la résiliation à échéance annonce la date
+      exacte **avant** le clic, et le membre réserve jusqu'à elle — le cas qui
+      distingue « à la fin du mois » d'une vraie fin de période
+- [ ] L'écran « Ma formule » porte la périodicité : « tous les 3 mois », jamais
+      un montant nu qu'on lira comme mensuel
 - [ ] `invoice.payment_failed` affiche une bannière et **ne coupe rien** (RM4.6)
 - [ ] La commission plateforme apparaît dans le ledger de la box, du bon signe
 - [ ] Un `UPDATE` sur `ledger_entries` lève, y compris depuis cette fonction

@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **30,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **32 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 76 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -68,7 +68,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 96,25 j·h, dont **30,5 restants**
+## ① Jalon pilote — 97,75 j·h, dont **32 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -79,7 +79,7 @@ Objectif : une box réelle utilise l'app en production pendant deux semaines.
 P0-005b                                (SSO Google)
 D-009 ✅ → P1-002b ✅ → P1-010 ✅ → P1-003b → P1-003c   (navigation, planning, coachs, réservation, pairs)
 D-011                                  (trois gestes de relecture du cache, à la prochaine passe appareil — non bloquant)
-P1-003c ✅ fait                          (la feuille d'inscrits, et le premier écran de préférences)
+P1-003c ✅ fait → P1-011                 (la feuille d'inscrits, puis le bandeau de semaine du planning)
 D-010 ✅ arbitré et clos · D-012 ✅ fait  (le moteur du produit : rien de plus maintenant, et la façade crypto comptée)
 D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'il touche les mêmes fichiers)
 D-014                                  (les deux filets dont on connaît le trou — non bloquant)
@@ -125,6 +125,7 @@ sait pas lui répondre.
 | P1-003c | La feuille d'inscrits : en quoi un pair diffère d'un coach |  3,5 | ✅ **fait le 5 sept. 2026** — trois décisions prises, `class_roster` + opposition par appartenance. **2 → 3,5** : aucun écran ne permettait de changer une préférence, donc l'opposition n'existait pas. Reste la passe appareil (trois gestes) |
 | P1-003  | Réservation — lot 1, le SQL                       |      4 | ✅ fusionné (PR #18) — prouvé sous contention réelle en CI |
 | P1-003b | Réserver depuis le mobile — lot 2, les écrans     |    5,5 | ✅ **fait** (PR #32) — passe iPhone du 5 sept. 2026, gestes 1 à 11 conformes, VoiceOver compris, **aucun défaut trouvé, une première**. Deux critères en `[~]` : le p95 attend P1-004 puis un environnement distant, le schéma `rack://` attend un *development build* (D-013) |
+| P1-011  | Bandeau de semaine : atteindre un jour en un tap  |    1,5 | à faire — **après P1-003c**, qui touchait le même écran. La friction de Léa à chaque réservation ; le calcul de semaine existe déjà et est testé |
 | P1-004  | Annulation et fenêtres                            |      4 | à faire              |
 | P1-005  | Places restantes en temps réel                    |      3 | à faire              |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire              |
@@ -135,7 +136,7 @@ sait pas lui répondre.
 | D-012   | Façade `crypto` et sondes de lint *(rétroactif)*  |    0,5 | ✅ fait le 4 sept. 2026 — écrit après coup pour que le total cesse d'être faux de 0,5 |
 | D-013   | **RIG devient Rack** — le renommage, d'un seul geste |  0,5 | ✅ fait le 4 sept. 2026 — avant P1-003b, qui touche les mêmes fichiers. Le `scheme` ne se vérifie pas dans Expo Go : ce reliquat part avec le premier *development build* |
 | D-014   | Deux filets dont on connaît le trou               |    0,5 | à faire — non bloquant. Le garde de migrations ne voit pas les écritures par script, et des tests pgTAP affirment des comptes globaux |
-|         | **Total ①**                                       | **96,25** | dont **65,75 faits**, **30,5 restants** |
+|         | **Total ①**                                       | **97,75** | dont **65,75 faits**, **32 restants** |
 
 **Un demi-jour retrouvé, et pourquoi on l'écrit.** Le lot du 4 septembre —
 façade `crypto`, sondes, refonte de la configuration ESLint — n'apparaissait dans
