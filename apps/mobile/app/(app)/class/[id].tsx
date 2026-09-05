@@ -4,7 +4,17 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useNetworkState } from 'expo-network';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
-import { Badge, Banner, Button, Card, EmptyState, Skeleton, Toast } from '@rack/ui/native';
+import {
+  Avatar,
+  Badge,
+  Banner,
+  Button,
+  Card,
+  EmptyState,
+  ListRow,
+  Skeleton,
+  Toast,
+} from '@rack/ui/native';
 import { uuidV7 } from '@rack/core';
 import {
   BookingFailed,
@@ -12,10 +22,13 @@ import {
   affordanceLabelKey,
   bookClass,
   bookingAffordance,
+  coachDisplayName,
   fetchClassDetail,
+  fetchClassRoster,
   fetchUpcomingBookings,
   type BookingAffordance,
   type ClassDetail,
+  type RosterPeer,
 } from '@rack/core/supabase';
 import { supabase } from '../../../lib/supabase';
 import { useSession } from '../../../lib/session';
@@ -47,6 +60,8 @@ interface VueCours {
   cours: ClassDetail | null;
   /** Réservations à venir : c'est le compteur du plafond, pas une décoration. */
   aVenir: number;
+  /** Les inscrits — vides tant qu'on n'a pas soi-même sa place. */
+  inscrits: RosterPeer[];
 }
 
 export default function ClassDetailScreen() {
@@ -70,6 +85,7 @@ export default function ClassDetailScreen() {
     phase: 'chargement',
     cours: null,
     aVenir: 0,
+    inscrits: [],
   });
   const [envoi, setEnvoi] = useState(false);
   const [toast, setToast] = useState<{
@@ -88,10 +104,13 @@ export default function ClassDetailScreen() {
   const charger = useCallback(async () => {
     if (id === undefined || activeTenantId === null || membership === null) return;
 
-    setVue({ id, phase: 'chargement', cours: null, aVenir: 0 });
+    setVue({ id, phase: 'chargement', cours: null, aVenir: 0, inscrits: [] });
 
     try {
-      const [cours, aVenir] = await Promise.all([
+      // La feuille part avec les deux autres : la vue rend une liste vide à qui
+      // n'est pas inscrit, donc la demander sans le savoir ne divulgue rien et
+      // évite un second aller-retour après la réservation.
+      const [cours, aVenir, inscrits] = await Promise.all([
         fetchClassDetail(supabase, {
           tenantId: activeTenantId,
           classId: id,
@@ -103,6 +122,7 @@ export default function ClassDetailScreen() {
           membershipId: membership.id,
           locale,
         }),
+        fetchClassRoster(supabase, { tenantId: activeTenantId, classId: id }),
       ]);
 
       setVue({
@@ -110,11 +130,12 @@ export default function ClassDetailScreen() {
         phase: cours === null ? 'introuvable' : 'prêt',
         cours,
         aVenir: aVenir.length,
+        inscrits,
       });
     } catch {
       // Un cours qu'on n'a pas pu lire n'est pas un cours qui n'existe pas, mais
       // l'écran ne peut rien proposer dans les deux cas. Le message le dit.
-      setVue({ id, phase: 'introuvable', cours: null, aVenir: 0 });
+      setVue({ id, phase: 'introuvable', cours: null, aVenir: 0, inscrits: [] });
     }
   }, [id, activeTenantId, membership, locale]);
 
@@ -198,6 +219,18 @@ export default function ClassDetailScreen() {
 
   const cours = vue.cours;
   const indice = affordance === null ? null : affordanceHint(affordance);
+  const inscrits = vue.inscrits;
+
+  /**
+   * **Se déduit, ne se demande pas.** Si on a sa place et qu'on ne figure pas
+   * dans la feuille, c'est qu'on s'y est opposé : la vue applique déjà le
+   * filtre. Une seconde requête pour lire la préférence dirait la même chose,
+   * avec un risque de dire l'inverse.
+   */
+  const estMasque =
+    cours?.myBookingId != null &&
+    membership !== null &&
+    !inscrits.some((pair) => pair.membership_id === membership.id);
 
   return (
     <ScrollView
@@ -357,6 +390,75 @@ export default function ClassDetailScreen() {
                   fullWidth
                 />
               ) : null}
+            </View>
+          )}
+
+          {/* **La feuille d'inscrits, et seulement pour un inscrit.** La vue
+              `class_roster` rend une liste vide à qui n'a pas réservé ce cours —
+              c'est la base juridique, pas une optimisation d'affichage — donc
+              l'écran n'affiche la section que lorsqu'on a sa place. */}
+          {cours.myBookingId === null ? null : (
+            <View style={{ gap: theme.space(2) }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: theme.space(2),
+                }}
+              >
+                <Text
+                  style={{
+                    color: theme.colors.text,
+                    fontSize: theme.typography.title,
+                    fontFamily: theme.fontFamily,
+                    fontWeight: '600',
+                  }}
+                >
+                  {t('roster.title')}
+                </Text>
+                {/* Le nombre **avec son unité** : « 3 » ne dit rien à un lecteur
+                    d'écran, qui ne lit pas le titre d'à côté. */}
+                {inscrits.length === 0 ? null : (
+                  <Badge label={t('roster.count', { count: inscrits.length })} />
+                )}
+              </View>
+
+              {inscrits.length === 0 ? (
+                <Text
+                  style={{
+                    color: theme.colors.textMuted,
+                    fontSize: theme.typography.body,
+                    fontFamily: theme.fontFamily,
+                  }}
+                >
+                  {t('roster.empty')}
+                </Text>
+              ) : (
+                inscrits.map((pair) => (
+                  <ListRow
+                    key={pair.membership_id}
+                    // « Sarah D. » — la même composition que pour un coach, et
+                    // la même règle : prénom et initiale, jamais plus.
+                    title={coachDisplayName(pair)}
+                    leading={<Avatar name={coachDisplayName(pair)} size="sm" />}
+                  />
+                ))
+              )}
+
+              {/* **L'information fait partie de la base juridique**, pas de la
+                  politesse : un intérêt légitime exempte de la case à cocher,
+                  pas de dire ce qu'on expose et comment s'y opposer. */}
+              <Banner
+                title={estMasque ? t('roster.hidden_notice') : t('roster.info')}
+                tone="info"
+                action={
+                  <Button
+                    label={t('roster.info_action')}
+                    variant="ghost"
+                    onPress={() => router.push('/preferences')}
+                  />
+                }
+              />
             </View>
           )}
 

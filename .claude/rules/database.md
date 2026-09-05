@@ -173,6 +173,26 @@ changer le fuseau), `tenants` de nouveau (un MANAGER pouvait fermer la box), pui
 `users` (chacun pouvait poser son propre `deleted_at`). Trois fois le même
 raisonnement manquant.
 
+**Une quatrième fois en P1-003c, et cette fois sur la lecture.** `memberships`
+rend toutes ses colonnes à tout membre du tenant depuis P0-004 — assumé, parce
+qu'elle ne portait que `user_id`, `role`, `status` et des dates. Y ajouter
+`hidden_from_roster`, une **opposition RGPD**, a rendu lisible par les pairs
+exactement ce que la vue `class_roster` existe pour leur cacher. La colonne
+n'avait pas changé la table : elle avait changé sa sensibilité, et personne
+n'avait de raison de rouvrir un grant qui ne bougeait pas.
+
+D'où deux choses à connaître avant de les découvrir :
+
+- **`select *` sur `memberships` échoue en `42501` pour `authenticated`**, donc
+  `tenantScope().select('memberships')` aussi — le helper ne sait pas projeter,
+  c'est un compromis assumé ailleurs et une conséquence ici. Sa propre opposition
+  se lit par `get_roster_visibility()`, son pendant en écriture est
+  `set_roster_visibility()` ;
+- **ajouter une colonne à une table déjà exposée est une décision d'exposition**,
+  pas une décision de schéma. La question à poser est « qui lit déjà cette
+  table ? », et elle ne se pose pas toute seule : ici c'est `rls-auditor` qui l'a
+  posée, après que les tests, la vue et sa suite pgTAP étaient verts.
+
 ### Ce que les tests d'isolation ne voient pas
 
 Une suite qui teste **le tenant A contre le tenant B** ne peut pas voir une

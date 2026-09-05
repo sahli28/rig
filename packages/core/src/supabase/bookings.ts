@@ -431,3 +431,54 @@ export async function fetchUpcomingBookings(
       };
     });
 }
+
+/**
+ * Un inscrit, tel que la feuille l'affiche. Prénom et initiale, rien d'autre.
+ *
+ * Les noms de champs sont ceux de la vue, en `snake_case`, et c'est délibéré :
+ * `coachDisplayName()` compose déjà « Sarah D. » à partir de cette forme
+ * exacte. Renommer en `camelCase` aurait obligé à réécrire la composition, ou à
+ * la contourner — deux façons de laisser un nom complet réapparaître un jour.
+ */
+export interface RosterPeer {
+  membership_id: string;
+  first_name: string | null;
+  last_initial: string | null;
+}
+
+/**
+ * Les inscrits d'un cours — **les gens qu'on croise, pas l'annuaire de la box**.
+ *
+ * La vue `class_roster` ne rend quelque chose qu'à quelqu'un qui est **lui-même
+ * inscrit** à ce cours ; un membre de la même box qui ne l'est pas obtient une
+ * liste vide, et c'est le comportement voulu, pas une erreur à rattraper ici.
+ * Elle applique aussi l'opposition (`memberships.hidden_from_roster`) : une
+ * personne qui s'y est opposée **n'a pas de ligne**, elle n'a pas une ligne
+ * anonyme — une case « membre masqué » dirait qu'il y a quelqu'un.
+ *
+ * Base juridique, portée et raison de chaque colonne : la migration
+ * `20260905090000_class_roster.sql` et `.claude/rules/privacy.md`.
+ */
+export async function fetchClassRoster(
+  client: RackClient,
+  { tenantId, classId }: { tenantId: string; classId: string },
+): Promise<RosterPeer[]> {
+  const { data, error } = await tenantScope(client, tenantId)
+    .selectView('class_roster')
+    .eq('class_id', classId);
+
+  if (error !== null) throw error;
+
+  return RosterRowSchema.array().parse(data ?? []);
+}
+
+/**
+ * Zod comme frontière de type, comme pour `tenant_coaches` : `selectView()` rend
+ * des lignes non typées faute de liste de colonnes — compromis assumé
+ * d'`active-tenant.ts`, où typer les colonnes fait exploser `tsc`.
+ */
+const RosterRowSchema = z.object({
+  membership_id: z.string(),
+  first_name: z.string().nullable(),
+  last_initial: z.string().nullable(),
+});

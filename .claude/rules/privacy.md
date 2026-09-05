@@ -87,7 +87,7 @@ ad hoc aux règles différentes, ce sont trois surfaces qu'on ne compare jamais.
 | --- | --- | --- | --- |
 | **Admin** — OWNER/MANAGER sur tous les membres | tout, **e-mail compris** | responsabilité de traitement de la box | `member_admin_directory` (D-001) |
 | **Coach** — un membre sur qui anime son cours | prénom, **initiale** du nom | exécution du contrat du coach : son nom est déjà au mur et sur le site | `tenant_coaches` (P1-010) |
-| **Pair** — un membre sur les autres inscrits | à trancher | à trancher | P1-003c |
+| **Pair** — un membre sur les autres inscrits **du même cours** | prénom, **initiale** du nom | **intérêt légitime**, avec information et **opposition** — un pair n'exerce aucune fonction, contrairement au coach | `class_roster` (P1-003c) |
 | **Présence** — un coach sur son propre cours | à trancher | à trancher | pas de ticket |
 
 Ce qui vaut pour **toute** audience non administrative :
@@ -122,3 +122,39 @@ et non redécouverte : `memberships` rend à tout membre de la box, pour tous le
 autres, `user_id`, `role`, `status`, `joined_at` et `left_at`. Aucun nom, donc
 aucune fuite d'identité — mais de quoi compter l'effectif, lire les rôles et
 dater les arrivées. Elle vient des grants de table de P0-004, pas d'un arbitrage.
+
+**Et ce jugement a une date de péremption, qu'il a failli dépasser en silence.**
+Il tient tant que la table ne porte que des faits d'appartenance. P1-003c y a
+ajouté `hidden_from_roster` — une **opposition RGPD** — et tout membre de la box
+a pu lire, pendant le temps d'un audit, qui s'était opposé à figurer dans les
+feuilles d'inscrits : précisément ce que `class_roster` est construite pour ne
+pas dire à un pair. Corrigé par un grant de colonne, et prouvé par un test qui
+attend un `42501`.
+
+La leçon, qui vaut pour les quatre vues et pour la table qui les alimente :
+**ajouter une colonne à une table déjà exposée est une décision d'exposition.**
+Une vue se relit parce qu'on l'écrit ; un grant qui ne bouge pas ne se relit
+jamais.
+
+### La quatrième audience, et pourquoi elle a sa règle propre
+
+Un **pair** n'exerce aucune fonction. Le coach est au mur et sur le site : son
+nom relève de l'exécution de son contrat. La présence de quelqu'un à un cours est
+un fait de vie privée, et rien ne la rend nécessaire à l'exécution de **son**
+contrat à lui. D'où trois différences, toutes tranchées en P1-003c :
+
+1. **la base juridique** est l'intérêt légitime, avec information et **droit
+   d'opposition** — la forme que la spec applique déjà au partage inter-box ;
+2. **la portée** est « les gens que je croise » : il faut être **inscrit au
+   cours** pour voir qui l'est. Pas l'annuaire de la box, et pas les cours qu'on
+   ne fréquente pas ;
+3. **le contrôle n'est pas un consentement.** `LEADERBOARD` existe et parle de
+   **scores** : la recycler ferait faire à une case l'inverse de ce qu'elle
+   annonce. Une opposition vit sur l'appartenance
+   (`memberships.hidden_from_roster`), donc par box, réversible, tracée dans
+   `audit_logs` — là où une valeur d'enum de `consent_purpose` aurait été
+   définitive.
+
+**L'opposition retire la ligne, elle ne la vide pas.** Une entrée grisée
+« membre masqué » dirait qu'il y a quelqu'un, ce qui est exactement ce que
+l'opposition refuse.

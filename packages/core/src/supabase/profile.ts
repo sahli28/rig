@@ -146,3 +146,80 @@ export async function recordConsents(
   const { error } = await client.from('consents').insert(rows);
   if (error) throw error;
 }
+
+/**
+ * L'opposition à figurer dans la feuille d'inscrits de sa box (P1-003c).
+ *
+ * **Ce n'est pas un consentement**, et c'est pour ça que ça ne passe pas par
+ * `recordConsents()` : `consents` prouve un accord donné, avec sa version de
+ * politique et son horodatage. Ici la base juridique est l'intérêt légitime, et
+ * ce qui s'exerce est un **droit d'opposition** — une préférence portée par
+ * l'appartenance, donc par box. La trace vit dans `audit_logs`, écrite par la
+ * fonction SQL.
+ *
+ * `hidden` et non `visible` : la valeur par défaut d'une colonne booléenne est
+ * `false`, et le défaut du produit est **visible**. Nommer la colonne par son
+ * exception évite une double négation en base.
+ */
+export async function setRosterVisibility(
+  client: RackClient,
+  { tenantId, hidden }: { tenantId: string; hidden: boolean },
+): Promise<void> {
+  const { error } = await client.rpc('set_roster_visibility', {
+    p_tenant_id: tenantId,
+    p_hidden: hidden,
+  });
+  if (error) throw error;
+}
+
+/** Ce que l'écran de préférences affiche, et qui vient de deux endroits. */
+export interface MyPreferences {
+  /** Opposition à la feuille d'inscrits, portée par l'appartenance. */
+  hiddenFromRoster: boolean;
+  /** Consentements de box, `null` tant que la personne n'a rien dit. */
+  push: boolean | null;
+  leaderboard: boolean | null;
+}
+
+/**
+ * Relit les préférences de la box active.
+ *
+ * **Deux sources, et elles ne se confondent pas** : l'opposition vit sur
+ * l'appartenance (intérêt légitime, P1-003c), les consentements dans `consents`
+ * (append-only, donc c'est la ligne **la plus récente** qui fait foi). Les
+ * mélanger dans une seule table aurait effacé cette différence, qui est
+ * exactement ce qu'un contrôle RGPD regarde.
+ */
+export async function fetchMyPreferences(
+  client: RackClient,
+  { tenantId, userId }: { tenantId: string; userId: string },
+): Promise<MyPreferences> {
+  const [visibilite, consents] = await Promise.all([
+    // **Une RPC et non une lecture de `memberships`.** La colonne est hors du
+    // grant de lecture de la table depuis P1-003c : un `select *` y échoue en
+    // `42501`, et c'est voulu — sans ce grant de colonne, n'importe quel membre
+    // de la box lisait l'opposition de tous les autres. `get_roster_visibility()`
+    // ne rend que la sienne.
+    client.rpc('get_roster_visibility', { p_tenant_id: tenantId }),
+    client
+      .from('consents')
+      .select('purpose, granted, granted_at')
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId)
+      .order('granted_at', { ascending: false }),
+  ]);
+
+  if (visibilite.error !== null) throw visibilite.error;
+  if (consents.error !== null) throw consents.error;
+
+  // Le premier trouvé est le plus récent : la table est append-only, un refus
+  // est une ligne de plus, et c'est la dernière qui vaut.
+  const dernier = (purpose: string): boolean | null =>
+    (consents.data ?? []).find((row) => row.purpose === purpose)?.granted ?? null;
+
+  return {
+    hiddenFromRoster: visibilite.data ?? false,
+    push: dernier('PUSH'),
+    leaderboard: dernier('LEADERBOARD'),
+  };
+}

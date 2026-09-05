@@ -1,6 +1,10 @@
 # P1-003c — La feuille d'inscrits : en quoi un pair diffère d'un coach
 
-**Phase** P1 · **Estimation** 2 j·h · **Dépend de** P1-003b · **Spec** §5.2
+**Phase** P1 · **Estimation** 3,5 j·h · **Dépend de** P1-003b ✅ · **Spec** §5.2 · **✅ fait le 5 septembre 2026**
+
+> **2 → 3,5 j·h**, et le demi-jour et demi a une cause unique : une opposition
+> qu'on ne peut pas exercer n'existe pas, et **aucun écran ne permettait de
+> changer une préférence**. Voir « Le trou de la règle 8 » ci-dessous.
 
 ## Objectif
 
@@ -8,12 +12,12 @@ Un membre voit qui d'autre est inscrit au cours qu'il regarde — ou ne le voit
 pas, et le ticket dit lequel. **La décision est le livrable**, l'écran vient
 après.
 
-## Ce ticket ne se lance pas encore
+## La condition était remplie, et elle l'a été jusqu'au bout
 
 D-001 a différé cette question, P1-003 l'a reléguée à son lot 2, et P1-003b l'a
 laissée dehors — trois fois, pour la même raison, et elle est bonne : elle se
-tranche **avec l'écran sous les yeux**. Le détail d'un cours arrive en P1-003b ;
-ce ticket se lance après lui, pas avant.
+tranche **avec l'écran sous les yeux**. L'écran existait depuis la veille et
+avait tourné sur un iPhone.
 
 Ce qui a changé depuis, et qui rend la décision plus facile : **la règle
 d'exposition d'identité existe** (P1-010, `.claude/rules/privacy.md`). Il n'y a
@@ -77,14 +81,72 @@ jamais été prise en passant.
   compte, il pointe) et mérite son ticket. Notée dans la règle, sans ticket
   à ce jour.
 
+## Les trois décisions, prises
+
+Écrites en tête de la migration `20260905090000_class_roster.sql`, parce que
+c'est là qu'on les relira, et résumées dans `.claude/rules/privacy.md`, où le
+tableau des audiences porte enfin sa quatrième ligne.
+
+1. **Base juridique : intérêt légitime, information, opposition.** Un coach
+   exerce une fonction publique de la box ; un pair n'exerce aucune fonction, et
+   sa présence à un cours est un fait de vie privée. L'opt-in a été écarté pour
+   la raison déjà écrite : une feuille à moitié anonyme n'aide personne.
+2. **`LEADERBOARD` n'est pas le contrôle.** Elle dit « ton prénom et tes
+   **scores** » — le classement, P2-014. La recycler ferait faire à une case
+   l'inverse de ce qu'elle annonce, et c'est un opt-in là où il faut un opt-out.
+   Elle garde donc son lecteur pour P2-014 ; ce ticket ne lui en donne pas un
+   faux.
+3. **Le contrôle est une colonne, pas une finalité de consentement.**
+   `memberships.hidden_from_roster` : par box, réversible, tracée dans
+   `audit_logs`. Aucune valeur d'enum ajoutée — la contrainte irréversible que
+   trois tickets refusaient de prendre à la légère n'a pas été prise du tout.
+
+## Le trou de la règle 8, et ce qu'il a coûté
+
+**Une opposition qu'on ne peut pas exercer n'existe pas.** Vérifié dans le dépôt
+avant d'écrire : `(auth)/consents.tsx` n'est atteignable que par l'aiguillage de
+démarrage, quand `me()` réclame `ACCEPT_CONSENTS`. Après l'inscription, il n'est
+plus joignable, et aucun écran de réglages n'existait.
+
+Conséquence qui dépassait ce ticket : `PUSH` et `LEADERBOARD` se donnaient une
+fois et **ne se retiraient jamais**, ce qui contredisait `.claude/rules/privacy.md`
+— « un consentement se retire aussi simplement qu'il se donne ». Le trou
+existait avant ; c'est ce ticket qui l'a rendu bloquant, parce qu'il ajoute une
+exposition **visible par défaut**. D'où `(app)/preferences.tsx`, et d'où
+2 → 3,5 j·h.
+
+## La fuite trouvée avant le commit
+
+`rls-auditor` l'a trouvée alors que la vue, ses six tests d'isolation et les
+380 tests pgTAP étaient verts. **La colonne d'opposition était lisible par
+n'importe quel membre de la box** : `memberships` rend toutes ses colonnes à tout
+membre du tenant depuis P0-004, et `.claude/rules/privacy.md` l'assumait — « aucun
+nom, donc aucune fuite d'identité ». Vrai tant que la table ne portait que des
+faits d'appartenance ; faux à la seconde où on y a mis une opposition RGPD.
+
+Reproduit à la main avant de corriger : Léa, simple MEMBER, lisait
+`hidden_from_roster = true` sur la ligne de Julie — exactement ce que la vue
+existe pour ne pas dire à un pair. Le chemin gardé était la vue, le jumeau oublié
+le grant de table. Corrigé par un grant de colonne et `get_roster_visibility()`,
+et **prouvé par un test qui attend un `42501`** — celui qui manquait, et sans
+lequel tout le reste était un faux vert.
+
 ## Critères d'acceptation
 
-- [ ] Le ticket dit **en quoi un pair diffère d'un coach**, et la règle commune
+- [x] Le ticket dit **en quoi un pair diffère d'un coach**, et la règle commune
       n'est pas réécrite mais citée
-- [ ] La base juridique est tranchée, et l'opt-in / opt-out avec
-- [ ] Si une finalité de consentement est ajoutée, le ticket dit pourquoi elle
-      est irréversible et pourquoi c'est acceptable
-- [ ] Une vue restreinte, jamais un élargissement de la policy de `users`
-- [ ] Un membre d'une autre box ne voit rien — test pgTAP dans les deux sens
-- [ ] La case `LEADERBOARD` trouve enfin son lecteur, ou le ticket dit pourquoi
-      elle n'est pas le bon contrôle
+- [x] La base juridique est tranchée, et l'opt-in / opt-out avec
+- [x] Aucune finalité de consentement n'est ajoutée — et le ticket dit pourquoi
+      une colonne était le bon outil pour une **opposition**
+- [x] Une vue restreinte, jamais un élargissement de la policy de `users`
+- [x] Un membre d'une autre box ne voit rien — test pgTAP dans les deux sens,
+      **plus** le cas qui distingue une feuille d'un annuaire : un membre de la
+      box **non inscrit au cours** ne voit rien non plus, coach compris
+- [x] La case `LEADERBOARD` **n'est pas** le bon contrôle, et le ticket dit
+      pourquoi. Elle trouve tout de même un lecteur : l'écran de préférences la
+      rend enfin **retirable**
+- [x] L'opposition est exerçable **depuis l'app**, et pas seulement en base
+- [ ] **Sur appareil** : la feuille est lisible et annoncée, l'opposition la fait
+      disparaître, la réactivation la fait revenir. Trois gestes, à la prochaine
+      passe — le harnais web les a tous exercés, mais il ne coche aucun critère
+      de parcours

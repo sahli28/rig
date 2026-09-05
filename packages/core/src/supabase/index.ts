@@ -68,7 +68,10 @@ export { INVITATION_PATH_SEGMENT, invitationPath } from './invitation-link';
 export {
   fetchPolicyVersion,
   isPlatformConsent,
+  fetchMyPreferences,
   recordConsents,
+  setRosterVisibility,
+  type MyPreferences,
   updateLocale,
   updateProfile,
   CONSENT_PURPOSES,
@@ -168,6 +171,7 @@ export {
   bookClass,
   bookingAffordance,
   fetchClassDetail,
+  fetchClassRoster,
   fetchUpcomingBookings,
   type AffordanceClass,
   type AffordanceInput,
@@ -176,5 +180,6 @@ export {
   type BookClassOptions,
   type BookingAffordance,
   type ClassDetail,
+  type RosterPeer,
   type UpcomingBooking,
 } from './bookings';
