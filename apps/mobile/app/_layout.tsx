@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { ActivityIndicator, useColorScheme, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
-import { ThemeProvider, brandFromTheme, useTheme } from '@rack/ui/theme';
+import { ThemeProvider, brandFromTheme, useTheme, type ColorScheme } from '@rack/ui/theme';
 import { I18nProvider } from '@rack/ui/i18n';
 import { installRandomBytesSource, resolveLocale } from '@rack/core';
 import { BrandProvider, useBrand } from '../lib/brand';
+import { INITIAL_SCHEME, nextScheme } from '../lib/color-scheme';
 import { deviceLocale, deviceTimeZone, useLocaleStorage } from '../lib/locale';
 import { SessionProvider, useSession } from '../lib/session';
 
@@ -139,12 +140,42 @@ function ThemedStack() {
  * box qu'on ne rejoindra peut-être pas serait un mensonge visuel.
  */
 function Branded() {
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  /**
+   * **`null` ne veut pas dire « clair ».** L'écriture d'origine —
+   * `useColorScheme() === 'dark' ? 'dark' : 'light'` — envoyait les trous du
+   * système sur le mode clair : en sombre, le thème entier basculait le temps
+   * d'une image et l'en-tête flashait blanc. La décision est dans
+   * `lib/color-scheme.ts`, avec son test ; ici il ne reste que la plomberie.
+   */
+  const signal = useColorScheme();
+  const dernierScheme = useRef<ColorScheme>(INITIAL_SCHEME);
+  // Écrit pendant le rendu, et sans danger : `nextScheme()` est idempotente,
+  // donc le double rendu de React en mode strict donne le même résultat.
+  dernierScheme.current = nextScheme(dernierScheme.current, signal);
+  const scheme = dernierScheme.current;
+
   const { me } = useSession();
   const { brand: invitationBrand } = useBrand();
 
   const current = me?.current_tenant ?? null;
-  const brand = current ? brandFromTheme(current.theme) : invitationBrand;
+
+  /**
+   * **Mémoïsé, sinon le thème change d'identité à chaque rendu.**
+   *
+   * `brandFromTheme()` construit un objet neuf à chaque appel. Le `useMemo` de
+   * `ThemeProvider` porte sur cette référence : sans mémoïsation ici, il ne
+   * touche jamais, `buildTheme()` s'exécute à chaque rendu, et **tous** les
+   * consommateurs de `useTheme()` se re-rendent — dont `ThemedStack`, qui
+   * réapplique alors les options d'en-tête de la pile pour rien.
+   *
+   * Ce n'était pas la cause du clignotement — il vient du `null` ci-dessus —
+   * mais c'est ce qui lui donnait autant d'occasions de se produire.
+   */
+  const brand = useMemo(
+    () => (current === null ? invitationBrand : brandFromTheme(current.theme)),
+    [current, invitationBrand],
+  );
+
   const timeZone = current?.timezone ?? deviceTimeZone();
 
   /**

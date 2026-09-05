@@ -102,6 +102,33 @@ Ces trois points se vérifient sur `pnpm --filter @rack/mobile web`, et le
 troisième **seulement à moitié** : le balayage iOS et le bouton retour Android
 demandent un appareil.
 
+### `null` ne veut pas dire « clair » — et le typage de RN ne le dit pas
+
+`useColorScheme()` est déclarée `ColorSchemeName` dans
+`react-native/Libraries/Utilities/Appearance.d.ts`, donc **non-nullable**. Son
+implémentation retourne `getColorScheme()`, typée `ColorSchemeName | null |
+undefined` dans le **même fichier**, et qui rend `null` quand le module natif
+manque ou quand le dernier `appearanceChanged` portait un `colorScheme` nul —
+ce qu'iOS émet pendant les transitions d'écran et les captures système.
+
+D'où le piège, signalé à l'usage le 6 septembre 2026 :
+
+```tsx
+// ✗ `tsc` le croit exhaustif. Il ne l'est pas.
+const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+```
+
+Chaque `null` bascule **tout le thème** en clair le temps d'une image. En mode
+clair ça ne se voit pas — c'est déjà ce qu'on affiche ; **en sombre c'est un
+flash blanc**, et c'est le symptôme rapporté : le bouton retour qui clignote en
+arrivant sur le planning. Une troisième valeur, `'unspecified'`, tombait dans le
+même repli alors qu'elle veut dire « suis le système ».
+
+La règle : **une absence de réponse n'est pas une réponse.** On garde le dernier
+mode connu (`apps/mobile/lib/color-scheme.ts`, testé). Et plus largement — un
+type de dépendance qui promet plus que son implémentation ne se corrige pas en
+lui faisant confiance : ici, lire `Appearance.js` a coûté deux minutes.
+
 ## White-label
 
 - **Aucune couleur littérale** (`#E4572E`, `rgb(...)`, `red`) dans un composant,
