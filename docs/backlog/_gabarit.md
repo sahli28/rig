@@ -67,6 +67,29 @@ nouveau ticket », pas une remarque en fin de session.
 - [ ] Ce qui doit être vérifié à la main est dit ici : parcours mobile, rendu
       visuel, webhook réel
 
+### Trois états, et le troisième a une règle
+
+`[ ]` à faire · `[x]` vérifié · **`[~]` non exerçable aujourd'hui**.
+
+Le troisième existe parce que la seule autre issue était mauvaise : cocher par
+raisonnement, ou effacer le critère. Cocher produit le faux vert que ce dépôt
+passe son temps à traquer ; effacer fait disparaître une exigence qui reste
+vraie. `[~]` la garde visible en disant pourquoi elle attend.
+
+**Un `[~]` porte toujours deux choses** — sans elles, c'est un `[ ]` déguisé :
+
+1. **la raison**, et une raison de fond, pas « pas eu le temps ». Un critère
+   qu'on n'a pas encore fait reste un `[ ]` ;
+2. **ce qui le rendra exerçable** : un ticket nommé, un compte tiers, un
+   environnement. Si rien ne le rendra exerçable un jour, le critère est faux et
+   il faut le réécrire, pas le marquer.
+
+Trois exemples vivants, tous de P1-003b et D-013 : « membre sans droits »
+(inatteignable tant que le droit *est* l'appartenance active → **P2-006**), le
+p95 sur vingt appels (un Wi-Fi local donne un plancher, pas un p95 → **P1-004**
+puis un environnement distant), le schéma `rack://` (Expo Go ouvre en `exp://` →
+premier *development build*).
+
 ## Notes
 
 Les pièges connus, les décisions déjà prises qu'il ne faut pas re-litiger, et ce

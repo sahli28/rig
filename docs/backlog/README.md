@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **37,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **32,5 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 76 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -68,7 +68,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 94,25 j·h, dont **37,5 restants**
+## ① Jalon pilote — 94,75 j·h, dont **32,5 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -81,6 +81,7 @@ D-009 ✅ → P1-002b ✅ → P1-010 ✅ → P1-003b → P1-003c   (navigation, 
 D-011                                  (trois gestes de relecture du cache, à la prochaine passe appareil — non bloquant)
 D-010 ✅ arbitré et clos · D-012 ✅ fait  (le moteur du produit : rien de plus maintenant, et la façade crypto comptée)
 D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'il touche les mêmes fichiers)
+D-014                                  (les deux filets dont on connaît le trou — non bloquant)
 P1-004 → P1-005                        (annulation, temps réel)
 P1-007 → P1-006 → P1-008               (push, waitlist, check-in)
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
@@ -120,9 +121,9 @@ sait pas lui répondre.
 | D-009   | Navigation mobile : en-tête, historique, retours  |      1 | ✅ fait — reste le balayage iOS, à la prochaine passe |
 | P1-002b | Planning mobile et cache hors ligne               |    3,5 | ✅ **clos** — hors ligne repassé sur appareil le 4 sept. 2026 (`lea@example.com`), après PR #27. Trois gestes de relecture du cache partis en D-011 |
 | P1-010  | Annuaire des coachs, lisible par un membre        |      1 | ✅ **clos** — filtre coach exercé sur appareil le 4 sept. 2026. Porte la **règle d'exposition d'identité**, citée par P1-003c |
-| P1-003c | La feuille d'inscrits : en quoi un pair diffère d'un coach |  2 | à faire — **après P1-003b**, la décision se prend avec l'écran |
+| P1-003c | La feuille d'inscrits : en quoi un pair diffère d'un coach |  2 | **à faire — prêt**, sa condition est remplie : l'écran existe et a tourné sur un vrai téléphone |
 | P1-003  | Réservation — lot 1, le SQL                       |      4 | ✅ fusionné (PR #18) — prouvé sous contention réelle en CI |
-| P1-003b | Réserver depuis le mobile — lot 2, les écrans     |    5,5 | **à faire — prêt à démarrer.** Dépendances closes, et trois décisions prises dans le ticket : cours complet, annonce accessible, `expo-crypto` |
+| P1-003b | Réserver depuis le mobile — lot 2, les écrans     |    5,5 | ✅ **fait** (PR #32) — passe iPhone du 5 sept. 2026, gestes 1 à 11 conformes, VoiceOver compris, **aucun défaut trouvé, une première**. Deux critères en `[~]` : le p95 attend P1-004 puis un environnement distant, le schéma `rack://` attend un *development build* (D-013) |
 | P1-004  | Annulation et fenêtres                            |      4 | à faire              |
 | P1-005  | Places restantes en temps réel                    |      3 | à faire              |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire              |
@@ -131,8 +132,9 @@ sait pas lui répondre.
 | P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
 | D-011   | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | à faire — à la prochaine passe appareil, non bloquant |
 | D-012   | Façade `crypto` et sondes de lint *(rétroactif)*  |    0,5 | ✅ fait le 4 sept. 2026 — écrit après coup pour que le total cesse d'être faux de 0,5 |
-| D-013   | **RIG devient Rack** — le renommage, d'un seul geste |  0,5 | ✅ fait le 4 sept. 2026 — avant P1-003b, qui touche les mêmes fichiers. Reste la vérification du `scheme` sur appareil |
-|         | **Total ①**                                       | **94,25** | dont **56,75 faits**, **37,5 restants** |
+| D-013   | **RIG devient Rack** — le renommage, d'un seul geste |  0,5 | ✅ fait le 4 sept. 2026 — avant P1-003b, qui touche les mêmes fichiers. Le `scheme` ne se vérifie pas dans Expo Go : ce reliquat part avec le premier *development build* |
+| D-014   | Deux filets dont on connaît le trou               |    0,5 | à faire — non bloquant. Le garde de migrations ne voit pas les écritures par script, et des tests pgTAP affirment des comptes globaux |
+|         | **Total ①**                                       | **94,75** | dont **62,25 faits**, **32,5 restants** |
 
 **Un demi-jour retrouvé, et pourquoi on l'écrit.** Le lot du 4 septembre —
 façade `crypto`, sondes, refonte de la configuration ESLint — n'apparaissait dans
@@ -252,6 +254,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-010  | Un filet qui s'exécute sur le moteur du produit | 0 | Plantage du 4 sept. 2026 — **✅ arbitré et clos le 4 sept.** : rien maintenant ; Maestro en local quand la passe manuelle dépassera dix minutes ; Maestro en CI jamais avant que le produit encaisse. Le quatrième défaut de la famille a été arrêté sur le papier, l'écran de diagnostic n'aurait pas fait mieux. Ce que la décision **accepte de ne pas couvrir** est écrit dans le ticket |
 | D-011  | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | P1-002b — **comptée dans ①**, à faire à la prochaine passe appareil |
 | D-012  | Façade `crypto` et sondes de lint *(rétroactif)* | 0,5 | Revue du 4 sept. 2026 — **✅ fait**, et **comptée dans ①** : le travail existait sans figurer dans aucun total |
+| D-014  | Deux filets dont on connaît le trou            | 0,5 | P1-003b, 5 sept. 2026 — **comptée dans ①**. Un trou connu qui ne vit que dans un message de commit finit par ne vivre nulle part |
 | D-013  | RIG devient Rack                               | 0,5 | Décision produit du 4 sept. 2026 — **✅ fait**, **comptée dans ①**. Fait avant P1-003b : `bundleIdentifier` définitif après la première soumission, clés de stockage gratuites à renommer tant qu'aucune app n'est installée |
 |        | **Ouvert, hors totaux**                        | **5,75** | D-002, D-003, D-007, D-008 — D-004, D-011 et D-012 sont dans ①, D-010 est clos |
 

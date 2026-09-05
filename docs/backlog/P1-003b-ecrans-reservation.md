@@ -421,14 +421,14 @@ Automatisables :
 
 À la main, sur un **appareil réel** — Expo web n'en coche aucun :
 
-- [ ] Depuis l'accueil, réserver le prochain cours en **deux taps**
-- [ ] Deux taps rapides sur le bouton → **une seule** réservation
-- [ ] Mode avion pendant l'appel, réseau rétabli, nouvel essai → **une seule**
+- [x] Depuis l'accueil, réserver le prochain cours en **deux taps**
+- [x] Deux taps rapides sur le bouton → **une seule** réservation
+- [x] Mode avion pendant l'appel, réseau rétabli, nouvel essai → **une seule**
       réservation (la clé n'a pas changé)
-- [ ] Cours complet → l'état « Complet », **et une sortie** : la phrase dit qu'il
+- [x] Cours complet → l'état « Complet », **et une sortie** : la phrase dit qu'il
       n'y a pas encore de liste d'attente, et le retour au planning est à un tap.
       Aucune impasse, aucune promesse que le produit ne tient pas (§12.3)
-- [ ] Le cas de course dit la même chose : cours affiché libre, complet au tap →
+- [x] Le cas de course dit la même chose : cours affiché libre, complet au tap →
       `Toast` `errors.class_full`, puis le bouton bascule sur ce même état
 - [~] Membre sans droits → « Choisir une formule », jamais une erreur brute.
       **Inatteignable par l'interface, et ce n'est pas un manque** :
@@ -441,9 +441,9 @@ Automatisables :
       tap) et couvert par un test Vitest ; il ne se coche pas sur appareil.
       **Ce critère redeviendra exerçable à P2-006**, quand le droit cessera
       d'être « l'appartenance est active »
-- [ ] Fenêtre close → la raison, exprimée en heure locale de la box
-- [ ] Un refus fait **revenir** la place affichée à sa valeur réelle, visiblement
-- [ ] **Sur une journée venue du cache, aucune action de réservation n'est
+- [x] Fenêtre close → la raison, exprimée en heure locale de la box
+- [x] Un refus fait **revenir** la place affichée à sa valeur réelle, visiblement
+- [x] **Sur une journée venue du cache, aucune action de réservation n'est
       proposée.** Critère hérité de P1-002b, qui l'annonçait porté ici alors
       qu'il n'y était pas. Le type l'impose déjà à moitié : un `LoadedSchedule`
       d'origine `'cache'` ne fait jamais autorité sur une place
@@ -456,21 +456,65 @@ Automatisables :
       et aucun d'eux n'offre de réserver. Dix secondes, pas un raisonnement —
       c'est la différence entre un critère qu'on vérifie et un critère qu'on
       croit
-- [ ] La réservation apparaît dans « Mes réservations » et survit à la fermeture
+- [x] La réservation apparaît dans « Mes réservations » et survit à la fermeture
       complète de l'app
-- [ ] Un iPhone réglé en français fait tout le parcours **en français** — D-004
+- [x] Un iPhone réglé en français fait tout le parcours **en français** — D-004
       est livrée, ce critère vérifie que les **nouvelles** chaînes le sont aussi
-- [ ] **VoiceOver, sur l'appareil** : chaque bouton de réservation s'annonce par
+- [x] **VoiceOver, sur l'appareil** : chaque bouton de réservation s'annonce par
       le cours qu'il réserve et son heure — trois cours d'affilée donnent trois
       annonces différentes, pas trois fois « Réserver »
-- [ ] **VoiceOver annonce la confirmation sans qu'on aille la chercher.** C'est
+- [x] **VoiceOver annonce la confirmation sans qu'on aille la chercher.** C'est
       le critère qui prouve que `announceForAccessibility()` a bien été ajoutée :
       `accessibilityLiveRegion` seul le laisserait vert sous Android et muet sur
       l'iPhone qui sert à toutes nos passes
-- [ ] p95 de l'appel `book_class` **< 800 ms**, mesuré sur appareil sur au moins
+- [~] p95 de l'appel `book_class` **< 800 ms**, mesuré sur appareil sur au moins
       20 appels, la valeur notée dans le rapport de session. C'est la moitié de
       T1 que le harnais de concurrence ne prouve pas : il n'y a pas d'appel HTTP
-      dans un `docker exec`
+      dans un `docker exec`.
+
+      **Non mesuré à la passe du 5 septembre 2026, et délibérément pas forcé.**
+      Deux obstacles se cumulent, et le second est le vrai :
+
+      1. **vingt réservations réussies sont impossibles aujourd'hui.**
+         `max_upcoming_bookings` vaut 3 et l'annulation est P1-004 : il faudrait
+         trafiquer les réglages de la box pour y arriver, donc mesurer autre
+         chose que le produit ;
+      2. **vingt appels en Wi-Fi local contre une base qui tourne sur la même
+         machine donnent un plancher, pas un p95.** La mesure prouverait que
+         l'instrumentation fonctionne — ce qu'on sait, la durée s'écrit déjà
+         dans le terminal Metro — et **rien du T1 de la spec §16.4**, qui parle
+         d'un réseau réel et d'une base distante.
+
+      Un chiffre obtenu ainsi serait pire qu'aucun chiffre : il aurait l'air
+      d'une preuve. Ce qui le rendra exerçable, dans l'ordre où ça arrivera :
+      **P1-004** (annuler libère le plafond, donc vingt appels deviennent
+      possibles) puis **un environnement distant**, sans lequel la mesure ne
+      dira jamais rien de la production. À reprendre là, pas ici.
+
+## La passe du 5 septembre 2026 — la première sans défaut
+
+iPhone, Expo Go, seed neuf. **Gestes 1 à 11 conformes, VoiceOver compris.** Les
+trois annonces sont distinctes et nomment chacune leur cours et son heure ; la
+confirmation s'annonce sans qu'on aille la chercher — donc
+`announceForAccessibility()` fait son travail là où `accessibilityLiveRegion`
+seul aurait laissé un vert trompeur. Les quatre refus disent leur raison avec les
+nombres des réglages. Hors ligne, aucune action de réservation n'est proposée.
+
+**Aucun défaut trouvé. C'est la première fois du projet**, après la langue
+(D-004), le parcours d'invitation, `Intl.PluralRules` et le sélecteur de box.
+Ça mérite d'être écrit plutôt que passé sous silence, et ça mérite surtout de ne
+pas être mal lu : **ce n'est pas la passe qui est devenue inutile, c'est le
+travail en amont qui a payé.** Ce lot a livré ses cinq refus sous forme de
+fonction pure testée aux bornes, son libellé accessible vérifié dans l'arbre du
+harnais, et son écart iOS corrigé dans le kit avant d'être vu sur un téléphone.
+La passe a confirmé ; elle n'a pas eu à trouver. Les quatre défauts des passes
+précédentes venaient tous de choses qu'aucun filet ne regardait.
+
+Deux critères restent ouverts, chacun pour une raison qui n'est pas « on a
+oublié » : le p95 (voir ci-dessus) et le schéma `rack://`, qui **ne se vérifie
+pas dans Expo Go** — celui-ci passe par `exp://`, et un schéma personnalisé
+n'existe que dans un *development build*. Le reliquat est chez `D-013` et part
+avec le premier build dédié, donc avec le compte développeur Apple.
 
 ## Notes
 
