@@ -122,7 +122,7 @@ sait pas lui répondre.
 | D-009   | Navigation mobile : en-tête, historique, retours  |      1 | ✅ fait — reste le balayage iOS, à la prochaine passe |
 | P1-002b | Planning mobile et cache hors ligne               |    3,5 | ✅ **clos** — hors ligne repassé sur appareil le 4 sept. 2026 (`lea@example.com`), après PR #27. Trois gestes de relecture du cache partis en D-011 |
 | P1-010  | Annuaire des coachs, lisible par un membre        |      1 | ✅ **clos** — filtre coach exercé sur appareil le 4 sept. 2026. Porte la **règle d'exposition d'identité**, citée par P1-003c |
-| P1-003c | La feuille d'inscrits : en quoi un pair diffère d'un coach |  3,5 | ✅ **fait le 5 sept. 2026** — trois décisions prises, `class_roster` + opposition par appartenance. **2 → 3,5** : aucun écran ne permettait de changer une préférence, donc l'opposition n'existait pas. Reste la passe appareil (trois gestes) |
+| P1-003c | La feuille d'inscrits : en quoi un pair diffère d'un coach |  3,5 | ✅ **fait le 5 sept. 2026** — trois décisions prises, `class_roster` + opposition par appartenance. **2 → 3,5** : aucun écran ne permettait de changer une préférence, donc l'opposition n'existait pas. **Passe du 5 sept. : geste 1 conforme, gestes 2 et 3 ont trouvé un affichage périmé** — on se voyait encore dans la feuille après s'y être opposé. Corrigé (`useFocusEffect`), à rejouer sur appareil. Les trois écrans jumeaux partent en `D-016` |
 | P1-003  | Réservation — lot 1, le SQL                       |      4 | ✅ fusionné (PR #18) — prouvé sous contention réelle en CI |
 | P1-003b | Réserver depuis le mobile — lot 2, les écrans     |    5,5 | ✅ **fait** (PR #32) — passe iPhone du 5 sept. 2026, gestes 1 à 11 conformes, VoiceOver compris, **aucun défaut trouvé, une première**. Deux critères en `[~]` : le p95 attend P1-004 puis un environnement distant, le schéma `rack://` attend un *development build* (D-013) |
 | P1-011  | Bandeau de semaine : atteindre un jour en un tap  |      2 | ✅ **fait le 5 sept. 2026**, **au troisième essai sur le balayage** — la position de défilement est désormais la seule vérité, et le geste est enfin exerçable au harnais. **1,5 → 2** : le prix de deux correctifs manqués, compté plutôt que caché. `apps/mobile` y gagne sa première suite de tests |
@@ -239,7 +239,7 @@ SHOULD payé en avance, à ne pas recompter.
 
 ---
 
-## ④ Dette convertie en tickets — 5,75 j·h ouverts
+## ④ Dette convertie en tickets — 6,25 j·h ouverts
 
 `CLAUDE.md` dit « ce qui déborde devient un nouveau ticket ». La dette accumulée
 dans les tickets clos y échappait : un ticket clos ne se relit pas.
@@ -260,9 +260,10 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-014  | Deux filets dont on connaît le trou            | 0,5 | P1-003b, 5 sept. 2026 — **comptée dans ①**. Un trou connu qui ne vit que dans un message de commit finit par ne vivre nulle part |
 | D-015  | Monter un composant mobile dans un test        | 1,5 | P1-011, 5 sept. 2026 — **comptée dans ①**. Le premier défaut mobile qui aurait pu être attrapé sans téléphone, et l'option la moins chère ne l'aurait pas attrapé |
 | D-013  | RIG devient Rack                               | 0,5 | Décision produit du 4 sept. 2026 — **✅ fait**, **comptée dans ①**. Fait avant P1-003b : `bundleIdentifier` définitif après la première soumission, clés de stockage gratuites à renommer tant qu'aucune app n'est installée |
-|        | **Ouvert, hors totaux**                        | **5,75** | D-002, D-003, D-007, D-008 — D-004, D-011 et D-012 sont dans ①, D-010 est clos |
+| D-016  | Trois écrans qui ne relisent rien au retour    | 0,5 | P1-003c, passe du 5 sept. 2026 — la fiche de cours est corrigée dans son ticket, ses trois jumeaux ne le sont pas. Le plus visible : le planning garde son ancien nombre de places après une réservation |
+|        | **Ouvert, hors totaux**                        | **6,25** | D-002, D-003, D-007, D-008, D-016 — D-004, D-011 et D-012 sont dans ①, D-010 est clos |
 
-Ces 5,75 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
+Ces 6,25 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
 une dette qu'on additionne au chemin critique le rend indiscutable, une dette
 qu'on cache le rend faux. Elle se paie quand un ticket la rend bloquante — et
 elle entre alors dans le total, comme D-004 vient de le faire pour P1-003b.

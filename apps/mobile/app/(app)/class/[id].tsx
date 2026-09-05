@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useNetworkState } from 'expo-network';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
@@ -101,47 +101,79 @@ export default function ClassDetailScreen() {
    */
   const cle = useRef<string | null>(null);
 
-  const charger = useCallback(async () => {
-    if (id === undefined || activeTenantId === null || membership === null) return;
+  const charger = useCallback(
+    async (silencieux = false) => {
+      if (id === undefined || activeTenantId === null || membership === null) return;
 
-    setVue({ id, phase: 'chargement', cours: null, aVenir: 0, inscrits: [] });
+      // Un retour d'écran ne remet pas le squelette : l'écran est déjà rempli,
+      // et le vider une demi-seconde ferait clignoter une page qu'on vient de
+      // regarder. Le premier chargement, lui, n'a rien à montrer.
+      if (!silencieux) {
+        setVue({ id, phase: 'chargement', cours: null, aVenir: 0, inscrits: [] });
+      }
 
-    try {
-      // La feuille part avec les deux autres : la vue rend une liste vide à qui
-      // n'est pas inscrit, donc la demander sans le savoir ne divulgue rien et
-      // évite un second aller-retour après la réservation.
-      const [cours, aVenir, inscrits] = await Promise.all([
-        fetchClassDetail(supabase, {
-          tenantId: activeTenantId,
-          classId: id,
-          membershipId: membership.id,
-          locale,
-        }),
-        fetchUpcomingBookings(supabase, {
-          tenantId: activeTenantId,
-          membershipId: membership.id,
-          locale,
-        }),
-        fetchClassRoster(supabase, { tenantId: activeTenantId, classId: id }),
-      ]);
+      try {
+        // La feuille part avec les deux autres : la vue rend une liste vide à qui
+        // n'est pas inscrit, donc la demander sans le savoir ne divulgue rien et
+        // évite un second aller-retour après la réservation.
+        const [cours, aVenir, inscrits] = await Promise.all([
+          fetchClassDetail(supabase, {
+            tenantId: activeTenantId,
+            classId: id,
+            membershipId: membership.id,
+            locale,
+          }),
+          fetchUpcomingBookings(supabase, {
+            tenantId: activeTenantId,
+            membershipId: membership.id,
+            locale,
+          }),
+          fetchClassRoster(supabase, { tenantId: activeTenantId, classId: id }),
+        ]);
 
-      setVue({
-        id,
-        phase: cours === null ? 'introuvable' : 'prêt',
-        cours,
-        aVenir: aVenir.length,
-        inscrits,
-      });
-    } catch {
-      // Un cours qu'on n'a pas pu lire n'est pas un cours qui n'existe pas, mais
-      // l'écran ne peut rien proposer dans les deux cas. Le message le dit.
-      setVue({ id, phase: 'introuvable', cours: null, aVenir: 0, inscrits: [] });
-    }
-  }, [id, activeTenantId, membership, locale]);
+        setVue({
+          id,
+          phase: cours === null ? 'introuvable' : 'prêt',
+          cours,
+          aVenir: aVenir.length,
+          inscrits,
+        });
+      } catch {
+        // Un cours qu'on n'a pas pu lire n'est pas un cours qui n'existe pas, mais
+        // l'écran ne peut rien proposer dans les deux cas. Le message le dit.
+        //
+        // **Sauf en relecture** : effacer une fiche déjà lisible parce que le
+        // rafraîchissement a échoué remplacerait une information correcte par une
+        // erreur. On garde ce qui est à l'écran ; il porte les données d'il y a
+        // quelques secondes, pas une invention.
+        if (!silencieux) {
+          setVue({ id, phase: 'introuvable', cours: null, aVenir: 0, inscrits: [] });
+        }
+      }
+    },
+    [id, activeTenantId, membership, locale],
+  );
 
-  useEffect(() => {
-    void charger();
-  }, [charger]);
+  /**
+   * **Recharger au retour, pas seulement au montage.**
+   *
+   * L'écran de préférences est poussé par-dessus celui-ci, et `router.back()`
+   * revient sur la **même instance** : un `useEffect` monté une fois ne rejoue
+   * rien. Le membre coupait donc « Apparaître dans la liste des inscrits », et
+   * se retrouvait toujours dans la feuille — l'opposition était appliquée en
+   * base, l'écran affirmait le contraire. Trouvé à la passe du 5 septembre 2026,
+   * sur un contrôle de vie privée : le pire endroit pour un affichage périmé.
+   *
+   * Le premier passage garde son squelette, les suivants rafraîchissent en
+   * silence.
+   */
+  const premierPassage = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      void charger(!premierPassage.current);
+      premierPassage.current = false;
+    }, [charger]),
+  );
 
   const affordance: BookingAffordance | null = useMemo(() => {
     if (vue.cours === null || tenant === null) return null;
