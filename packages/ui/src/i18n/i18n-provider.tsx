@@ -12,9 +12,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react';
 import {
   formatDate as coreFormatDate,
+  formatDayOfMonth as coreFormatDayOfMonth,
   formatMoney as coreFormatMoney,
   formatRelativeDate as coreFormatRelativeDate,
   formatTime as coreFormatTime,
+  formatWeekday as coreFormatWeekday,
   isLocale,
   translate,
   type FormatDateOptions,
@@ -49,6 +51,9 @@ export interface I18nContextValue {
   formatMoney: (amountCents: number, options?: Omit<MoneyOptions, 'locale'>) => string;
   formatDate: (value: Date | string, options?: Pick<FormatDateOptions, 'style'>) => string;
   formatTime: (value: Date | string) => string;
+  /** « lun. » — le bandeau de semaine les met sur deux lignes (P1-011). */
+  formatWeekday: (value: Date | string) => string;
+  formatDayOfMonth: (value: Date | string) => string;
   formatRelativeDate: (value: Date | string, options?: Pick<RelativeDateOptions, 'now'>) => string;
 }
 
@@ -146,6 +151,8 @@ export function I18nProvider({
       formatMoney: (amountCents, options) => coreFormatMoney(amountCents, { ...options, locale }),
       formatDate: (date, options) => coreFormatDate(date, { ...options, locale, timeZone }),
       formatTime: (date) => coreFormatTime(date, { locale, timeZone }),
+      formatWeekday: (date) => coreFormatWeekday(date, { locale, timeZone }),
+      formatDayOfMonth: (date) => coreFormatDayOfMonth(date, { locale, timeZone }),
       formatRelativeDate: (date, options) =>
         coreFormatRelativeDate(date, { ...options, locale, timeZone }),
     }),
