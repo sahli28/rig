@@ -3,7 +3,8 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
-import { mondayOf, shiftWeeks, weekDates } from '@rack/core/supabase';
+import { shiftWeeks, weekDates } from '@rack/core/supabase';
+import { apresBalayage, apresJourChoisi, etatInitial } from './week-strip-state';
 
 /**
  * Le bandeau de semaine du planning (P1-011).
@@ -43,19 +44,40 @@ export function WeekStrip({ value, onChange, today }: WeekStripProps) {
   const theme = useTheme();
   const { t, formatDate, formatWeekday, formatDayOfMonth } = useI18n();
 
-  const [lundi, setLundi] = useState(() => mondayOf(value));
+  /**
+   * **L'état vit dans un module à part, et c'est le correctif autant que le
+   * test.** Tant que la logique était ici, elle n'était atteignable que par un
+   * geste, donc par un appareil. `week-strip-state.ts` n'importe rien de React
+   * Native : ses deux transitions se testent sous Vitest, et ce sont elles qui
+   * portaient le défaut.
+   */
+  const [etat, setEtat] = useState(() => etatInitial(value));
+  const { lundi } = etat;
   const [largeur, setLargeur] = useState(0);
   const defilement = useRef<ScrollView | null>(null);
 
   /**
-   * Le jour peut changer sans passer par ce composant — les flèches de l'écran,
-   * « Revenir à aujourd'hui ». La semaine suit alors, sans animation : ce n'est
-   * pas un geste de l'utilisateur sur le bandeau, c'est une conséquence.
+   * **La semaine regardée et la semaine du jour choisi sont deux choses**, et
+   * tout ce composant tient dans cette distinction.
+   *
+   * Le jour peut changer sans passer par ici — les flèches de l'écran,
+   * « Revenir à aujourd'hui » — et la semaine doit alors suivre. Mais un
+   * balayage pose **délibérément** une semaine différente de celle du jour
+   * choisi : glisser pour regarder n'est pas choisir.
+   *
+   * La première version réconciliait sur le **désaccord** (`si semaine !==
+   * lundi`), ce qui tenait toute divergence pour une erreur — donc annulait le
+   * balayage au rendu suivant. Le geste s'effaçait lui-même : la semaine
+   * changeait pour une image, puis revenait. Trouvé sur iPhone le 5 septembre
+   * 2026.
+   *
+   * On réagit donc au **changement de `value`**, jamais à l'écart entre les
+   * deux. Le `ref` est ce qui distingue « la valeur a changé » de « les deux ne
+   * coïncident pas » — un état dérivé ne saurait pas faire la différence.
    */
   useEffect(() => {
-    const semaine = mondayOf(value);
-    if (semaine !== lundi) setLundi(semaine);
-  }, [value, lundi]);
+    setEtat((actuel) => apresJourChoisi(actuel, value));
+  }, [value]);
 
   /**
    * Recentrer sur la page du milieu, sans animation.
@@ -64,6 +86,15 @@ export function WeekStrip({ value, onChange, today }: WeekStripProps) {
    * une page voisine, on change de semaine, et on se repose au centre — le
    * déplacement est invisible parce qu'il a lieu au même instant que le nouveau
    * rendu.
+   *
+   * **Et c'est le seul mécanisme.** La première version passait aussi un
+   * `contentOffset`, qui a l'air de faire le travail et ne le fait pas : il est
+   * calculé avec `largeur`, qui vaut **0 au premier rendu**, et sur iOS ce n'est
+   * qu'une valeur *initiale* — jamais réappliquée quand la largeur arrive. Il
+   * posait donc l'offset à zéro, c'est-à-dire sur la **semaine précédente**, et
+   * seul cet effet rattrapait. Une prop qui ne fait rien mais qui a l'air de
+   * faire quelque chose est pire qu'une prop absente : elle détourne la
+   * relecture. Retirée.
    */
   const recentrer = useCallback(() => {
     if (largeur === 0) return;
@@ -79,9 +110,9 @@ export function WeekStrip({ value, onChange, today }: WeekStripProps) {
       if (page === PAGE_COURANTE) return;
       // On change de **semaine**, pas de jour : le jour affiché ne bouge que
       // sur un tap. Glisser pour regarder n'est pas choisir.
-      setLundi(shiftWeeks(lundi, page - PAGE_COURANTE));
+      setEtat((actuel) => apresBalayage(actuel, page - PAGE_COURANTE));
     },
-    [largeur, lundi],
+    [largeur],
   );
 
   return (
@@ -93,7 +124,6 @@ export function WeekStrip({ value, onChange, today }: WeekStripProps) {
       accessibilityLabel={t('planning.week_label')}
       onLayout={(event) => setLargeur(event.nativeEvent.layout.width)}
       onMomentumScrollEnd={finDeBalayage}
-      contentOffset={{ x: largeur * PAGE_COURANTE, y: 0 }}
       style={{ flexGrow: 0 }}
     >
       {PAGES.map((decalage) => (

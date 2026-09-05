@@ -62,6 +62,27 @@ attendre quelques secondes et recharger.
 typecheck des types générés du routeur. Vérifier `git status` après avoir lancé
 Expo — la procédure complète est dans `docs/passe-mobile-iphone.md`, section 6.
 
+**Pas seulement après `expo start`** : constaté le 5 septembre 2026 après un
+simple `pnpm install`, sans qu'Expo ait été lancé. La règle utile n'est donc pas
+« après Expo » mais **« `git status` avant tout commit qui touche le mobile »** —
+et `pnpm format:check` le signale aussi, puisque le fichier réécrit ne respecte
+plus Prettier.
+
+## Un `pnpm install` pendant que Metro tourne casse Metro
+
+Symptôme : la page reste blanche, la console dit que le bundle est servi en
+`application/json`, et le bundle lui-même contient
+
+    Metro has encountered an error: Failed to get the SHA-1 for: …/node_modules/…
+
+Metro tient une carte des fichiers en mémoire ; `pnpm install` relie
+`node_modules` autrement et la carte devient fausse. Rien de cassé dans le code —
+**redémarrer Metro suffit**, de préférence avec `--clear`.
+
+Le piège est le temps perdu à chercher l'erreur dans son propre travail : elle
+apparaît juste après un changement de code, alors qu'elle vient de l'installation
+d'à côté.
+
 ## Le harnais mobile en préréglage « mobile » : les clics expirent
 
 Après `resize_window` en préréglage **mobile**, les clics du harnais expirent au

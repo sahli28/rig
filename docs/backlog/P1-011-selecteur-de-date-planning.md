@@ -81,11 +81,70 @@ condition est levée.
       entrée `rack.schedule.*`, celle du jour affiché. Après un tap sur le 7 :
       deux. C'est la propriété qui compte pour `D-011`, et elle se mesure mieux
       en comptant les entrées de cache qu'en comptant des requêtes
-- [ ] **Sur appareil** : le balayage change de semaine, et les abréviations de
-      jours s'affichent en français. C'est le seul critère que le harnais ne peut
-      pas couvrir, et il porte la seule supposition non prouvée du ticket
+- [~] **Sur appareil** : le balayage change de semaine, et les abréviations de
+      jours s'affichent en français.
 
-## Ce que le harnais a appris, et un piège d'outillage
+      Les abréviations sont bonnes (passe du 5 septembre 2026). **Le balayage ne
+      fonctionnait pas** — c'est le défaut corrigé ci-dessus, et le correctif
+      n'a pas encore été exercé sur un appareil : le harnais ne le peut pas,
+      React Native Web n'émettant jamais ce geste. Le critère reste donc ouvert,
+      et c'est le seul reste de ce ticket. À la prochaine passe, avec les trois
+      gestes de P1-003c
+
+## Le défaut du 5 septembre : le bandeau ne défilait pas
+
+Trouvé sur iPhone, le jour même de la livraison. **Le balayage changeait la
+semaine pour une image, puis revenait.** Les taps fonctionnaient.
+
+**Deux règles qui se contredisaient**, chacune correcte prise seule :
+
+- `finDeBalayage` posait *délibérément* une semaine différente de celle du jour
+  choisi — « glisser pour regarder n'est pas choisir » ;
+- un effet réconciliait la semaine avec le jour **dès qu'elles différaient**,
+  donc tenait cette divergence voulue pour une erreur et la corrigeait au rendu
+  suivant. Le geste s'annulait lui-même.
+
+Le composant confondait **« la semaine que je regarde »** et **« la semaine du
+jour choisi »**, alors que le carrousel n'existe que si les deux peuvent
+diverger. Le correctif réagit au **changement** du jour choisi, jamais à l'écart
+entre les deux — ce qui demande de se souvenir du dernier jour vu, une
+information qu'aucun état dérivé ne porte.
+
+**Et `contentOffset` est parti avec.** Il était calculé avec une largeur qui vaut
+zéro au premier rendu, et sur iOS ce n'est qu'une valeur *initiale*, jamais
+réappliquée : il posait donc l'offset sur la **semaine précédente**, et seul
+l'effet de recentrage rattrapait. Une prop qui a l'air de faire le travail et ne
+le fait pas détourne la relecture ; l'effet est désormais le seul mécanisme, et
+il le dit.
+
+## Ce que `apps/mobile` gagne, et ce qui reste chiffré
+
+**`apps/mobile` a maintenant une suite de tests** — sa première, et ce défaut en
+est la raison. Six tests sur `components/week-strip-state.ts`, un module de
+transitions **sans un seul import de plateforme**, extrait du composant pour
+qu'il soit atteignable autrement que par un doigt sur un écran.
+
+**Contrôle négatif fait** : l'ancienne règle remise, deux tests passent au rouge,
+dont celui qui porte le nom du défaut. Remise à l'endroit, six verts. Le test
+attrape bien ce qu'il prétend attraper.
+
+**Ce qui reste hors de portée, et pourquoi la réponse n'est pas celle qu'on
+attendait.** « Monter le composant et déclencher `onMomentumScrollEnd` » est la
+bonne idée, mais elle dépend du moteur de rendu, et le fait décisif se lit dans
+les sources :
+
+| Moteur de test | Le geste est-il déclenchable ? | Coût | Risque |
+| --- | --- | --- | --- |
+| `@testing-library/react` + alias vers `react-native-web` | **non** — RNW ne câble que `onScroll` au défilement du DOM, `onMomentumScrollEnd` n'y est jamais émis (`ScrollViewBase.js`) | ~0,75 j·h | faible |
+| `@testing-library/react-native` + `react-test-renderer` | **oui** — RNTL appelle la prop directement, sans plateforme | ~1,5 j·h | **réel** : Vitest ne sait pas parser les sources **Flow** de React Native (`CLAUDE.md`), et `react-test-renderer` est déprécié sous React 19 |
+
+Autrement dit : **l'option la moins chère n'aurait pas attrapé ce défaut**, et
+celle qui l'aurait attrapé est un chantier d'outillage à part — exactement la
+famille de `D-010`. La borne posée aujourd'hui est donc « la logique se teste, le
+rendu se regarde », et la question du montage part dans **`D-015`**, chiffrée
+plutôt que tranchée en passant.
+
+## Ce que le harnais a appris, et un piège d’outillage
 
 **Le composant ne peut pas précharger** : il n'importe ni `supabase` ni aucun
 lecteur. C'est plus fort qu'une discipline — il n'en a pas les moyens. La mesure
