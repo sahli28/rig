@@ -139,6 +139,113 @@ les deux écrans se ressemblent, la passe ne prouve rien.
 Le seed ne porte qu'une invitation Rueil et elle est à usage unique :
 `pnpm db:reset` la remet à `PENDING` avant chaque essai.
 
+## 5 ter. L'annulation (P1-004)
+
+**Oui, ce lot demande une passe**, et pas au titre de la prudence : il livre un
+geste destructeur sur mobile — une feuille de confirmation, une mise à jour
+optimiste, un bouton qui **disparaît** dans un état — et deux de ses quatre
+états ne sont **pas atteignables par l'app**. Aucun test ne les regarde à
+l'écran ; la passe du 5 septembre a couvert la réservation, pas l'annulation.
+
+### Geste 0 — le décor, à rejouer après chaque `pnpm db:reset`
+
+`book_class()` refuse un cours à moins de `close_minutes_before` (15 min) : on ne
+peut donc **pas** réserver dans l'app un cours en train de se dérouler ni un
+cours passé. Ces deux réservations-là s'écrivent en SQL ; les deux autres se
+prennent dans l'app, parce que c'est le chemin qu'on veut exercer.
+
+```bash
+export PATH="$PATH:/c/Users/sahli/AppData/Local/Programs/DockerDesktop/resources/bin"
+docker exec -i supabase_db_imys psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - < supabase/fixtures/passe-p1-004.sql
+```
+
+Le script est **rejouable** : il efface son propre décor avant de le reposer, et
+ne touche à rien d'autre. Après un `db:reset`, le relancer tel quel. Il finit par
+un tableau qui dit ce qui a été posé — **le lire** : c'est lui qui donne les
+heures locales à chercher dans le planning.
+
+Un point à garder en tête : le cours « dans 2 h » tombe sur **le lendemain** si
+la passe se fait après 22 h. Le planning le range au jour de son heure locale,
+pas au jour où on est.
+
+### Scénario A — annuler dans la fenêtre (cours **1**, demain)
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Planning → le jour de demain → ouvrir le cours de l'heure donnée par le tableau | Écran du cours, bouton **Réserver** |
+| 2 | Réserver | État **Réservé**, une place de moins |
+| 3 | Toucher **Annuler ma réservation** | **Aucune feuille** — dans la fenêtre, il n'y a rien à annoncer, et une friction sans information est du bruit |
+| 4 | — | Toast « Réservation annulée. Ta place est libérée. » ; VoiceOver annonce **le cours et l'heure**, pas seulement « annulé » |
+| 5 | — | Le compteur de places remonte **tout de suite** |
+| 6 | Réserver à nouveau le même cours | Accepté — annuler puis re-réserver est permis |
+
+### Scénario B — annuler hors fenêtre (cours **2**, dans ~2 h)
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Ouvrir le cours, **Réserver** | Accepté : 2 h, c'est au-delà des 15 min de fermeture |
+| 2 | Toucher **Annuler ma réservation** | Feuille **« Annulation tardive »** |
+| 3 | Lire la phrase | Elle ne promet **aucun crédit** : place libérée, annulation enregistrée comme tardive, la box applique sa règle hors de l'app |
+| 4 | **Garder ma place** | La feuille se ferme, **rien n'a bougé** — le contrôle négatif |
+| 5 | Rouvrir la feuille → **Annuler quand même** | Toast de succès, place libérée |
+
+Puis, sur le PC, vérifier que le jugement est bien écrit :
+
+```bash
+docker exec -i supabase_db_imys psql -U postgres -d postgres -c "select idempotency_key, status, cancelled_within_window from public.bookings where class_id = 'cf000000-0000-4000-8000-000000000002';"
+```
+
+`cancelled_within_window` doit valoir **`f`**.
+
+### Scénario C — le cours a commencé (cours **3**, il y a 20 min)
+
+**C'est le cœur du lot.** Le no-show de RM3.4 ne doit pas être effaçable.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Planning → **aujourd'hui** → ouvrir le cours commencé | État **Réservé** |
+| 2 | Chercher le bouton | **Il n'y a pas de bouton « Annuler ma réservation »** |
+| 3 | VoiceOver / `read_page filter=interactive` | Aucune action d'annulation dans l'arbre — pas un bouton grisé, **absent** |
+
+### Scénario D — le cours d'hier (cours **4**)
+
+Même écran, un jour plus tôt dans le sélecteur de semaine. Même attendu que C :
+aucun bouton. Il vaut d'être fait séparément parce qu'il passe par la navigation
+vers un jour passé, ce que C ne fait pas.
+
+### Scénario E — le refus du serveur, qu'on ne voit qu'en le provoquant
+
+Le bouton disparaît **au rendu**. Un écran resté ouvert traverse l'heure de
+début sans se relire : c'est le seul chemin par lequel le refus
+`CLASS_ALREADY_STARTED` arrive vraiment à l'écran, et c'est celui qu'on veut
+avoir vu au moins une fois.
+
+1. Réserver le cours **2** dans l'app, **laisser l'écran du cours ouvert**.
+2. Sur le PC, faire commencer le cours :
+
+```bash
+docker exec -i supabase_db_imys psql -U postgres -d postgres -c "update public.classes set starts_at = now() - interval '1 minute', ends_at = now() + interval '59 minutes' where id = 'cf000000-0000-4000-8000-000000000002';"
+```
+
+3. Sur le téléphone, **sans quitter l'écran**, toucher **Annuler ma réservation**
+   puis **Annuler quand même**.
+
+| Attendu | Pourquoi ça compte |
+|---|---|
+| Toast rouge : « Ce cours a déjà eu lieu : il ne s'annule plus. Contacte ta box si c'est une erreur. » | Le message dit **quoi faire**, et vient du code applicatif, jamais du texte SQL |
+| Le compteur de places **revient** à sa valeur d'avant | La mise à jour optimiste décrémente puis se fait démentir — si le compteur reste faux, c'est le défaut |
+| La réservation est toujours **Réservé** après rafraîchissement | Le no-show tient |
+
+### À lire pendant la passe, et à trancher après
+
+`booking.cancel_confirm_late` dit « Il reste moins de **{minutes}** minutes avant
+le cours », et l'écran y passe **les minutes restantes réelles** (≈ 127 pour le
+cours 2), pas la fenêtre de la box (240). La phrase devient « il reste moins de
+127 minutes » : vraie, mais « moins de » annonce un seuil, et le nombre n'en est
+pas un. À lire sur l'écran avant de décider — soit la phrase passe à la fenêtre,
+soit elle perd son « moins de ». Repéré à la relecture, pas corrigé : la
+formulation se juge en la lisant.
+
 ## Ce qu'Expo Go ne peut pas exercer, quoi qu'on fasse
 
 À connaître avant d'écrire un critère qui l'attend pour rien.

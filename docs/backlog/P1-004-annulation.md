@@ -146,6 +146,17 @@ qu'elles étaient sous les yeux :
    dérive n'était qu'un compteur faux ; avec un crédit, ce serait une double
    restitution. Ne pas défaire ce `and status = 'CONFIRMED'`.
 
+## Avant la fusion : une passe mobile est nécessaire
+
+Ce lot livre un geste **destructeur** sur mobile — feuille de confirmation, mise
+à jour optimiste, et un bouton qui **disparaît** dans un état. Deux de ses quatre
+états ne sont pas atteignables par l'app (`book_class()` refuse un cours en cours
+ou passé), donc aucun test ne les regarde à l'écran, et la passe du 5 septembre a
+couvert la réservation, pas l'annulation.
+
+Protocole : `docs/passe-mobile-iphone.md`, section **5 ter**. Décor rejouable
+après chaque `pnpm db:reset` : `supabase/fixtures/passe-p1-004.sql`.
+
 ## Ce que `rls-auditor` a trouvé et que la suite ne voyait pas
 
 Passé sur la migration après la garde « cours commencé ». `VERDICT: SAFE` sur
