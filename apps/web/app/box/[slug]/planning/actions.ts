@@ -223,6 +223,19 @@ export async function cancelClass(
 
   if (error) return echec(error);
 
+  // **Les réservations suivent le cours, et c'est nouveau (P1-004).**
+  //
+  // Jusqu'ici, passer un cours à `CANCELLED` ne touchait rien d'autre : les
+  // réservations restaient `CONFIRMED`, `booked_count` restait plein, et la
+  // personne voyait toujours sa réservation active dans « Mes réservations ».
+  // Vérifié au catalogue — le seul trigger sur `classes` était `set_updated_at`.
+  //
+  // L'appel vient **après** le changement de statut, pas avant : si le premier
+  // échoue, on n'a annulé les réservations de personne. L'inverse laisserait un
+  // cours vivant sans inscrits.
+  const cascade = await ctx.client.rpc('cancel_class_bookings', { p_class_id: id });
+  if (cascade.error) return echec(cascade.error);
+
   revalidatePath(`/box/${slug}/planning`);
   return OK;
 }

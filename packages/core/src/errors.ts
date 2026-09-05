@@ -38,6 +38,7 @@ export const APP_ERROR_CODES = [
   'APPEND_ONLY',
   'AUTH_REQUIRED',
   'BOOKING_WINDOW_CLOSED',
+  'CLASS_ALREADY_STARTED',
   'CLASS_FULL',
   'CURRENCY_LOCKED',
   'EMAIL_ALREADY_REGISTERED',
@@ -78,6 +79,7 @@ export const API_ERROR_CODES = [
   'NO_VALID_ENTITLEMENT',
   'BOOKING_WINDOW_CLOSED',
   'CANCEL_WINDOW_PASSED',
+  'CLASS_ALREADY_STARTED',
   'ALREADY_BOOKED',
   'MAX_UPCOMING_BOOKINGS_REACHED',
   'QUOTA_EXCEEDED',
@@ -144,6 +146,10 @@ export const ERROR_MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   ALREADY_BOOKED: 'errors.already_booked',
   BOOKING_WINDOW_CLOSED: 'errors.booking_window_closed',
   CANCEL_WINDOW_PASSED: 'errors.cancel_window_passed',
+  // Distinct de `CANCEL_WINDOW_PASSED` : la fenêtre dépassée n'empêche pas
+  // d'annuler (elle marque l'annulation comme tardive), le cours commencé si.
+  // Deux codes parce que ce sont deux réponses, pas deux formulations.
+  CLASS_ALREADY_STARTED: 'errors.class_already_started',
   NO_VALID_ENTITLEMENT: 'errors.no_valid_entitlement',
   MAX_UPCOMING_BOOKINGS_REACHED: 'errors.max_upcoming_bookings_reached',
   QUOTA_EXCEEDED: 'errors.quota_exceeded',

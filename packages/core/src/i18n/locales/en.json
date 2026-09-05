@@ -107,6 +107,7 @@
   "errors.auth_required": "Sign in to continue.",
   "errors.booking_window_closed": "Bookings are not open yet for this class.",
   "errors.cancel_window_passed": "The cancellation window has passed.",
+  "errors.class_already_started": "This class has already taken place: it can no longer be cancelled. Contact your box if this is a mistake.",
   "errors.class_full": "This class is full.",
   "errors.currency_locked": "The currency can no longer be changed: accounting entries already exist.",
   "errors.email_already_registered": "An account already exists with this email address.",
@@ -437,5 +438,13 @@
   "staff.status_removed": "Removed",
   "staff.status_suspended": "Suspended",
   "waitlist.position_one": "You're #{position} on the waitlist. We'll ping you as soon as a spot opens.",
-  "waitlist.position_other": "You're #{position} on the waitlist, out of {total} people waiting."
+  "waitlist.position_other": "You're #{position} on the waitlist, out of {total} people waiting.",
+  "booking.cancel": "Cancel my booking",
+  "booking.cancel_a11y": "Cancel my booking for {class} at {time}",
+  "booking.cancel_confirm_title": "Late cancellation",
+  "booking.cancel_confirm_late": "Less than {minutes} minutes before the class. Your spot will be freed, and the cancellation recorded as late — your box applies its own policy.",
+  "booking.cancel_confirm_cta": "Cancel anyway",
+  "booking.cancel_keep": "Keep my spot",
+  "booking.cancelled_ok": "Booking cancelled. Your spot is freed.",
+  "booking.cancelled_ok_announce": "Booking cancelled for {class} at {time}. Your spot is freed."
 }
