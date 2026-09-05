@@ -59,6 +59,45 @@ votre portefeuille, avec leur cause ». C'est ce que ce ticket construit.
 - Ajustement manuel par l'OWNER (`POST /v1/members/{id}/credits`), avec motif
   obligatoire et écriture au journal d'audit.
 
+## Le solde et le plafond : deux limites, et il faut dire laquelle parle
+
+P2-005 a été amendé le 5 septembre 2026 : `plans.max_upcoming_bookings` existe,
+nul valant « le réglage de la box ». Un carnet a donc **deux limites à la fois**,
+et les laisser se rencontrer à l'exécution produirait un message faux.
+
+**Elles ne sont pas de même nature, et les deux s'appliquent :**
+
+| Limite | Ce qu'elle protège | Qui la fixe |
+| --- | --- | --- |
+| Le **plafond** de réservations à venir | l'équité : ne pas bloquer six créneaux qu'on n'honorera pas | la box, par formule ou à défaut par réglage |
+| Le **solde** du carnet | le droit : on ne consomme pas ce qu'on n'a pas | l'achat |
+
+Le nombre de réservations qu'un membre au carnet peut détenir est donc
+**`min(plafond effectif, solde)`**, où le plafond effectif est celui que P2-005
+définit — le maximum des plafonds de ses formules, chaque `null` comptant pour le
+réglage de la box.
+
+**Et surtout : ce ne sont pas la même erreur.** C'est là que le membre se perd si
+on confond les deux — l'un s'achète, l'autre s'attend :
+
+- plafond atteint → `MAX_UPCOMING_BOOKINGS_REACHED` → « tu as déjà 3 cours à
+  venir, une place se libérera après le prochain ». **Rien à acheter** ;
+- solde épuisé → un code **distinct**, à ajouter ici :
+  `INSUFFICIENT_CREDITS` → « il te reste 0 séance » et le chemin d'achat.
+  `NO_VALID_ENTITLEMENT` ne convient pas : il dit « aucun droit », alors que la
+  personne **a** un carnet, simplement vide. Un membre à qui l'on dit « aucune
+  formule » alors qu'il vient d'en acheter une n'ira pas en racheter, il écrira
+  à sa box.
+
+Le code s'ajoute à `APP_ERROR_CODES` et à ses deux clés i18n dans le même
+commit — `errors.test.ts` relit les migrations et échoue sinon.
+
+**L'ordre de vérification dans `book_class()` est celui du SQL existant**, et il
+place déjà le plafond avant la capacité. Le solde se vérifie **avec les droits**,
+donc **avant** le plafond : quelqu'un sans crédit n'a pas à s'entendre dire qu'il
+a trop réservé. Même raisonnement que « déjà réservé passe avant les fenêtres »,
+corrigé en P1-003 pour la même raison.
+
 ## Le piège qui fera perdre une demi-journée
 
 **Le solde n'est pas un nombre, c'est une pile datée.** Un membre avec 3 crédits
@@ -91,6 +130,11 @@ croissant. `balance` reste, comme cache d'affichage et comme contrôle.
       complet achat / résa / annulation / expiration
 - [ ] Un pack expiré ne réserve plus, et le membre voit « expiré », pas « solde
       insuffisant »
+- [ ] **Solde épuisé et plafond atteint ne disent pas la même chose** : un membre
+      à 0 crédit voit le chemin d'achat, un membre au plafond voit qu'une place
+      se libérera. Vérifié sur les deux codes, pas sur un seul message générique
+- [ ] Un membre au carnet dont le solde dépasse le plafond ne peut pas réserver
+      au-delà du plafond — `min(plafond, solde)`, prouvé en pgTAP
 - [ ] Un `UPDATE` sur `credit_transactions` lève
 - [ ] Un OWNER crédite manuellement 2 séances avec motif ; la ligne d'audit
       existe et ne contient **ni e-mail ni jeton**
