@@ -139,6 +139,21 @@ les deux écrans se ressemblent, la passe ne prouve rien.
 Le seed ne porte qu'une invitation Rueil et elle est à usage unique :
 `pnpm db:reset` la remet à `PENDING` avant chaque essai.
 
+## Ce qu'Expo Go ne peut pas exercer, quoi qu'on fasse
+
+À connaître avant d'écrire un critère qui l'attend pour rien.
+
+**Le schéma personnalisé.** Expo Go ouvre les liens par `exp://` ; `rack://`
+n'existe que dans un *development build*. Un critère « le lien `rack://` ouvre
+l'app » n'est donc pas « à faire à la prochaine passe », il est **à faire au
+premier build dédié** — donc après le compte développeur Apple. Établi le
+5 septembre 2026, sur le reliquat de `D-013`.
+
+**Un p95 qui veuille dire quelque chose.** Le téléphone et la base sont sur le
+même Wi-Fi, et la base tourne sur la machine d'à côté : les durées mesurées sont
+un **plancher**. Elles prouvent que l'instrumentation fonctionne, pas que le T1
+de la spec §16.4 est tenu. Ce seuil se mesurera contre un environnement distant.
+
 ## Sans téléphone : `pnpm --filter @rack/mobile web`
 
 Le bundle web d'Expo exerce le routeur, les fournisseurs, les écrans et les
@@ -187,6 +202,7 @@ sont donc la moitié de l'information.
 | **3 sept. 2026** | iPhone 12 Pro Max, Expo Go, SDK 57 | Les cinq vérifications passent. **Quatre défauts trouvés**, aucun visible en test : la langue (D-004), le parcours d'invitation cassé de bout en bout (corrigé), le sélecteur de box sans retour (P1-009), les retours de navigation vers des écrans interdits (D-009) |
 | **4 sept. 2026** | idem | Tout passe, contrôle négatif compris : `/welcome` sans jeton est graphite, `/invitation/<jeton>` est orange et nomme la box, `nouveau@example.com` atterrit membre de CrossFit Rueil. Thème sombre et texte à 200 % tiennent ; la reconnexion après déconnexion est propre |
 | **4 sept. 2026**, après PR #27 | idem, `lea@example.com` | Le hors ligne repasse : mode avion sur un jour jamais visité, message final immédiat et identique à chaque essai, bandeau qui parle du jour affiché. **Ferme P1-002b.** Trois gestes n'y étaient pas et sont partis en `D-011` : le fuseau du téléphone, la relecture du contenu du cache, ce qui reste du compte précédent |
+| **5 sept. 2026** | idem, `lea@example.com`, seed neuf | **P1-003b, gestes 1 à 11 : tout passe, VoiceOver compris.** Trois annonces distinctes nommant cours et heure ; la confirmation s'annonce seule — `announceForAccessibility()` fait son travail là où `accessibilityLiveRegion`, Android seul, aurait laissé un vert trompeur. Quatre refus avec les nombres des réglages. Hors ligne : aucune action proposée. **Aucun défaut trouvé — une première.** Deux critères restent ouverts et non par oubli : le p95 (impossible à mesurer honnêtement en Wi-Fi local, et borné à 3 réservations sans P1-004) et le schéma `rack://`, qu'Expo Go ne peut pas exercer |
 
 ## 6. Ce qu'on note, et ce qu'on ne commite pas
 

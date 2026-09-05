@@ -88,9 +88,19 @@ elle qui a rattrapé le seul défaut réel du lot :
       `pnpm i18n:check`, `pnpm format:check` verts
 - [x] `pnpm test:db` vert : la migration du job `pg_cron` a été **éditée en
       place**, la base reconstruite par `db reset`
-- [ ] **Sur appareil** : l'app s'installe sous son nouveau `scheme` et le lien
-      d'invitation `rack://` ouvre l'app. Non vérifié ici — **à la prochaine
-      passe**, et noté au journal de `docs/passe-mobile-iphone.md`
+- [~] **Sur appareil** : l'app s'installe sous son nouveau `scheme` et le lien
+      d'invitation `rack://` ouvre l'app.
+
+      **Ne se vérifie pas dans Expo Go, et la passe du 5 septembre 2026 l'a
+      établi** : Expo Go ouvre les liens par `exp://`, et un **schéma
+      personnalisé n'existe que dans un *development build***. Ce critère
+      n'attend donc pas la prochaine passe — il attend le premier build dédié,
+      donc **le compte développeur Apple** (chemin critique hors code, 99 $/an).
+      Il part avec **P2-003**, qui est le premier ticket à en avoir besoin.
+
+      Ce que ça ne remet pas en cause : `scheme`, `bundleIdentifier` et `package`
+      sont écrits dans `app.json` et partiront tels quels au premier build. Ce
+      qui reste non prouvé est le **lien**, pas le renommage.
 
 ## Notes
 
