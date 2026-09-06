@@ -1,6 +1,11 @@
 # P1-012 — Le planning dit ce qui est déjà réservé
 
-**Phase** P1 · **Estimation** 2 j·h · **Dépend de** P1-003b ✅, P1-011 ✅ · **Après P1-004** · **Spec** §12.4
+**Phase** P1 · **Estimation** 1 j·h · **Dépend de** P1-003b ✅, P1-011 ✅, **P1-014 ✅** · **Après P1-004** · **Spec** §12.4
+
+> **Révisé le 6 septembre 2026 — 2 → 1 j·h.** P1-014 a livré la moitié du chemin
+> de données et tranché la décision hors ligne. Ce qui reste : la granularité par
+> cours, le badge, et **le volet `planning.tsx` de `D-016`, que ce ticket
+> absorbe**.
 
 ## Ce que la passe d'usage a montré
 
@@ -26,52 +31,56 @@ Deux niveaux, parce que ce sont deux questions différentes :
 **Ce ticket se réduit donc à son premier niveau.** Il reste utile : « ai-je
 quelque chose ce jour-là » et « suis-je inscrite à *ce cours-là* » sont deux
 questions, et la seconde se pose sur une ligne, pas sur une case de calendrier.
-Estimation à revoir à la baisse quand il sera lancé.
+Estimation revue le 6 septembre 2026 : **2 → 1 j·h**.
 
-**Le badge est un texte, jamais une couleur seule** (`.claude/rules/ui.md`). La
-pastille du bandeau, elle, est un marqueur visuel : elle doit donc porter son
-sens dans l'étiquette d'accessibilité du jour — « mardi 8, 2 réservations » — et
-non seulement dans le pixel.
+**Le badge est un texte, jamais une couleur seule** (`.claude/rules/ui.md`).
 
-Ce ticket touche **le planning et le bandeau de semaine**, deux écrans livrés
-séparément (P1-003b et P1-011). C'est pourquoi il est à part : glissé dans
-P1-004, il aurait brouillé un ticket dont le sujet est une transaction.
+Ce ticket ne touche plus qu'un écran, `planning.tsx`. C'est pourquoi il est resté
+à part : glissé dans P1-004, il aurait brouillé un ticket dont le sujet est une
+transaction.
 
-## La décision à prendre : le marqueur hors ligne
+## Ce que P1-014 a déjà livré — et la décision qui n'a plus à être prise
 
-**Le cache hors ligne exclut volontairement les réservations personnelles**
-(P1-002b) : il garde le planning de la box, pas ce qui appartient à une
-personne. Le marqueur disparaîtrait donc hors ligne, et le planning affirmerait
-en creux « tu n'as rien réservé » — ce qui est faux.
+Ce ticket portait une décision ouverte : **le marqueur hors ligne**, le cache de
+P1-002b excluant volontairement les réservations personnelles. Deux options
+étaient posées, avec une recommandation pour la B (mettre en cache des
+identifiants, et rien d'autre).
 
-Deux issues, et il faut choisir dans le ticket :
+**Elle est tranchée, et déjà en place** — P1-014 l'a implémentée en livrant la
+pastille du mois, avec les deux garde-fous demandés :
 
-| Option | Ce que ça donne | Ce que ça coûte |
-| ------ | --------------- | --------------- |
-| **A — assumer et le dire** | Hors ligne, aucun marqueur, et une phrase à l'écran : « hors ligne — tes réservations ne sont pas affichées » | Une phrase de plus, et un écran qui avoue une limite au lieu de mentir |
-| **B — mettre en cache les identifiants** | Une liste d'`id` de cours réservés, et rien d'autre | Rouvre le cache aux données personnelles, qu'on avait fermé exprès |
+| Ce qui existe | Où |
+| ------------- | -- |
+| `fetchBookedDays()` → `BookedDays = Record<string, number>` | `packages/core/src/supabase/bookings.ts:437` |
+| `writeBookedDays()` / `readBookedDays()`, préfixe `rack.bookeddays.` | `apps/mobile/lib/schedule-cache.ts:120` |
+| Clé partitionnée par `userId` **et** `tenantId`, purge branchée sur `clearScheduleCache()` | idem |
+| **Relecture au retour d'écran** des pastilles (`useFocusEffect`) | `apps/mobile/app/(app)/planning.tsx:243` |
 
-**Recommandation : B, strictement bornée aux identifiants.**
+**Ce qui manque est la granularité.** `BookedDays` est une date vers un
+*nombre* : il dit « tu as deux choses mardi », pas *lesquelles*. Le badge se pose
+sur une ligne de cours, il lui faut donc l'ensemble des `class_id` réservés du
+jour affiché. C'est l'essentiel du travail restant.
 
-Le raisonnement de P1-002b était d'éviter de stocker des **données de membres**
-sur l'appareil — noms, adresses, ce que `privacy.md` protège. Une liste d'`id`
-de cours **que la personne a elle-même réservés, sur son propre téléphone,
-derrière son propre trousseau** n'est pas de cette famille : elle ne révèle
-personne d'autre, et son détenteur la connaît déjà.
+## Pourquoi ce ticket porte aussi la relecture au retour du planning
 
-L'option A a un défaut qui n'est pas cosmétique : elle rend l'écran **moins
-fiable hors ligne que le reste de l'app**, alors que le planning, lui, s'affiche.
-Une personne dans un sous-sol de salle de sport — le lieu même où l'on consulte
-un planning — verrait ses cours et pas ses inscriptions.
+`D-016` recense trois écrans qui ne relisent rien quand on y revient. P1-014 a
+laissé le cas du planning à `D-016`, et l'a écrit dans le code :
 
-Deux garde-fous à écrire avec l'option B, sans quoi elle devient A en pire :
+> « La **liste du jour**, elle, ne se relit pas au retour : c'est D-016, et ce
+> ticket ne l'absorbe pas. **Rien de ce qu'elle affiche ne dépend d'une
+> réservation** — le badge « Réservé » sur la ligne est P1-012. »
+> — `apps/mobile/app/(app)/planning.tsx:238`
 
-- **des identifiants et rien d'autre.** Pas d'heure, pas de nom de cours, pas de
-  statut. Le marqueur se pose en croisant cette liste avec le planning déjà en
-  cache ;
-- **purge à la déconnexion**, comme le cache de planning (P1-002b), et clé
-  partitionnée par `user_id` **et** `tenant_id` — le cas du téléphone partagé a
-  déjà été traité une fois, ne pas le repayer.
+Le raisonnement était juste **le 5 septembre**. Ce ticket-ci le rend faux : à
+partir du moment où la ligne porte un badge « Réservé », ce qu'elle affiche
+dépend d'une réservation. Livrer le badge sans la relecture produirait une
+incohérence **plus visible** que celle qu'on corrige — le badge serait faux au
+moment précis où on le regarde, en revenant sur la liste juste après avoir
+réservé.
+
+**Ce ticket absorbe donc le volet `planning.tsx` de `D-016`** (`+0,25`, compté
+dans le 1 j·h). `D-016` se réduit à ses deux écrans restants, `index.tsx` et
+`bookings.tsx`.
 
 ## Ce que ce ticket suppose et qui doit exister
 
@@ -90,19 +99,20 @@ Deux garde-fous à écrire avec l'option B, sans quoi elle devient A en pire :
 | Ce que je livre | Appelé par | Ticket |
 | --------------- | ---------- | ------ |
 | Le badge « Réservé » sur une ligne de cours | le planning mobile | celui-ci |
-| La pastille du bandeau de semaine | le bandeau (P1-011) | celui-ci |
-| Le cache des identifiants réservés | les deux ci-dessus | celui-ci |
+| Le détail **par cours** des réservations du jour | le badge, ci-dessus | celui-ci |
+| La liste du jour relue au retour d'écran | le planning | celui-ci (volet de `D-016`) |
 
 ## Critères d'acceptation
 
 - [ ] Une membre inscrite au 18h30 le voit **sur la ligne du cours**, sans
       ouvrir le détail
 - [ ] Le badge est un texte lisible par VoiceOver, pas une couleur seule
-- [ ] Le bandeau marque les jours où l'on a au moins une réservation, et
-      l'étiquette d'accessibilité du jour le dit en toutes lettres
 - [ ] Annuler une réservation (P1-004) fait disparaître le marqueur **au retour
       sur le planning**, sans relancer l'app — c'est le geste 3 de `D-016`, et il
       s'est déjà fait prendre deux fois
+- [ ] **Réserver, revenir sur la liste : le nombre de places du cours a changé
+      lui aussi**, pas seulement le badge — c'est le volet `D-016` absorbé, et
+      c'est le symptôme cité par ce ticket
 - [ ] Hors ligne, le marqueur reste affiché à partir du cache
 - [ ] Se déconnecter efface ce cache : le compte suivant sur le même téléphone ne
       voit aucun marqueur du précédent

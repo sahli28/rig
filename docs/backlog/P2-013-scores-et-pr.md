@@ -1,6 +1,6 @@
 # P2-013 — Saisie de score et records personnels
 
-**Phase** P2 · **Estimation** 5 j·h · **Dépend de** P2-012 · **Spec** §2.2 (M14), §4-P5 (RM5.3, RM5.5), §7.3
+**Phase** P2 · **Estimation** 4,5 j·h · **Dépend de** P2-012, **P2-013b** · **Spec** §2.2 (M14), §4-P5 (RM5.3, RM5.5), §7.3
 
 ## Objectif
 
@@ -42,7 +42,7 @@ un chemin bien gardé (`scores`, tenant-scopé) et son jumeau qui ne l'est pas
 | `record_score()` — saisie transactionnelle + détection de PR | l'écran de saisie | celui-ci |
 | `personal_records` alimentés | résolution des charges en % de 1RM | **P2-011** |
 | `scores` avec leur `level` | le leaderboard | **P2-014** |
-| `GET /v1/me/records` | l'écran « Mes records » | celui-ci |
+| `GET /v1/me/records` | l'écran « Mes records » | **P2-013b** — *l'écran et son endpoint sont partis là-bas le 6 sept. 2026, avec 0,5 j·h. Ce ticket garde la saisie du score et la détection du record* |
 
 ## Périmètre
 

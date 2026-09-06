@@ -1,6 +1,6 @@
 # P2-011 — Rx / Scaled / Beginner, et les charges en % de 1RM
 
-**Phase** P2 · **Estimation** 4 j·h · **Dépend de** P2-010, P2-013 · **Spec** §2.2 (M13), §4-P5 (étapes 5 et 6, RM5.4)
+**Phase** P2 · **Estimation** 4 j·h · **Dépend de** P2-010, **P2-013b** · **Spec** §2.2 (M13), §4-P5 (étapes 5 et 6, RM5.4)
 
 ## Objectif
 
@@ -18,7 +18,7 @@ programmation.
 | --------- | --------- | ---- |
 | `variants` (`unique(block_id, level)`), `block_movements.load_pct_1rm`, `load_ref_movement_id` | P2-009 | ❌ **à créer par P2-009** |
 | L'éditeur de bloc où loger l'éditeur de scaling | P2-010 | ❌ **à créer par P2-010** |
-| **`personal_records`, sans quoi un pourcentage ne se résout pas** | P2-013 | ❌ **à créer par P2-013.** C'est la dépendance qui décide de l'ordre : ce ticket vient **après** les scores, pas avant, contrairement à l'ordre des numéros de la spec (M13 avant M14) |
+| **`personal_records`, sans quoi un pourcentage ne se résout pas** | **P2-013b** | ❌ **à créer par P2-013b** — *corrigé le 6 sept. 2026*. On croyait dépendre de P2-013 (les scores) ; on dépend en réalité des **records**, que P2-013b sait produire sans qu'aucun WOD ait eu lieu. Ce ticket se décroche donc de toute la chaîne score → leaderboard, et peut sortir bien plus tôt. L'ordre reste inverse à la numérotation de la spec (M13 avant M14), pour une autre raison qu'annoncée |
 | `movements.scaling_hint_i18n` (règles de scaling par défaut) | P2-009 | ❌ **à créer par P2-009** — semé avec le référentiel |
 | `users.gender` (charges Rx H/F) | `..._identity_and_tenancy.sql` | ✅ existe, **facultatif** (RM1.5). Le cas « non renseigné » n'est pas un cas d'erreur : c'est le cas par défaut |
 | Écran membre affichant un WOD | P2-012 | ❌ **à créer par P2-012** |

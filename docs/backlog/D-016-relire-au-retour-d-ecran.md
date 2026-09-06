@@ -1,6 +1,6 @@
 # `D-016` — Trois écrans qui ne relisent rien quand on revient dessus
 
-**Phase** `dette` · **Estimation** `0,5` j·h · **Dépend de** `P1-003c` (le correctif de la fiche de cours) · **Spec** `§4-P2` · **Origine** passe appareil du 5 septembre 2026
+**Phase** `dette` · **Estimation** `0,25` j·h · *(0,5 → 0,25 le 6 sept. 2026 : le volet `planning.tsx` part dans **P1-012**, qui rend sa liste dépendante d'une réservation)* · **Dépend de** `P1-003c` (le correctif de la fiche de cours) · **Spec** `§4-P2` · **Origine** passe appareil du 5 septembre 2026
 
 ## Objectif
 
@@ -27,7 +27,7 @@ corrigé, trois jumeaux intacts.
 | Prérequis | Où il vit | État |
 | --------- | --------- | ---- |
 | `useFocusEffect` | `expo-router` (SDK 57) — `node_modules/expo-router/build/exports.d.ts:19` | ✅ exporté, **et déjà employé** dans `apps/mobile/app/(app)/class/[id].tsx` depuis le correctif de `P1-003c` : la forme est éprouvée sur appareil, ce ticket la reprend |
-| Les trois écrans à reprendre | `planning.tsx:103`, `index.tsx:48`, `bookings.tsx:55` | ✅ existent, tous sur le même `useEffect` de montage |
+| Les écrans à reprendre | ~~`planning.tsx:103`~~ **→ P1-012**, `index.tsx:48`, `bookings.tsx:55` | ✅ existent, tous sur le même `useEffect` de montage |
 | La pile de navigation | `apps/mobile/app/_layout.tsx:98` — un seul `Stack` | ✅ existe. C'est elle qui décide quels écrans restent montés : la racine (`index`) **toujours**, `planning` tant qu'une fiche de cours est posée dessus |
 | Un moyen de l'exercer sans téléphone | ❌ **aucun** — `apps/mobile` n'a pas de montage de composant | `D-015`. Ce ticket se vérifie donc à la main, comme le correctif qui l'a fait naître |
 

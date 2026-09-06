@@ -1,6 +1,10 @@
 # P2-009 — Le modèle d'entraînement, et la porte qu'on laisse ouverte
 
-**Phase** P2 · **Estimation** 6 j·h · **Dépend de** P0-004, **P1-002 (dur)** · **Spec** §7.2, §7.3, §4-P5 (RM5.1, RM5.7)
+**Phase** P2 · **Estimation** 8 j·h · **Dépend de** P0-004, **P1-002 (dur)** · **Spec** §7.2, §7.3, §4-P5 (RM5.1, RM5.7), **addendum §21 (D11 à D14)**
+
+> **Amendé le 6 septembre 2026** — benchmark HustleUp, D11 confirmée. **6 → 8 j·h.**
+> Quatre décisions de forme entrent ici parce qu'elles ne se rétro-installent pas :
+> voir « Ce que le benchmark HustleUp ajoute à ce ticket ».
 
 ## Objectif
 
@@ -53,6 +57,98 @@ Le contrôle : toute table hors de cette liste a `tenant_id not null`. Une
 quatrième table hybride devient alors un geste conscient, visible en revue —
 c'est la seule chose que le test anti-fuite sait faire, et elle vaut son coût.
 
+## Ce que le benchmark HustleUp ajoute à ce ticket
+
+Quatre décisions, toutes de la même nature que `tenant_id` nullable : **elles ne
+coûtent que des colonnes aujourd'hui, et une migration sur des tables pleines de
+séances et de scores plus tard.** Elles viennent de l'addendum §21 ; D11 est
+confirmée par la commanditaire le 6 septembre 2026.
+
+### D11 — Une séance a une **position**, et parfois une date
+
+HustleUp propose deux formes de programme, et la seconde n'existe pas dans notre
+modèle : le **programme relatif** (« on/off »), que chacun démarre le jour qu'il
+veut. Ses séances ne sont pas datées : elles sont numérotées J1…Jn.
+
+    programs.mode  ∈ CALENDAR | RELATIVE     -- not null, défaut CALENDAR
+    sessions.day_index int                   -- null si CALENDAR
+    sessions.date       date                 -- null si RELATIVE
+    sessions.class_id   uuid                 -- null si RELATIVE
+
+Deux contraintes de cohérence, écrites en `check` et non en commentaire :
+
+    check (mode = 'CALENDAR' and date is not null and class_id is not null and day_index is null)
+       or (mode = 'RELATIVE' and day_index is not null and date is null and class_id is null)
+
+La date affichée d'une séance relative se **calcule** :
+`enrollment.start_date + day_index`. Elle n'est stockée nulle part — deux
+personnes qui suivent le même programme ne sont pas au même jour.
+
+**Ce que ça coûte si on l'oublie** : réécrire le Program Builder (P2-010), la
+fenêtre de saisie de score (P2-013, adossée à `sessions.date`) et le leaderboard
+(P2-014, qui groupe par séance). C'est la seule des quatre qui soit une
+**réécriture** et pas une migration.
+
+### D13 — L'adhésion à un programme est une entité
+
+Sans elle, `enrollment.start_date` n'a pas d'endroit où vivre, et rien ne dit
+qui suit quoi. C'est aussi ce que HustleUp appelle « gérer les athlètes qui
+demandent à rejoindre un programme ».
+
+    program_enrollments (program_id, membership_id, status, start_date, source)
+      status ∈ PENDING | ACTIVE | PAUSED | COMPLETED | REJECTED
+      source ∈ ASSIGNED | REQUESTED | PURCHASED
+      unique (program_id, membership_id) where status <> 'REJECTED'
+
+`tenant_id not null` (l'adhésion appartient à la box du membre, même si le
+programme est un patron plateforme importé). `PURCHASED` est la porte de S11 :
+elle ne coûte rien tant que la valeur existe.
+
+**L'UI d'approbation n'est pas dans ce ticket** — elle part en P2-010. Ici, la
+table, ses policies et ses tests.
+
+### D12 — Un bloc a deux axes, pas un
+
+`blocks.kind` (WARMUP / STRENGTH / METCON / ACCESSORY / COOLDOWN) décrit une
+**nature d'entraînement**. HustleUp compose ses séances avec autre chose : des
+*workouts*, des *coaching tips*, des *notes*, des *médias*. C'est un **type de
+contenu**, et notre modèle confond les deux.
+
+    blocks.content_type ∈ WORKOUT | COACH_TIP | NOTE | MEDIA | REST  -- not null, défaut WORKOUT
+    blocks.duration_s int                    -- durée prévue, distincte de time_cap_s
+    blocks.score_requested boolean not null default false
+
+`score_requested` est le « ask for a score » de HustleUp : **le leaderboard
+devient opt-in par bloc.** Sans lui, on classe les échauffements. `duration_s`
+n'est pas `time_cap_s` : l'un est ce que le coach prévoit, l'autre ce que le
+règlement impose — c'est `duration_s` qui permettra de dire « ta séance fait
+62 minutes pour un cours de 60 ».
+
+### D14 — Un score porte un commentaire, un média et sa visibilité
+
+    scores.comment     text
+    scores.media_url   text
+    scores.media_type  text
+    scores.visibility  ∈ PUBLIC | BOX | COACH | PRIVATE  -- not null, défaut BOX
+
+**Colonnes créées ici, upload livré plus tard** (v1) : la vidéo attachée à un
+score amène du stockage, de la bande passante et de la modération — donc
+l'exigence Apple sur l'UGC. Rien de tout ça n'est dans ce ticket. Ce qui y est,
+c'est la colonne, parce que `scores` sera la table la plus volumineuse du
+produit et qu'on ne la migre pas en production de gaieté de cœur.
+
+`visibility` est la réponse RGPD de la §12 : la personne décide qui voit son
+commentaire et sa vidéo, par score.
+
+### Et une cinquième, pour P2-013b
+
+    personal_records.source_score_id  -- devient NULLABLE
+    personal_records.source ∈ SCORE | MANUAL   -- not null
+
+Un record saisi à la main n'a pas de score d'origine. C'est le prérequis dur de
+**P2-013b**, et sans lui P2-011 ne peut résoudre aucun pourcentage le premier
+jour. Voir P2-013b, section « Le trou que ce ticket bouche ».
+
 ## Ce que ce ticket suppose et qui doit exister
 
 | Prérequis | Où il vit | État |
@@ -61,7 +157,7 @@ c'est la seule chose que le test anti-fuite sait faire, et elle vaut son coût.
 | `uuid_generate_v7()` | idem | ✅ existe |
 | Le motif de table hybride | `consents`, `.claude/rules/database.md:46` | ✅ existe — on le recopie, on ne l'invente pas |
 | `class_types` (rattacher une séance à un type de cours) | P1-001b | ✅ existe |
-| **`classes`, pour rattacher une séance à une occurrence** | P1-002 | ❌ **prérequis dur — à créer par P1-002.** Tranché : `sessions.class_id` n'est **pas** nullable et sa FK est posée directement sur `classes`. P1-002 est au jalon pilote et P2-009 au MVP vendable : `classes` existera depuis des mois. Rien à trancher au plan |
+| **`classes`, pour rattacher une séance à une occurrence** | P1-002 | ❌ **prérequis dur — à créer par P1-002.** **Re-tranché le 6 sept. 2026** : `sessions.class_id` devient **nullable**, contraint par `programs.mode` (voir la section D11 ci-dessous). Une séance de programme relatif n'a ni date ni cours. La FK reste posée sur `classes` |
 | `memberships` avec rôle COACH | P0-004, P1-001c | ✅ existe |
 | Rôle applicatif d'administration de plateforme | — | ❌ **n'existe pas.** Le produit n'a pas de super-admin. La policy d'écriture des programmes plateforme refuse donc **tout le monde** : ils se sèment en migration. À rouvrir avec la marketplace (S11) |
 
