@@ -1,6 +1,82 @@
 # `D-018` — L'écran entier se recharge au retour sur le planning
 
-**Phase** `dette` · **Estimation** `0,5` j·h · **Origine** passe mobile du 6 septembre 2026, scénario C de P1-012 · **Spec** §12.1 (principe 3)
+**Phase** `dette` · **Estimation** `1` j·h *(0,5 à l'ouverture — recompté, voir l'arbitrage)* · **Origine** passe mobile du 6 septembre 2026, scénario C de P1-012 · **Spec** §12.1 (principe 3) · **✅ clos le 6 septembre 2026**
+
+## Issue — arbitré le 6 septembre 2026
+
+**La cause est trouvée et corrigée** (PR #48). `useFocusEffect` ne rejoue pas
+seulement l'effet au retour du focus : il le rejoue **chaque fois que sa
+callback change d'identité**. Elle dépendait de `chargerJour` et
+`chargerReserves`, recréées à chaque changement de jour — donc changer de jour
+déclenchait la lecture du jour, **puis aussitôt une seconde lecture silencieuse
+du même jour**. Deux requêtes, deux `setEtat` portant un `schedule` neuf coup
+sur coup : la liste était remplacée deux fois de suite, ce qui se voit même sans
+squelette. Un `ref` tenu hors de l'identité de la callback rend à l'effet ce
+qu'il prétend écouter : le focus, et rien d'autre.
+
+**Le rechargement résiduel, s'il en reste un, est accepté et ne sera pas
+chassé.** Décision de la commanditaire : le symptôme ne la gêne pas, et le coût
+de la chasse a dépassé l'enjeu — deux tours de mesure et deux passes sur
+appareil pour un défaut cosmétique, face à 30 j·h restants au jalon. Même forme
+que l'arbitrage de `D-010`.
+
+**Ce que la décision accepte de ne pas couvrir**, et il faut le lire avant de
+rouvrir le sujet un jour :
+
+- la confirmation sur appareil que le rechargement a disparu — non faite,
+  assumée ;
+- le `DÉMONTAGE planning` isolé du premier journal, jamais expliqué. Il a un
+  effet propre, **le jour sélectionné perdu au retour** (`date` repassée de
+  09-09 à 09-06). Observé une fois. S'il se reproduit, c'est un ticket à lui,
+  pas une reprise de celui-ci.
+
+## ✅ Les sondes sont retirées — le ticket est clos
+
+PR #48 avait fusionné **l'instrument avec le correctif**. `main` a donc porté
+pendant quelques heures, non gardées par `__DEV__` :
+
+- une dizaine de `console.log('[D-018] …')` dans `planning.tsx`, `_layout.tsx`
+  et `lib/session.tsx` ;
+- le module `apps/mobile/lib/trace-deps.ts`, dont l'en-tête disait lui-même
+  « **TEMPORAIRE — à retirer avec le correctif** ».
+
+Deux raisons de ne pas laisser ça, et la seconde n'était pas cosmétique :
+
+1. le dépôt a déjà la convention — `class/[id].tsx:285` écrit
+   `if (__DEV__) console.log(...)` ;
+2. **ces traces écrivaient `userId` et `activeTenantId` dans les journaux de
+   l'appareil.** Des identifiants de personnes dans un log non gardé, sur la
+   branche qui part chez une box.
+
+Retirées le 6 septembre 2026, **avant P1-005** : les dix `console.log`, le
+module `trace-deps.ts`, les deux effets de montage/démontage, les deux `ref`
+d'instrumentation du focus, et les dépendances que la sonde avait ajoutées à
+l'effet de chargement — il est revenu à `[chargerJour]`. **Le correctif reste
+entier**, `lectures` et son commentaire compris : c'est lui qui porte la cause.
+
+**La leçon d'outillage, et elle vaut pour la prochaine sonde** : une mesure et
+son correctif ne devraient pas voyager dans la même PR. Ici l'instrument a été
+gardé volontairement après le correctif, en attendant une passe qui n'aura pas
+lieu — et c'est ce « volontairement » qui l'a fait fusionner. La règle simple :
+si une sonde doit survivre à sa PR, elle porte `__DEV__` **dès la première
+ligne** ; sinon elle part avec le correctif, dans le même commit.
+
+## Ce qu'il reste, et qui n'est plus de ce ticket
+
+Rien à faire. Deux choses sont **écrites pour ne pas se redécouvrir** :
+
+- le doublon de focus vu sur appareil, sans cause établie — couvert par
+  l'arbitrage ci-dessus, qui accepte le rechargement résiduel ;
+- le `DÉMONTAGE planning` isolé et son effet propre (jour sélectionné perdu au
+  retour). **S'il se reproduit, il prend son ticket**, il ne rouvre pas
+  celui-ci.
+
+## La leçon, à garder
+
+Un défaut qui ne se reproduit **que sur l'appareil** coûte cher par nature :
+chaque hypothèse fait un aller-retour par une passe manuelle. Ce genre de ticket
+mérite un **plafond décidé à l'ouverture**, pas découvert au troisième tour.
+Celui-ci a été plafonné après coup ; le prochain le sera avant.
 
 ## Le symptôme, et le test qui l'a coupé en deux
 
@@ -244,14 +320,20 @@ un bénéfice nul par rapport au chemin silencieux qui existe déjà.
       l'effet de focus, pas le montage. Une cause trouvée et corrigée (la
       callback de focus changeait d'identité) ; **le doublon vu sur appareil
       reste, lui, sans cause établie**
-- [ ] Réserver depuis la fiche, revenir : la liste se met à jour **sans se
-      recharger**, en mode clair comme en mode sombre
-- [ ] Annuler, revenir : idem
-- [ ] En mode sombre, le bouton retour ne clignote plus — **et le vérifier
-      après** avoir corrigé le remontage, pas avant : c'est ce qui prouve que la
-      cause est traitée et pas seulement masquée
-- [ ] Refaire le retour cinq fois dans chaque mode : un défaut de cette famille
-      est intermittent, une observation ne prouve rien
+Les quatre critères d'appareil ci-dessous **restent `[ ]` et le resteront** :
+l'arbitrage du 6 septembre 2026 les abandonne, il ne les remplit pas. Ils sont
+gardés cochables-jamais-cochés pour que la trace soit lisible — un critère effacé
+laisserait croire qu'il a été tenu. **Ne pas les cocher un jour parce que le
+symptôme aura disparu de lui-même** : personne ne l'aura vérifié.
+
+- [ ] **abandonné** — Réserver depuis la fiche, revenir : la liste se met à jour
+      **sans se recharger**, en mode clair comme en mode sombre
+- [ ] **abandonné** — Annuler, revenir : idem
+- [ ] **abandonné** — En mode sombre, le bouton retour ne clignote plus — **et le
+      vérifier après** avoir corrigé le remontage, pas avant : c'est ce qui
+      prouve que la cause est traitée et pas seulement masquée
+- [ ] **abandonné** — Refaire le retour cinq fois dans chaque mode : un défaut de
+      cette famille est intermittent, une observation ne prouve rien
 - [x] Le squelette **reste** au changement de jour : c'est un chargement, pas un
       retour — vérifié au harnais après correctif : `SQUELETTE POSÉ` sur le
       changement de jour, `RELECTURE SILENCIEUSE` sur le retour

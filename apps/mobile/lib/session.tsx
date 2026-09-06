@@ -67,15 +67,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [activeTenantId, setActiveTenantId] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
 
-  // === SONDE D-018, TEMPORAIRE ===
-  useEffect(() => {
-    console.log('[D-018] MONTAGE SessionProvider');
-    return () => console.log('[D-018] DÉMONTAGE SessionProvider');
-  }, []);
-  useEffect(() => {
-    console.log('[D-018] session status =', status);
-  }, [status]);
-
   const load = useCallback(async (current: Session | null) => {
     if (current === null) {
       setMe(null);
@@ -118,8 +109,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     });
 
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
-      // === SONDE D-018, TEMPORAIRE ===
-      console.log('[D-018] onAuthStateChange :', _event, '· session ?', next !== null);
       if (cancelled) return;
       setSession(next);
       void load(next);

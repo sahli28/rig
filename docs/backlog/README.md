@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **29,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **29 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -83,7 +83,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 104 j·h, dont **29,5 restants**
+## ① Jalon pilote — 104,5 j·h, dont **29 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -155,9 +155,9 @@ sait pas lui répondre.
 | D-013   | **RIG devient Rack** — le renommage, d'un seul geste |  0,5 | ✅ fait le 4 sept. 2026 — avant P1-003b, qui touche les mêmes fichiers. Le `scheme` ne se vérifie pas dans Expo Go : ce reliquat part avec le premier *development build* |
 | D-014   | Deux filets dont on connaît le trou               |    0,5 | à faire — non bloquant. Le garde de migrations ne voit pas les écritures par script, et des tests pgTAP affirment des comptes globaux |
 | D-015   | Monter un composant mobile dans un test           |    1,5 | à faire — **à arbitrer, avec son déclencheur**. La suite `.ts` d'`apps/mobile` existe ; ce qui manque est le montage et les gestes |
-| D-018   | Toute la page clignote au retour sur le planning  |    0,5 | **à faire** — trouvé à la passe du 6 sept. 2026, seul défaut de P1-012 |
+| D-018   | L'écran se recharge au retour sur le planning     |      1 | ✅ **clos le 6 sept. 2026** — cause trouvée et corrigée (PR #48 : le focus se rejouait deux fois par retour), puis **sondes retirées** avant P1-005. **0,5 → 1** : deux tours de mesure, comptés plutôt que cachés. Rechargement résiduel **arbitré et accepté** ; les quatre critères d'appareil restent `[ ]`, abandonnés et pas tenus |
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
-|         | **Total ①**                                       | **104** | dont **74,5 faits**, **29,5 restants** |
+|         | **Total ①**                                       | **104,5** | dont **75,5 faits**, **29 restants** |
 
 **P1-013 n'est pas dans ce total** : il est écrit et chiffré, pas programmé. Il
 entrera le jour où la box pilote demandera à couper un droit sans exclure
@@ -291,7 +291,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-014  | Deux filets dont on connaît le trou            | 0,5 | P1-003b, 5 sept. 2026 — **comptée dans ①**. Un trou connu qui ne vit que dans un message de commit finit par ne vivre nulle part |
 | D-015  | Monter un composant mobile dans un test        | 1,5 | P1-011, 5 sept. 2026 — **comptée dans ①**. Le premier défaut mobile qui aurait pu être attrapé sans téléphone, et l'option la moins chère ne l'aurait pas attrapé |
 | D-013  | RIG devient Rack                               | 0,5 | Décision produit du 4 sept. 2026 — **✅ fait**, **comptée dans ①**. Fait avant P1-003b : `bundleIdentifier` définitif après la première soumission, clés de stockage gratuites à renommer tant qu'aucune app n'est installée |
-| D-018  | Toute la page clignote au retour sur le planning | 0,5 | P1-012, passe du 6 sept. 2026 — **comptée dans ①**. Le mécanisme de P1-012 est hors de cause (relecture silencieuse vérifiée) : ce qui clignote est au-dessus de la liste |
+| D-018  | L'écran se recharge au retour sur le planning   | 1 | P1-012, passe du 6 sept. 2026 — **✅ fait**, **comptée dans ①**. Cause trouvée : `useFocusEffect` rejouait l'effet à chaque changement d'identité de sa callback, donc deux lectures par retour. Corrigée, puis sondes retirées — elles avaient fusionné avec le correctif et écrivaient `userId` dans les journaux de l'appareil. **Une sonde qui survit à sa PR porte `__DEV__` dès sa première ligne** |
 | D-017  | Flash blanc au démarrage en mode sombre        | 0,25 | D-009, PR #43 — **✅ fait**, **comptée dans ①**. Deuxième fois que du travail se range dans un ticket clos et disparaît des totaux. `null` n'est pas « clair » : la règle est écrite dans `.claude/rules/ui.md` |
 | D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — la fiche de cours est corrigée dans son ticket, ses trois jumeaux ne le sont pas. Le plus visible : le planning garde son ancien nombre de places après une réservation |
 |        | **Ouvert, hors totaux**                        | **6** | D-002, D-003, D-007, D-008, D-016 — D-004, D-011, D-012, D-013 et D-017 sont dans ①, D-010 est clos |
