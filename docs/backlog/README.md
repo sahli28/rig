@@ -13,13 +13,21 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **34,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **30 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 76 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
 **janvier 2027**, MVP vendable vers **septembre 2027**. Ces dates sont ce
 qu'elles sont ; les connaître vaut mieux que les découvrir. Elles ont avancé
 d'un mois le 3 septembre 2026 : P1-002 et le lot SQL de P1-003 sont fusionnés.
+
+**Revue de backlog du 5 septembre 2026 (soir).** Le tableau d'état disait
+`P1-014 : à faire` alors que PR #42 est sur `main` : le commit de code n'a pas
+touché ce README, seul le commit `docs` qui l'a précédé l'a fait. Et la
+répartition faits/restants n'avait pas été recalculée après P1-004 — elle était
+fausse de 4 j·h, exactement l'estimation de ce ticket. Corrigé : **74,25 faits,
+30 restants**, total ① inchangé à 104,25. Quatre chiffres différents coexistaient
+dans ce fichier (34,5 · 36,5 · 37,5 · 102,25) ; il n'en reste qu'un.
 
 **La ligne de démarcation est celle de la spec §2.6** : une box doit pouvoir
 créer son compte → configurer son planning → inviter ses membres → **vendre un
@@ -68,7 +76,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 102,25 j·h, dont **34,5 restants**
+## ① Jalon pilote — 104,25 j·h, dont **30 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -79,11 +87,11 @@ Objectif : une box réelle utilise l'app en production pendant deux semaines.
 P0-005b                                (SSO Google)
 D-009 ✅ → P1-002b ✅ → P1-010 ✅ → P1-003b → P1-003c   (navigation, planning, coachs, réservation, pairs)
 D-011                                  (trois gestes de relecture du cache, à la prochaine passe appareil — non bloquant)
-P1-003c ✅ fait → P1-011 ✅ fait → P1-014  (la feuille d'inscrits, le bandeau de semaine, puis la grille du mois qui le remplace)
+P1-003c ✅ fait → P1-011 ✅ fait → P1-014 ✅ fait  (la feuille d'inscrits, le bandeau de semaine, puis la grille du mois qui le remplace)
 D-010 ✅ arbitré et clos · D-012 ✅ fait  (le moteur du produit : rien de plus maintenant, et la façade crypto comptée)
 D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'il touche les mêmes fichiers)
 D-014                                  (les deux filets dont on connaît le trou — non bloquant)
-P1-004 → P1-005                        (annulation, temps réel)
+P1-004 ✅ fait → P1-005                 (annulation, temps réel)
 P1-007 → P1-006 → P1-008               (push, waitlist, check-in)
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
         ↓
@@ -127,7 +135,7 @@ sait pas lui répondre.
 | P1-003b | Réserver depuis le mobile — lot 2, les écrans     |    5,5 | ✅ **fait** (PR #32) — passe iPhone du 5 sept. 2026, gestes 1 à 11 conformes, VoiceOver compris, **aucun défaut trouvé, une première**. Deux critères en `[~]` : le p95 attend P1-004 puis un environnement distant, le schéma `rack://` attend un *development build* (D-013) |
 | P1-011  | Bandeau de semaine : atteindre un jour en un tap  |      2 | ✅ **fait le 5 sept. 2026**, **au troisième essai sur le balayage** — la position de défilement est désormais la seule vérité, et le geste est enfin exerçable au harnais. **1,5 → 2** : le prix de deux correctifs manqués, compté plutôt que caché. `apps/mobile` y gagne sa première suite de tests |
 | P1-004  | Annulation et fenêtres                            |      4 | ✅ **fait le 5 sept. 2026** — RM2.4 tranchée : le pilote **accepte** l'annulation tardive et la marque, sans promettre un crédit qui n'existe pas. A fermé une sœur oubliée : annuler un cours laissait ses réservations confirmées. Un critère ouvert, la notification (P1-007) |
-| P1-014  | Calendrier du mois, pastille sur mes jours réservés |  2,5 | à faire — **remplace le bandeau de P1-011**, demandé le 5 sept. 2026 en regardant Peppy. La demande n'est pas un sélecteur de plus : c'est **l'historique** du mois, que le bandeau ne pouvait pas montrer puisqu'il refusait le passé. Absorbe le second niveau de P1-012 |
+| P1-014  | Calendrier du mois, pastille sur mes jours réservés |  2,5 | ✅ **fait le 5 sept. 2026** (PR #42) — **remplace le bandeau de P1-011**, demandé le 5 sept. 2026 en regardant Peppy. La demande n'est pas un sélecteur de plus : c'est **l'historique** du mois, que le bandeau ne pouvait pas montrer puisqu'il refusait le passé. Absorbe le second niveau de P1-012 |
 | P1-012  | Le planning dit ce qui est déjà réservé           |      2 | à faire — **après P1-004**, et **réduit** : sa pastille de bandeau part en P1-014, il ne reste que le badge « Réservé » sur la ligne du cours. Estimation à revoir à la baisse au lancement |
 | P1-005  | Places restantes en temps réel                    |      3 | à faire              |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire              |
@@ -140,7 +148,7 @@ sait pas lui répondre.
 | D-013   | **RIG devient Rack** — le renommage, d'un seul geste |  0,5 | ✅ fait le 4 sept. 2026 — avant P1-003b, qui touche les mêmes fichiers. Le `scheme` ne se vérifie pas dans Expo Go : ce reliquat part avec le premier *development build* |
 | D-014   | Deux filets dont on connaît le trou               |    0,5 | à faire — non bloquant. Le garde de migrations ne voit pas les écritures par script, et des tests pgTAP affirment des comptes globaux |
 | D-015   | Monter un composant mobile dans un test           |    1,5 | à faire — **à arbitrer, avec son déclencheur**. La suite `.ts` d'`apps/mobile` existe ; ce qui manque est le montage et les gestes |
-|         | **Total ①**                                       | **104,25** | dont **67,75 faits**, **36,5 restants** |
+|         | **Total ①**                                       | **104,25** | dont **74,25 faits**, **30 restants** |
 
 **P1-013 n'est pas dans ce total** : il est écrit et chiffré, pas programmé. Il
 entrera le jour où la box pilote demandera à couper un droit sans exclure
