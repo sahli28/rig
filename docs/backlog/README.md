@@ -13,8 +13,8 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **30 j·h** |
-| **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 76 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **29 j·h** |
+| **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
 **janvier 2027**, MVP vendable vers **septembre 2027**. Ces dates sont ce
@@ -28,6 +28,13 @@ répartition faits/restants n'avait pas été recalculée après P1-004 — elle
 fausse de 4 j·h, exactement l'estimation de ce ticket. Corrigé : **74,25 faits,
 30 restants**, total ① inchangé à 104,25. Quatre chiffres différents coexistaient
 dans ce fichier (34,5 · 36,5 · 37,5 · 102,25) ; il n'en reste qu'un.
+
+**Revue du 6 septembre 2026.** `D-017` écrit (rétroactif, 0,25 — deuxième
+disparition de travail dans un ticket clos), **D11 confirmée** par la
+commanditaire : P2-009 passe de 6 à 8 j·h et porte désormais les quatre
+décisions de forme de l'addendum §21. `P2-013b` créé sur une demande d'usage —
+le module de records de HustleUp — et il déplace une dépendance que personne
+n'avait relue : **P2-011 dépend des records, pas des scores.**
 
 **La ligne de démarcation est celle de la spec §2.6** : une box doit pouvoir
 créer son compte → configurer son planning → inviter ses membres → **vendre un
@@ -76,7 +83,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 104,25 j·h, dont **30 restants**
+## ① Jalon pilote — 103,5 j·h, dont **29 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -136,7 +143,7 @@ sait pas lui répondre.
 | P1-011  | Bandeau de semaine : atteindre un jour en un tap  |      2 | ✅ **fait le 5 sept. 2026**, **au troisième essai sur le balayage** — la position de défilement est désormais la seule vérité, et le geste est enfin exerçable au harnais. **1,5 → 2** : le prix de deux correctifs manqués, compté plutôt que caché. `apps/mobile` y gagne sa première suite de tests |
 | P1-004  | Annulation et fenêtres                            |      4 | ✅ **fait le 5 sept. 2026** — RM2.4 tranchée : le pilote **accepte** l'annulation tardive et la marque, sans promettre un crédit qui n'existe pas. A fermé une sœur oubliée : annuler un cours laissait ses réservations confirmées. Un critère ouvert, la notification (P1-007) |
 | P1-014  | Calendrier du mois, pastille sur mes jours réservés |  2,5 | ✅ **fait le 5 sept. 2026** (PR #42) — **remplace le bandeau de P1-011**, demandé le 5 sept. 2026 en regardant Peppy. La demande n'est pas un sélecteur de plus : c'est **l'historique** du mois, que le bandeau ne pouvait pas montrer puisqu'il refusait le passé. Absorbe le second niveau de P1-012 |
-| P1-012  | Le planning dit ce qui est déjà réservé           |      2 | à faire — **après P1-004**, et **réduit** : sa pastille de bandeau part en P1-014, il ne reste que le badge « Réservé » sur la ligne du cours. Estimation à revoir à la baisse au lancement |
+| P1-012  | Le planning dit ce qui est déjà réservé           |      1 | **prochain ticket** — **2 → 1 le 6 sept. 2026** : P1-014 a livré le chemin de données et tranché la décision hors ligne. Reste le détail par cours, le badge, et **le volet `planning.tsx` de `D-016`, absorbé ici** — sans lui le badge serait faux au retour sur la liste |
 | P1-005  | Places restantes en temps réel                    |      3 | à faire              |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire              |
 | P1-007  | Notifications push                                |      4 | à faire              |
@@ -148,7 +155,8 @@ sait pas lui répondre.
 | D-013   | **RIG devient Rack** — le renommage, d'un seul geste |  0,5 | ✅ fait le 4 sept. 2026 — avant P1-003b, qui touche les mêmes fichiers. Le `scheme` ne se vérifie pas dans Expo Go : ce reliquat part avec le premier *development build* |
 | D-014   | Deux filets dont on connaît le trou               |    0,5 | à faire — non bloquant. Le garde de migrations ne voit pas les écritures par script, et des tests pgTAP affirment des comptes globaux |
 | D-015   | Monter un composant mobile dans un test           |    1,5 | à faire — **à arbitrer, avec son déclencheur**. La suite `.ts` d'`apps/mobile` existe ; ce qui manque est le montage et les gestes |
-|         | **Total ①**                                       | **104,25** | dont **74,25 faits**, **30 restants** |
+| D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
+|         | **Total ①**                                       | **103,5** | dont **74,5 faits**, **29 restants** |
 
 **P1-013 n'est pas dans ce total** : il est écrit et chiffré, pas programmé. Il
 entrera le jour où la box pilote demandera à couper un droit sans exclure
@@ -174,7 +182,7 @@ total juste sur le papier.
 
 ---
 
-## ② MVP vendable — **76 j·h**
+## ② MVP vendable — **80,5 j·h**
 
 Objectif : « une box s'inscrit, se configure et **encaisse sans votre
 intervention** » (spec §13.4). Rien de ce bloc n'existait dans le backlog avant
@@ -185,12 +193,12 @@ simplement absents.
 
 ```
 P2-001 → P2-005 → P2-015 → P2-006 → P2-007 → P2-008     (l'argent)
-P2-009 → P2-010 → P2-012 → P2-013 → P2-011 → P2-014     (la programmation, puis les scores)
+P2-009 → P2-013b → P2-010 → P2-012 → P2-013 → P2-011 → P2-014   (la programmation, puis les scores)
 P2-004 → P2-016                                         (dashboard, puis reporting)
 P2-002 → P2-003                                         (RGPD, Apple — avant les stores)
 ```
 
-Deux ordres méritent une explication, parce qu'ils **contredisent** la
+Trois ordres méritent une explication, parce qu'ils **contredisent** la
 numérotation de la spec :
 
 - **P2-015 (e-mails) avant P2-006 (abonnements)**, sinon l'abonnement n'a pas de
@@ -198,6 +206,12 @@ numérotation de la spec :
   impayé. Aucun ticket n'envoyait d'e-mail avant celui-là.
 - **P2-013 (scores) avant P2-011 (scaling)**, alors que la spec ordonne M13 puis
   M14 : une charge « 75 % du 1RM » ne se résout pas sans `personal_records`.
+- **P2-013b (mes records) juste après le socle, avant tout écran de
+  programmation** — ajouté le 6 septembre 2026. La raison a corrigé la
+  précédente : P2-011 ne dépend pas des *scores* mais des *records*, et P2-013b
+  sait en produire sans qu'aucun WOD ait eu lieu. Il ne dépend que de P2-009,
+  c'est le premier usage que le modèle d'entraînement rend possible, et le
+  moins cher.
 
 ### État
 
@@ -209,17 +223,18 @@ numérotation de la spec :
 | P2-006 | Abonnements                                    |   7 | **M8** |
 | P2-007 | Packs de crédits et portefeuille               |   6 | **M10** |
 | P2-008 | Impayés, relances et suspension                |   5 | M8 (RM4.6) |
-| P2-009 | Le modèle d'entraînement                       |   6 | socle M12 |
+| P2-009 | Le modèle d'entraînement                       |   8 | socle M12 — **6 → 8 le 6 sept. 2026** : D11 à D14 de l'addendum §21 (programme relatif, adhésions, blocs typés, colonnes de score) |
+| P2-013b | Mes records : saisie directe, historique, calculateur de % |   3 | socle M14, **débloque M13** — demandé le 6 sept. 2026 d'après HustleUp |
 | P2-010 | Program Builder                                |   7 | **M12** |
 | P2-012 | Le WOD du jour, côté membre                    |   3 | M12 (membre) |
-| P2-013 | Saisie de score et records personnels          |   5 | **M14** |
+| P2-013 | Saisie de score et records personnels          | 4,5 | **M14** — l'écran « Mes records » est parti en P2-013b |
 | P2-011 | Rx / Scaled / Beginner, charges en % de 1RM    |   4 | **M13** |
 | P2-014 | Leaderboard par WOD                            |   4 | **M15** |
 | P2-004 | Dashboard box et mise en route                 |   4 | **M17**, M2 (`create_tenant()`) |
 | P2-016 | Reporting financier et export comptable        |   5 | **S6**, M17 (CA), M21 (finances) |
 | P2-002 | Droits RGPD en self-service                    |   5 | **M20** |
 | P2-003 | Sign in with Apple                             |   3 | **M1** — bloquant de publication |
-|        | **Total ②**                                    | **76** | |
+|        | **Total ②**                                    | **80,5** | |
 
 **P2-001, P2-003, P2-015 et D-008 attendent tous une démarche administrative** —
 Stripe Connect, le compte Apple, un nom de domaine. Voir « Chemin critique hors
@@ -275,8 +290,9 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-014  | Deux filets dont on connaît le trou            | 0,5 | P1-003b, 5 sept. 2026 — **comptée dans ①**. Un trou connu qui ne vit que dans un message de commit finit par ne vivre nulle part |
 | D-015  | Monter un composant mobile dans un test        | 1,5 | P1-011, 5 sept. 2026 — **comptée dans ①**. Le premier défaut mobile qui aurait pu être attrapé sans téléphone, et l'option la moins chère ne l'aurait pas attrapé |
 | D-013  | RIG devient Rack                               | 0,5 | Décision produit du 4 sept. 2026 — **✅ fait**, **comptée dans ①**. Fait avant P1-003b : `bundleIdentifier` définitif après la première soumission, clés de stockage gratuites à renommer tant qu'aucune app n'est installée |
-| D-016  | Trois écrans qui ne relisent rien au retour    | 0,5 | P1-003c, passe du 5 sept. 2026 — la fiche de cours est corrigée dans son ticket, ses trois jumeaux ne le sont pas. Le plus visible : le planning garde son ancien nombre de places après une réservation |
-|        | **Ouvert, hors totaux**                        | **6,25** | D-002, D-003, D-007, D-008, D-016 — D-004, D-011 et D-012 sont dans ①, D-010 est clos |
+| D-017  | Flash blanc au démarrage en mode sombre        | 0,25 | D-009, PR #43 — **✅ fait**, **comptée dans ①**. Deuxième fois que du travail se range dans un ticket clos et disparaît des totaux. `null` n'est pas « clair » : la règle est écrite dans `.claude/rules/ui.md` |
+| D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — la fiche de cours est corrigée dans son ticket, ses trois jumeaux ne le sont pas. Le plus visible : le planning garde son ancien nombre de places après une réservation |
+|        | **Ouvert, hors totaux**                        | **6** | D-002, D-003, D-007, D-008, D-016 — D-004, D-011, D-012, D-013 et D-017 sont dans ①, D-010 est clos |
 
 Ces 6,25 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
 une dette qu'on additionne au chemin critique le rend indiscutable, une dette
