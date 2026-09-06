@@ -56,16 +56,30 @@ Backlog exécutable : `docs/backlog/` — un fichier par ticket.
 
 ## Stack
 
-| Couche           | Choix                                                                      | Note                                                                   |
-| ---------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Monorepo         | Turborepo + pnpm                                                           | `apps/mobile`, `apps/web`, `packages/core`, `packages/ui`, `supabase/` |
-| Mobile           | Expo (React Native) + expo-router + TypeScript                             | OTA updates activées                                                   |
-| Web              | Next.js App Router + TypeScript                                            | back-office box + pages publiques SSR                                  |
-| Données          | Supabase (Postgres 16, région **EU**) + RLS                                | migrations SQL versionnées dans `supabase/migrations/`                 |
-| Logique critique | **fonctions PLpgSQL transactionnelles**                                    | réservation, annulation, crédits, waitlist                             |
-| Paiement         | Stripe + **Connect Express**                                               | destination charges, jamais d'encaissement en propre                   |
-| Validation       | Zod, schémas partagés dans `packages/core`                                 | une seule source de vérité mobile/web/API                              |
-| Tests            | Vitest (unit), pgTAP (SQL/RLS), Playwright (web E2E), Maestro (mobile E2E) |                                                                        |
+| Couche           | Choix                                                                      | Note                                                                                                               |
+| ---------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Monorepo         | Turborepo + pnpm                                                           | `apps/mobile`, `apps/web`, `packages/core`, `packages/ui`, `supabase/`                                             |
+| Mobile           | Expo (React Native) + expo-router + TypeScript                             | OTA updates activées                                                                                               |
+| Web              | Next.js App Router + TypeScript                                            | back-office box + pages publiques SSR                                                                              |
+| Données          | Supabase (Postgres 17, région **EU**) + RLS                                | migrations SQL versionnées dans `supabase/migrations/`. **Le major suit `supabase/config.toml`** — voir ci-dessous |
+| Logique critique | **fonctions PLpgSQL transactionnelles**                                    | réservation, annulation, crédits, waitlist                                                                         |
+| Paiement         | Stripe + **Connect Express**                                               | destination charges, jamais d'encaissement en propre                                                               |
+| Validation       | Zod, schémas partagés dans `packages/core`                                 | une seule source de vérité mobile/web/API                                                                          |
+| Tests            | Vitest (unit), pgTAP (SQL/RLS), Playwright (web E2E), Maestro (mobile E2E) |                                                                                                                    |
+
+**Ce tableau disait « Postgres 16 » jusqu'au 6 septembre 2026, et la pile
+tournait en 17.** Corrigé dans ce sens-là : `supabase/config.toml:41` porte
+`major_version = 17`, c'est ce qui s'exécute, et l'ADR 0001 ne s'engage sur
+aucune version. **Ce qui tourne fait foi, la doc suit.**
+
+Deux conséquences à tenir, et la seconde ne se rattrape pas au bon moment :
+
+1. la source de vérité du major est `supabase/config.toml`, pas cette ligne ;
+2. **le projet Supabase hébergé devra porter le même major.** Une divergence
+   local/hébergé ne se découvre pas à la migration : elle se découvre sur une
+   fonction absente, en production, sur un chemin qu'on croyait couvert. À
+   vérifier le jour de la création du projet — c'est une case à cocher, pas un
+   ticket.
 
 ## Règles non négociables
 

@@ -1,6 +1,14 @@
 # P1-006 — Liste d'attente et promotion automatique
 
-**Phase** P1 · **Estimation** 6 j·h · **Dépend de** P1-004, P1-007 · **Spec** §4-P2, RM2.6
+**Phase** P1 · **Estimation** 6 j·h · **Dépend de** P1-004 ✅, **P1-007 🔒** · **Spec** §4-P2, RM2.6
+
+> **Sa dépendance est partiellement bloquée.** `P1-007` ne peut pas exercer le
+> push sur iOS sans compte développeur Apple (Expo Go ne le fait plus depuis le
+> SDK 53). Ce ticket-ci n'est pas bloqué *techniquement* — une promotion peut
+> s'écrire et se tester en SQL sans qu'aucune notification parte — mais son
+> critère « la promotion part en moins de 30 secondes » suppose un destinataire
+> qui la reçoit. À lire avant de le lancer : le blocage se transmet, il ne
+> s'arrête pas à `P1-007`.
 
 ## Périmètre
 
