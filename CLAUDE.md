@@ -144,6 +144,19 @@ null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la 
    c'est arrivé quand même, ne pas résoudre les conflits à la main :
    `git rebase --onto origin/main <dernier-commit-déjà-dans-main>` rejoue les
    seuls commits réellement absents.
+
+   **Les passes manuelles se font sur `main`, après la fusion — jamais sur une
+   branche de ticket.** Convention posée le 6 septembre 2026. On exerce ce qui
+   va effectivement partir chez la box, dans l'état où il partira, et on évite
+   qu'un `.env.local`, un cache d'appareil ou un état de trousseau soient
+   attribués à une branche qui n'existera plus demain.
+
+   Conséquence, et il faut la tenir explicitement : **un ticket fusionné n'est
+   pas un ticket clos.** Ses critères d'appareil restent `[ ]` après la fusion.
+   Le ticket reste ouvert et sa ligne du backlog dit « fusionné, passe en
+   attente » jusqu'à ce que la passe soit jouée et datée dans le journal de
+   `docs/passe-mobile-iphone.md`. Ne jamais cocher un critère d'appareil parce
+   que la PR est verte — c'est exactement le faux vert que ce dépôt traque.
 6. Si un choix contredit la spec, **le signaler** au lieu de l'appliquer silencieusement.
 7. **Un ticket qui livre une fonction SQL ou un helper nomme son appelant.** Si
    l'appelant n'existe pas encore, le ticket le dit explicitement et cite le

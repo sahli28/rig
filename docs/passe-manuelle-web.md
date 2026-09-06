@@ -103,14 +103,41 @@ Connectée en `marc@rueil.example`.
 
 ---
 
-## Ce qui n'est pas encore testable (et c'est normal)
+## ⚠️ Cette page a pris du retard — lu le 6 septembre 2026
 
-Aucune table de planning, de réservation, de programmation ni de paiement
-n'existe à ce jour. Ne cherche donc pas : planning, réservation, liste
-d'attente, check-in QR, WOD, score, leaderboard, abonnement, crédits.
-Le mobile a sa propre passe — `docs/passe-mobile-iphone.md` — qui demande
-`apps/mobile/.env.local` pointant sur l'**IP LAN** de la machine, pas sur
-`127.0.0.1`. Faite les 3 et 4 septembre 2026.
+**Les deux scénarios ci-dessus couvrent P1-001a et P1-001e. Rien d'autre.**
+Depuis, cinq lots touchant `apps/web` ont été fusionnés sans qu'aucun scénario
+ne soit écrit ici :
+
+| Livré | Ce qui n'a jamais été exercé au navigateur |
+| ----- | ------------------------------------------ |
+| P1-001b | Réglages de la box, horaires d'ouverture, types de cours |
+| P1-001c | Invitation d'un membre du staff de bout en bout, **journal d'audit** |
+| P1-001d | **Import CSV d'un effectif** — mapping des colonnes, prévisualisation, doublons |
+| P1-002 | La **grille de semaine** et la création récurrente (RRULE) |
+| P1-004 | **Annuler un cours depuis le back-office**, et le sort de ses réservations |
+
+Le dernier est le plus coûteux à laisser sans scénario : c'est une action
+**destructrice** qui touche les réservations de vraies personnes, et le ticket
+P1-004 a justement trouvé là une sœur oubliée — annuler un cours laissait ses
+réservations confirmées. La passe mobile couvre l'annulation *par le membre*,
+pas l'annulation *par la box*. Personne ne regarde ce chemin aujourd'hui.
+
+**Ce paragraphe remplace un texte devenu faux**, qui disait : « Aucune table de
+planning, de réservation, de programmation ni de paiement n'existe à ce jour.
+Ne cherche donc pas : planning, réservation… ». C'était vrai le 2 septembre.
+`class_schedules`, `classes`, `bookings`, `class_roster` et `cancel_booking()`
+sont en base depuis. Une page de passe qui dit « ne cherche pas » certifie par
+omission — c'est le faux vert que ce dépôt traque, déplacé dans la
+documentation.
+
+## Ce qui n'est vraiment pas testable au navigateur
+
+Programmation, WOD, scores, leaderboard, abonnements, crédits, check-in QR :
+ces tables n'existent pas (P2-005 à P2-014). Le mobile a sa propre passe —
+`docs/passe-mobile-iphone.md` — qui demande `apps/mobile/.env.local` pointant
+sur l'**IP LAN** de la machine, pas sur `127.0.0.1`. Faite les 3, 4 et
+5 septembre 2026.
 
 ## En cas d'échec
 

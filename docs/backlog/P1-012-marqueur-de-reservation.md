@@ -113,10 +113,18 @@ dans le 1 j·h). `D-016` se réduit à ses deux écrans restants, `index.tsx` et
 - [x] **Réserver, revenir sur la liste : le nombre de places du cours a changé
       lui aussi**, pas seulement le badge — c'est le volet `D-016` absorbé, et
       c'est le symptôme cité par ce ticket
-- [ ] Hors ligne, le marqueur reste affiché à partir du cache
-- [ ] Se déconnecter efface ce cache : le compte suivant sur le même téléphone ne
+- [ ] **Le retour ne fait clignoter ni la liste ni la page** — ❌ **échoué à la
+      passe du 6 septembre 2026** : toute la page clignote après une réservation
+      comme après une annulation. Parti en `D-018` ; le mécanisme de ce ticket
+      est hors de cause, la relecture est bien silencieuse
+- [x] Hors ligne, le marqueur reste affiché à partir du cache — **vérifié sur
+      appareil le 6 septembre 2026** (scénario E)
+- [x] **Vérifié le 6 septembre 2026.** Se déconnecter efface ce cache : le compte suivant sur le même téléphone ne
       voit aucun marqueur du précédent
-- [ ] Deux boxes sur le même compte ne mélangent pas leurs marqueurs
+- [~] Deux boxes sur le même compte ne mélangent pas leurs marqueurs — **non
+      exerçable** : changer de box impose une déconnexion, qui purge le cache et
+      validerait le critère par le mauvais mécanisme. Exerçable dès **P1-009**
+      (sélecteur de box). Constaté à la passe du 6 septembre 2026
 
 ## Notes
 
