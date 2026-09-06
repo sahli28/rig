@@ -455,6 +455,50 @@ Le reste de la réponse est dans `packages/core/src/i18n/intl.ts`, seul module
 autorisé à toucher `Intl`, où chaque fonction dit ce qu'elle suppose. Et
 `D-010` chiffre ce que coûterait un filet qui s'exécute vraiment sous Hermes.
 
+## 5 quinquies. Le temps réel (P1-005a)
+
+**Un seul critère n'a pas pu être exercé au harnais**, et il vaut sa section :
+un onglet caché n'est pas un téléphone. Écrit ici parce qu'une case à cocher
+dans un ticket et une ligne de journal ne disent pas **quoi faire** — c'est
+exactement ce que `D-014` décrit, « un trou connu qui ne vit que dans un message
+de commit finit par ne vivre nulle part ».
+
+### Le geste qui décide est plus étroit que « passer en arrière-plan »
+
+`apps/mobile/lib/use-realtime-classes.ts` se débranche sur **tout ce qui n'est
+pas `active`** :
+
+```ts
+if (etat === 'active') { brancher(); rappels.current.relire(); }
+else { debrancher(); }
+```
+
+Or iOS n'a pas deux états mais trois, et `inactive` arrive **beaucoup** plus
+souvent qu'on ne le croit en l'écrivant : centre de contrôle tiré, bandeau
+d'appel ou de notification, aperçu du sélecteur d'apps, Siri. À chaque fois, sur
+le code actuel : canal coupé, pastille en « reconnexion », et une **relecture
+réseau** au retour.
+
+Donc le geste n'est pas « verrouiller le téléphone ». Ce sont deux gestes
+distincts, et ils testent deux moitiés différentes.
+
+| # | Geste | Attendu | Ce que ça décide |
+|---|---|---|---|
+| 1 | Sur le planning, **tirer le centre de contrôle et le refermer** aussitôt. Trois fois de suite | La pastille **ne devrait pas** clignoter en « reconnexion » pour une demi-seconde de centre de contrôle | Si elle clignote et qu'une lecture part à chaque fois : **c'est une nervosité à arbitrer, pas un vert.** Le correctif candidat tient en un mot — ne se débrancher que sur `background`, pas sur `inactive` — mais c'est un arbitrage, pas une évidence : `inactive` couvre aussi des cas où le socket est réellement gelé |
+| 2 | **Verrouiller l'écran**, attendre 30 s, déverrouiller | Le canal se rebranche, l'écran affiche l'état du moment, et une réservation faite pendant le verrouillage est visible | L'autre moitié : le canal survit-il proprement à un vrai passage en arrière-plan, et la relecture au retour rattrape-t-elle ce qui a été manqué |
+| 3 | Après les deux, sur le PC : `select count(*) from realtime.subscription;` | **2** — l'accueil et le planning, pas un de plus | Aucun canal orphelin. Le compte peut monter transitoirement : `removeChannel()` est asynchrone, laisser retomber quelques secondes avant de lire |
+| 4 | Pendant l'app verrouillée, réserver depuis le PC (`book_class()`), puis déverrouiller | Le compteur est à jour **sans** squelette ni rechargement visible | Les événements manqués ne se rattrapent pas : c'est la relecture au retour qui doit les couvrir, silencieusement |
+
+**Le décor** : `pnpm test:db:fresh`, puis un second client pour provoquer les
+changements — le back-office web, ou `book_class()` en `psql`. Compte
+`lea@example.com` ; `julie@example.com` pour réserver depuis l'autre côté.
+
+**Ce qui est déjà prouvé et n'a pas à être rejoué** : le compteur qui bouge en
+moins de 3 s, l'isolation entre boxes, le repli à 30 s et son arrêt au retour du
+canal, l'absence de fuite sur 20 écrans. Tout ça a été mesuré au harnais le
+6 septembre 2026 — cette passe ne couvre que ce que le navigateur ne sait pas
+faire.
+
 ## Journal des passes
 
 Une passe se périme — Expo bouge, l'IP change, le trousseau se vide. Les dates

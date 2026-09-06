@@ -164,7 +164,11 @@ l'ouverture, tenu : une passe, pas de second tour.
       canal orphelin, et l'écran retrouvé affiche l'état du moment. Le code est
       là (`AppState`, `use-realtime-classes.ts`) ; **le harnais web n'a pas
       d'arrière-plan**, et un onglet caché n'est pas un téléphone verrouillé.
-      Reste à la prochaine passe iPhone
+      **Le geste est écrit** — `docs/passe-mobile-iphone.md`, § 5 quinquies — et
+      il est plus étroit que « passer en arrière-plan » : l'écouteur se débranche
+      sur tout ce qui n'est pas `active`, or iOS émet `inactive` au moindre
+      centre de contrôle. Ce qui décide, c'est **tirer le centre de contrôle et
+      le refermer** ; le verrouillage teste l'autre moitié
 - [x] **Le compteur affiché ne fait jamais autorité** : la réservation reste
       refusée par la base si la place est prise. `book_class` sous verrou, prouvé
       en pgTAP et sous contention réelle en CI depuis P1-003 ; rien ici ne le

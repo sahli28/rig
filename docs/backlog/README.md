@@ -63,18 +63,56 @@ qui est en gras était absent du backlog jusqu'au 2 septembre 2026.
 
 ## Chemin critique hors code
 
-**Dernier examen : 3 septembre 2026.** À relire à chaque revue de backlog, et à
-dater à nouveau — une échéance non relue est une échéance oubliée.
+**Dernier examen : 6 septembre 2026** *(le précédent datait du 3, et cette
+section disait elle-même qu'une échéance non relue est une échéance oubliée —
+trois jours plus tard, elle avait raison)*.
+
+**Ce que ce réexamen a changé : le compte développeur Apple ne bloque plus un
+ticket lointain, il bloque le prochain.** Expo Go ne sait plus envoyer de push
+depuis le SDK 53 et le dépôt est en `~57.0.18` ; tester le push demande un
+*development build*, donc un compte Apple pour iOS. Or `P1-007` ouvre la chaîne
+`P1-007 → P1-006 → P1-008`, soit **16 des 26 j·h restants**, et `P1-006` dépend
+de `P1-007` pour la promotion de liste d'attente. Détail et prérequis vérifiés
+dans le ticket.
+
+**Android reste ouvert et gratuit** : development build APK, FCM, aucun compte
+payant. C'est ce qui rend la question d'ordre arbitrable au lieu d'être subie.
+
+### L'ordre arbitré le 6 septembre 2026
+
+**On ne part pas sur P1-007 en Android.** Le ticket sortirait avec deux `[~]`
+durables, et la box pilote est sur iPhone : un push qui ne marche que sur la
+moitié des téléphones n'est pas un jalon franchi. `P1-007 → P1-006` **reprennent
+quand le compte Apple est validé**, dans leur ordre écrit.
+
+D'ici là, quatre pas, et le troisième est ce qui les tient ensemble :
+
+1. **`D-016`** (0,25) — `index.tsx` et `bookings.tsx`, ce qui reste après que
+   P1-012 a pris `planning.tsx` et que P1-005a a retiré la moitié « places » ;
+2. **`D-014`** (0,5) — les deux filets dont on connaît le trou ;
+3. **une seule passe iPhone**, qui ferme d'un coup ce que quatre tickets ont
+   laissé ouvert : l'arrière-plan de `P1-005a` (§ 5 quinquies), les trois gestes
+   de `D-011`, les écrans de `D-016`, et le balayage iOS de `D-009`. **Quatre
+   dettes d'appareil, une passe** — c'est tout l'intérêt de les avoir laissées
+   s'accumuler plutôt que d'avoir joué quatre passes ;
+4. **`P1-008`** (6) — check-in QR et kiosque, qui ne dépend que de `P1-003`,
+   fait.
+
+**Et `P1-008` n'ouvre pas sans sa section « ce que ce ticket suppose ».** Un
+prérequis est déjà connu et il n'est pas dans le ticket : **le mode kiosque a
+besoin d'un contexte sécurisé**. `getUserMedia` n'existe tout simplement pas sur
+`http://<IP>:3000` — pas « demande une permission », *absente de l'objet*. Sans
+HTTPS sur la tablette, le scan n'est pas seulement intestable : il ne peut pas
+exister. À écrire **avant** de lancer le ticket, pas à découvrir dedans.
 
 Quatre démarches administratives bloquent du code déjà écrit ou déjà chiffré.
-**Aucune ne se rattrape en codant plus vite**, et aucune n'a bougé depuis une
-semaine. Elles ne vivent nulle part ailleurs dans le dépôt : ni un ticket, ni un
-test, ni la CI ne les rappellera.
+**Aucune ne se rattrape en codant plus vite.** Elles ne vivent nulle part
+ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
 
 | Quoi | Bloque | Pourquoi maintenant |
 | --- | --- | --- |
 | **Trois `client_id` Google** (web, iOS, Android) | P0-005b, puis P2-003 | Bloqué depuis cinq sessions. URI de redirection **exactement** `http://127.0.0.1:55321/auth/v1/callback` en local : Google compare au caractère près, et `localhost` n'est pas `127.0.0.1` pour lui |
-| **Compte développeur Apple**, 99 $/an | P2-003, et toute publication | Vérification d'identité, délai d'enrôlement variable. Câbler Google engage sur Apple avant soumission (guideline 4.8) |
+| **Compte développeur Apple**, 99 $/an | **`P1-007` (le prochain ticket), `P1-006` derrière lui**, `P1-003b` et `P1-005a` pour leurs critères ouverts, `P2-003` et toute publication | **Promu au premier rang le 6 sept. 2026.** Il ne bloquait qu'une soumission lointaine ; il bloque désormais le push sur iOS — Expo Go ne le fait plus depuis le SDK 53, il faut un *development build*. Vérification d'identité, délai d'enrôlement variable. Câbler Google engage sur Apple avant soumission (guideline 4.8) |
 | **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société |
 | **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, et le retour Apple | **Trois éléments bloqués par une seule absence** — et depuis le 4 sept. 2026 le nom est connu (**Rack**), donc le domaine est achetable : c'est la seule des quatre démarches qui ne dépende que d'une carte bancaire |
 
@@ -119,7 +157,9 @@ D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'
 D-014                                  (les deux filets dont on connaît le trou — non bloquant)
 P1-004 ✅ fait → P1-005a ✅ fait        (annulation, temps réel sur le téléphone)
                  P1-005b non programmé  (le même canal dans la grille web — si la box le réclame)
-P1-007 → P1-006 → P1-008               (push, waitlist, check-in)
+D-016 → D-014 → ✳ passe iPhone → P1-008   (l'ordre arbitré le 6 sept. 2026, voir ci-dessous)
+P1-007 🔒 → P1-006                        (push, waitlist — reprennent au compte Apple validé)
+   ↑ iOS bloqué par le compte développeur Apple. Android ouvert, mais on n'y va pas.
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
         ↓
   ═══ JALON : mise en production chez la box pilote ═══
@@ -166,8 +206,8 @@ sait pas lui répondre.
 | P1-012  | Le planning dit ce qui est déjà réservé           |      1 | ✅ **fusionné (PR #46) — passe faite le 6 sept. 2026** : tout passe sauf le clignotement au retour (→ `D-018`), et le critère « deux boxes » reste `[~]` faute de `P1-009`. **2 → 1 le 6 sept. 2026** : P1-014 a livré le chemin de données et tranché la décision hors ligne. Reste le détail par cours, le badge, et **le volet `planning.tsx` de `D-016`, absorbé ici** — sans lui le badge serait faux au retour sur la liste |
 | P1-005a | Places restantes en temps réel, sur le téléphone  |      3 | ✅ **fait le 6 sept. 2026 — passe harnais à deux clients**, dix critères sur onze. L'isolation du canal est **prouvée** là où pgTAP ne peut pas : sonde sans filtre de box, un seul des deux événements reçu. Un défaut trouvé et corrigé — deux écrans partageaient un nom de canal, et `channel()` rend l'existant. **Un critère `[ ]` : l'arrière-plan**, qu'un onglet caché ne sait pas exercer → prochaine passe iPhone. Découpé de `P1-005` le même jour : `waitlist_length` → `P1-006`, le web → `P1-005b` |
 | P1-005b | Le même canal dans la grille du back-office       |      1 | **non programmé** — écrit, chiffré, hors du total. Au pilote, la valeur du temps réel est sur le téléphone du membre, là où deux personnes se disputent la dernière place ; le manager peut rafraîchir. Sort en une session si la box pilote le réclame |
-| P1-006  | Liste d'attente et promotion                      |      6 | à faire              |
-| P1-007  | Notifications push                                |      4 | à faire              |
+| P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière P1-007**, dont elle tient la promotion. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
+| P1-007  | Notifications push                                |      4 | 🔒 **partiellement bloqué — iOS**. Sa section « ce que ce ticket suppose », écrite le 6 sept. 2026, a trouvé trois trous que l'estimation ne couvre pas : **aucun émetteur** (ni edge function, ni route handler), **aucun journal d'envoi** pour le plafond marketing, et **`users` n'a pas de fuseau** alors que les quiet hours sont « heure locale du membre ». Deux critères en `[~]` : le push iOS et le deep link, tous deux derrière le **compte développeur Apple**. Android est ouvert et gratuit. **4 j·h à recompter au lancement** |
 | P1-008  | Check-in QR et mode kiosque                       |      6 | à faire              |
 | P1-013  | Droits de réservation accordés à la main          |      2 | **non programmé** — écrit, chiffré, prêt. À sortir le jour où la box pilote veut couper un droit sans exclure quelqu'un. `member_has_booking_right()` rend `true` pour tout membre actif : c'est son appelant manquant |
 | P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. **Rend exerçable un critère `[~]` de P1-012** (deux boxes, sans passer par la déconnexion qui purge le cache). La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
