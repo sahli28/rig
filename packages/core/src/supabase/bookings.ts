@@ -434,21 +434,24 @@ export async function fetchUpcomingBookings(
 }
 
 /** Combien de réservations confirmées par jour, en dates locales de la box. */
-export type BookedDays = Record<string, number>;
+export type BookedDays = Record<string, string[]>;
 
 /**
- * Les **jours** d'un intervalle où la personne a au moins une réservation
- * confirmée, et **combien** — en dates locales de la box (P1-014).
+ * Les réservations confirmées d'un intervalle, **rangées par jour local de la
+ * box** : une date vers les `class_id` réservés ce jour-là (P1-014, P1-012).
  *
- * **Des dates et un compte, rien d'autre.** Ni heure, ni nom de cours, ni
- * identifiant : c'est tout ce qu'une pastille de calendrier demande, et c'est
- * aussi tout ce qui finira dans le cache de l'appareil.
+ * **Des dates et des identifiants de cours, rien d'autre.** Ni heure, ni nom, ni
+ * identifiant de réservation : c'est tout ce que la pastille du calendrier et le
+ * badge « Réservé » demandent, et c'est aussi tout ce qui finira dans le cache
+ * de l'appareil.
  *
- * **Le compte n'est pas décoratif.** Une pastille est un marqueur visuel : sans
- * le nombre, l'étiquette d'accessibilité ne peut dire que « réservé » là où
- * l'écran montre « ce jour-là, il y a quelque chose, et il y en a deux ». Le
- * rendre ici plutôt que de le laisser deviner par l'écran évite aussi qu'il
- * diverge entre le réseau et le cache.
+ * **Cette fonction rendait un compte, elle rend maintenant les identifiants**
+ * (P1-012). Le compte n'était pas faux, il était juste trop pauvre : il dit « tu
+ * as deux choses mardi », pas *lesquelles*, et un badge se pose sur une ligne de
+ * cours. Deux façons de combler ça — une seconde lecture par jour, ou élargir
+ * celle-ci. C'est la seconde, parce qu'une seule requête sert alors les deux
+ * usages et que **le compte devient dérivé** (`ids.length`) : deux valeurs qui
+ * ne peuvent plus se contredire valent mieux que deux valeurs à synchroniser.
  *
  * **Pourquoi une fonction de plus, et pas `fetchUpcomingBookings()`.** Celle-ci
  * lit **toutes** les réservations de la personne, puis ne garde que les cours
@@ -515,7 +518,7 @@ export async function fetchBookedDays(
     // chaîne poserait la pastille sur le mauvais jour, et sur le mauvais
     // **mois** une fois par mois. Règle 9 de `CLAUDE.md`.
     const jour = localDay(row.starts_at, timeZone);
-    jours[jour] = (jours[jour] ?? 0) + 1;
+    (jours[jour] ??= []).push(row.id);
   }
 
   return jours;

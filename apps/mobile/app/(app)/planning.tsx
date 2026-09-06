@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { useNetworkState } from 'expo-network';
@@ -24,6 +24,7 @@ import {
 } from '../../lib/schedule-cache';
 import { MonthCalendar } from '../../components/month-calendar';
 import { dernierJourDu, moisDe, premierJourDu } from '../../components/month-grid-state';
+import { comptesDuMois, moisACharger, reservesDuJour } from '../../lib/booked-classes';
 
 /**
  * Le planning du jour, côté membre.
@@ -86,7 +87,7 @@ export default function PlanningScreen() {
    * ne pas avoir deux valeurs à tenir d'accord après coup.
    */
   const [mois, setMois] = useState(() => moisDe(today));
-  const [joursReserves, setJoursReserves] = useState<BookedDays>({});
+  const [reserves, setReserves] = useState<Record<string, BookedDays>>({});
 
   const membership = me?.memberships.find((m) => m.tenant_id === activeTenantId) ?? null;
   const membershipId = membership?.id ?? null;
@@ -137,28 +138,46 @@ export default function PlanningScreen() {
    * place est une donnée qui change sous les doigts. Le cache est un filet, pas
    * un raccourci.
    */
-  useEffect(() => {
-    if (userId === null || activeTenantId === null) return;
+  /**
+   * **Le jeton qui remplace le drapeau d'annulation de l'effet.**
+   *
+   * La lecture n'est plus déclenchée que par un changement de jour : le retour
+   * sur l'écran la relance aussi (P1-012, volet `D-016`). Un `let annulé` local
+   * à l'effet ne couvrait que le premier cas. Le jeton couvre les deux — seule
+   * la lecture la plus récente a le droit d'écrire, quelle que soit celle qui
+   * revient en dernier.
+   */
+  const lecture = useRef(0);
 
-    const jour = date;
-    let annulé = false;
-    // Synchrone, et **avant tout** : c'est ce qui empêche le bandeau du jour
-    // précédent de survivre au-dessus de la liste du suivant.
-    setEtat({ jour, phase: 'chargement', schedule: null, origine: 'network' });
+  const chargerJour = useCallback(
+    async (silencieux = false) => {
+      if (userId === null || activeTenantId === null) return;
 
-    /** Le cache, et le verdict qui va avec. Jamais de squelette après ça. */
-    const replier = async (): Promise<void> => {
-      const cache = await readDay(userId, activeTenantId, jour);
-      if (annulé) return;
-      setEtat({
-        jour,
-        phase: cache === null ? 'indisponible' : 'prêt',
-        schedule: cache,
-        origine: 'cache',
-      });
-    };
+      const jour = date;
+      const jeton = ++lecture.current;
+      const périmé = () => jeton !== lecture.current;
 
-    void (async () => {
+      // **Le squelette, sauf au retour d'écran.** Synchrone et avant tout, c'est
+      // ce qui empêche le bandeau du jour précédent de survivre au-dessus de la
+      // liste du suivant. Mais une relecture silencieuse ne doit rien vider :
+      // faire clignoter trois squelettes à chaque retour serait un remède pire
+      // que le mal qu'on soigne.
+      if (!silencieux) {
+        setEtat({ jour, phase: 'chargement', schedule: null, origine: 'network' });
+      }
+
+      /** Le cache, et le verdict qui va avec. Jamais de squelette après ça. */
+      const replier = async (): Promise<void> => {
+        const cache = await readDay(userId, activeTenantId, jour);
+        if (périmé()) return;
+        setEtat({
+          jour,
+          phase: cache === null ? 'indisponible' : 'prêt',
+          schedule: cache,
+          origine: 'cache',
+        });
+      };
+
       // Hors ligne, on ne part pas : inutile d'attendre l'échec d'une requête
       // dont on sait qu'elle échouera, et dont le délai d'échec varie.
       if (!enLigne) {
@@ -172,78 +191,104 @@ export default function PlanningScreen() {
           timeZone,
           locale,
         });
-        if (annulé) return;
+        if (périmé()) return;
         setEtat({ jour, phase: 'prêt', schedule: frais, origine: 'network' });
         await writeDay(userId, activeTenantId, frais);
       } catch {
         // Réseau tombé en route, ou délai d'expiration atteint. Les deux mènent
         // au même endroit : ce qu'on a sur l'appareil, ou rien, mais dit.
-        if (!annulé) await replier();
+        if (!périmé()) await replier();
       }
-    })();
-
-    // Changer de jour pendant qu'une lecture court **annule** son effet : sans
-    // ça, deux requêtes en vol pourraient se résoudre dans le désordre et
-    // afficher le mauvais jour.
-    return () => {
-      annulé = true;
-    };
-  }, [userId, activeTenantId, timeZone, locale, date, enLigne]);
-
-  /**
-   * Les pastilles du mois affiché (P1-014).
-   *
-   * **Une requête par mois, rien de préchargé.** Le mois voisin se charge quand
-   * on y va, pas avant : trente jours atteignables ne sont pas trente jours à
-   * charger, et c'est déjà la règle du composant.
-   *
-   * Réseau d'abord, cache en repli — le même ordre que le planning, pour la même
-   * raison. Ici l'enjeu est moindre : une pastille périmée n'est pas une place
-   * périmée, et personne ne réserve depuis une pastille.
-   */
-  const chargerPastilles = useCallback(async () => {
-    if (userId === null || activeTenantId === null || membershipId === null) return;
-
-    const demande = mois;
-    if (enLigne) {
-      try {
-        const jours = await fetchBookedDays(supabase, {
-          tenantId: activeTenantId,
-          membershipId,
-          timeZone,
-          from: premierJourDu(demande),
-          to: dernierJourDu(demande),
-        });
-        setJoursReserves(jours);
-        await writeBookedDays(userId, activeTenantId, demande, jours);
-        return;
-      } catch {
-        /* on retombe sur le cache, comme le planning */
-      }
-    }
-    setJoursReserves(await readBookedDays(userId, activeTenantId, demande));
-  }, [userId, activeTenantId, membershipId, timeZone, mois, enLigne]);
+    },
+    [userId, activeTenantId, timeZone, locale, date, enLigne],
+  );
 
   useEffect(() => {
-    void chargerPastilles();
-  }, [chargerPastilles]);
+    void chargerJour();
+  }, [chargerJour]);
 
   /**
-   * **Au retour sur l'écran, les pastilles se relisent.**
+   * Ce qui est réservé, **par mois** (P1-014 pour les pastilles, P1-012 pour les
+   * badges).
    *
-   * Une pastille est un état dérivé de la base, et les états dérivés de cet
-   * écran ont affiché le contraire de la base deux fois (P1-003c, puis D-016).
-   * Annuler depuis le détail d'un cours puis revenir ici doit retirer le point,
-   * sans relancer l'app.
+   * **Indexé par mois et non « le mois courant »**, parce que le mois feuilleté
+   * et le jour affiché sont deux choses séparées : on peut regarder octobre en
+   * gardant le 5 septembre ouvert en dessous. Un seul mois en mémoire ferait
+   * disparaître les badges d'une liste qui, elle, n'a pas bougé.
    *
-   * La **liste du jour**, elle, ne se relit pas au retour : c'est D-016, et ce
-   * ticket ne l'absorbe pas. Rien de ce qu'elle affiche ne dépend d'une
-   * réservation — le badge « Réservé » sur la ligne est P1-012.
+   * **Une requête par mois, rien de préchargé**, et une seule dans le cas
+   * courant — `moisACharger()` ne demande le second que s'ils diffèrent
+   * vraiment.
+   *
+   * Réseau d'abord, cache en repli — le même ordre que le planning, pour la même
+   * raison. Ici l'enjeu est moindre : un marqueur périmé n'est pas une place
+   * périmée, et personne ne réserve depuis une pastille.
    */
+  const chargerReserves = useCallback(async () => {
+    if (userId === null || activeTenantId === null || membershipId === null) return;
+
+    const demandés = moisACharger(mois, date);
+    const résultats = await Promise.all(
+      demandés.map(async (m): Promise<[string, BookedDays]> => {
+        if (enLigne) {
+          try {
+            const jours = await fetchBookedDays(supabase, {
+              tenantId: activeTenantId,
+              membershipId,
+              timeZone,
+              from: premierJourDu(m),
+              to: dernierJourDu(m),
+            });
+            await writeBookedDays(userId, activeTenantId, m, jours);
+            return [m, jours];
+          } catch {
+            /* on retombe sur le cache, comme le planning */
+          }
+        }
+        return [m, await readBookedDays(userId, activeTenantId, m)];
+      }),
+    );
+
+    // Fusion plutôt que remplacement : un mois qu'on a quitté reste bon, et le
+    // recharger à chaque aller-retour serait une requête pour rien.
+    setReserves((actuelles) => ({ ...actuelles, ...Object.fromEntries(résultats) }));
+  }, [userId, activeTenantId, membershipId, timeZone, mois, date, enLigne]);
+
+  useEffect(() => {
+    void chargerReserves();
+  }, [chargerReserves]);
+
+  /**
+   * **Au retour sur l'écran, tout ce qui dépend d'une réservation se relit** —
+   * les marqueurs *et* la liste du jour.
+   *
+   * Ce commentaire disait le contraire jusqu'à P1-012, et il avait raison de le
+   * dire : le 5 septembre, rien de ce que la liste affichait ne dépendait d'une
+   * réservation, donc sa relecture restait à `D-016`. Le badge « Réservé » rend
+   * cette phrase fausse — et pas d'un cheveu : livrer le badge sans la relecture
+   * donnerait un badge **faux au moment précis où on le regarde**, en revenant
+   * sur la liste juste après avoir réservé. P1-012 absorbe donc le volet
+   * `planning.tsx` de `D-016`, qui se réduit à `index.tsx` et `bookings.tsx`.
+   *
+   * Le nombre de places compte autant que le badge : réserver le change, et une
+   * liste qui montrerait « Réservé » à côté d'un compteur inchangé se
+   * contredirait elle-même.
+   *
+   * **Le premier passage est sauté.** Le montage a déjà déclenché les deux
+   * lectures par leurs effets ; les relancer ici les ferait partir en double au
+   * démarrage. Ce que ce `useFocusEffect` couvre, ce sont les **retours**.
+   */
+  const premierPassage = useRef(true);
   useFocusEffect(
     useCallback(() => {
-      void chargerPastilles();
-    }, [chargerPastilles]),
+      if (premierPassage.current) {
+        premierPassage.current = false;
+        return;
+      }
+      // Silencieuse : au retour, on rafraîchit sans vider l'écran.
+      void chargerJour(true);
+      void chargerReserves();
+    }, [chargerJour, chargerReserves]),
   );
 
   /**
@@ -272,6 +317,13 @@ export default function PlanningScreen() {
 
   const types = useMemo(() => valeursDe((item) => item.className), [valeursDe]);
   const coaches = useMemo(() => valeursDe((item) => item.coachName), [valeursDe]);
+
+  /**
+   * Les cours réservés du **jour affiché** — pas du mois feuilleté (P1-012).
+   * La distinction n'est pas théorique : on peut regarder octobre en gardant le
+   * 5 septembre ouvert en dessous, et c'est la liste qui porte les badges.
+   */
+  const reservesDuJourAffiche = useMemo(() => reservesDuJour(reserves, date), [reserves, date]);
 
   const shown = (vue.schedule?.classes ?? []).filter(
     (item) =>
@@ -337,7 +389,7 @@ export default function PlanningScreen() {
         mois={mois}
         onMoisChange={setMois}
         today={today}
-        joursReserves={joursReserves}
+        joursReserves={comptesDuMois(reserves[mois])}
         moisDAdhesion={moisDAdhesion}
       />
 
@@ -418,6 +470,7 @@ export default function PlanningScreen() {
         shown.map((item) => {
           const places = seatsLeft(item);
           const cancelled = item.status === 'CANCELLED';
+          const reserve = reservesDuJourAffiche.has(item.id);
 
           return (
             <ListRow
@@ -441,18 +494,33 @@ export default function PlanningScreen() {
                 .filter((part) => part !== '')
                 .join(' · ')}
               trailing={
-                <Badge
-                  // **Avec l'unité, toujours.** « 3 » ne dit rien à un lecteur
-                  // d'écran : le voyant lit la colonne autour, pas lui.
-                  label={
-                    cancelled
-                      ? t('planning.cancelled')
-                      : places === 0
-                        ? t('planning.full')
-                        : t('planning.seats_left', { count: places })
-                  }
-                  tone={cancelled ? 'danger' : places === 0 ? 'warning' : 'success'}
-                />
+                <View style={{ alignItems: 'flex-end', gap: theme.space(1) }}>
+                  {/* **Le badge « Réservé » est un texte** (`.claude/rules/ui.md`) :
+                      un liseré coloré ne dirait rien à un lecteur d'écran, et
+                      rien du tout à qui ne distingue pas les couleurs.
+
+                      **Il ne remplace pas le compteur, il s'ajoute.** Les deux
+                      répondent à des questions différentes — « suis-je
+                      inscrite ? » et « reste-t-il de la place ? » — et la
+                      seconde reste utile une fois inscrite : c'est elle qui dit
+                      si le cours se remplit. Les afficher ensemble est aussi ce
+                      qui rend visible le critère du ticket : réserver change
+                      **les deux**, et une liste qui n'en changerait qu'un se
+                      contredirait. */}
+                  {reserve ? <Badge label={t('booking.booked')} tone="primary" /> : null}
+                  <Badge
+                    // **Avec l'unité, toujours.** « 3 » ne dit rien à un lecteur
+                    // d'écran : le voyant lit la colonne autour, pas lui.
+                    label={
+                      cancelled
+                        ? t('planning.cancelled')
+                        : places === 0
+                          ? t('planning.full')
+                          : t('planning.seats_left', { count: places })
+                    }
+                    tone={cancelled ? 'danger' : places === 0 ? 'warning' : 'success'}
+                  />
+                </View>
               }
             />
           );

@@ -104,13 +104,13 @@ dans le 1 j·h). `D-016` se réduit à ses deux écrans restants, `index.tsx` et
 
 ## Critères d'acceptation
 
-- [ ] Une membre inscrite au 18h30 le voit **sur la ligne du cours**, sans
+- [x] Une membre inscrite au 18h30 le voit **sur la ligne du cours**, sans
       ouvrir le détail
-- [ ] Le badge est un texte lisible par VoiceOver, pas une couleur seule
-- [ ] Annuler une réservation (P1-004) fait disparaître le marqueur **au retour
+- [x] Le badge est un texte lisible par VoiceOver, pas une couleur seule
+- [x] Annuler une réservation (P1-004) fait disparaître le marqueur **au retour
       sur le planning**, sans relancer l'app — c'est le geste 3 de `D-016`, et il
       s'est déjà fait prendre deux fois
-- [ ] **Réserver, revenir sur la liste : le nombre de places du cours a changé
+- [x] **Réserver, revenir sur la liste : le nombre de places du cours a changé
       lui aussi**, pas seulement le badge — c'est le volet `D-016` absorbé, et
       c'est le symptôme cité par ce ticket
 - [ ] Hors ligne, le marqueur reste affiché à partir du cache
@@ -124,3 +124,37 @@ Le quatrième critère est le piège de ce ticket, et il est connu : un marqueur
 un état dérivé, et les états dérivés de cet écran ont déjà affiché le contraire
 de la base deux fois (P1-003c, puis `D-016`). Le relire au retour d'écran n'est
 pas une précaution, c'est la règle du dépôt.
+
+## Ce qui a été décidé en cours de route
+
+**1. `BookedDays` passe de `jour → nombre` à `jour → identifiants de cours.**
+Le ticket disait que l'option B — « mettre en cache des identifiants » — était
+déjà en place. Elle ne l'était qu'à moitié : P1-014 stockait des **comptes**.
+Deux façons de combler le manque, une seconde lecture par jour ou élargir la
+première ; c'est la seconde, parce qu'une requête sert alors les deux usages et
+que **le compte devient dérivé** (`ids.length`). Deux valeurs qui ne peuvent plus
+se contredire valent mieux que deux valeurs à synchroniser.
+
+Conséquence assumée : un cache écrit par la version précédente ne valide plus.
+`readBookedDays()` le jette, la première lecture réseau le remplace — c'est
+exactement ce que le schéma Zod est là pour faire.
+
+**2. Le trou que le ticket ne voyait pas : les mois sont chargés, le jour est
+affiché, et ce ne sont pas les mêmes.** Depuis P1-014, feuilleter octobre ne
+déplace pas le jour ouvert en dessous. Un badge qui aurait lu « le mois chargé »
+aurait donc perdu ses marqueurs dès qu'on feuillette, sur une liste qui n'a pas
+bougé. D'où un état **indexé par mois** et `moisACharger()`, qui ne demande le
+second mois que s'il diffère vraiment — soit jamais, dans le cas courant.
+
+**3. Le badge s'ajoute au compteur, il ne le remplace pas.** « Suis-je
+inscrite ? » et « reste-t-il de la place ? » sont deux questions, et la seconde
+reste utile une fois inscrite. C'est aussi ce qui rend le quatrième critère
+observable : réserver change **les deux**.
+
+## Ce qui reste à vérifier à la main
+
+Quatre critères sur sept sont vérifiés au harnais web — badge, texte lisible,
+annulation, et le volet `D-016`. Les trois derniers demandent un appareil :
+hors ligne, purge à la déconnexion, et deux boxes sur le même compte. Ils sont
+tenus **par construction** (clé de cache `(userId, tenantId)`, purge branchée sur
+`clearScheduleCache()`), ce qui n'est pas la même chose qu'observé.
