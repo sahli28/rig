@@ -80,12 +80,6 @@ function ThemedStack() {
   const { status } = useSession();
   useAuthRedirect();
 
-  // === SONDE D-018, TEMPORAIRE ===
-  // C'est le seul rendu conditionnel du dépôt qui remplace **tout l'arbre**.
-  // En sortir remonte ce qu'il avait remplacé — donc tous les écrans.
-  if (status === 'loading')
-    console.log('[D-018] ThemedStack rend l’écran de chargement plein cadre');
-
   if (status === 'loading') {
     return (
       <View
@@ -230,12 +224,6 @@ function Branded() {
 installRandomBytesSource((n) => Crypto.getRandomBytes(n));
 
 export default function RootLayout() {
-  // === SONDE D-018, TEMPORAIRE ===
-  useEffect(() => {
-    console.log('[D-018] MONTAGE RootLayout');
-    return () => console.log('[D-018] DÉMONTAGE RootLayout');
-  }, []);
-
   return (
     <BrandProvider>
       <SessionProvider>
