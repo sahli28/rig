@@ -9,6 +9,14 @@
 - Fenêtre de confirmation : 60 min si le cours est à plus de 12 h, promotion automatique sinon.
 - Promotion en cascade si la personne promue ne confirme pas.
 - Écrans : Waitlist Position (position, estimation), notification de promotion, confirmation.
+- **`waitlist_length` en temps réel, repris de `P1-005`.** Le périmètre de
+  `P1-005` l'annonçait alors qu'aucune table de liste d'attente n'existait, et
+  que `P1-006` — qui la livre — vient **après** lui dans l'ordre : un ticket ne
+  peut pas dépendre de celui qui le suit. Déplacé ici le 6 septembre 2026, à la
+  découpe de `P1-005`. Ce qui reste à faire alors est petit : `P1-005a` aura
+  livré la publication `supabase_realtime` et le module d'abonnement ; il faudra
+  y ajouter la source du compte, et **la publication de la nouvelle table**, qui
+  ne s'ajoute pas toute seule.
 
 ## Critères d'acceptation
 

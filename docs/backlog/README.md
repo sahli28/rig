@@ -36,6 +36,25 @@ décisions de forme de l'addendum §21. `P2-013b` créé sur une demande d'usage
 le module de records de HustleUp — et il déplace une dépendance que personne
 n'avait relue : **P2-011 dépend des records, pas des scores.**
 
+**Revue du 6 septembre 2026 (soir), à l'ouverture de P1-005.** Le ticket n'avait
+pas sa section « ce que ce ticket suppose » — règle 8 — et l'écrire a trouvé
+trois choses avant la première ligne de code : la publication
+`supabase_realtime` **n'existe nulle part** dans `supabase/`, `waitlist_length`
+n'a **aucune source** et dépendait de `P1-006`, qui vient *après*, et le volet
+web ne vaut pas le jalon. D'où la découpe en `P1-005a` (3, dans le total) et
+`P1-005b` (1, non programmé), et le déplacement de `waitlist_length` vers
+`P1-006`. **Deuxième fois que la règle 8 travaille avant le code plutôt
+qu'après**, et la première où elle évite une dépendance circulaire dans l'ordre
+des tickets.
+
+Deux règles en sont sorties, écrites là où elles se reliront. Dans `CLAUDE.md`,
+la **règle 9** : une sonde qui doit survivre à sa PR porte `__DEV__` dès sa
+première ligne — `D-018` a fusionné dix `console.log` sur `main`, dont certains
+écrivaient `userId`, parce qu'ils étaient « gardés volontairement ». Et son
+corollaire, appliqué immédiatement à `P1-005a` : **le plafond de mesure d'un
+défaut qui ne s'observe qu'avec plusieurs clients se décide à l'ouverture du
+ticket**, jamais au troisième tour.
+
 **La ligne de démarcation est celle de la spec §2.6** : une box doit pouvoir
 créer son compte → configurer son planning → inviter ses membres → **vendre un
 abonnement et un pack de 10** → voir réserver, annuler, pointer → **publier le
@@ -98,7 +117,8 @@ P1-003c ✅ fait → P1-011 ✅ fait → P1-014 ✅ fait  (la feuille d'inscrits
 D-010 ✅ arbitré et clos · D-012 ✅ fait  (le moteur du produit : rien de plus maintenant, et la façade crypto comptée)
 D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'il touche les mêmes fichiers)
 D-014                                  (les deux filets dont on connaît le trou — non bloquant)
-P1-004 ✅ fait → P1-005                 (annulation, temps réel)
+P1-004 ✅ fait → P1-005a                (annulation, temps réel sur le téléphone)
+                 P1-005b non programmé  (le même canal dans la grille web — si la box le réclame)
 P1-007 → P1-006 → P1-008               (push, waitlist, check-in)
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
         ↓
@@ -144,7 +164,8 @@ sait pas lui répondre.
 | P1-004  | Annulation et fenêtres                            |      4 | ✅ **fait le 5 sept. 2026** — RM2.4 tranchée : le pilote **accepte** l'annulation tardive et la marque, sans promettre un crédit qui n'existe pas. A fermé une sœur oubliée : annuler un cours laissait ses réservations confirmées. Un critère ouvert, la notification (P1-007) |
 | P1-014  | Calendrier du mois, pastille sur mes jours réservés |  2,5 | ✅ **fait le 5 sept. 2026** (PR #42) — **remplace le bandeau de P1-011**, demandé le 5 sept. 2026 en regardant Peppy. La demande n'est pas un sélecteur de plus : c'est **l'historique** du mois, que le bandeau ne pouvait pas montrer puisqu'il refusait le passé. Absorbe le second niveau de P1-012 |
 | P1-012  | Le planning dit ce qui est déjà réservé           |      1 | ✅ **fusionné (PR #46) — passe faite le 6 sept. 2026** : tout passe sauf le clignotement au retour (→ `D-018`), et le critère « deux boxes » reste `[~]` faute de `P1-009`. **2 → 1 le 6 sept. 2026** : P1-014 a livré le chemin de données et tranché la décision hors ligne. Reste le détail par cours, le badge, et **le volet `planning.tsx` de `D-016`, absorbé ici** — sans lui le badge serait faux au retour sur la liste |
-| P1-005  | Places restantes en temps réel                    |      3 | à faire              |
+| P1-005a | Places restantes en temps réel, sur le téléphone  |      3 | **à faire — le prochain**. Découpé de `P1-005` le 6 sept. 2026, avec sa section « ce que ce ticket suppose » : la publication `supabase_realtime` **n'existe pas** (aucune occurrence dans `supabase/`), et `waitlist_length` est parti dans `P1-006` — il n'avait aucune source, et `P1-006` vient *après*. Plafond de mesure décidé à l'ouverture : **une passe, deux clients** |
+| P1-005b | Le même canal dans la grille du back-office       |      1 | **non programmé** — écrit, chiffré, hors du total. Au pilote, la valeur du temps réel est sur le téléphone du membre, là où deux personnes se disputent la dernière place ; le manager peut rafraîchir. Sort en une session si la box pilote le réclame |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire              |
 | P1-007  | Notifications push                                |      4 | à faire              |
 | P1-008  | Check-in QR et mode kiosque                       |      6 | à faire              |
@@ -155,13 +176,18 @@ sait pas lui répondre.
 | D-013   | **RIG devient Rack** — le renommage, d'un seul geste |  0,5 | ✅ fait le 4 sept. 2026 — avant P1-003b, qui touche les mêmes fichiers. Le `scheme` ne se vérifie pas dans Expo Go : ce reliquat part avec le premier *development build* |
 | D-014   | Deux filets dont on connaît le trou               |    0,5 | à faire — non bloquant. Le garde de migrations ne voit pas les écritures par script, et des tests pgTAP affirment des comptes globaux |
 | D-015   | Monter un composant mobile dans un test           |    1,5 | à faire — **à arbitrer, avec son déclencheur**. La suite `.ts` d'`apps/mobile` existe ; ce qui manque est le montage et les gestes |
-| D-018   | L'écran se recharge au retour sur le planning     |      1 | ✅ **clos le 6 sept. 2026** — cause trouvée et corrigée (PR #48 : le focus se rejouait deux fois par retour), puis **sondes retirées** avant P1-005. **0,5 → 1** : deux tours de mesure, comptés plutôt que cachés. Rechargement résiduel **arbitré et accepté** ; les quatre critères d'appareil restent `[ ]`, abandonnés et pas tenus |
+| D-018   | L'écran se recharge au retour sur le planning     |      1 | ✅ **clos le 6 sept. 2026** — cause trouvée et corrigée (PR #48 : le focus se rejouait deux fois par retour), puis **sondes retirées** avant P1-005a. **0,5 → 1** : deux tours de mesure, comptés plutôt que cachés. Rechargement résiduel **arbitré et accepté** ; les quatre critères d'appareil restent `[ ]`, abandonnés et pas tenus |
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
 |         | **Total ①**                                       | **104,5** | dont **75,5 faits**, **29 restants** |
 
-**P1-013 n'est pas dans ce total** : il est écrit et chiffré, pas programmé. Il
-entrera le jour où la box pilote demandera à couper un droit sans exclure
-quelqu'un — et ce jour-là, la décision prendra une minute au lieu d'une session.
+**P1-013 et P1-005b ne sont pas dans ce total** : ils sont écrits et chiffrés,
+pas programmés. `P1-013` entrera le jour où la box pilote demandera à couper un
+droit sans exclure quelqu'un ; `P1-005b` le jour où elle réclamera des compteurs
+vivants dans la grille du back-office. Dans les deux cas la décision prendra une
+minute au lieu d'une session — c'est tout ce qu'on demande à un ticket non
+programmé. **Le total ① ne bouge pas à la découpe de `P1-005`** : les 3 j·h y
+restent, portés par `P1-005a`, et le volet web est un ajout hors total, pas un
+retrait déguisé.
 
 **Un demi-jour retrouvé, et pourquoi on l'écrit.** Le lot du 4 septembre —
 façade `crypto`, sondes, refonte de la configuration ESLint — n'apparaissait dans
@@ -293,7 +319,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-013  | RIG devient Rack                               | 0,5 | Décision produit du 4 sept. 2026 — **✅ fait**, **comptée dans ①**. Fait avant P1-003b : `bundleIdentifier` définitif après la première soumission, clés de stockage gratuites à renommer tant qu'aucune app n'est installée |
 | D-018  | L'écran se recharge au retour sur le planning   | 1 | P1-012, passe du 6 sept. 2026 — **✅ fait**, **comptée dans ①**. Cause trouvée : `useFocusEffect` rejouait l'effet à chaque changement d'identité de sa callback, donc deux lectures par retour. Corrigée, puis sondes retirées — elles avaient fusionné avec le correctif et écrivaient `userId` dans les journaux de l'appareil. **Une sonde qui survit à sa PR porte `__DEV__` dès sa première ligne** |
 | D-017  | Flash blanc au démarrage en mode sombre        | 0,25 | D-009, PR #43 — **✅ fait**, **comptée dans ①**. Deuxième fois que du travail se range dans un ticket clos et disparaît des totaux. `null` n'est pas « clair » : la règle est écrite dans `.claude/rules/ui.md` |
-| D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — la fiche de cours est corrigée dans son ticket, ses trois jumeaux ne le sont pas. Le plus visible : le planning garde son ancien nombre de places après une réservation |
+| D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — la fiche de cours est corrigée dans son ticket, ses trois jumeaux ne le sont pas. `planning.tsx` est parti dans P1-012 ; **P1-005a retirera la moitié « places restantes » du reste**, et ce qui survivra est `index.tsx` (le badge « Réservé », qu'aucun événement sur `classes` ne porte) et `bookings.tsx` (une annulation faite ailleurs, qu'un canal branché sur `classes` ne verra jamais passer). Écrit dans les deux tickets : une dette dont on retire la motivation la plus visible se referme par erreur |
 |        | **Ouvert, hors totaux**                        | **6** | D-002, D-003, D-007, D-008, D-016 — D-004, D-011, D-012, D-013 et D-017 sont dans ①, D-010 est clos |
 
 Ces 6,25 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
