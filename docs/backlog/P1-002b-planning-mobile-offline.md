@@ -28,7 +28,7 @@ Vérifié dans le dépôt le 4 septembre 2026.
 | **Des séries et des cours dans le seed** | `supabase/seed.sql` | ❌ **il n'y en avait aucun.** Ajoutés par ce ticket : sans données, un planning en lecture seule ne peut afficher que son état vide, et aucune passe ne prouve rien |
 | Le sélecteur de box | P1-009 | ❌ à créer par P1-009 — qui devra **vider ce cache** en changeant de box. La contrainte est inscrite des deux côtés |
 | Réserver depuis le planning | P1-003b | ❌ hors périmètre, et **volontairement absent de l'écran hors ligne** — voir la contrainte 2 |
-| Places restantes en temps réel | P1-005 | ❌ à créer par P1-005 |
+| Places restantes en temps réel | P1-005a | ❌ à créer par P1-005a |
 
 ## Ce que ce ticket rend possible, et qui l'appellera
 

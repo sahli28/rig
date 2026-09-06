@@ -56,7 +56,7 @@ fermeture de D-009, P1-002b et P1-010. Pas supposé.
 | **Une annonce vocale de la confirmation sur iOS** | `Toast` (`packages/ui/src/native/toast.tsx:30`) | ⚠️ **à moitié** : `accessibilityLiveRegion` est **Android uniquement**. Sur l'appareil de nos passes, rien n'est annoncé — voir « Le bouton dit ce qu'il réserve » |
 | **Un identifiant unique généré sur l'appareil** | `uuidV7()`, `packages/core/src/crypto.ts` | ✅ **existe depuis le 4 septembre 2026**, avec sa source d'aléa à installer au démarrage. `crypto` est **absent** sous Hermes (pas incomplet) : ESLint l'interdit hors de cette façade, et elle lève plutôt que de se rabattre sur `Math.random()`. **Reste à faire ici** : ajouter `expo-crypto`, la justifier au commit, et appeler `installRandomBytesSource()` dans `_layout.tsx` |
 | Un harnais de test mobile | Maestro, annoncé par `CLAUDE.md` | ❌ **rien** — et `apps/mobile` n'a même pas de script `test`. Les critères de parcours se vérifient **à la main**, et ce ticket le dit plutôt que de faire semblant. Un ticket « harnais mobile » reste à écrire ; il n'est pas bloquant ici, il est seulement absent |
-| Places restantes en temps réel | P1-005 | ❌ hors périmètre : mise à jour optimiste seulement |
+| Places restantes en temps réel | P1-005a | ❌ hors périmètre : mise à jour optimiste seulement |
 | Annulation | P1-004 | ❌ à créer par P1-004. **Conséquence à dire à la box pilote** : après ce ticket, un membre qui a réservé ne peut pas se désinscrire |
 | Liste d'attente | P1-006 | ❌ à créer par P1-006. « Cours complet » est une fin de parcours, pas une porte |
 | Droits de réservation réels (abonnement, crédits) | P2-006, P2-007 | ❌ volontairement absents. `member_has_booking_right()` rend `true` pour tout membre actif : « la box accorde à la main » |
@@ -218,7 +218,7 @@ suites qu'on écrirait spontanément sont fausses :
    première fenêtre.** Une place ne se libère que par une annulation, et
    l'annulation est **P1-004**, *après* ce lot. Entre P1-003b et P1-004, un
    cours complet est **définitivement** clos. La phrase ne redevient vraie qu'à
-   P1-004, et visible qu'à P1-005 ;
+   P1-004, et visible qu'à P1-005a ;
 3. **« Ta box peut ouvrir une place » est vrai en base et faux à l'écran.** La
    policy `classes_update` autorise un admin à relever `classes.capacity`, mais
    aucun écran du back-office ne le fait **pour une occurrence** :
@@ -320,7 +320,7 @@ que de cours, **tous identiques à l'oreille**.
 - **L'écran Planning** → P1-002b, qui passe avant.
 - **La feuille d'inscrits** → P1-003c, à écrire après.
 - **L'annulation** → P1-004. Un membre ne peut pas se désinscrire après ce lot.
-- **Les places en temps réel** → P1-005. Ici, l'optimisme et un rechargement.
+- **Les places en temps réel** → P1-005a. Ici, l'optimisme et un rechargement.
 - **La liste d'attente** → P1-006.
 - **« Choisir une formule »** : le message existe, l'écran d'achat est P2-005.
 - **Un harnais de test mobile** : absent du dépôt, non créé ici. Les critères de

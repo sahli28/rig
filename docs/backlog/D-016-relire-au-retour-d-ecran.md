@@ -59,7 +59,29 @@ son appelant est le prochain geste de la prochaine passe.
 ## Hors périmètre
 
 - **Le temps réel.** Relire au retour n'est pas s'abonner aux changements : les
-  places qui bougent pendant qu'on regarde l'écran, c'est `P1-005`.
+  places qui bougent pendant qu'on regarde l'écran, c'est `P1-005a`.
+
+## Ce que `P1-005a` retire à ce ticket, et ce qu'il lui laisse
+
+*Écrit le 6 septembre 2026, à la découpe de `P1-005`.*
+
+Le temps réel tue **la moitié « places restantes »** de cette dette : sur le
+planning et sur l'accueil, un compteur périmé cesse d'être possible, puisqu'un
+canal le corrige pendant qu'on regarde l'écran.
+
+**Le reste survit, et ses raisons ne sont plus les places** — c'est ce qui
+importe ici, parce qu'un ticket dont on a retiré la motivation la plus visible
+se referme par erreur :
+
+- **`index.tsx`** — le **badge « Réservé »** et le cours mis en avant. L'accueil
+  est la racine de la pile, donc monté une fois pour toute la session, et **aucun
+  événement sur `classes` ne dit « cette personne a réservé »** : le canal porte
+  un compteur, pas une appartenance.
+- **`bookings.tsx`** — **une annulation faite ailleurs**. Un canal branché sur
+  `classes` ne la verra jamais passer.
+
+Après `P1-005a`, cette dette c'est donc **`index.tsx` et `bookings.tsx`**, et
+rien d'autre. `planning.tsx` était déjà parti dans `P1-012`.
 - **Un tiré-pour-rafraîchir.** Geste utile, autre sujet, autre ticket — et il ne
   couvrirait pas ce défaut-ci, qui frappe précisément quelqu'un qui ne pense pas
   à rafraîchir.

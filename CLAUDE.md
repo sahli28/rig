@@ -181,6 +181,18 @@ null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la 
    `apps/web` n'avait pas (5 → 17 j·h) ; P1-001 supposait `class_types` en base
    **et** une bibliothèque de composants web, ni l'une ni l'autre n'existant
    (4 → 11,5 j·h). Gabarit : `docs/backlog/_gabarit.md`.
+9. **Une sonde qui doit survivre à sa PR porte `__DEV__` dès sa première ligne.**
+   Sinon elle part avec le correctif, dans le même commit. Il n'y a pas de
+   troisième option, et surtout pas « gardée volontairement en attendant la
+   prochaine passe » : c'est exactement la formule qui a fusionné dix
+   `console.log` sur `main` en D-018, dont certains écrivaient `userId` et
+   `activeTenantId` dans les journaux de l'appareil — sur la branche qui part
+   chez une box. Le dépôt avait déjà la convention à deux pas
+   (`class/[id].tsx`, `if (__DEV__) console.log(...)`) ; ce qui manquait était de
+   la décider **avant** d'écrire la sonde, pas de la retrouver après.
+   Corollaire, pour les défauts qui ne se reproduisent que sur l'appareil : leur
+   plafond de mesure se décide **à l'ouverture du ticket**, jamais au troisième
+   tour. Chaque hypothèse y coûte un aller-retour par passe manuelle.
 
 ## Ce qu'il ne faut pas faire
 

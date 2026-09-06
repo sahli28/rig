@@ -48,7 +48,7 @@ Deux raisons de ne pas laisser ça, et la seconde n'était pas cosmétique :
    l'appareil.** Des identifiants de personnes dans un log non gardé, sur la
    branche qui part chez une box.
 
-Retirées le 6 septembre 2026, **avant P1-005** : les dix `console.log`, le
+Retirées le 6 septembre 2026, **avant P1-005a** : les dix `console.log`, le
 module `trace-deps.ts`, les deux effets de montage/démontage, les deux `ref`
 d'instrumentation du focus, et les dépendances que la sonde avait ajoutées à
 l'effet de chargement — il est revenu à `[chargerJour]`. **Le correctif reste
