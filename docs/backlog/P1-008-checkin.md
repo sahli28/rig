@@ -1,6 +1,18 @@
 # P1-008 — Check-in QR et mode kiosque
 
-**Phase** P1 · **Estimation** 6 j·h · **Dépend de** P1-003 · **Spec** §4-P3, RM3.1–3.6
+**Phase** P1 · **Estimation** 6 j·h · **Dépend de** P1-003 ✅ · **Spec** §4-P3, RM3.1–3.6
+
+> **⚠️ Ce ticket n'a pas encore sa section « ce que ce ticket suppose et qui doit
+> exister » — règle 8. Il ne se lance pas avant qu'elle soit écrite**, et un
+> prérequis est déjà connu, noté le 6 septembre 2026 pour ne pas se découvrir en
+> cours de route :
+>
+> **le mode kiosque a besoin d'un contexte sécurisé.** `getUserMedia` n'est pas
+> exposée hors HTTPS (ou `localhost`) : sur `http://<IP>:3000`, la caméra n'est
+> pas « refusée », l'API est **absente de l'objet**. Sur une tablette qui atteint
+> le serveur par son IP, le scan ne peut donc pas exister — ce n'est pas un
+> problème de test, c'est un problème de faisabilité. Il faut trancher comment on
+> sert le kiosque en HTTPS avant d'écrire une ligne de scan.
 
 ## Périmètre
 

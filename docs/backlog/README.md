@@ -78,6 +78,33 @@ dans le ticket.
 **Android reste ouvert et gratuit** : development build APK, FCM, aucun compte
 payant. C'est ce qui rend la question d'ordre arbitrable au lieu d'être subie.
 
+### L'ordre arbitré le 6 septembre 2026
+
+**On ne part pas sur P1-007 en Android.** Le ticket sortirait avec deux `[~]`
+durables, et la box pilote est sur iPhone : un push qui ne marche que sur la
+moitié des téléphones n'est pas un jalon franchi. `P1-007 → P1-006` **reprennent
+quand le compte Apple est validé**, dans leur ordre écrit.
+
+D'ici là, quatre pas, et le troisième est ce qui les tient ensemble :
+
+1. **`D-016`** (0,25) — `index.tsx` et `bookings.tsx`, ce qui reste après que
+   P1-012 a pris `planning.tsx` et que P1-005a a retiré la moitié « places » ;
+2. **`D-014`** (0,5) — les deux filets dont on connaît le trou ;
+3. **une seule passe iPhone**, qui ferme d'un coup ce que quatre tickets ont
+   laissé ouvert : l'arrière-plan de `P1-005a` (§ 5 quinquies), les trois gestes
+   de `D-011`, les écrans de `D-016`, et le balayage iOS de `D-009`. **Quatre
+   dettes d'appareil, une passe** — c'est tout l'intérêt de les avoir laissées
+   s'accumuler plutôt que d'avoir joué quatre passes ;
+4. **`P1-008`** (6) — check-in QR et kiosque, qui ne dépend que de `P1-003`,
+   fait.
+
+**Et `P1-008` n'ouvre pas sans sa section « ce que ce ticket suppose ».** Un
+prérequis est déjà connu et il n'est pas dans le ticket : **le mode kiosque a
+besoin d'un contexte sécurisé**. `getUserMedia` n'existe tout simplement pas sur
+`http://<IP>:3000` — pas « demande une permission », *absente de l'objet*. Sans
+HTTPS sur la tablette, le scan n'est pas seulement intestable : il ne peut pas
+exister. À écrire **avant** de lancer le ticket, pas à découvrir dedans.
+
 Quatre démarches administratives bloquent du code déjà écrit ou déjà chiffré.
 **Aucune ne se rattrape en codant plus vite.** Elles ne vivent nulle part
 ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
@@ -130,8 +157,9 @@ D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'
 D-014                                  (les deux filets dont on connaît le trou — non bloquant)
 P1-004 ✅ fait → P1-005a ✅ fait        (annulation, temps réel sur le téléphone)
                  P1-005b non programmé  (le même canal dans la grille web — si la box le réclame)
-P1-007 🔒 → P1-006 → P1-008            (push, waitlist, check-in — 16 des 26 j·h restants)
-   ↑ iOS bloqué par le compte développeur Apple. Android ouvert. Ordre à arbitrer.
+D-016 → D-014 → ✳ passe iPhone → P1-008   (l'ordre arbitré le 6 sept. 2026, voir ci-dessous)
+P1-007 🔒 → P1-006                        (push, waitlist — reprennent au compte Apple validé)
+   ↑ iOS bloqué par le compte développeur Apple. Android ouvert, mais on n'y va pas.
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
         ↓
   ═══ JALON : mise en production chez la box pilote ═══
