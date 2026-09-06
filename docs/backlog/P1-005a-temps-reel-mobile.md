@@ -132,29 +132,77 @@ survit, et ses raisons ne sont plus les places :**
 
 ## Critères d'acceptation
 
-- [ ] Une réservation faite depuis un client met à jour le compteur d'un **autre
-      client** en moins de 3 secondes — deux comptes, un cours, le harnais et le
-      back-office ouverts côte à côte
-- [ ] **Un membre de la box A ne reçoit aucun événement de la box B** — deux
-      comptes, deux tenants. C'est le seul contrôle qui prouve l'isolation du
-      canal ; le vert pgTAP ne le remplace pas (voir « Ce que chaque contrôle
-      établit »)
-- [ ] Couper le temps réel bascule en polling **sans erreur visible**, et la
-      pastille passe à « reconnexion »
-- [ ] Le canal revenu, le polling s'arrête — on ne laisse pas les deux tourner
-- [ ] Aucune fuite d'abonnement après navigation entre 20 écrans : le nombre de
-      canaux ouverts revient à son niveau de départ
-- [ ] Passer l'app en arrière-plan puis revenir ne laisse pas de canal orphelin,
-      et l'écran retrouvé affiche l'état du moment
-- [ ] **Le compteur affiché ne fait jamais autorité** : la réservation reste
-      refusée par la base si la place est prise. Un test pgTAP le tient déjà
-      (`book_class` sous contention) ; ce critère vérifie que l'écran **ne
-      court-circuite pas** ce refus au motif qu'il croyait la place libre
-- [ ] Un événement reçu ne repose **pas** de squelette et ne remplace pas la
-      liste : il modifie une ligne
-- [ ] La pastille d'état s'annonce par ce qu'elle **veut dire**, pas par sa
-      couleur — `read_page filter=interactive`, `.claude/rules/ui.md`
-- [ ] Parité i18n `fr.json` / `en.json` sur les trois états du canal
+**Passe du 6 septembre 2026, au harnais, deux clients** — le plafond décidé à
+l'ouverture, tenu : une passe, pas de second tour.
+
+- [x] Une réservation faite depuis un client met à jour le compteur d'un **autre
+      client** en moins de 3 secondes — `book_class()` joué comme Julie pendant
+      que l'écran de Léa était ouvert : **12 → 11 places, déjà appliqué au
+      premier relevé** (moins de 2 s). Puis 16 → 15 sur le second cours
+- [x] **Un membre de la box A ne reçoit aucun événement de la box B.** Mesuré par
+      l'endroit qui répond vraiment : une sonde branchée sur `public.classes`
+      **sans filtre de box**, avec le jeton de Léa. Deux réservations dans la
+      même fenêtre, une par box → **un seul événement reçu, celui de Rueil**.
+      Le contrôle positif est dedans : elle reçoit bien quelque chose, donc le
+      silence sur Nanterre n'est pas de la cécité. **C'est la preuve que Realtime
+      applique `classes_select` par abonné**, et c'est exactement ce qu'aucun
+      pgTAP ne peut dire
+- [x] Couper le temps réel bascule en polling **sans erreur visible**, et la
+      pastille passe à « reconnexion » — `docker stop supabase_realtime` : bascule
+      immédiate, aucun message d'erreur à l'écran
+- [x] Le repli relit vraiment : canal coupé, une réservation faite ailleurs
+      remonte à l'écran en **25 s** (fenêtre de 30 s)
+- [x] Le canal revenu, le polling s'arrête — service relancé, pastille de retour
+      à « En direct » toute seule, et **zéro lecture réseau en 38 s** (soit plus
+      d'une période de repli). On ne laisse pas les deux tourner
+- [x] Aucune fuite d'abonnement après navigation entre 20 écrans : `2` avant,
+      `2` après, lu dans `realtime.subscription`. Un pic transitoire à `4`
+      pendant les transitions — `removeChannel()` est asynchrone — qui retombe
+      seul. L'abonnement de l'accueil, lui, ne bouge pas : c'est la racine de la
+      pile, elle ne remonte jamais
+- [ ] **appareil** — Passer l'app en arrière-plan puis revenir ne laisse pas de
+      canal orphelin, et l'écran retrouvé affiche l'état du moment. Le code est
+      là (`AppState`, `use-realtime-classes.ts`) ; **le harnais web n'a pas
+      d'arrière-plan**, et un onglet caché n'est pas un téléphone verrouillé.
+      Reste à la prochaine passe iPhone
+- [x] **Le compteur affiché ne fait jamais autorité** : la réservation reste
+      refusée par la base si la place est prise. `book_class` sous verrou, prouvé
+      en pgTAP et sous contention réelle en CI depuis P1-003 ; rien ici ne le
+      court-circuite — l'écran n'a gagné qu'une source d'affichage
+- [x] Un événement reçu ne repose **pas** de squelette et ne remplace pas la
+      liste : il modifie une ligne. Tenu par construction —
+      `appliqueChangementDeCours` rend la journée **à l'identique** quand rien ne
+      bouge, et six tests le figent
+- [x] La pastille d'état s'annonce par ce qu'elle **veut dire**, pas par sa
+      couleur — arbre d'accessibilité relu : « En direct : les places restantes
+      se mettent à jour toutes seules. », et les compteurs portent leur unité
+      (« 11 places restantes », pas « 11 »)
+- [x] Parité i18n `fr.json` / `en.json` sur les trois états du canal —
+      `i18n:check` : 459 clés alignées, aucune orpheline
+
+## Ce que la passe a trouvé, et qui n'était pas dans le plan
+
+**Un écran blanc sur le planning, dès le premier chargement.** Deux écrans,
+`accueil` et `planning`, demandaient tous deux le canal `classes:<tenant>` — et
+`client.channel(topic)` **rend le canal existant** quand le nom est déjà pris
+(`RealtimeClient.ts:473`). Le second `.on('postgres_changes', …)` sur un canal
+déjà abonné lève :
+
+    cannot add `postgres_changes` callbacks for realtime:classes:… after `subscribe()`
+
+**C'est la règle des sœurs sous une forme qu'on n'avait pas encore vue** : pas
+une policy oubliée sur une table jumelle, mais **deux appelants du même helper
+qui se partagent une ressource nommée sans le savoir**. Aucun typage ne le
+voyait, aucun test unitaire ne l'aurait vu — il fallait deux écrans montés en
+même temps, ce que seul le harnais fait.
+
+Corrigé à la cause : un compteur de module donne un nom par abonnement, et
+`AbonnementCours` expose son `topic` pour que ce soit **vérifiable**. Deux tests
+le figent, dont un qui reproduit la réutilisation par nom du vrai client.
+
+Le compteur plutôt qu'un aléa, et ce n'est pas un détail de style : `crypto` est
+interdit hors de sa façade, et `Math.random()` aurait été un repli silencieux là
+où un entier suffit.
 
 ## Notes
 
