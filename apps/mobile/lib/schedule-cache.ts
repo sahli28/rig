@@ -28,10 +28,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { z } from 'zod';
 import { DayScheduleSchema, type BookedDays, type DaySchedule } from '@rack/core/supabase';
 
-/** Jour → compte. Écrit ici et non dans `@rack/core` : c'est la forme du cache,
- * pas celle de la lecture réseau — et un schéma partagé aurait fait croire que
- * les deux doivent rester identiques. */
-const BookedDaysSchema = z.record(z.string(), z.number().int().nonnegative());
+/** Jour → identifiants de cours. Écrit ici et non dans `@rack/core` : c'est la
+ * forme du **cache**, pas celle de la lecture réseau — et un schéma partagé
+ * aurait fait croire que les deux doivent rester identiques.
+ *
+ * Portait des comptes jusqu'à P1-012. Un cache de la version précédente ne
+ * valide donc plus, et c'est exactement ce qu'on veut : `readBookedDays()` le
+ * jette et la première lecture réseau le remplace. */
+const BookedDaysSchema = z.record(z.string(), z.array(z.string()));
 
 /** Préfixe commun : c'est lui qui rend l'effacement complet possible. */
 const PREFIX = 'rack.schedule.';
@@ -109,10 +113,10 @@ export async function readDay(
  * Les jours réservés d'un mois — **des dates et un compte, rien d'autre**
  * (P1-014).
  *
- * C'est un cran en dessous de ce que P1-012 proposait de garder : ni
- * identifiant de cours, ni heure, ni nom. Ce que ce cache révèle à qui prend le
- * téléphone, c'est « quelqu'un s'est entraîné ces jours-là » — et la personne
- * qui le lit est celle qui y était.
+ * **Exactement l'option B de P1-012** : des identifiants de cours, et rien
+ * d'autre — ni heure, ni nom, ni identifiant de réservation. Ce que ce cache
+ * révèle à qui prend le téléphone, c'est « quelqu'un s'est entraîné ces
+ * jours-là » — et la personne qui le lit est celle qui y était.
  *
  * Même clé `(utilisateur, box, …)` que le planning, pour la même raison : sur
  * un téléphone partagé, deux membres ne se voient pas.

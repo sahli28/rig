@@ -562,7 +562,7 @@ describe('fetchBookedDays', () => {
     expect(filtres.classes).toBeUndefined();
   });
 
-  it('compte les réservations par jour, et ignore les cours non réservés', async () => {
+  it('range les cours réservés par jour, et ignore ceux qu’on n’a pas réservés', async () => {
     const { client } = fakeTableClient({
       bookings: [{ class_id: 'c1' }, { class_id: 'c2' }, { class_id: 'c3' }],
       classes: [
@@ -582,7 +582,7 @@ describe('fetchBookedDays', () => {
         from: '2026-09-01',
         to: '2026-09-30',
       }),
-    ).resolves.toEqual({ '2026-09-07': 2, '2026-09-11': 1 });
+    ).resolves.toEqual({ '2026-09-07': ['c1', 'c2'], '2026-09-11': ['c3'] });
   });
 
   /**
@@ -607,7 +607,7 @@ describe('fetchBookedDays', () => {
         from: '2026-10-01',
         to: '2026-10-31',
       }),
-    ).resolves.toEqual({ '2026-10-01': 1 });
+    ).resolves.toEqual({ '2026-10-01': ['nuit'] });
   });
 
   it('borne la requête sur la journée locale, pas sur minuit UTC', async () => {

@@ -67,9 +67,13 @@ son appelant est le prochain geste de la prochaine passe.
 
 ## Critères d'acceptation
 
-- [ ] Réserver depuis une fiche de cours, revenir au planning : **le nombre de
-      places restantes a baissé d'une unité**, sans quitter ni rouvrir l'écran
-- [ ] Revenir sur un écran déjà rempli **ne fait pas clignoter de squelette**
+- [x] Réserver depuis une fiche de cours, revenir au planning : **le nombre de
+      places restantes a baissé d'une unité**, sans quitter ni rouvrir l'écran —
+      **livré par P1-012** le 6 sept. 2026, et vérifié au harnais : 16 → 15
+      places au retour, avec le badge « Réservé » apparu en même temps
+- [ ] Revenir sur un écran déjà rempli **ne fait pas clignoter de squelette** —
+      tenu sur `planning.tsx` (relecture silencieuse, `chargerJour(true)`),
+      **reste à faire sur `index.tsx` et `bookings.tsx`**
 - [ ] Un rafraîchissement qui échoue (mode avion au retour) laisse le contenu
       précédent affiché, et ne le remplace pas par un écran d'erreur
 - [ ] L'accueil, retrouvé après une réservation, montre l'état du moment
