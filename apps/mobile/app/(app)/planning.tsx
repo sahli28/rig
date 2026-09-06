@@ -203,9 +203,23 @@ export default function PlanningScreen() {
     [userId, activeTenantId, timeZone, locale, date, enLigne],
   );
 
+  // === SONDE D-018, TEMPORAIRE ===
+  // Un effet à dépendances **vides** : il ne peut se rejouer que sur un
+  // remontage. C'est lui qui tranche entre « l'arbre remonte » et « une
+  // dépendance a changé », les deux produisant le même symptôme.
   useEffect(() => {
+    console.log('[D-018] MONTAGE planning');
+    return () => console.log('[D-018] DÉMONTAGE planning');
+  }, []);
+
+  // Et de quoi savoir **laquelle** des dépendances a bougé, si c'est ce chemin.
+  useEffect(() => {
+    console.log(
+      '[D-018] effet chargerJour — deps :',
+      JSON.stringify({ userId, activeTenantId, timeZone, locale, date, enLigne }),
+    );
     void chargerJour();
-  }, [chargerJour]);
+  }, [chargerJour, userId, activeTenantId, timeZone, locale, date, enLigne]);
 
   /**
    * Ce qui est réservé, **par mois** (P1-014 pour les pastilles, P1-012 pour les
@@ -281,6 +295,7 @@ export default function PlanningScreen() {
   const premierPassage = useRef(true);
   useFocusEffect(
     useCallback(() => {
+      console.log('[D-018] useFocusEffect — premierPassage =', premierPassage.current);
       if (premierPassage.current) {
         premierPassage.current = false;
         return;
