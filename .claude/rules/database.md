@@ -452,6 +452,46 @@ cherchant explicitement le jumeau.
   candidat à relire — et c'est ainsi que se sont trouvés `tenants`,
   `audit_logs` et `ledger_entries`. `current_admin_tenant_ids()` existe pour ça.
 
+## Une publication ne connaît pas les `grant` de colonne
+
+Quatorzième piège, et le premier trouvé **avant** de coûter quelque chose —
+`rls-auditor` sur la migration de `P1-005a`, qui n'ajoutait pourtant qu'une
+table à `supabase_realtime`.
+
+`ALTER PUBLICATION … ADD TABLE t` publie **la ligne entière telle qu'elle est
+sur le disque**. La réplication logique ne lit pas les privilèges : un
+`grant select (a, b, c)` qui protège une colonne pour PostgREST **ne protège
+rien** dans le WAL. Realtime, lui, filtre par la policy de **ligne** et livre
+l'enregistrement complet.
+
+D'où la sœur, et elle est nommée pour qu'on n'ait pas à la retrouver :
+
+| Table | Ce qui la protège aujourd'hui | Ce qu'`add table` nu ferait |
+| --- | --- | --- |
+| `classes` | policy de ligne, `grant select` sur la **table entière** | rien de neuf — un membre lit déjà tout par `select`. C'est ce qui rend `P1-005a` sûre |
+| `memberships` | policy de ligne **plus un grant de colonne** : `hidden_from_roster` en est exclu (`20260905090000_class_roster.sql:91`) | republierait l'**opposition RGPD** à tout membre actif de la box — exactement la fuite que `P1-003c` a fermée, rouverte par un transport que le grant ne couvre pas |
+
+Le jour où un écran « qui est présent en ce moment » voudra faire vivre
+`memberships` — la quatrième audience de `privacy.md`, qui n'a pas encore de
+ticket — le geste juste est **la liste de colonnes explicite**, la même que le
+grant, posée dans le même mouvement :
+
+```sql
+alter publication supabase_realtime add table public.memberships (
+  id, tenant_id, user_id, role, status, joined_at, left_at, created_at, updated_at
+);
+```
+
+Deux conséquences à tenir :
+
+1. **Une table dont le `grant select` est restreint par colonne ne rejoint
+   jamais une publication sans sa liste de colonnes.** La question à poser avant
+   tout `add table` est « cette table a-t-elle un grant de colonne ? », et elle
+   se lit dans la migration qui l'a posé, pas dans la policy ;
+2. `supabase/tests/realtime_publication_test.sql` fige la liste des tables
+   publiées. Il rougit dès qu'on en ajoute une — **après** le geste, donc. La
+   règle ci-dessus est ce qui doit se lire **avant**.
+
 ## Vues : deux décisions déjà prises
 
 - **`security_invoker = false` sur `member_admin_directory`, et l'alerte

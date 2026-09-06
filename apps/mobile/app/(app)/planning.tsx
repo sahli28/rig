@@ -6,14 +6,17 @@ import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
 import { Badge, Banner, Button, EmptyState, ListRow, Select, Skeleton } from '@rack/ui/native';
 import {
+  appliqueChangementDeCours,
   fetchBookedDays,
   fetchDaySchedule,
   localDay,
+  pastilleEtat,
   seatsLeft,
   shiftDays,
 } from '@rack/core/supabase';
-import type { BookedDays, DayClass, DaySchedule } from '@rack/core/supabase';
+import type { BookedDays, DayClass, DaySchedule, LigneCoursChangee } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
+import { useCoursEnDirect } from '../../lib/use-realtime-classes';
 import { useSession } from '../../lib/session';
 import {
   readBookedDays,
@@ -307,6 +310,46 @@ export default function PlanningScreen() {
   const lectures = useRef({ chargerJour, chargerReserves });
   lectures.current = { chargerJour, chargerReserves };
 
+  /**
+   * **Les places, en direct** (P1-005a).
+   *
+   * Deux personnes se disputent la dernière place : celle qui regarde cet écran
+   * doit voir le compteur tomber, pas l'apprendre en appuyant sur « Réserver ».
+   *
+   * **Le compteur ne fait toujours pas autorité** — spec §10, et c'est la seule
+   * ligne du sujet qui ne se négocie pas. `book_class()` refuse sous verrou si
+   * la place est prise, que l'écran l'ait su ou non. Ce qui change ici, c'est
+   * seulement ce qu'on savait *avant* d'appuyer.
+   *
+   * **Un événement modifie une ligne** : ni squelette, ni liste remplacée.
+   * `appliqueChangementDeCours` rend l'objet à l'identique quand rien ne bouge,
+   * et le `setEtat` sort alors sans rien changer — c'est ce qui évite de
+   * re-rendre la liste sur un événement qui ne la concerne pas.
+   *
+   * Le canal est filtré **par box, pas par jour** (`postgres_changes` n'accepte
+   * qu'un prédicat) : le réducteur jette les cours absents de la journée
+   * affichée, ce qui couvre au passage la course entre un changement de jour et
+   * un événement en vol pour l'ancien.
+   *
+   * **Le repli passe par `lectures`, la ref de `D-018`** plutôt que par une
+   * seconde du même genre : une seule manière de tenir une lecture hors de
+   * l'identité d'une callback dans cet écran.
+   */
+  const etatDirect = useCoursEnDirect({
+    tenantId: activeTenantId,
+    enLigne,
+    surChangement: useCallback((ligne: LigneCoursChangee) => {
+      setEtat((precedent) => {
+        if (precedent.schedule === null) return precedent;
+        const journee = appliqueChangementDeCours(precedent.schedule, ligne);
+        return journee === precedent.schedule ? precedent : { ...precedent, schedule: journee };
+      });
+    }, []),
+    // Silencieuse : le repli rafraîchit, il ne recharge pas l'écran.
+    relire: useCallback(() => void lectures.current.chargerJour(true), []),
+  });
+  const pastille = pastilleEtat(etatDirect);
+
   useFocusEffect(
     useCallback(() => {
       if (premierPassage.current) {
@@ -429,6 +472,13 @@ export default function PlanningScreen() {
           onPress={() => allerAu(today)}
         />
       )}
+
+      {/* **L'état du canal, pas l'âge de la donnée** (P1-005a). Un « il y a
+          12 s » imposerait un re-rendu par seconde et, sur un canal temps réel,
+          un compteur qui monte est l'aveu que le canal est tombé — il dirait
+          donc la mauvaise chose. Trois états, et le texte les porte : la
+          couleur ne suffit jamais (`.claude/rules/ui.md`). */}
+      <Badge label={t(pastille.label)} accessibilityLabel={t(pastille.a11y)} tone={pastille.tone} />
 
       {/* Le bandeau parle du **jour affiché**, et de lui seul : `vue.schedule`
           est l'entrée de cache de ce jour-là, pas la dernière écriture du cache

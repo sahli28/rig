@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **29 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **26 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -102,7 +102,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 104,5 j·h, dont **29 restants**
+## ① Jalon pilote — 104,5 j·h, dont **26 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -117,7 +117,7 @@ P1-003c ✅ fait → P1-011 ✅ fait → P1-014 ✅ fait  (la feuille d'inscrits
 D-010 ✅ arbitré et clos · D-012 ✅ fait  (le moteur du produit : rien de plus maintenant, et la façade crypto comptée)
 D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'il touche les mêmes fichiers)
 D-014                                  (les deux filets dont on connaît le trou — non bloquant)
-P1-004 ✅ fait → P1-005a                (annulation, temps réel sur le téléphone)
+P1-004 ✅ fait → P1-005a ✅ fait        (annulation, temps réel sur le téléphone)
                  P1-005b non programmé  (le même canal dans la grille web — si la box le réclame)
 P1-007 → P1-006 → P1-008               (push, waitlist, check-in)
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
@@ -164,7 +164,7 @@ sait pas lui répondre.
 | P1-004  | Annulation et fenêtres                            |      4 | ✅ **fait le 5 sept. 2026** — RM2.4 tranchée : le pilote **accepte** l'annulation tardive et la marque, sans promettre un crédit qui n'existe pas. A fermé une sœur oubliée : annuler un cours laissait ses réservations confirmées. Un critère ouvert, la notification (P1-007) |
 | P1-014  | Calendrier du mois, pastille sur mes jours réservés |  2,5 | ✅ **fait le 5 sept. 2026** (PR #42) — **remplace le bandeau de P1-011**, demandé le 5 sept. 2026 en regardant Peppy. La demande n'est pas un sélecteur de plus : c'est **l'historique** du mois, que le bandeau ne pouvait pas montrer puisqu'il refusait le passé. Absorbe le second niveau de P1-012 |
 | P1-012  | Le planning dit ce qui est déjà réservé           |      1 | ✅ **fusionné (PR #46) — passe faite le 6 sept. 2026** : tout passe sauf le clignotement au retour (→ `D-018`), et le critère « deux boxes » reste `[~]` faute de `P1-009`. **2 → 1 le 6 sept. 2026** : P1-014 a livré le chemin de données et tranché la décision hors ligne. Reste le détail par cours, le badge, et **le volet `planning.tsx` de `D-016`, absorbé ici** — sans lui le badge serait faux au retour sur la liste |
-| P1-005a | Places restantes en temps réel, sur le téléphone  |      3 | **à faire — le prochain**. Découpé de `P1-005` le 6 sept. 2026, avec sa section « ce que ce ticket suppose » : la publication `supabase_realtime` **n'existe pas** (aucune occurrence dans `supabase/`), et `waitlist_length` est parti dans `P1-006` — il n'avait aucune source, et `P1-006` vient *après*. Plafond de mesure décidé à l'ouverture : **une passe, deux clients** |
+| P1-005a | Places restantes en temps réel, sur le téléphone  |      3 | ✅ **fait le 6 sept. 2026 — passe harnais à deux clients**, dix critères sur onze. L'isolation du canal est **prouvée** là où pgTAP ne peut pas : sonde sans filtre de box, un seul des deux événements reçu. Un défaut trouvé et corrigé — deux écrans partageaient un nom de canal, et `channel()` rend l'existant. **Un critère `[ ]` : l'arrière-plan**, qu'un onglet caché ne sait pas exercer → prochaine passe iPhone. Découpé de `P1-005` le même jour : `waitlist_length` → `P1-006`, le web → `P1-005b` |
 | P1-005b | Le même canal dans la grille du back-office       |      1 | **non programmé** — écrit, chiffré, hors du total. Au pilote, la valeur du temps réel est sur le téléphone du membre, là où deux personnes se disputent la dernière place ; le manager peut rafraîchir. Sort en une session si la box pilote le réclame |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire              |
 | P1-007  | Notifications push                                |      4 | à faire              |
@@ -178,7 +178,7 @@ sait pas lui répondre.
 | D-015   | Monter un composant mobile dans un test           |    1,5 | à faire — **à arbitrer, avec son déclencheur**. La suite `.ts` d'`apps/mobile` existe ; ce qui manque est le montage et les gestes |
 | D-018   | L'écran se recharge au retour sur le planning     |      1 | ✅ **clos le 6 sept. 2026** — cause trouvée et corrigée (PR #48 : le focus se rejouait deux fois par retour), puis **sondes retirées** avant P1-005a. **0,5 → 1** : deux tours de mesure, comptés plutôt que cachés. Rechargement résiduel **arbitré et accepté** ; les quatre critères d'appareil restent `[ ]`, abandonnés et pas tenus |
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
-|         | **Total ①**                                       | **104,5** | dont **75,5 faits**, **29 restants** |
+|         | **Total ①**                                       | **104,5** | dont **78,5 faits**, **26 restants** |
 
 **P1-013 et P1-005b ne sont pas dans ce total** : ils sont écrits et chiffrés,
 pas programmés. `P1-013` entrera le jour où la box pilote demandera à couper un

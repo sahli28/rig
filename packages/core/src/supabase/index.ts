@@ -156,6 +156,19 @@ export {
 } from './planning';
 
 export {
+  abonneAuxCoursDuTenant,
+  appliqueChangementAuCours,
+  appliqueChangementDeCours,
+  etatAffiche,
+  litLigneCours,
+  pastilleEtat,
+  type AbonnementCours,
+  type EtatAffiche,
+  type EtatCanal,
+  type LigneCoursChangee,
+} from './realtime-classes';
+
+export {
   tenantScope,
   type TenantInsert,
   type TenantScope,
