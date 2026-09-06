@@ -246,6 +246,162 @@ pas un. À lire sur l'écran avant de décider — soit la phrase passe à la fe
 soit elle perd son « moins de ». Repéré à la relecture, pas corrigé : la
 formulation se juge en la lisant.
 
+## 5 quater. Le badge « Réservé » (P1-012)
+
+**Trois critères sur sept ne se voient que sur l'appareil** — hors ligne, purge à
+la déconnexion, deux boxes sur le même compte — et ils sont « tenus par
+construction », ce qui n'est pas la même chose qu'observés. Mais ce n'est pas la
+vraie raison de cette passe.
+
+Le lot a pris **deux décisions qui créent chacune un cas neuf** : `BookedDays`
+change de forme (jour → *identifiants* au lieu de jour → *nombre*), donc **les
+caches déjà posés sur le téléphone ne valident plus** ; et la relecture au retour
+est devenue silencieuse et concurrente (un jeton, deux déclencheurs). Ni l'une ni
+l'autre n'existait quand les critères du ticket ont été écrits.
+
+### ⚠️ L'ordre compte, et le premier geste est destructeur
+
+**Le cache de l'ancienne forme, posé par P1-014, est sur le téléphone
+maintenant. La première lecture en ligne le remplace définitivement.** Si la
+passe commence par ouvrir l'app avec du réseau, le scénario A n'est plus
+exerçable sans désinstaller — et c'est le seul scénario qui exerce la montée de
+version que vivra la box pilote.
+
+Donc : **mode avion avant d'ouvrir l'app**, et scénario A en premier.
+
+### Geste 0 — le décor
+
+Sur le PC, dans cet ordre :
+
+1. **L'IP a changé** si la box wifi a changé : reprendre les sections 1 à 3 de
+   cette page. Un badge absent parce que la requête n'est jamais partie
+   ressemble beaucoup à un badge cassé.
+2. `pnpm test:db:fresh` — un seed neuf. Les réservations prises dans l'app
+   pendant une passe font rougir `pnpm test:db` ensuite : ce n'est pas une
+   régression, c'est le décor. Relancer `test:db:fresh` **après** la passe avant
+   de croire un rouge.
+3. `pnpm --filter @rack/mobile start -c` — le `-c` n'est pas décoratif ici : le
+   bundle change de forme de cache.
+
+Compte : `lea@example.com`. Pour le scénario F : `julie@example.com`, membre de
+deux boxes.
+
+### Scénario A — le cache d'hier, sur une app d'aujourd'hui
+
+Le seul scénario à durée de vie limitée. Téléphone **en mode avion**, app **pas
+encore ouverte** depuis la mise à jour.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Mode avion, puis ouvrir l'app | Le planning s'affiche depuis le cache, sans écran rouge |
+| 2 | Regarder les jours du calendrier | **Aucune pastille** — l'ancien cache a été jeté, il ne pouvait pas être relu |
+| 3 | Regarder la liste du jour | **Aucun badge « Réservé »**, pour la même raison |
+| 4 | **Lire l'écran comme une membre** | C'est le point à juger : l'écran dit-il quelque part qu'il est hors ligne, ou **affirme-t-il en creux « tu n'as rien réservé »** ? |
+| 5 | Couper le mode avion, revenir sur le planning | Pastilles et badges apparaissent, sans relancer l'app |
+
+Le geste 4 est le seul de cette page qui ne se coche pas : il se **tranche**. Le
+ticket avait écarté l'option A (« hors ligne, aucun marqueur ») parce qu'un
+planning qui s'affiche sans ses réservations est moins fiable que le reste de
+l'app. La montée de version recrée exactement cet état, une fois, pour chaque
+membre. Si l'écran ment, c'est un ticket — pas un correctif glissé ici.
+
+### Scénario B — le parcours nominal, celui que le ticket promet
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Planning, jour de demain, cours de 18h30 | La ligne dit `16 places` et **aucun badge** |
+| 2 | Ouvrir la fiche, **Réserver**, revenir par le retour | La ligne dit **`Réservé`** *et* `15 places` — **les deux**, sans relancer l'app |
+| 3 | Regarder le calendrier | La pastille du jour est là |
+| 4 | Rouvrir la fiche, **Annuler**, revenir | Le badge disparaît, la ligne repasse à `16 places` |
+| 5 | Regarder le calendrier | La pastille a disparu |
+
+Si le badge suit mais pas le nombre de places — ou l'inverse — c'est le volet
+`D-016` qui n'est absorbé qu'à moitié.
+
+### Scénario C — la relecture est silencieuse
+
+À faire l'œil sur l'écran, pas sur le résultat.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Réserver, puis revenir sur le planning | **Aucun squelette, aucun clignotement.** La liste reste affichée et se met à jour |
+| 2 | Refaire le retour trois fois | Toujours pas de clignotement — un défaut de ce genre est intermittent |
+
+Remplacer un affichage périmé par un scintillement à chaque retour serait un
+mauvais échange, et c'est le risque explicite de la décision prise.
+
+> ❌ **Échoué le 6 septembre 2026.** Toute la page clignote au retour, après
+> réservation comme après annulation. Pas la liste : l'écran entier. Parti en
+> **`D-018`**, avec la vérification qui exclut déjà le mécanisme de P1-012 —
+> le chemin de relecture est bien silencieux, ce qui clignote est au-dessus.
+
+### Scénario D — feuilleter les mois sans perdre les badges
+
+C'est le trou que le ticket ne voyait pas, trouvé en le codant.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Sur un jour où l'on a une réservation, ouvrir le calendrier | Pastille visible sur ce jour |
+| 2 | Feuilleter jusqu'au **mois suivant**, sans choisir de jour | Le calendrier montre octobre ; **la liste en dessous n'a pas bougé** |
+| 3 | Regarder la liste | **Le badge « Réservé » est toujours là.** Il ne dépend pas du mois affiché au-dessus |
+| 4 | Revenir au mois courant | Rien n'a bougé, pas de rechargement visible |
+| 5 | Feuilleter deux mois en avant puis choisir un jour | Le jour s'ouvre, ses badges sont justes |
+
+### Scénario E — hors ligne, avec un cache de la bonne forme
+
+Après le scénario B, donc avec un cache neuf. **Ferme un des trois critères.**
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Réserver un cours, revenir, vérifier le badge | Badge présent |
+| 2 | Mode avion, tuer l'app, la rouvrir | Le planning s'affiche depuis le cache, **badge et pastille compris** |
+| 3 | Ouvrir un jour jamais visité en ligne | Le message hors ligne habituel, pas d'écran vide muet |
+
+### Scénario F — ce qui reste du compte précédent, et des deux boxes
+
+**Ferme les deux derniers critères.** C'est le geste que `D-011` réclame depuis
+le 4 septembre : il se joue ici.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Avec `lea@example.com`, réserver un cours (badge visible) | Badge présent |
+| 2 | Se déconnecter, se reconnecter en `julie@example.com` | **Aucun badge de Léa nulle part**, aucune pastille héritée |
+| 3 | Julie réserve dans **sa première box**, revenir au planning | Badge sur le bon cours |
+| 4 | Basculer sur **sa seconde box** | ⛔ **Impossible aujourd'hui** — voir ci-dessous |
+
+> ⛔ **Gestes 4 à 6 non exerçables, et le noter vaut mieux que les bricoler.**
+> Constaté le 6 septembre 2026 : **il n'existe aucun moyen de changer de box
+> sans se déconnecter** et refaire un code — c'est `P1-009`, le sélecteur de
+> box, qui n'est pas livré.
+>
+> Passer par la déconnexion **ne prouve rien** : elle déclenche la purge du
+> cache (`clearScheduleCache()`). On observerait « aucun marqueur de la
+> première box » parce que **tout** a été effacé, pas parce que la clé est
+> partitionnée par `(userId, tenantId)`. Ce serait un vert obtenu par le
+> mauvais mécanisme — précisément ce que cette page existe pour éviter.
+>
+> Le critère « deux boxes ne mélangent pas leurs marqueurs » reste donc `[~]`,
+> et ce qui le rendra exerçable a un nom : **P1-009**.
+
+### Scénario G — le badge existe pour tout le monde
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | VoiceOver, balayer jusqu'à une ligne réservée | L'annonce **dit « Réservé »** — le badge est un texte, pas une couleur seule |
+| 2 | Réglages → Affichage → taille du texte à 200 %, revenir | Le badge ne chevauche pas le nombre de places, la ligne ne se tronque pas |
+| 3 | Thème sombre (le correctif `D-017` vient de passer) | Le badge est lisible, et l'ouverture de l'app ne flashe pas en blanc |
+
+### Scénario H — deux déclencheurs qui courent ensemble
+
+La relecture est devenue concurrente : le drapeau d'annulation est devenu un
+jeton. Cet invariant se casse en allant vite, pas en allant bien.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Réserver, revenir, et **changer de jour immédiatement** | Le badge du jour précédent **n'apparaît jamais** sur le nouveau jour |
+| 2 | Enchaîner cinq changements de jour rapides | Aucun badge ne « colle » à un jour où il n'a rien à faire |
+| 3 | Réseau lent (mode avion une seconde, puis rétabli) pendant un changement de jour | La liste et les badges parlent du **même** jour, toujours |
+
 ## Ce qu'Expo Go ne peut pas exercer, quoi qu'on fasse
 
 À connaître avant d'écrire un critère qui l'attend pour rien.
@@ -309,6 +465,7 @@ sont donc la moitié de l'information.
 | **3 sept. 2026** | iPhone 12 Pro Max, Expo Go, SDK 57 | Les cinq vérifications passent. **Quatre défauts trouvés**, aucun visible en test : la langue (D-004), le parcours d'invitation cassé de bout en bout (corrigé), le sélecteur de box sans retour (P1-009), les retours de navigation vers des écrans interdits (D-009) |
 | **4 sept. 2026** | idem | Tout passe, contrôle négatif compris : `/welcome` sans jeton est graphite, `/invitation/<jeton>` est orange et nomme la box, `nouveau@example.com` atterrit membre de CrossFit Rueil. Thème sombre et texte à 200 % tiennent ; la reconnexion après déconnexion est propre |
 | **4 sept. 2026**, après PR #27 | idem, `lea@example.com` | Le hors ligne repasse : mode avion sur un jour jamais visité, message final immédiat et identique à chaque essai, bandeau qui parle du jour affiché. **Ferme P1-002b.** Trois gestes n'y étaient pas et sont partis en `D-011` : le fuseau du téléphone, la relecture du contenu du cache, ce qui reste du compte précédent |
+| **6 sept. 2026** | idem, `lea@example.com` + `julie@example.com` | **P1-012, scénarios A à H.** Le parcours nominal passe dans les deux sens, badge et compteur de places ensemble ; le feuilletage de mois ne perd rien ; hors ligne avec cache neuf tient ; VoiceOver annonce « Réservé ». **Un défaut : toute la page clignote au retour** (scénario C) → `D-018`. **Un geste impossible** : changer de box sans se déconnecter, faute de `P1-009` — le critère « deux boxes » reste `[~]`, le valider par la déconnexion aurait été un faux vert. Passe web validée le même jour |
 | **5 sept. 2026** | idem, `lea@example.com`, seed neuf | **P1-003b, gestes 1 à 11 : tout passe, VoiceOver compris.** Trois annonces distinctes nommant cours et heure ; la confirmation s'annonce seule — `announceForAccessibility()` fait son travail là où `accessibilityLiveRegion`, Android seul, aurait laissé un vert trompeur. Quatre refus avec les nombres des réglages. Hors ligne : aucune action proposée. **Aucun défaut trouvé — une première.** Deux critères restent ouverts et non par oubli : le p95 (impossible à mesurer honnêtement en Wi-Fi local, et borné à 3 réservations sans P1-004) et le schéma `rack://`, qu'Expo Go ne peut pas exercer |
 
 ## 6. Ce qu'on note, et ce qu'on ne commite pas

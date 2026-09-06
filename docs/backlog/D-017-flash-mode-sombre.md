@@ -35,6 +35,21 @@ absente traitée comme une valeur par défaut, au lieu d'être traitée comme ab
 - **la règle écrite dans `.claude/rules/ui.md`**, pour que le motif ne revienne
   pas par un autre écran. C'est la partie qui vaut plus que le correctif.
 
+## ⚠️ Ce que la passe du 6 septembre 2026 a montré
+
+Ce ticket portait une réserve explicite : **« Non vérifié sur appareil […] la
+disparition du clignotement ne l'est pas. »** La première observation depuis
+**contredit la disparition** : le clignotement est toujours là au retour sur le
+planning.
+
+Le correctif reste juste — la porte qu'il ferme est réelle. Il en restait une
+seconde, `useRef(INITIAL_SCHEME)` qui ne survit pas à un remontage. La suite est
+dans **`D-018`**, piste 0.
+
+C'est la démonstration de la réserve elle-même : un mécanisme prouvé par un test
+n'est pas un symptôme disparu, et l'écrire aura évité de croire le problème réglé
+pendant deux jours.
+
 ## Ce que ce ticket ne fait pas
 
 Le **balayage iOS** de `D-009` reste ouvert, et le reste : il attend la prochaine
