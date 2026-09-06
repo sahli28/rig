@@ -85,6 +85,117 @@ Deux candidats connus, à écarter ou à confirmer par la mesure :
   objets neufs. Aucun `key=` ne pilote de remontage dans `_layout.tsx` — vérifié
   — donc si remontage il y a par ce chemin, il vient d'un rendu conditionnel.
 
+## ✅ La mesure du 6 septembre 2026 — trois candidats morts
+
+**Passe sur appareil, scénario C, console Metro.** Écrit ici et pas seulement
+dans un message : un candidat écarté qui ne vit nulle part se re-suspecte, et
+c'est la partie la plus durable de cette mesure.
+
+| Candidat | Verdict | Ce que dit le journal |
+| -------- | ------- | --------------------- |
+| L'écran plein cadre (`_layout.tsx:83`) | **mort** | Ses trois occurrences sont **toutes au démarrage**, avant `session status = ready`. Aucune au retour |
+| Un remontage de `SessionProvider` | **mort** | **Un seul** `MONTAGE SessionProvider`, au démarrage |
+| `enLigne` qui bascule | **mort** | `enLigne: true` sur **chacune** des traces de dépendances |
+
+**Et le remontage lui-même n'a pas lieu.** Sur le retour après réservation : ni
+`DÉMONTAGE planning`, ni `MONTAGE planning`, ni `effet chargerJour`. Seul le
+chemin silencieux s'exécute. **La chaîne décrite plus haut est donc réfutée sur
+ce parcours** — elle reste juste comme mécanisme (un remontage produirait bien
+tout cela), elle n'est simplement pas ce qui se produit ici.
+
+Une correction au passage, sur le raisonnement et non sur le verdict : le ticket
+écrivait que `load()` ne remet jamais `status` à `loading`, donc que le candidat
+était « à confirmer ». C'est vrai de `load()` et insuffisant — `useState('loading')`
+s'exécute à **chaque montage** du fournisseur. Le mécanisme était donc plus large
+que décrit ; la mesure a montré que le fournisseur ne remonte pas, ce qui clôt le
+sujet par l'autre bout.
+
+## 🔴 Ce que la mesure a trouvé à la place : le focus se déclenche **deux fois**
+
+Systématiquement, dans les deux journaux, à chaque retour :
+
+    [D-018] useFocusEffect — premierPassage = false
+    [D-018] useFocusEffect — premierPassage = false
+
+Donc **deux `chargerJour(true)` consécutifs**, deux requêtes, et deux `setEtat`
+portant un objet `schedule` neuf coup sur coup. Une liste remplacée deux fois de
+suite se voit, **même sans squelette** — et c'est l'explication qui restait à
+trouver pour un rechargement visible sans remontage.
+
+Le journal montre aussi **où** le doublon ne vient pas de nulle part : le
+`useFocusEffect` se rejoue après **chaque** `effet chargerJour`, c'est-à-dire à
+chaque changement de jour. Sa callback dépend de `chargerJour` et de
+`chargerReserves` ; React Navigation ré-exécute un effet de focus quand sa
+callback change d'identité. Reste à établir laquelle des deux change au
+**retour**, où aucun `effet chargerJour` n'est journalisé — ou si le focus est
+réellement émis deux fois par la navigation.
+
+**Pas de garde par-dessus.** Une garde sur un double appel dont on ignore la
+cause est une rustine, et elle masquerait le prochain.
+
+### ✅ Une cause trouvée et corrigée : la callback de focus changeait d'identité
+
+Mesuré au harnais, le 6 septembre 2026, sur un **changement de jour** :
+
+    effet chargerJour — a changé : date
+    chargerJour(2026-09-07) — SQUELETTE POSÉ (silencieux=false)
+    FOCUS #2 — callback recréée par : chargerJour, chargerReserves
+    chargerJour(2026-09-07) — RELECTURE SILENCIEUSE, aucun squelette
+
+`useFocusEffect` ne rejoue pas seulement l'effet quand l'écran reprend le focus :
+il le rejoue **chaque fois que sa callback change d'identité**. Elle dépendait de
+`chargerJour` et `chargerReserves`, recréées à chaque changement de jour. Donc
+changer de jour déclenchait la lecture du jour, **puis aussitôt une seconde
+lecture silencieuse du même jour** — deux requêtes, deux `setEtat` portant un
+`schedule` neuf coup sur coup, et une liste remplacée deux fois de suite.
+
+**Corrigé à la cause** : les deux lectures passent par un `ref` mis à jour à
+chaque rendu, et la callback de focus a des dépendances **vides**. L'effet ne se
+déclenche plus que sur ce qu'il prétend écouter — le focus. Pas une garde sur le
+second appel : le second appel n'a plus lieu d'être.
+
+Après correctif, au harnais, un changement de jour donne :
+
+    effet chargerJour — a changé : date
+    chargerJour(2026-09-07) — SQUELETTE POSÉ (silencieux=false)
+
+et un retour donne exactement un focus et une relecture silencieuse.
+
+### ⏳ Ce qui reste ouvert, et ce que la prochaine passe dira toute seule
+
+**Le doublon de l'appareil n'est pas expliqué par celui-ci.** Au harnais, le
+focus se déclenche **une fois** par retour, avant comme après le correctif ; sur
+l'appareil il se déclenchait **deux fois**, sans changement de jour. Ce sont deux
+déclencheurs différents, et il en reste un.
+
+L'instrument tranche désormais sans qu'on ait à interpréter :
+
+| Ce que la prochaine passe affichera | Ce que ça veut dire |
+| ----------------------------------- | ------------------- |
+| Un seul `FOCUS #n` par retour | le doublon de l'appareil avait la même cause, c'est réglé |
+| Deux `FOCUS #n`, tous deux « **rien — même identité** » | React Navigation **émet réellement le focus deux fois** sur iOS. Le correctif est alors au niveau navigation, pas dans cet écran |
+| Deux `FOCUS #n` dont un « recréée par : … » | une dépendance bouge sur l'appareil et pas au harnais — la ligne la nomme |
+
+Et surtout, la question qui manquait à la mesure précédente a maintenant sa
+réponse dans le journal, sans qu'un humain ait à se souvenir de l'écran :
+
+    chargerJour(…) — SQUELETTE POSÉ (silencieux=false)     ← rechargement visible
+    chargerJour(…) — RELECTURE SILENCIEUSE, aucun squelette ← pas de rechargement
+
+**Un `SQUELETTE POSÉ` sur un retour est le défaut. Sur un changement de jour,
+c'est le comportement voulu.**
+
+## ⚠️ Un défaut distinct, observé une fois, à ne pas absorber ici
+
+Le premier journal portait un `DÉMONTAGE planning` isolé, apparu après la toute
+première réservation et **jamais reproduit** sur les cinq suivantes. Il a un effet
+visible propre : ce remontage a renvoyé l'écran **au jour du jour**, `date`
+repassant de `09-09` à `09-06`.
+
+Perdre le jour sélectionné en revenant d'une fiche de cours est un défaut à part
+entière, pas une ligne de celui-ci. **S'il se reproduit, il prend son propre
+ticket.** Noté ici pour qu'il ne se redécouvre pas depuis zéro.
+
 ## La question qu'il faut avoir posée : le rechargement n'est-il pas nécessaire ?
 
 Posée le 6 septembre 2026, et elle mérite sa réponse écrite, sinon quelqu'un
@@ -128,7 +239,11 @@ un bénéfice nul par rapport au chemin silencieux qui existe déjà.
 
 ## Critères d'acceptation
 
-- [ ] **La cause du remontage est nommée dans ce ticket**, pas seulement corrigée
+- [x] **La cause est nommée dans ce ticket**, pas seulement corrigée — et le
+      remontage lui-même est **réfuté** par la mesure : ce qui se rejouait était
+      l'effet de focus, pas le montage. Une cause trouvée et corrigée (la
+      callback de focus changeait d'identité) ; **le doublon vu sur appareil
+      reste, lui, sans cause établie**
 - [ ] Réserver depuis la fiche, revenir : la liste se met à jour **sans se
       recharger**, en mode clair comme en mode sombre
 - [ ] Annuler, revenir : idem
@@ -137,11 +252,12 @@ un bénéfice nul par rapport au chemin silencieux qui existe déjà.
       cause est traitée et pas seulement masquée
 - [ ] Refaire le retour cinq fois dans chaque mode : un défaut de cette famille
       est intermittent, une observation ne prouve rien
-- [ ] Le squelette **reste** au changement de jour : c'est un chargement, pas un
-      retour
-- [ ] Le garde-fou `premierPassage` continue d'éviter la double lecture au
+- [x] Le squelette **reste** au changement de jour : c'est un chargement, pas un
+      retour — vérifié au harnais après correctif : `SQUELETTE POSÉ` sur le
+      changement de jour, `RELECTURE SILENCIEUSE` sur le retour
+- [x] Le garde-fou `premierPassage` continue d'éviter la double lecture au
       démarrage à froid — la correction ne doit pas l'échanger contre une lecture
-      en double
+      en double : `FOCUS #1 · premierPassage = true`, puis retour, inchangé
 
 ## Notes
 

@@ -25,6 +25,7 @@ import {
 import { MonthCalendar } from '../../components/month-calendar';
 import { dernierJourDu, moisDe, premierJourDu } from '../../components/month-grid-state';
 import { comptesDuMois, moisACharger, reservesDuJour } from '../../lib/booked-classes';
+import { depsChangees } from '../../lib/trace-deps';
 
 /**
  * Le planning du jour, côté membre.
@@ -162,6 +163,14 @@ export default function PlanningScreen() {
       // liste du suivant. Mais une relecture silencieuse ne doit rien vider :
       // faire clignoter trois squelettes à chaque retour serait un remède pire
       // que le mal qu'on soigne.
+      // === SONDE D-018, TEMPORAIRE ===
+      // **La ligne qui répond seule.** Le squelette est le rechargement visible :
+      // le journal doit le dire, pas laisser quelqu'un se souvenir de l'écran.
+      console.log(
+        silencieux
+          ? `[D-018] chargerJour(${jour}) — RELECTURE SILENCIEUSE, aucun squelette`
+          : `[D-018] chargerJour(${jour}) — SQUELETTE POSÉ (silencieux=false)`,
+      );
       if (!silencieux) {
         setEtat({ jour, phase: 'chargement', schedule: null, origine: 'network' });
       }
@@ -203,9 +212,26 @@ export default function PlanningScreen() {
     [userId, activeTenantId, timeZone, locale, date, enLigne],
   );
 
+  // === SONDE D-018, TEMPORAIRE ===
+  // Un effet à dépendances **vides** : il ne peut se rejouer que sur un
+  // remontage. C'est lui qui tranche entre « l'arbre remonte » et « une
+  // dépendance a changé », les deux produisant le même symptôme.
   useEffect(() => {
+    console.log('[D-018] MONTAGE planning');
+    return () => console.log('[D-018] DÉMONTAGE planning');
+  }, []);
+
+  // Et de quoi savoir **laquelle** des dépendances a bougé, si c'est ce chemin.
+  const depsPrecedentes = useRef<Record<string, unknown> | null>(null);
+  useEffect(() => {
+    const courantes = { userId, activeTenantId, timeZone, locale, date, enLigne };
+    console.log(
+      '[D-018] effet chargerJour — a changé :',
+      depsChangees(depsPrecedentes.current, courantes).join(', ') || '(rien — identité seule)',
+    );
+    depsPrecedentes.current = courantes;
     void chargerJour();
-  }, [chargerJour]);
+  }, [chargerJour, userId, activeTenantId, timeZone, locale, date, enLigne]);
 
   /**
    * Ce qui est réservé, **par mois** (P1-014 pour les pastilles, P1-012 pour les
@@ -279,16 +305,62 @@ export default function PlanningScreen() {
    * démarrage. Ce que ce `useFocusEffect` couvre, ce sont les **retours**.
    */
   const premierPassage = useRef(true);
+
+  /**
+   * **Les lectures les plus récentes, tenues hors de l'identité de la callback**
+   * (D-018).
+   *
+   * `useFocusEffect` ne rejoue pas seulement l'effet quand l'écran reprend le
+   * focus : il le rejoue **chaque fois que sa callback change d'identité**. La
+   * version précédente dépendait de `chargerJour` et `chargerReserves`, qui sont
+   * recréées à chaque changement de jour — donc changer de jour déclenchait la
+   * lecture du jour **puis**, aussitôt, une seconde lecture silencieuse du même
+   * jour. Mesuré le 6 septembre 2026 :
+   *
+   *     effet chargerJour — a changé : date
+   *     chargerJour(2026-09-07) — SQUELETTE POSÉ
+   *     FOCUS #2 — callback recréée par : chargerJour, chargerReserves
+   *     chargerJour(2026-09-07) — RELECTURE SILENCIEUSE
+   *
+   * Deux requêtes et deux `setEtat` portant un `schedule` neuf coup sur coup :
+   * la liste est remplacée deux fois de suite, ce qui se voit **même sans
+   * squelette**.
+   *
+   * Un `ref` mis à jour à chaque rendu donne à l'effet la version courante des
+   * deux lectures **sans** que son identité en dépende. L'effet ne se déclenche
+   * alors plus que sur ce qu'il prétend écouter : le focus.
+   */
+  const lectures = useRef({ chargerJour, chargerReserves });
+  lectures.current = { chargerJour, chargerReserves };
+
+  // === SONDE D-018, TEMPORAIRE ===
+  // Le focus se rejoue **deux fois par retour** (mesure du 6 sept.). Deux causes
+  // possibles, et elles n'appellent pas le même correctif : soit la callback
+  // change d'identité — et React Navigation rejoue alors l'effet — soit la
+  // navigation émet réellement le focus deux fois. Ces deux refs tranchent.
+  const identitesFocus = useRef<{ chargerJour: unknown; chargerReserves: unknown } | null>(null);
+  const passageFocus = useRef(0);
+
   useFocusEffect(
     useCallback(() => {
+      passageFocus.current += 1;
+      const courantes = { chargerJour, chargerReserves };
+      const change = depsChangees(identitesFocus.current, courantes);
+      identitesFocus.current = courantes;
+      console.log(
+        `[D-018] FOCUS #${passageFocus.current} — callback recréée par : ` +
+          (change.join(', ') || '(rien — même identité, donc focus émis à nouveau)') +
+          ` · premierPassage = ${String(premierPassage.current)}`,
+      );
       if (premierPassage.current) {
         premierPassage.current = false;
         return;
       }
       // Silencieuse : au retour, on rafraîchit sans vider l'écran.
-      void chargerJour(true);
-      void chargerReserves();
-    }, [chargerJour, chargerReserves]),
+      void lectures.current.chargerJour(true);
+      void lectures.current.chargerReserves();
+      // **Dépendances vides, et c'est le correctif.** Voir `lectures` ci-dessus.
+    }, []),
   );
 
   /**

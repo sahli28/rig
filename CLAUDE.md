@@ -157,6 +157,7 @@ null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la 
    attente » jusqu'à ce que la passe soit jouée et datée dans le journal de
    `docs/passe-mobile-iphone.md`. Ne jamais cocher un critère d'appareil parce
    que la PR est verte — c'est exactement le faux vert que ce dépôt traque.
+
 6. Si un choix contredit la spec, **le signaler** au lieu de l'appliquer silencieusement.
 7. **Un ticket qui livre une fonction SQL ou un helper nomme son appelant.** Si
    l'appelant n'existe pas encore, le ticket le dit explicitement et cite le
