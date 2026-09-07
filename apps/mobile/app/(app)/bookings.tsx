@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTheme } from '@rack/ui/theme';
@@ -7,6 +7,7 @@ import { Button, EmptyState, ListRow, Skeleton } from '@rack/ui/native';
 import { fetchUpcomingBookings, type UpcomingBooking } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
+import { useRelireAuRetour } from '../../lib/use-relire-au-retour';
 
 /**
  * Mes réservations — les cours à venir, à l'heure locale de la box.
@@ -37,24 +38,54 @@ export default function BookingsScreen() {
 
   const [vue, setVue] = useState<Vue>({ phase: 'chargement', reservations: [] });
 
-  const charger = useCallback(async () => {
-    if (activeTenantId === null || membershipId === null) return;
-    setVue({ phase: 'chargement', reservations: [] });
-    try {
-      const reservations = await fetchUpcomingBookings(supabase, {
-        tenantId: activeTenantId,
-        membershipId,
-        locale,
-      });
-      setVue({ phase: 'prêt', reservations });
-    } catch {
-      setVue({ phase: 'indisponible', reservations: [] });
-    }
-  }, [activeTenantId, membershipId, locale]);
+  /**
+   * **Le jeton, parce qu'il y a maintenant deux déclencheurs** (`D-016`) : le
+   * montage et le retour sur l'écran. Deux lectures peuvent se croiser, et seule
+   * la plus récente a le droit d'écrire.
+   */
+  const lecture = useRef(0);
+
+  const charger = useCallback(
+    async (silencieux = false) => {
+      if (activeTenantId === null || membershipId === null) return;
+      const jeton = ++lecture.current;
+
+      // **Le squelette, sauf au retour.** Une relecture silencieuse ne vide
+      // rien : faire clignoter la liste à chaque retour serait un remède pire
+      // que le mal.
+      if (!silencieux) setVue({ phase: 'chargement', reservations: [] });
+
+      try {
+        const reservations = await fetchUpcomingBookings(supabase, {
+          tenantId: activeTenantId,
+          membershipId,
+          locale,
+        });
+        if (jeton === lecture.current) setVue({ phase: 'prêt', reservations });
+      } catch {
+        if (jeton !== lecture.current) return;
+        // **Un rafraîchissement qui échoue ne remplace pas une information
+        // correcte par une erreur.** Au retour, on garde ce qui est à l'écran :
+        // ces réservations viennent d'une lecture réussie, et un réseau tombé
+        // ne les rend pas fausses.
+        if (!silencieux) setVue({ phase: 'indisponible', reservations: [] });
+      }
+    },
+    [activeTenantId, membershipId, locale],
+  );
 
   useEffect(() => {
     void charger();
   }, [charger]);
+
+  /**
+   * **Cet écran était correct par accident de navigation, pas par
+   * construction** (`D-016`). Il est poussé, donc remonté à chaque visite —
+   * jusqu'au jour où il ne le serait plus. `P1-004` lui a depuis donné une
+   * raison de changer sous les doigts : une annulation faite depuis la fiche de
+   * cours doit disparaître d'ici au retour.
+   */
+  useRelireAuRetour(useCallback(() => void charger(true), [charger]));
 
   return (
     <ScrollView

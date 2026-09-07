@@ -93,14 +93,55 @@ rien d'autre. `planning.tsx` était déjà parti dans `P1-012`.
       places restantes a baissé d'une unité**, sans quitter ni rouvrir l'écran —
       **livré par P1-012** le 6 sept. 2026, et vérifié au harnais : 16 → 15
       places au retour, avec le badge « Réservé » apparu en même temps
-- [ ] Revenir sur un écran déjà rempli **ne fait pas clignoter de squelette** —
-      tenu sur `planning.tsx` (relecture silencieuse, `chargerJour(true)`),
-      **reste à faire sur `index.tsx` et `bookings.tsx`**
-- [ ] Un rafraîchissement qui échoue (mode avion au retour) laisse le contenu
-      précédent affiché, et ne le remplace pas par un écran d'erreur
-- [ ] L'accueil, retrouvé après une réservation, montre l'état du moment
-- [ ] Les trois écrans passent par la **même** forme que la fiche de cours —
-      une seule manière de recharger dans l'app, pas quatre variantes
+- [x] Revenir sur un écran déjà rempli **ne fait pas clignoter de squelette** —
+      vérifié au harnais le 7 septembre 2026 sur le scénario que ce ticket
+      nomme : annuler depuis la fiche de cours, revenir sur « Mes réservations ».
+      La liste passe de la réservation à l'état vide **sans squelette**, sur
+      l'instance déjà montée
+- [x] Un rafraîchissement qui échoue (mode avion au retour) laisse le contenu
+      précédent affiché, et ne le remplace pas par un écran d'erreur — exercé en
+      faisant échouer les lectures pendant la transition : la réservation reste
+      affichée, aucun écran « indisponible »
+- [ ] L'accueil, retrouvé après une réservation, montre l'état du moment.
+      **Mécanisme vérifié, effet visible non observé** : au retour sur l'accueil,
+      une lecture fraîche part bien (`/rest/v1/classes`) alors que cet écran est
+      la racine de la pile et n'avait jamais rien relu. Mais la carte n'affiche
+      que le prochain cours **du jour**, et la passe s'est faite à 23 h 55 heure
+      de la box : il n'y en avait plus. **Ne pas cocher sur le mécanisme** — c'est
+      le faux vert que ce dépôt traque. Reporté à la passe groupée
+- [x] Les trois écrans passent par la **même** forme — et elle n'est plus à
+      recopier : `apps/mobile/lib/use-relire-au-retour.ts`. `planning.tsx`,
+      `index.tsx` et `bookings.tsx` l'appellent ; `class/[id].tsx` reste à part
+      **et le fichier dit pourquoi**
+
+## Ce que le correctif a changé, et la variante qu'il retire
+
+**La forme n'est plus dans un écran, elle est dans un fichier** —
+`apps/mobile/lib/use-relire-au-retour.ts`. Le ticket demandait « une seule
+manière de recharger dans l'app, pas quatre variantes » ; la tenir par la
+discipline aurait suffi à trois écrans et échoué au quatrième. Elle est
+structurelle : il n'y a plus rien à recopier.
+
+**Et ce qui est extrait n'est pas la forme d'origine, c'est celle corrigée par
+`D-018`** — le `ref` et les dépendances vides. C'est le point : la correction du
+6 septembre vivait dans `planning.tsx` seulement, et les deux écrans de ce
+ticket-ci allaient reprendre la version d'avant. Un correctif qui n'existe qu'à
+un endroit est un correctif que ses sœurs ignorent.
+
+**`class/[id].tsx` n'emploie pas le hook, et ce n'est pas un oubli.** Il n'a pas
+d'effet de montage : son `useFocusEffect` dépend de `charger` et fait les deux
+travaux à la fois — charger, et relire quand la langue ou l'appartenance change.
+Sa dépendance n'est pas celle que `D-018` a corrigée, elle est **porteuse** ; la
+retirer l'empêcherait de relire. Deux formes, deux besoins, et la différence est
+écrite dans l'en-tête du hook plutôt que laissée à deviner.
+
+**Deux défauts corrigés au passage, tous deux dans le périmètre du ticket :**
+
+- `bookings.tsx` reposait un squelette à **chaque** lecture et remplaçait la
+  liste par un écran « indisponible » au moindre échec. Les deux sont
+  maintenant conditionnés au premier chargement ;
+- `index.tsx` effaçait sa carte sur un échec de lecture. Au retour, une carte
+  correcte reste en place : un réseau tombé ne la rend pas fausse.
 
 ## Notes
 

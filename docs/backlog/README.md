@@ -87,8 +87,10 @@ quand le compte Apple est validé**, dans leur ordre écrit.
 
 D'ici là, quatre pas, et le troisième est ce qui les tient ensemble :
 
-1. **`D-016`** (0,25) — `index.tsx` et `bookings.tsx`, ce qui reste après que
-   P1-012 a pris `planning.tsx` et que P1-005a a retiré la moitié « places » ;
+1. **`D-016`** ✅ **fait le 7 sept. 2026** (0,25) — `index.tsx` et
+   `bookings.tsx`, ce qui restait après que P1-012 a pris `planning.tsx` et que
+   P1-005a a retiré la moitié « places ». La forme de relecture vit désormais
+   dans un hook, pas dans trois écrans ;
 2. **`D-014`** (0,5) — les deux filets dont on connaît le trou ;
 3. **une seule passe iPhone**, qui ferme d'un coup ce que quatre tickets ont
    laissé ouvert : l'arrière-plan de `P1-005a` (§ 5 quinquies), les trois gestes
@@ -157,7 +159,7 @@ D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'
 D-014                                  (les deux filets dont on connaît le trou — non bloquant)
 P1-004 ✅ fait → P1-005a ✅ fait        (annulation, temps réel sur le téléphone)
                  P1-005b non programmé  (le même canal dans la grille web — si la box le réclame)
-D-016 → D-014 → ✳ passe iPhone → P1-008   (l'ordre arbitré le 6 sept. 2026, voir ci-dessous)
+D-016 ✅ → D-014 → ✳ passe iPhone → P1-008 (l'ordre arbitré le 6 sept. 2026, voir ci-dessous)
 P1-007 🔒 → P1-006                        (push, waitlist — reprennent au compte Apple validé)
    ↑ iOS bloqué par le compte développeur Apple. Android ouvert, mais on n'y va pas.
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
@@ -359,7 +361,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-013  | RIG devient Rack                               | 0,5 | Décision produit du 4 sept. 2026 — **✅ fait**, **comptée dans ①**. Fait avant P1-003b : `bundleIdentifier` définitif après la première soumission, clés de stockage gratuites à renommer tant qu'aucune app n'est installée |
 | D-018  | L'écran se recharge au retour sur le planning   | 1 | P1-012, passe du 6 sept. 2026 — **✅ fait**, **comptée dans ①**. Cause trouvée : `useFocusEffect` rejouait l'effet à chaque changement d'identité de sa callback, donc deux lectures par retour. Corrigée, puis sondes retirées — elles avaient fusionné avec le correctif et écrivaient `userId` dans les journaux de l'appareil. **Une sonde qui survit à sa PR porte `__DEV__` dès sa première ligne** |
 | D-017  | Flash blanc au démarrage en mode sombre        | 0,25 | D-009, PR #43 — **✅ fait**, **comptée dans ①**. Deuxième fois que du travail se range dans un ticket clos et disparaît des totaux. `null` n'est pas « clair » : la règle est écrite dans `.claude/rules/ui.md` |
-| D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — la fiche de cours est corrigée dans son ticket, ses trois jumeaux ne le sont pas. `planning.tsx` est parti dans P1-012 ; **P1-005a retirera la moitié « places restantes » du reste**, et ce qui survivra est `index.tsx` (le badge « Réservé », qu'aucun événement sur `classes` ne porte) et `bookings.tsx` (une annulation faite ailleurs, qu'un canal branché sur `classes` ne verra jamais passer). Écrit dans les deux tickets : une dette dont on retire la motivation la plus visible se referme par erreur |
+| D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — **✅ fait le 7 sept. 2026**. `planning.tsx` était parti dans P1-012, P1-005a avait retiré la moitié « places restantes » ; restaient `index.tsx` et `bookings.tsx`, faits ici. **La forme n'est plus à recopier** : `use-relire-au-retour.ts` porte celle corrigée par D-018 — sans ça, ces deux écrans auraient repris la version d'avant. Deux défauts corrigés au passage : `bookings.tsx` reposait un squelette à chaque lecture et s'effaçait au moindre échec. **Un critère `[ ]`** — l'accueil après réservation, mécanisme vérifié mais effet non observé (passe à 23 h 55, plus de cours ce jour-là) → passe groupée |
 |        | **Ouvert, hors totaux**                        | **6** | D-002, D-003, D-007, D-008, D-016 — D-004, D-011, D-012, D-013 et D-017 sont dans ①, D-010 est clos |
 
 Ces 6,25 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :

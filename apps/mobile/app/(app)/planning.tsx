@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { Stack, useFocusEffect, useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useNetworkState } from 'expo-network';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
@@ -17,6 +17,7 @@ import {
 import type { BookedDays, DayClass, DaySchedule, LigneCoursChangee } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useCoursEnDirect } from '../../lib/use-realtime-classes';
+import { useRelireAuRetour } from '../../lib/use-relire-au-retour';
 import { useSession } from '../../lib/session';
 import {
   readBookedDays,
@@ -277,22 +278,24 @@ export default function PlanningScreen() {
    * liste qui montrerait « Réservé » à côté d'un compteur inchangé se
    * contredirait elle-même.
    *
-   * **Le premier passage est sauté.** Le montage a déjà déclenché les deux
-   * lectures par leurs effets ; les relancer ici les ferait partir en double au
-   * démarrage. Ce que ce `useFocusEffect` couvre, ce sont les **retours**.
+   * **Le premier passage est sauté**, et c'est le hook `useRelireAuRetour` qui
+   * s'en charge : le montage a déjà déclenché les deux lectures par leurs
+   * effets ; les relancer au premier focus les ferait partir en double au
+   * démarrage. Ce que le hook couvre, ce sont les **retours**.
    */
-  const premierPassage = useRef(true);
 
   /**
    * **Les lectures les plus récentes, tenues hors de l'identité de la callback**
    * (D-018).
    *
+   * Le `ref` sert maintenant **deux** consommateurs — le repli du canal temps
+   * réel et la relecture au retour — mais la raison n'a pas changé :
    * `useFocusEffect` ne rejoue pas seulement l'effet quand l'écran reprend le
-   * focus : il le rejoue **chaque fois que sa callback change d'identité**. La
-   * version précédente dépendait de `chargerJour` et `chargerReserves`, qui sont
-   * recréées à chaque changement de jour — donc changer de jour déclenchait la
-   * lecture du jour **puis**, aussitôt, une seconde lecture silencieuse du même
-   * jour. Mesuré le 6 septembre 2026 :
+   * focus, il le rejoue **chaque fois que sa callback change d'identité**. La
+   * version d'avant dépendait de `chargerJour` et `chargerReserves`, recréées à
+   * chaque changement de jour — donc changer de jour déclenchait la lecture du
+   * jour **puis**, aussitôt, une seconde lecture silencieuse du même jour.
+   * Mesuré le 6 septembre 2026 :
    *
    *     effet chargerJour — a changé : date
    *     chargerJour(2026-09-07) — SQUELETTE POSÉ
@@ -350,18 +353,13 @@ export default function PlanningScreen() {
   });
   const pastille = pastilleEtat(etatDirect);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (premierPassage.current) {
-        premierPassage.current = false;
-        return;
-      }
-      // Silencieuse : au retour, on rafraîchit sans vider l'écran.
-      void lectures.current.chargerJour(true);
-      void lectures.current.chargerReserves();
-      // **Dépendances vides, et c'est le correctif.** Voir `lectures` ci-dessus.
-    }, []),
-  );
+  // Silencieuse : au retour, on rafraîchit sans vider l'écran. Le saut du
+  // premier passage et les dépendances vides sont dans le hook — c'est là que la
+  // leçon de `D-018` vit désormais, pour les trois écrans à la fois.
+  useRelireAuRetour(() => {
+    void lectures.current.chargerJour(true);
+    void lectures.current.chargerReserves();
+  });
 
   /**
    * L'invariant, rendu explicite : **on n'affiche jamais l'état d'un autre
