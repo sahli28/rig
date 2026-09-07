@@ -5,7 +5,7 @@
 -- modifiable ne prouve rien.
 
 begin;
-select plan(11);
+select plan(12);
 
 -- `restrict_violation` = SQLSTATE 23001. C'est le code que lève `forbid_mutation()`.
 select throws_ok(
@@ -78,6 +78,16 @@ select throws_ok(
 -- La box est responsable de prouver le consentement de ses membres. Si le membre
 -- pouvait supprimer ou réécrire la ligne, la policy d'accountability ne
 -- protégerait rien : elle est en lecture seule côté box.
+
+-- **L'état d'avant, mesuré au lieu d'être supposé** (`D-014`). Un refus se
+-- prouve par ce qui n'a pas bougé ; encore faut-il savoir ce qu'il y avait. Le
+-- décor est fixé par la même règle que `cible` dans `booking_test.sql` : créé
+-- par `postgres`, lu sous `authenticated`, donc explicitement accordé.
+create temporary table consents_avant as
+select count(*) as compte from public.consents
+where user_id = '33333333-0000-4000-8000-000000000001';
+grant select on consents_avant to authenticated;
+
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
 
@@ -105,10 +115,26 @@ select throws_ok(
   'un membre ne peut pas réécrire un consentement en place'
 );
 
+-- **Deux assertions bornées plutôt qu'un compte de table** (`D-014`). Celle
+-- d'avant lisait `count(*) from consents` et attendait `2` : elle affirmait
+-- combien de consentements Léa possède, là où elle veut dire « les deux ordres
+-- refusés n'ont rien détruit ni rien réécrit ». Un consentement de plus au
+-- décor la faisait rougir.
+--
+-- Chacune borne ce que **l'ordre refusé** aurait fait, et rien d'autre.
 select is(
-  (select count(*) from public.consents)::int,
-  2,
-  'et la preuve est toujours là, intacte'
+  (select count(*) from public.consents
+   where user_id = '33333333-0000-4000-8000-000000000001'),
+  (select compte from consents_avant),
+  'le `delete` refusé n''a effacé aucune preuve'
+);
+
+select is(
+  (select count(*) from public.consents
+   where user_id = '33333333-0000-4000-8000-000000000001'
+     and policy_version = 'FALSIFIÉ')::int,
+  0,
+  'et l''`update` refusé n''en a réécrit aucune'
 );
 
 -- Se rétracter reste possible, et aussi simple que consentir : c'est une

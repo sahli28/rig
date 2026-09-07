@@ -37,6 +37,10 @@ try {
       "PORTEE DE CE GARDE : il ne s'execute que sur les outils Edit et Write. Un script",
       "Node lance en Bash ecrit le meme fichier sans qu'il le voie (arrive au renommage",
       'D-013). Il reduit les accidents, il ne rend pas le fichier immuable.',
+      '',
+      "L'autre moitie du filet est `pnpm migrations:immuables` (D-014), en CI et lancable",
+      'a la main : il compare au point de depart de la branche et voit toutes les ecritures,',
+      "quel qu'en soit l'auteur. Lui non plus ne bloque pas encore — regle 13.",
     ].join('\n'),
   );
   process.exit(2); // 2 = bloque l'appel et renvoie stderr a Claude
