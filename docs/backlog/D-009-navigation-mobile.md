@@ -94,8 +94,11 @@ C'est aussi le seul défaut de la passe qui **empire tout seul**.
       convention écrite — `.claude/rules/ui.md`, section « La convention de
       navigation mobile »
 - [ ] **Vérifié sur appareil** : le balayage iOS et le bouton retour Android ne
-      se testent pas au navigateur. C'est le seul critère qui reste, et il tient
-      dans la prochaine passe — § 5 bis de `docs/passe-mobile-iphone.md`
+      se testent pas au navigateur. C'est le seul critère qui reste, et son geste
+      est écrit — **bloc D de la passe groupée**, § 5 sexies de
+      `docs/passe-mobile-iphone.md`. *(Le pointeur disait « § 5 bis » jusqu'au
+      8 sept. 2026 : c'est le parcours d'invitation, pas le balayage. Un renvoi
+      faux vaut un renvoi absent.)*
 
 ## Notes
 

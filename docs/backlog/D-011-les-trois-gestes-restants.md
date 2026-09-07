@@ -59,6 +59,18 @@ extension de périmètre autorisée.
 - Tout correctif qui dépasserait `apps/mobile/lib/schedule-cache.ts` et l'écran
   de planning : nouveau ticket.
 
+## Les gestes sont écrits — bloc A de la passe groupée
+
+*8 septembre 2026.* Les trois gestes vivent désormais dans § 5 sexies de
+`docs/passe-mobile-iphone.md`, et **l'inconnue de méthode du tableau ci-dessus
+est levée** : le second compte s'atteint en **révoquant la session côté serveur**
+(`delete from auth.sessions where user_id = …`), ce qui est exactement « session
+expirée » — sans `signOut()`, donc sans `clearScheduleCache()`. C'est le seul
+chemin qui exerce le cloisonnement par la clé plutôt que l'effacement.
+
+Ce geste est **à jouer en premier** : toucher « Se déconnecter » une seule fois
+le rend inobservable pour le reste de la passe.
+
 ## Critères d'acceptation
 
 - [ ] Le fuseau du téléphone est changé et les heures affichées ne bougent pas

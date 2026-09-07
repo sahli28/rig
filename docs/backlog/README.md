@@ -93,10 +93,13 @@ D'ici là, quatre pas, et le troisième est ce qui les tient ensemble :
    dans un hook, pas dans trois écrans ;
 2. **`D-014`** ✅ **fait le 8 sept. 2026** (0,5) — les deux filets dont on connaissait le trou : le garde de migrations a désormais son complément en CI, et quatre assertions pgTAP cessent de compter tout le dépôt ;
 3. **une seule passe iPhone**, qui ferme d'un coup ce que quatre tickets ont
-   laissé ouvert : l'arrière-plan de `P1-005a` (§ 5 quinquies), les trois gestes
-   de `D-011`, les écrans de `D-016`, et le balayage iOS de `D-009`. **Quatre
-   dettes d'appareil, une passe** — c'est tout l'intérêt de les avoir laissées
-   s'accumuler plutôt que d'avoir joué quatre passes ;
+   laissé ouvert : les trois gestes de `D-011`, l'accueil de `D-016`,
+   l'arrière-plan de `P1-005a`, et le balayage iOS de `D-009`. **Quatre dettes
+   d'appareil, une passe** — c'est tout l'intérêt de les avoir laissées
+   s'accumuler plutôt que d'avoir joué quatre passes. **Sa section est écrite**
+   (8 sept. 2026) : § 5 sexies de `docs/passe-mobile-iphone.md`, quatre blocs,
+   avec l'ordre imposé et les deux contraintes qui gâcheraient la passe si on
+   les découvrait dedans ;
 4. **`P1-008`** (6) — check-in QR et kiosque, qui ne dépend que de `P1-003`,
    fait.
 

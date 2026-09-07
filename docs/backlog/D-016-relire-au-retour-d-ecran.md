@@ -108,7 +108,7 @@ rien d'autre. `planning.tsx` était déjà parti dans `P1-012`.
       la racine de la pile et n'avait jamais rien relu. Mais la carte n'affiche
       que le prochain cours **du jour**, et la passe s'est faite à 23 h 55 heure
       de la box : il n'y en avait plus. **Ne pas cocher sur le mécanisme** — c'est
-      le faux vert que ce dépôt traque. Reporté à la passe groupée
+      le faux vert que ce dépôt traque. **Geste écrit — bloc B de la passe groupée**, § 5 sexies de `docs/passe-mobile-iphone.md`, avec sa contrainte d'heure : la carte n'affiche que le prochain cours *du jour*
 - [x] Les trois écrans passent par la **même** forme — et elle n'est plus à
       recopier : `apps/mobile/lib/use-relire-au-retour.ts`. `planning.tsx`,
       `index.tsx` et `bookings.tsx` l'appellent ; `class/[id].tsx` reste à part
