@@ -91,7 +91,7 @@ D'ici là, quatre pas, et le troisième est ce qui les tient ensemble :
    `bookings.tsx`, ce qui restait après que P1-012 a pris `planning.tsx` et que
    P1-005a a retiré la moitié « places ». La forme de relecture vit désormais
    dans un hook, pas dans trois écrans ;
-2. **`D-014`** (0,5) — les deux filets dont on connaît le trou ;
+2. **`D-014`** ✅ **fait le 8 sept. 2026** (0,5) — les deux filets dont on connaissait le trou : le garde de migrations a désormais son complément en CI, et quatre assertions pgTAP cessent de compter tout le dépôt ;
 3. **une seule passe iPhone**, qui ferme d'un coup ce que quatre tickets ont
    laissé ouvert : l'arrière-plan de `P1-005a` (§ 5 quinquies), les trois gestes
    de `D-011`, les écrans de `D-016`, et le balayage iOS de `D-009`. **Quatre
@@ -159,7 +159,7 @@ D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'
 D-014                                  (les deux filets dont on connaît le trou — non bloquant)
 P1-004 ✅ fait → P1-005a ✅ fait        (annulation, temps réel sur le téléphone)
                  P1-005b non programmé  (le même canal dans la grille web — si la box le réclame)
-D-016 ✅ → D-014 → ✳ passe iPhone → P1-008 (l'ordre arbitré le 6 sept. 2026, voir ci-dessous)
+D-016 ✅ → D-014 ✅ → ✳ passe iPhone → P1-008 (l'ordre arbitré le 6 sept. 2026, voir ci-dessous)
 P1-007 🔒 → P1-006                        (push, waitlist — reprennent au compte Apple validé)
    ↑ iOS bloqué par le compte développeur Apple. Android ouvert, mais on n'y va pas.
 P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
@@ -216,7 +216,7 @@ sait pas lui répondre.
 | D-011   | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | à faire — à la prochaine passe appareil, non bloquant |
 | D-012   | Façade `crypto` et sondes de lint *(rétroactif)*  |    0,5 | ✅ fait le 4 sept. 2026 — écrit après coup pour que le total cesse d'être faux de 0,5 |
 | D-013   | **RIG devient Rack** — le renommage, d'un seul geste |  0,5 | ✅ fait le 4 sept. 2026 — avant P1-003b, qui touche les mêmes fichiers. Le `scheme` ne se vérifie pas dans Expo Go : ce reliquat part avec le premier *development build* |
-| D-014   | Deux filets dont on connaît le trou               |    0,5 | à faire — non bloquant. Le garde de migrations ne voit pas les écritures par script, et des tests pgTAP affirment des comptes globaux |
+| D-014   | Deux filets dont on connaît le trou               |    0,5 | ✅ **fait le 8 sept. 2026**. Le trou du garde est comblé par `pnpm migrations:immuables`, en CI : il regarde le résultat et non l'intention, donc voit les écritures par script — contrôle négatif joué **en Bash**, le chemin même que le hook ne voit pas. Bascule de la règle 13 dans une constante, les deux moitiés prouvées. Côté pgTAP, **quatre assertions corrigées sur 107**, trouvées en ajoutant du bruit au seed plutôt qu'en les lisant |
 | D-015   | Monter un composant mobile dans un test           |    1,5 | à faire — **à arbitrer, avec son déclencheur**. La suite `.ts` d'`apps/mobile` existe ; ce qui manque est le montage et les gestes |
 | D-018   | L'écran se recharge au retour sur le planning     |      1 | ✅ **clos le 6 sept. 2026** — cause trouvée et corrigée (PR #48 : le focus se rejouait deux fois par retour), puis **sondes retirées** avant P1-005a. **0,5 → 1** : deux tours de mesure, comptés plutôt que cachés. Rechargement résiduel **arbitré et accepté** ; les quatre critères d'appareil restent `[ ]`, abandonnés et pas tenus |
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
@@ -356,7 +356,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-010  | Un filet qui s'exécute sur le moteur du produit | 0 | Plantage du 4 sept. 2026 — **✅ arbitré et clos le 4 sept.** : rien maintenant ; Maestro en local quand la passe manuelle dépassera dix minutes ; Maestro en CI jamais avant que le produit encaisse. Le quatrième défaut de la famille a été arrêté sur le papier, l'écran de diagnostic n'aurait pas fait mieux. Ce que la décision **accepte de ne pas couvrir** est écrit dans le ticket |
 | D-011  | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | P1-002b — **comptée dans ①**, à faire à la prochaine passe appareil |
 | D-012  | Façade `crypto` et sondes de lint *(rétroactif)* | 0,5 | Revue du 4 sept. 2026 — **✅ fait**, et **comptée dans ①** : le travail existait sans figurer dans aucun total |
-| D-014  | Deux filets dont on connaît le trou            | 0,5 | P1-003b, 5 sept. 2026 — **comptée dans ①**. Un trou connu qui ne vit que dans un message de commit finit par ne vivre nulle part |
+| D-014  | Deux filets dont on connaît le trou            | 0,5 | P1-003b, 5 sept. 2026 — **✅ fait le 8 sept. 2026**, **comptée dans ①**. Un trou connu qui ne vit que dans un message de commit finit par ne vivre nulle part. La méthode vaut d'être retenue : les 107 assertions de comptage n'ont pas été relues une à une, on a **ajouté du bruit au seed et regardé qui rougissait** |
 | D-015  | Monter un composant mobile dans un test        | 1,5 | P1-011, 5 sept. 2026 — **comptée dans ①**. Le premier défaut mobile qui aurait pu être attrapé sans téléphone, et l'option la moins chère ne l'aurait pas attrapé |
 | D-013  | RIG devient Rack                               | 0,5 | Décision produit du 4 sept. 2026 — **✅ fait**, **comptée dans ①**. Fait avant P1-003b : `bundleIdentifier` définitif après la première soumission, clés de stockage gratuites à renommer tant qu'aucune app n'est installée |
 | D-018  | L'écran se recharge au retour sur le planning   | 1 | P1-012, passe du 6 sept. 2026 — **✅ fait**, **comptée dans ①**. Cause trouvée : `useFocusEffect` rejouait l'effet à chaque changement d'identité de sa callback, donc deux lectures par retour. Corrigée, puis sondes retirées — elles avaient fusionné avec le correctif et écrivaient `userId` dans les journaux de l'appareil. **Une sonde qui survit à sa PR porte `__DEV__` dès sa première ligne** |

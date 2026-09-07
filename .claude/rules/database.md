@@ -302,11 +302,25 @@ Deux limites à garder en tête, sinon la règle donne une fausse assurance :
   de production existe, l'exception disparaît sans discussion.**
   Ces deux lignes disaient l'inverse l'une de l'autre entre le 4 et le
   5 septembre 2026 : la règle 13 est arrivée ici sans que celle-ci bouge.
-- **Le garde ne couvre qu'un chemin sur deux.** Il s'exécute sur
-  `PreToolUse(Edit|Write)`. Un script Node lancé en Bash écrit le même fichier
-  sans qu'il voie rien — c'est ce qui s'est passé au renommage `D-013`, et le
-  hook n'a pas échoué : il n'était pas sur le chemin. Un garde qui se croit
-  étanche est plus dangereux qu'un garde qui dit sa portée.
+- **Le garde ne couvre qu'un chemin sur deux, et un second contrôle couvre
+  l'autre.** Le hook s'exécute sur `PreToolUse(Edit|Write)` : un script Node
+  lancé en Bash écrit le même fichier sans qu'il voie rien — c'est ce qui s'est
+  passé au renommage `D-013`, et le hook n'a pas échoué, il n'était pas sur le
+  chemin. Un garde qui se croit étanche est plus dangereux qu'un garde qui dit
+  sa portée.
+
+  Depuis `D-014`, `pnpm migrations:immuables` (en CI, et lançable à la main)
+  compare les migrations à l'ancêtre commun avec la branche de base et signale
+  celles **déjà versionnées** qui ont changé. Il regarde le **résultat** au lieu
+  de l'intention, donc il voit toutes les écritures quel qu'en soit l'auteur —
+  y compris les siennes. Les deux se complètent et ne se remplacent pas : le
+  hook attrape l'erreur avant qu'elle soit écrite, le contrôle attrape ce que le
+  hook ne peut pas voir.
+
+  Il **avertit** au lieu de bloquer, parce que la règle 13 l'autorise tant
+  qu'aucune base de production n'existe ; la bascule est **une constante en tête
+  du script**, `UNE_BASE_DE_PRODUCTION_EXISTE`. Le mode est imprimé à chaque
+  exécution — un garde dont on ignore l'état ne garde rien.
 - Toute migration doit être réversible ou documenter pourquoi elle ne l'est pas.
 - Pas de `drop column` sans étape de dépréciation préalable.
 

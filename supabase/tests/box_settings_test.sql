@@ -20,8 +20,18 @@ select plan(33);
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
 
+-- **Bornée aux trois types du seed** (`D-014`). Elle comptait *tout* le
+-- catalogue de Rueil : elle disait donc « la box a exactement trois types »,
+-- une affirmation sur le seed, là où elle veut dire « un MEMBER lit ceux qui
+-- existent ». Ajouter un type au décor la faisait rougir sans qu'aucun droit
+-- n'ait changé.
 select is(
-  (select count(*) from public.class_types where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'),
+  (select count(*) from public.class_types
+   where id in (
+     'a4000000-0000-4000-8000-000000000001',
+     'a4000000-0000-4000-8000-000000000002',
+     'a4000000-0000-4000-8000-000000000003'
+   )),
   3::bigint,
   'un MEMBER lit le catalogue de sa box — c''est lui qui peint le planning'
 );

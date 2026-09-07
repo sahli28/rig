@@ -191,11 +191,17 @@ select is(
   'un refus pour cours complet ne laisse aucune trace sur le compteur'
 );
 
+-- **Bornée au cours testé, et c'est le sujet de `D-014`.** Cette assertion
+-- comptait *toutes* les réservations de Julie, dans tout le dépôt : elle
+-- affirmait « Julie n'a jamais rien réservé » là où elle veut dire « **cet
+-- appel refusé** n'a rien écrit ». La première est une affirmation sur le seed,
+-- et elle a rougi le jour où une fixture a inscrit Julie ailleurs.
 select is(
   (select count(*) from public.bookings
-   where membership_id = 'a3000000-0000-4000-8000-000000000004'),
+   where membership_id = 'a3000000-0000-4000-8000-000000000004'
+     and class_id = (select id from cible)),
   0::bigint,
-  'ni aucune réservation fantôme'
+  'ni aucune réservation fantôme sur le cours refusé'
 );
 
 -- ---------------------------------------------------------------------------
@@ -321,11 +327,27 @@ select throws_ok(
 reset role;
 
 update public.classes set status = 'SCHEDULED', is_override = false where id = (select id from cible);
-update public.tenant_settings set max_upcoming_bookings = 1
+
+-- **Le plafond est calculé, pas posé** (`D-014`). Écrit en dur à 1, ce bloc
+-- supposait que Julie n'avait aucune réservation à venir — une affirmation sur
+-- le seed, pas sur `book_class()`. Une fixture qui l'inscrit ailleurs faisait
+-- alors échouer *la première* réservation, celle qui doit passer, et le test
+-- rougissait en accusant la règle qu'il vérifie.
+--
+-- Calculé depuis son état réel, il prouve exactement la même chose — « la
+-- suivante passe, celle d'après est refusée » — sans rien supposer.
+update public.tenant_settings
+set max_upcoming_bookings = 1 + (
+  select count(*) from public.bookings b
+  join public.classes c on c.id = b.class_id
+  where b.membership_id = 'a3000000-0000-4000-8000-000000000004'
+    and b.status = 'CONFIRMED'
+    and c.starts_at > now()
+)
 where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001';
 
--- Julie a droit à une réservation à venir. On lui en donne une, sur un cours
--- large, puis on lui en refuse une seconde.
+-- Julie a droit à une réservation à venir de plus que ce qu'elle a. On la lui
+-- donne, sur un cours large, puis on lui en refuse une seconde.
 insert into public.classes (
   id, tenant_id, schedule_id, class_type_id, room_id, coach_membership_id,
   starts_at, ends_at, capacity

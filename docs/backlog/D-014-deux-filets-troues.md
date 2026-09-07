@@ -82,17 +82,69 @@ des tests au-delà des assertions visées : le reste de `booking_test.sql` est b
 
 ## Critères d'acceptation
 
-- [ ] Une migration déjà présente dans `main` qui change dans un diff est
+- [x] Une migration déjà présente dans `main` qui change dans un diff est
       **signalée**, quel que soit l'outil qui l'a écrite — y compris un script
-      Bash. Vérifié par un contrôle négatif : on modifie une migration, on
-      constate le signalement, on annule
-- [ ] La bascule de la règle 13 est dans ce contrôle : avertissement tant
-      qu'aucune base de production n'existe, blocage après
-- [ ] Aucune assertion pgTAP ne compte des lignes sur la seule base d'une
-      appartenance. Vérifié en ajoutant une fixture bidon au seed : la suite
-      reste verte
-- [ ] Le trou du hook est écrit là où on le relira — son message le dit déjà,
-      `.claude/rules/database.md` aussi
+      Bash. `scripts/migrations-immuables.mjs`, en CI et lançable à la main.
+      Contrôle négatif joué le 8 septembre 2026, et **la modification a été faite
+      par `echo >>` en Bash** : exactement le chemin que le hook ne voit pas. Le
+      signalement nomme le fichier ; le décor a été annulé ensuite
+- [x] La bascule de la règle 13 est dans ce contrôle : avertissement tant
+      qu'aucune base de production n'existe, blocage après. **Les deux moitiés
+      sont prouvées** — constante à `false`, code de sortie `0` avec le message
+      d'avertissement ; à `true`, code de sortie `1` et « BLOQUÉ ». Le mode est
+      imprimé à chaque exécution, y compris quand il n'y a rien à signaler
+- [x] Aucune assertion pgTAP ne compte des lignes sur la seule base d'une
+      appartenance. **Vérifié en ajoutant une fixture bidon au seed : 437 tests
+      verts.** La recension est plus bas
+- [x] Le trou du hook est écrit là où on le relira — le message du hook nomme
+      désormais son complément, et `.claude/rules/database.md` porte les deux
+
+## Ce que la fixture bidon a trouvé, et la méthode qui l'a trouvé
+
+**Lire les 107 assertions de comptage une à une aurait été long et peu fiable.**
+Le critère du ticket est lui-même la meilleure méthode : on ajoute du bruit au
+décor, et on regarde qui rougit. Trois bruits, appliqués **un par un** — c'est
+ce qui distingue une assertion trop large d'un test dont le sujet a réellement
+changé :
+
+| Bruit ajouté au seed | Test rouge | Nature |
+| --- | --- | --- |
+| Julie réserve un cours de Rueil | `booking_test` « ni aucune réservation fantôme » | ❌ **trop large** — comptait *toutes* les réservations de Julie |
+| idem | `booking_test` « la première réservation à venir passe » | ⚠️ **autre nature** — le test *suppose* que Julie part de zéro |
+| Un type de cours de plus chez Rueil | `box_settings` « un MEMBER lit le catalogue » | ❌ **trop large** — comptait tout le catalogue de la box |
+| Un consentement de plus pour Léa | `append_only` « la preuve est toujours là » | ❌ **trop large** — comptait la table entière |
+
+**La deuxième ligne est la plus instructive.** Ce n'est pas une assertion trop
+large : c'est un bloc qui pose `max_upcoming_bookings = 1` en supposant que Julie
+n'a aucune réservation à venir. Une fixture qui l'inscrit ailleurs fait alors
+échouer **la première** réservation — celle qui doit passer — et le test rougit
+en accusant la règle qu'il vérifie. Le correctif n'est pas de borner un compte,
+c'est de **calculer le plafond depuis son état réel** : `1 + ce qu'elle a`. Il
+prouve exactement la même chose sans rien supposer.
+
+Les trois autres sont bornées à ce que l'appel testé a fait : le cours refusé,
+les trois types du seed nommés par leur identifiant, et l'état des consentements
+de Léa mesuré **avant** les deux ordres refusés plutôt que supposé.
+
+**Et le compte de la table est remplacé par deux assertions, pas une.**
+`count(*) from consents = 2` prétendait couvrir un `delete` et un `update`
+refusés d'un seul chiffre. Ce sont deux propriétés différentes : rien n'a été
+effacé, rien n'a été réécrit. Séparées, elles disent laquelle a cédé.
+
+## Ce qui n'a pas été touché, et pourquoi
+
+Deux familles ressemblent au défaut sans en être :
+
+- **`class_roster_test`, `role_isolation_test`** — `count(*)` sans borne, mais
+  sous un rôle dont la RLS **est** la borne, et dont la valeur attendue est zéro.
+  « Un membre de Nanterre ne lit aucune feuille de Rueil » : le compte global est
+  le sujet, pas un effet de bord du seed ;
+- **`audit_trail_test`** — `count(*) from audit_logs where diff ~ '<empreinte>'`
+  = 0. Volontairement global : la question est « nulle part dans le journal », et
+  la borner la viderait de son sens.
+
+Les distinguer demandait de savoir ce que chaque assertion **veut dire**. C'est
+la raison pour laquelle ce ticket ne pouvait pas être un `sed`.
 
 ## Notes
 

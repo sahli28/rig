@@ -14,7 +14,12 @@ jobs:
     name: lint · typecheck · test
     runs-on: ubuntu-latest
     steps:
+      # `fetch-depth: 0` : le contrôle des migrations compare à l'ancêtre commun
+      # avec la branche de base. Un clone superficiel n'en a pas, et le script
+      # sortirait « rien à vérifier » — vert, muet, et faux.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
 
@@ -49,6 +54,18 @@ jobs:
 
       - name: Format
         run: pnpm format:check
+
+      # **Une migration déjà versionnée a-t-elle changé ?** Le hook
+      # `guard-migrations.mjs` ne s'exécute que sur Edit et Write : un script
+      # lancé en Bash écrit le même fichier sans qu'il le voie, ce qui est arrivé
+      # au renommage D-013. Ce contrôle-ci regarde le résultat plutôt que
+      # l'intention, donc il voit toutes les écritures.
+      #
+      # Il **avertit** tant qu'aucune base de production n'existe (règle 13 de
+      # CLAUDE.md), et une constante du script bascule le jour venu. Le mode est
+      # imprimé à chaque exécution : un garde dont on ignore l'état ne garde rien.
+      - name: Les migrations versionnées sont-elles intactes ?
+        run: pnpm migrations:immuables
 
       # Le bundle web de l'app mobile. Il ne remplace pas un appareil, mais il
       # est le seul harnais qui exerce le routeur et les écrans sans téléphone —
