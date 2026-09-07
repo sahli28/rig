@@ -25,6 +25,7 @@ import type { DayClass, LigneCoursChangee } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
 import { useCoursEnDirect } from '../../lib/use-realtime-classes';
+import { useRelireAuRetour } from '../../lib/use-relire-au-retour';
 
 /**
  * Atterrissage, aux couleurs de la box.
@@ -68,32 +69,41 @@ function ProchainCours() {
    * déclenchée par le seul montage, donc deux peuvent se croiser — la même
    * raison qui l'a fait entrer dans `planning.tsx`.
    */
-  const charger = useCallback(async () => {
-    if (activeTenantId === null) return;
-    const jeton = ++lecture.current;
+  const charger = useCallback(
+    async (silencieux = false) => {
+      if (activeTenantId === null) return;
+      const jeton = ++lecture.current;
 
-    try {
-      const jour = await fetchDaySchedule(supabase, {
-        tenantId: activeTenantId,
-        date: localDay(new Date().toISOString(), timeZone),
-        timeZone,
-        locale,
-      });
-      if (jeton !== lecture.current) return;
-      const maintenant = Date.now();
-      setCours(
-        jour.classes.find(
-          (item) => item.status === 'SCHEDULED' && Date.parse(item.starts_at) > maintenant,
-        ) ?? null,
-      );
-    } catch {
-      // L'accueil ne s'excuse pas d'un réseau absent : le planning, lui, sait
-      // le dire et propose son cache. La carte disparaît, la porte reste.
-      if (jeton === lecture.current) setCours(null);
-    } finally {
-      if (jeton === lecture.current) setPhase('prêt');
-    }
-  }, [activeTenantId, timeZone, locale]);
+      try {
+        const jour = await fetchDaySchedule(supabase, {
+          tenantId: activeTenantId,
+          date: localDay(new Date().toISOString(), timeZone),
+          timeZone,
+          locale,
+        });
+        if (jeton !== lecture.current) return;
+        const maintenant = Date.now();
+        setCours(
+          jour.classes.find(
+            (item) => item.status === 'SCHEDULED' && Date.parse(item.starts_at) > maintenant,
+          ) ?? null,
+        );
+      } catch {
+        if (jeton !== lecture.current) return;
+        // L'accueil ne s'excuse pas d'un réseau absent : le planning, lui, sait
+        // le dire et propose son cache. La carte disparaît, la porte reste.
+        //
+        // **Sauf au retour** (`D-016`) : une relecture silencieuse qui échoue
+        // laisse la carte en place. Elle vient d'une lecture réussie, et un
+        // réseau tombé ne la rend pas fausse — l'effacer remplacerait une
+        // information correcte par rien du tout.
+        if (!silencieux) setCours(null);
+      } finally {
+        if (jeton === lecture.current) setPhase('prêt');
+      }
+    },
+    [activeTenantId, timeZone, locale],
+  );
 
   useEffect(() => {
     void charger();
@@ -104,6 +114,18 @@ function ProchainCours() {
   // canal neuf à chaque fois.
   const lectureRef = useRef(charger);
   lectureRef.current = charger;
+
+  /**
+   * **L'accueil est la racine de la pile : il ne remonte jamais** (`D-016`).
+   * Monté une fois pour toute la session, son effet de montage ne rejoue rien —
+   * le cours mis en avant datait donc du lancement de l'app.
+   *
+   * `P1-005a` a retiré la moitié « places restantes » de ce défaut : un canal
+   * corrige le compteur pendant qu'on regarde l'écran. **Il n'a pas retiré le
+   * reste**, et c'est ce que cette ligne couvre : aucun événement sur `classes`
+   * ne dit « cette personne a réservé », ni « ce cours n'est plus le prochain ».
+   */
+  useRelireAuRetour(useCallback(() => void charger(true), [charger]));
 
   /**
    * **Le même canal que le planning, sur un seul cours.**
@@ -122,7 +144,9 @@ function ProchainCours() {
         precedent === null ? precedent : appliqueChangementAuCours(precedent, ligne),
       );
     }, []),
-    relire: useCallback(() => void lectureRef.current(), []),
+    // Silencieuse, comme sur le planning : le repli rafraîchit, il ne fait
+    // disparaître la carte ni ne la remplace par un écran vide.
+    relire: useCallback(() => void lectureRef.current(true), []),
   });
 
   if (phase === 'chargement') return <Skeleton height={96} />;
