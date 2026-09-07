@@ -480,24 +480,157 @@ le code actuel : canal coupé, pastille en « reconnexion », et une **relecture
 réseau** au retour.
 
 Donc le geste n'est pas « verrouiller le téléphone ». Ce sont deux gestes
-distincts, et ils testent deux moitiés différentes.
+distincts, et ils testent deux moitiés différentes : le centre de contrôle
+décide de la nervosité, le verrouillage décide du canal.
 
-| # | Geste | Attendu | Ce que ça décide |
-|---|---|---|---|
-| 1 | Sur le planning, **tirer le centre de contrôle et le refermer** aussitôt. Trois fois de suite | La pastille **ne devrait pas** clignoter en « reconnexion » pour une demi-seconde de centre de contrôle | Si elle clignote et qu'une lecture part à chaque fois : **c'est une nervosité à arbitrer, pas un vert.** Le correctif candidat tient en un mot — ne se débrancher que sur `background`, pas sur `inactive` — mais c'est un arbitrage, pas une évidence : `inactive` couvre aussi des cas où le socket est réellement gelé |
-| 2 | **Verrouiller l'écran**, attendre 30 s, déverrouiller | Le canal se rebranche, l'écran affiche l'état du moment, et une réservation faite pendant le verrouillage est visible | L'autre moitié : le canal survit-il proprement à un vrai passage en arrière-plan, et la relecture au retour rattrape-t-elle ce qui a été manqué |
-| 3 | Après les deux, sur le PC : `select count(*) from realtime.subscription;` | **2** — l'accueil et le planning, pas un de plus | Aucun canal orphelin. Le compte peut monter transitoirement : `removeChannel()` est asynchrone, laisser retomber quelques secondes avant de lire |
-| 4 | Pendant l'app verrouillée, réserver depuis le PC (`book_class()`), puis déverrouiller | Le compteur est à jour **sans** squelette ni rechargement visible | Les événements manqués ne se rattrapent pas : c'est la relecture au retour qui doit les couvrir, silencieusement |
-
-**Le décor** : `pnpm test:db:fresh`, puis un second client pour provoquer les
-changements — le back-office web, ou `book_class()` en `psql`. Compte
-`lea@example.com` ; `julie@example.com` pour réserver depuis l'autre côté.
+**Les gestes eux-mêmes sont dans le bloc C de la passe groupée** (§ 5 sexies),
+avec les trois autres dettes d'appareil. Cette section garde le raisonnement,
+parce que c'est lui qui explique pourquoi le geste est celui-là et pas l'autre.
 
 **Ce qui est déjà prouvé et n'a pas à être rejoué** : le compteur qui bouge en
 moins de 3 s, l'isolation entre boxes, le repli à 30 s et son arrêt au retour du
 canal, l'absence de fuite sur 20 écrans. Tout ça a été mesuré au harnais le
-6 septembre 2026 — cette passe ne couvre que ce que le navigateur ne sait pas
-faire.
+6 septembre 2026 — la passe ne couvre que ce que le navigateur ne sait pas faire.
+
+## 5 sexies. La passe groupée — quatre dettes, une passe
+
+**Pourquoi groupée**, décidé le 6 septembre 2026 : quatre tickets ont laissé un
+critère d'appareil ouvert, et jouer quatre passes coûterait quatre fois le
+décor, quatre fois l'IP, quatre fois le seed. C'est tout l'intérêt de les avoir
+laissées s'accumuler — à condition de ne pas laisser passer la fenêtre.
+
+| Bloc | Ce qu'il ferme | Ticket |
+| --- | --- | --- |
+| **A** | Ce qui reste du compte précédent, le fuseau, le contenu du cache | `D-011` (3 critères) |
+| **B** | L'accueil retrouvé après une réservation | `D-016` (1 critère) |
+| **C** | L'arrière-plan et le canal temps réel | `P1-005a` (1 critère) |
+| **D** | Le balayage iOS | `D-009` (1 critère, le dernier) |
+
+### ⚠️ L'ordre compte, et pour deux raisons différentes
+
+**Le bloc A d'abord, et son geste 1 avant tout autre.** « Arriver sur un second
+compte sans passer par la déconnexion » ne s'exerce qu'une fois : dès qu'on
+touche « Se déconnecter », `clearScheduleCache()` efface tout le préfixe et le
+geste ne montre plus rien — il exercerait l'effacement, pas le cloisonnement.
+C'est la remarque centrale de `D-011`, et elle se perd si la passe commence par
+se promener dans l'app.
+
+**Le bloc B a une contrainte d'heure, et elle a déjà coûté une vérification.**
+La carte de l'accueil n'affiche que le prochain cours **du jour**. Au harnais du
+7 septembre, la passe s'est faite à 23 h 55 heure de la box : il n'y avait plus
+de cours, et le critère est resté `[ ]` alors que le mécanisme était bon.
+**Vérifier qu'un cours reste aujourd'hui avant de commencer**, sinon décaler un
+cours dans le décor (commande au geste B0).
+
+### Geste 0 — le décor
+
+Sur le PC, dans cet ordre :
+
+1. **L'IP a changé** si la box wifi a changé : reprendre les sections 1 à 3.
+2. `pnpm test:db:fresh` — un seed neuf. Les réservations prises pendant la passe
+   font rougir `pnpm test:db` ensuite : c'est le décor, pas une régression.
+3. `pnpm --filter @rack/mobile start -c`.
+
+Comptes : `lea@example.com` (principal), `sarah@example.com` (le second compte du
+bloc A), `julie@example.com` (pour provoquer des changements depuis l'autre
+côté).
+
+---
+
+### Bloc A — le cache, là où il vit (`D-011`)
+
+**A1. Ce qui reste du compte précédent — à jouer en premier.**
+
+Le chemin qui prouve quelque chose n'est pas la déconnexion, c'est la **session
+perdue** : elle n'appelle pas `signOut()`, donc pas `clearScheduleCache()`, et
+c'est la clé `(utilisateur, box, jour)` qui doit protéger toute seule.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Avec `lea@example.com`, ouvrir le planning et **feuilleter trois jours** pour poser du cache | Les trois journées s'affichent |
+| 2 | Sur le PC : `docker exec supabase_db_imys psql -U postgres -d postgres -c "delete from auth.sessions where user_id='33333333-0000-4000-8000-000000000001';"` | La session de Léa est révoquée **sans que l'app le sache** |
+| 3 | Tuer l'app, la rouvrir | Elle retombe sur l'écran de connexion — session expirée, **aucune déconnexion** |
+| 4 | Se connecter en `sarah@example.com`, aller au planning, feuilleter les mêmes jours | **Rien du planning de Léa n'apparaît**, à aucun moment, pas même une fraction de seconde avant le chargement |
+
+**A2. Le fuseau.** Réglages iOS → Général → Date et heure → fuseau **Tokyo**
+(l'écart ne se confond avec rien). Rouvrir le planning : **les heures restent
+celles de la box**. Le calcul a douze tests, son effet à l'écran n'en a aucun.
+Remettre Paris ensuite.
+
+**A3. Le contenu du cache.** Menu développeur d'Expo Go → débogage JS →
+dans la console : `Object.keys(localStorage).filter(k => k.startsWith('rack.'))`,
+puis lire une valeur. Attendu : la clé porte `rack.schedule.<utilisateur>.<box>.<jour>`,
+et la valeur ne contient **ni adresse e-mail, ni nom d'inscrit, ni jeton**. La
+forme `DaySchedule` l'interdit déjà — c'est la relecture qui le prouve, et c'est
+tout l'objet du geste.
+
+> Le harnais web montre les mêmes clés (vérifié le 7 sept. 2026). Il prouve la
+> **forme**, pas ce qui est écrit sur l'appareil : il ne remplace pas ce geste.
+
+---
+
+### Bloc B — l'accueil retrouvé (`D-016`)
+
+**B0. Vérifier qu'un cours reste aujourd'hui**, sinon la carte est absente et le
+geste ne montre rien :
+
+```bash
+docker exec supabase_db_imys psql -U postgres -d postgres -c "select starts_at from public.classes where tenant_id='aaaaaaaa-0000-4000-8000-000000000001' and starts_at > now() order by starts_at limit 1;"
+```
+
+S'il n'en reste pas pour aujourd'hui, décaler un cours dans le décor — et
+`pnpm test:db:fresh` après la passe.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Depuis l'accueil, lire la carte « Ton prochain cours » : noter le nombre de places | Une carte, avec son compteur et sa pastille d'état |
+| 2 | Aller au planning, ouvrir ce cours, **réserver**, revenir à l'accueil | Le badge et le compteur de la carte **sont à jour**, et **sans squelette** |
+| 3 | Mode avion, quitter l'accueil et y revenir | La carte **reste affichée** telle quelle — une relecture qui échoue ne remplace pas une information correcte par rien |
+
+Le geste 2 est le critère resté ouvert : l'accueil est la racine de la pile, il
+ne remonte jamais, et jusqu'à `D-016` il affichait l'état du lancement de l'app.
+
+---
+
+### Bloc C — l'arrière-plan et le canal (`P1-005a`)
+
+Le raisonnement est au § 5 quinquies : l'écouteur se débranche sur tout ce qui
+n'est pas `active`, et iOS émet `inactive` bien plus souvent qu'on ne le croit.
+
+**Le décor** : un second client pour provoquer les changements — le back-office
+web, ou `book_class()` en `psql` avec `julie@example.com`.
+
+| # | Geste | Attendu | Ce que ça décide |
+|---|---|---|---|
+| 1 | Sur le planning, **tirer le centre de contrôle et le refermer** aussitôt. Trois fois de suite | La pastille **ne devrait pas** clignoter en « reconnexion » pour une demi-seconde de centre de contrôle | Si elle clignote et qu'une lecture part à chaque fois : **une nervosité à arbitrer, pas un vert.** Le correctif candidat tient en un mot — ne se débrancher que sur `background`, pas sur `inactive` — mais c'est un arbitrage : `inactive` couvre aussi des cas où le socket est réellement gelé |
+| 2 | **Verrouiller l'écran**, attendre 30 s, déverrouiller | Le canal se rebranche et l'écran affiche l'état du moment | L'autre moitié : le canal survit-il à un vrai passage en arrière-plan |
+| 3 | Pendant l'app verrouillée, réserver depuis le PC, puis déverrouiller | Le compteur est à jour **sans** squelette ni rechargement visible | Les événements manqués ne se rattrapent pas : c'est la relecture au retour qui doit les couvrir, silencieusement |
+| 4 | Après les trois, sur le PC : `select count(*) from realtime.subscription;` | **2** — l'accueil et le planning, pas un de plus | Aucun canal orphelin. Le compte monte transitoirement (`removeChannel()` est asynchrone) : laisser retomber quelques secondes avant de lire |
+
+---
+
+### Bloc D — le balayage iOS (`D-009`)
+
+Le dernier critère de `D-009`, et le seul que le harnais ne peut pas exercer.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Depuis le planning, ouvrir une fiche de cours, puis **balayer depuis le bord gauche** | Retour au planning, sur le jour qu'on regardait |
+| 2 | Balayer depuis un écran atteint par une redirection (après connexion, par exemple) | **Aucun retour vers un écran interdit** — `dismissAll()` avant `replace()` doit avoir vidé la pile |
+| 3 | Balayer à moitié puis relâcher | L'écran revient en place, sans état intermédiaire figé |
+
+---
+
+### Après la passe
+
+- `pnpm test:db:fresh` — les réservations prises pendant la passe font rougir
+  `pnpm test:db` sinon.
+- Remettre le fuseau du téléphone sur Paris (bloc A2).
+- **Dater le journal ci-dessous.** Une passe non datée ne prouve rien : c'est
+  écrit dans `D-011` et c'est vrai des quatre.
+- Cocher dans chaque ticket **ce qui a été observé**, pas ce qui a été déduit.
+  Un mécanisme qui fonctionne n'est pas un critère tenu — `D-016` en a fait la
+  démonstration le 7 septembre.
 
 ## Journal des passes
 
