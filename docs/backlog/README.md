@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **21,25 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **20,75 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -173,7 +173,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 101,25 j·h, dont **21,25 restants**
+## ① Jalon pilote — 101,25 j·h, dont **20,75 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -181,22 +181,51 @@ Objectif : une box réelle utilise l'app en production pendant deux semaines.
 ### Ordre
 
 ```
-P0-005b                                (SSO Google)
-D-009 ✅ → P1-002b ✅ → P1-010 ✅ → P1-003b → P1-003c   (navigation, planning, coachs, réservation, pairs)
-D-011                                  (trois gestes de relecture du cache, à la prochaine passe appareil — non bloquant)
-P1-003c ✅ fait → P1-011 ✅ fait → P1-014 ✅ fait  (la feuille d'inscrits, le bandeau de semaine, puis la grille du mois qui le remplace)
-D-010 ✅ arbitré et clos · D-012 ✅ fait  (le moteur du produit : rien de plus maintenant, et la façade crypto comptée)
-D-013 ✅ fait                            (RIG → Rack, avant P1-003b parce qu'il touche les mêmes fichiers)
-D-014                                  (les deux filets dont on connaît le trou — non bloquant)
-P1-004 ✅ fait → P1-005a ✅ fait        (annulation, temps réel sur le téléphone)
-                 P1-005b non programmé  (le même canal dans la grille web — si la box le réclame)
-D-016 ✅ → D-014 ✅ → ✳ passe iPhone → P1-008 (l'ordre arbitré le 6 sept. 2026, voir ci-dessous)
-P1-007 🔒 → P1-006                        (push, waitlist — reprennent au compte Apple validé)
-   ↑ iOS bloqué par le compte développeur Apple. Android ouvert, mais on n'y va pas.
-P1-009 → P1-001f                       (sélecteur de box, logo — après la démo)
+LA CHAÎNE MOBILE, close
+  D-009 ✅ → P1-002b ✅ → P1-010 ✅ → P1-003b ✅ → P1-003c ✅ → P1-011 ✅ → P1-014 ✅
+  D-010 ✅ · D-012 ✅ · D-013 ✅ · D-004 ✅ · D-017 ✅ · D-018 ✅
+  P1-004 ✅ → P1-005a ✅          (annulation, puis le temps réel sur le téléphone)
+
+L'ORDRE ARBITRÉ DU 6 SEPT., déroulé
+  D-016 ✅ → D-014 ✅ → D-019 ✅ → D-020 ✅ → ✳ passe groupée ✅ (8 sept.) → P1-008
+  La passe a fermé six critères sur quatre tickets : D-011 ✅, D-016, P1-005a, D-009.
+
+CE QUI RESTE, ET CE QUI LE RETIENT
+  P1-008                    ⟵ rien. **Le prochain.** Écrire sa section règle 8 avant
+                              de l'ouvrir : getUserMedia n'existe pas hors HTTPS
+  P1-007  ⟵ pas Apple, son propre travail préparatoire : découpe a/b + ADR 0004
+  P1-006  ⟵ P1-007, et rien d'autre
+  P1-009 → P1-001f          ⟵ rien. Après la démo
+  D-008   ⟵ le nom de domaine, seul blocage de sa ligne
+
+NON PROGRAMMÉS, chacun avec son déclencheur
+  P0-005b · P1-005b · P1-013
+
         ↓
   ═══ JALON : mise en production chez la box pilote ═══
 ```
+
+**Ce que « débloqué » ne veut pas dire.** Le compte Apple a levé une démarche, pas
+un travail. Il a rendu exerçables le push iOS (`P1-007b`), le reliquat `rack://`
+de `D-013`, le critère `[~]` correspondant de `P1-003b` et `P2-003`. Il n'a rien
+retiré aux **trois trous** que la section règle 8 de `P1-007` a trouvés — aucun
+émetteur, aucun journal d'envoi, aucun fuseau utilisateur — ni au fait que son
+estimation de 4 j·h est fausse de son propre aveu.
+
+Le blocage n'a pas disparu, **il a changé de nature** : d'une démarche
+administrative à son propre travail préparatoire. Écrire « débloqué » tout court
+ferait repartir le ticket sur un chiffre qu'on sait faux. D'où la condition
+d'ouverture, à tenir :
+
+> **`P1-007` s'ouvre quand sa découpe a/b et l'amendement d'ADR 0004 sont
+> écrits.** Apple était nécessaire, pas suffisant.
+
+**Et le premier development build se prépare comme un événement.** Il ferme des
+critères de **quatre** tickets — `P1-003b` (le schéma `rack://`), `D-013` (son
+reliquat), `P1-007b` (le push iOS), et `D-008` dès que le domaine existe. Même
+économie que la passe groupée, appliquée aux builds : on rassemble la liste de ce
+qu'il ferme **avant** de le lancer, au lieu de le subir comme un effet de bord de
+`P1-007`.
 
 **D-009 ouvre la chaîne mobile, comme D-004 l'a ouverte avant elle.** La règle
 est la même à chaque fois : ce qui empire avec le nombre d'écrans se corrige
@@ -244,7 +273,7 @@ sait pas lui répondre.
 | P1-008  | Check-in QR et mode kiosque                       |      6 | à faire              |
 | P1-013  | Droits de réservation accordés à la main          |      2 | **non programmé** — écrit, chiffré, prêt. À sortir le jour où la box pilote veut couper un droit sans exclure quelqu'un. `member_has_booking_right()` rend `true` pour tout membre actif : c'est son appelant manquant |
 | P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. **Rend exerçable un critère `[~]` de P1-012** (deux boxes, sans passer par la déconnexion qui purge le cache). La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
-| D-011   | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | à faire — à la prochaine passe appareil, non bloquant |
+| D-011   | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | ✅ **fait à la passe groupée du 8 sept. 2026** — bloc A. Le compte précédent atteint par **session expirée** et non par déconnexion, seul chemin qui exerce le cloisonnement par la clé plutôt que l'effacement ; fuseau Tokyo ; contenu du cache relu sur l'appareil |
 | D-012   | Façade `crypto` et sondes de lint *(rétroactif)*  |    0,5 | ✅ fait le 4 sept. 2026 — écrit après coup pour que le total cesse d'être faux de 0,5 |
 | D-013   | **RIG devient Rack** — le renommage, d'un seul geste |  0,5 | ✅ fait le 4 sept. 2026 — avant P1-003b, qui touche les mêmes fichiers. Le `scheme` ne se vérifie pas dans Expo Go : ce reliquat part avec le premier *development build* |
 | D-014   | Deux filets dont on connaît le trou               |    0,5 | ✅ **fait le 8 sept. 2026**. Le trou du garde est comblé par `pnpm migrations:immuables`, en CI : il regarde le résultat et non l'intention, donc voit les écritures par script — contrôle négatif joué **en Bash**, le chemin même que le hook ne voit pas. Bascule de la règle 13 dans une constante, les deux moitiés prouvées. Côté pgTAP, **quatre assertions corrigées sur 107**, trouvées en ajoutant du bruit au seed plutôt qu'en les lisant |
@@ -253,7 +282,7 @@ sait pas lui répondre.
 | D-019   | Trois affordances de débogage sur l'accueil       |    0,5 | ✅ **fait le 8 sept. 2026**. Le sélecteur de langue **déménage** dans les réglages — il tenait une vraie fonction, il était au mauvais endroit depuis `P0-003` ; les deux autres passent sous `__DEV__`. L'accueil ne porte plus **qu'une action primaire**, mesurée et non lue. **Et la garde est prouvée mordante** sur l'export de production : zéro appel aux deux chaînes, seules leurs traductions embarquent. Un critère `[ ]` — l'app iOS elle-même → passe groupée |
 | D-020   | Trois sœurs que la fixture bidon n'a pas vues     |   0,25 | ✅ **fait le 8 sept. 2026**, avant de reprendre la passe — un rouge connu pendant une passe est un rouge qu'on n'examine pas. **Une troisième trouvée** en cumulant les deux bruits, et elle ne rougissait pas : elle **cassait** `class_roster_test`, emportant vingt assertions. La règle du décor devient **mécanique** (`test-db.mjs`, page de passe), et `CLAUDE.md` gagne la **règle 10** |
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
-|         | **Total ①**                                       | **101,25** | dont **80 faits**, **21,25 restants** |
+|         | **Total ①**                                       | **101,25** | dont **80,5 faits**, **20,75 restants** |
 
 **Trois tickets ne sont pas dans ce total** — `P1-013`, `P1-005b` et, depuis le
 8 septembre 2026, `P0-005b`. Ils sont écrits et chiffrés, pas programmés, et
@@ -280,7 +309,8 @@ corrigé sans son calcul se re-conteste :
 | `P0-005b` sort du total (4) | 100,5 | 79,25 | 21,25 |
 | `D-019` entre dans ① (0,5) | 101 | 79,25 | 21,75 |
 | `D-019` fait, `D-020` entre (0,25) | 101,25 | 79,75 | 21,5 |
-| `D-020` fait (0,25) | **101,25** | **80** | **21,25** |
+| `D-020` fait (0,25) | 101,25 | 80 | 21,25 |
+| `D-011` fait à la passe du 8 sept. (0,5) | **101,25** | **80,5** | **20,75** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
@@ -408,7 +438,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-007  | Contraste de la page de démo                   | 0,25 | P0-002 |
 | D-008  | Lien d'invitation qui survit à l'installation  | 1,5 | P0-005a — **attend un domaine**, comme P2-015 |
 | D-010  | Un filet qui s'exécute sur le moteur du produit | 0 | Plantage du 4 sept. 2026 — **✅ arbitré et clos le 4 sept.** : rien maintenant ; Maestro en local quand la passe manuelle dépassera dix minutes ; Maestro en CI jamais avant que le produit encaisse. Le quatrième défaut de la famille a été arrêté sur le papier, l'écran de diagnostic n'aurait pas fait mieux. Ce que la décision **accepte de ne pas couvrir** est écrit dans le ticket |
-| D-011  | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | P1-002b — **comptée dans ①**, à faire à la prochaine passe appareil |
+| D-011  | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | P1-002b — **✅ fait le 8 sept. 2026**, **comptée dans ①**. Son inconnue de méthode a été levée en écrivant la passe groupée : révoquer la session côté serveur, pas se déconnecter |
 | D-012  | Façade `crypto` et sondes de lint *(rétroactif)* | 0,5 | Revue du 4 sept. 2026 — **✅ fait**, et **comptée dans ①** : le travail existait sans figurer dans aucun total |
 | D-014  | Deux filets dont on connaît le trou            | 0,5 | P1-003b, 5 sept. 2026 — **✅ fait le 8 sept. 2026**, **comptée dans ①**. Un trou connu qui ne vit que dans un message de commit finit par ne vivre nulle part. La méthode vaut d'être retenue : les 107 assertions de comptage n'ont pas été relues une à une, on a **ajouté du bruit au seed et regardé qui rougissait** |
 | D-015  | Monter un composant mobile dans un test        | 1,5 | P1-011, 5 sept. 2026 — **comptée dans ①**. Le premier défaut mobile qui aurait pu être attrapé sans téléphone, et l'option la moins chère ne l'aurait pas attrapé |

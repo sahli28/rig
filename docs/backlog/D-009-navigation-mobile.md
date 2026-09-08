@@ -93,12 +93,13 @@ C'est aussi le seul défaut de la passe qui **empire tout seul**.
 - [x] Le premier écran à retour légitime (détail d'un cours, P1-003b) trouve la
       convention écrite — `.claude/rules/ui.md`, section « La convention de
       navigation mobile »
-- [ ] **Vérifié sur appareil** : le balayage iOS et le bouton retour Android ne
-      se testent pas au navigateur. C'est le seul critère qui reste, et son geste
-      est écrit — **bloc D de la passe groupée**, § 5 sexies de
-      `docs/passe-mobile-iphone.md`. *(Le pointeur disait « § 5 bis » jusqu'au
-      8 sept. 2026 : c'est le parcours d'invitation, pas le balayage. Un renvoi
-      faux vaut un renvoi absent.)*
+- [x] **Vérifié sur appareil le 8 septembre 2026** — bloc D de la passe groupée :
+      le balayage depuis le bord gauche revient au planning sur le jour regardé,
+      un balayage depuis un écran atteint par redirection ne rouvre aucun écran
+      interdit, et un balayage relâché à mi-course revient en place. **C'était le
+      dernier critère de ce ticket**, ouvert depuis le 3 septembre. *(Son
+      pointeur désignait « § 5 bis » jusqu'au 8 sept. — le parcours d'invitation,
+      pas le balayage. Un renvoi faux vaut un renvoi absent.)*
 
 ## Notes
 

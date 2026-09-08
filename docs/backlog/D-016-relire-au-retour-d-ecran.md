@@ -102,13 +102,12 @@ rien d'autre. `planning.tsx` était déjà parti dans `P1-012`.
       précédent affiché, et ne le remplace pas par un écran d'erreur — exercé en
       faisant échouer les lectures pendant la transition : la réservation reste
       affichée, aucun écran « indisponible »
-- [ ] L'accueil, retrouvé après une réservation, montre l'état du moment.
-      **Mécanisme vérifié, effet visible non observé** : au retour sur l'accueil,
-      une lecture fraîche part bien (`/rest/v1/classes`) alors que cet écran est
-      la racine de la pile et n'avait jamais rien relu. Mais la carte n'affiche
-      que le prochain cours **du jour**, et la passe s'est faite à 23 h 55 heure
-      de la box : il n'y en avait plus. **Ne pas cocher sur le mécanisme** — c'est
-      le faux vert que ce dépôt traque. **Geste écrit — bloc B de la passe groupée**, § 5 sexies de `docs/passe-mobile-iphone.md`, avec sa contrainte d'heure : la carte n'affiche que le prochain cours *du jour*
+- [x] L'accueil, retrouvé après une réservation, montre l'état du moment —
+      **observé le 8 septembre 2026**, bloc B de la passe groupée. Le critère
+      était resté `[ ]` la veille non par oubli mais par **heure** : la passe
+      tombait à 23 h 55, la carte n'affiche que le prochain cours *du jour*, et
+      il n'y en avait plus. Le mécanisme était bon, l'effet n'avait pas été vu —
+      c'est la distinction que ce dépôt refuse de confondre
 - [x] Les trois écrans passent par la **même** forme — et elle n'est plus à
       recopier : `apps/mobile/lib/use-relire-au-retour.ts`. `planning.tsx`,
       `index.tsx` et `bookings.tsx` l'appellent ; `class/[id].tsx` reste à part

@@ -34,11 +34,106 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { readdirSync } from 'node:fs';
+
+/**
+ * **Ce que `pg_prove` compte, et ce que personne ne comptait** (`D-020`, second
+ * volet).
+ *
+ * Un fichier tronqué en cours de route **est** attrapé : le `plan(N)` de pgTAP
+ * annonce combien d'assertions vont suivre, et il en manque. C'est ce qui a fait
+ * rougir `class_roster_test.sql` quand sa sous-requête a levé.
+ *
+ * Un fichier **absent** ne l'était pas. Mesuré le 8 septembre 2026 : en retirer
+ * un donne `Files=23, Tests=406` et **`Result: PASS`** — vert, silencieux, et
+ * trente et une assertions de moins. Renommage malheureux, glob modifié, fichier
+ * oublié dans un rebase : le filet rétrécit sans rien dire.
+ *
+ * C'est la règle 10 de `CLAUDE.md` appliquée à l'instrument plutôt qu'à une
+ * assertion — un contrôle ne mord que là où on a regardé, et personne ne
+ * regardait le **nombre de fichiers exercés**.
+ *
+ * **Deux contrôles, parce qu'un seul ne mordait pas.** Le premier écrit ici
+ * comparait le disque à ce qui s'exécute — et le contrôle négatif l'a réfuté :
+ * retirer un fichier baisse **les deux** compteurs, donc ils restent d'accord et
+ * le garde se tait. Il fallait un chiffre qui ne bouge pas tout seul.
+ *
+ * D'où :
+ *
+ * 1. `FICHIERS_ATTENDUS`, figé ici. Il attrape la **disparition** — renommage,
+ *    glob, fichier perdu dans un rebase ;
+ * 2. la comparaison disque / exécutés, qui attrape un fichier **présent mais
+ *    non exercé**. Les deux modes sont différents et aucun ne couvre l'autre.
+ *
+ * **Pas de total d'assertions figé**, en revanche : il faudrait le corriger à
+ * chaque test ajouté, et un chiffre qu'on corrige dix fois par semaine est un
+ * chiffre qu'on corrige sans le lire. Le nombre de fichiers bouge rarement, et
+ * le bouger est alors un geste délibéré — c'est exactement ce qu'on veut d'un
+ * garde.
+ */
+const FICHIERS_ATTENDUS = 24;
+
+const fichiersSurDisque = readdirSync('supabase/tests').filter((f) => f.endsWith('.sql')).length;
+
+if (fichiersSurDisque < FICHIERS_ATTENDUS) {
+  process.stderr.write(
+    [
+      '',
+      '─'.repeat(72),
+      '  IL MANQUE DES FICHIERS DE TEST.',
+      '',
+      `  ${FICHIERS_ATTENDUS} attendus, ${fichiersSurDisque} sur le disque.`,
+      '',
+      '  Un fichier absent ne peut rien attraper, et sans ce contrôle la suite',
+      '  rendait PASS avec moins d’assertions qu’hier — mesuré le 8 sept. 2026 :',
+      '  `Files=23, Tests=406`, vert.',
+      '',
+      '  Si un test a été retiré volontairement, baisser `FICHIERS_ATTENDUS`',
+      '  dans ce fichier, **dans le même commit**, en disant pourquoi.',
+      '─'.repeat(72),
+      '',
+    ].join('\n'),
+  );
+  process.exit(1);
+}
 
 const result = spawnSync('supabase', ['test', 'db'], {
-  stdio: 'inherit',
+  encoding: 'utf8',
   shell: true,
 });
+
+// La sortie est relayée telle quelle : c'est elle qu'on lit quand ça casse.
+if (result.stdout) process.stdout.write(result.stdout);
+if (result.stderr) process.stderr.write(result.stderr);
+
+/**
+ * `Files=24, Tests=437, …` — la ligne de résumé de `pg_prove`. Absente si la
+ * suite s'est effondrée avant d'y arriver ; dans ce cas l'échec parle déjà.
+ */
+const resume = /Files=(\d+)/.exec(`${result.stdout ?? ''}\n${result.stderr ?? ''}`);
+const fichiersExerces = resume === null ? null : Number(resume[1]);
+
+if (result.status === 0 && fichiersExerces !== null && fichiersExerces < fichiersSurDisque) {
+  process.stderr.write(
+    [
+      '',
+      '─'.repeat(72),
+      '  VERT, MAIS INCOMPLET — et c’est pire qu’un rouge.',
+      '',
+      `  ${fichiersSurDisque} fichiers de test sur le disque, ${fichiersExerces} exercés.`,
+      '',
+      '  Un fichier qui n’est pas exécuté ne peut rien attraper, et rien ne',
+      '  le signale : la suite rend PASS avec moins d’assertions qu’hier.',
+      '  Renommage, glob, fichier perdu dans un rebase — la cause importe',
+      '  moins que le fait de le voir.',
+      '',
+      '  Comparer `supabase/tests/*.sql` à ce que la sortie ci-dessus liste.',
+      '─'.repeat(72),
+      '',
+    ].join('\n'),
+  );
+  process.exit(1);
+}
 
 if (result.status !== 0) {
   process.stderr.write(
