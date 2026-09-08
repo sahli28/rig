@@ -93,9 +93,15 @@ des tests au-delà des assertions visées : le reste de `booking_test.sql` est b
       sont prouvées** — constante à `false`, code de sortie `0` avec le message
       d'avertissement ; à `true`, code de sortie `1` et « BLOQUÉ ». Le mode est
       imprimé à chaque exécution, y compris quand il n'y a rien à signaler
-- [x] Aucune assertion pgTAP ne compte des lignes sur la seule base d'une
-      appartenance. **Vérifié en ajoutant une fixture bidon au seed : 437 tests
-      verts.** La recension est plus bas
+- [~] Aucune assertion pgTAP ne compte des lignes sur la seule base d'une
+      appartenance. **Coché trop large le 8 septembre 2026, corrigé le même
+      jour.** Ce qui est vrai : les quatre assertions trouvées sont bornées, et
+      la suite reste verte avec **cette** fixture bidon. Ce qui ne l'est pas :
+      « aucune assertion ». Une session réelle au harnais — connexion,
+      consentements, réservation — en fait rougir deux autres que le bruit ne
+      touchait pas, dont une qui est **le jumeau exact** de celle corrigée ici,
+      dans le fichier d'à côté. → `D-020`, avec la leçon : **une fixture de bruit
+      écrite à la main hérite des angles morts de qui l'écrit**
 - [x] Le trou du hook est écrit là où on le relira — le message du hook nomme
       désormais son complément, et `.claude/rules/database.md` porte les deux
 
