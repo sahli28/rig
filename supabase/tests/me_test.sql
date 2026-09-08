@@ -74,7 +74,25 @@ select is(
 -- `required_actions`
 -- ---------------------------------------------------------------------------
 
--- Léa a un prénom mais pas de consentement PRIVACY dans le seed.
+-- **Le test pose sa précondition au lieu de l'hériter** (`D-020`).
+--
+-- Il disait « Léa a un prénom mais pas de consentement PRIVACY *dans le seed* » —
+-- une affirmation sur le décor, pas sur `me()`. Une session réelle dans l'app en
+-- pose un, et l'assertion passait alors au rouge sans qu'aucune ligne de code
+-- ait bougé. Ce qu'elle veut dire est « **un consentement manquant** est
+-- signalé » : à ce test de le faire manquer.
+--
+-- Sous `postgres` : `authenticated` n'a aucun droit de suppression sur
+-- `consents`, et c'est voulu — la preuve du consentement ne s'efface pas depuis
+-- l'app (`.claude/rules/privacy.md`). La suppression vit dans la transaction du
+-- test, qui se termine par un `rollback`.
+reset role;
+delete from public.consents
+where user_id = '33333333-0000-4000-8000-000000000001' and purpose = 'PRIVACY';
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
+
 select ok(
   (select public.me() -> 'required_actions' ? 'ACCEPT_CONSENTS'),
   'un consentement manquant est signalé'

@@ -219,6 +219,26 @@ null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la 
    commentaire promettait depuis `P0-003` que le sélecteur de langue
    « rejoindra les réglages ». Il y est toujours (`D-019`).
 
+10. **Un critère universel ne se coche pas sur un échantillon**, et « je n'ai
+    rien trouvé » ne veut jamais dire « il n'y a rien ». Même famille que la
+    règle 9, un cran plus haut : un contrôle ne mord que là où on a regardé.
+    `D-014` a coché « **aucune** assertion pgTAP ne compte des lignes sur la
+    seule base d'une appartenance » en ayant vérifié « aucune parmi celles que
+    **ma** fixture de bruit touche ». Trois autres ont survécu, dont le jumeau
+    exact d'une de celles qu'il venait de corriger, dans le fichier d'à côté
+    (`D-020`).
+    Ce qu'il faut écrire à la place est ce qu'on a réellement fait — « les
+    quatre trouvées par ce bruit-ci sont bornées » — et **nommer l'angle mort** :
+    une fixture écrite à la main hérite de ceux de qui l'écrit. Le bruit qui
+    prouve quelque chose n'est pas inventé, c'est celui qu'une session réelle
+    produit ; et deux bruits d'origines différentes en trouvent un troisième
+    qu'aucun ne voyait seul — mesuré, pas supposé.
+    Corollaire, et il s'applique partout : **un rouge écarté sans être expliqué
+    est un rouge qu'on reverra.** Quand une instruction du dépôt apprend à
+    ignorer un rouge — et il y en a de légitimes, le bruit de décor est réel —
+    elle doit rendre un **résultat**, jamais une impression. La forme qui marche
+    est celle de `scripts/test-db.mjs` : deux issues nommées, aucune troisième.
+
 ## Ce qu'il ne faut pas faire
 
 - Ne pas ajouter de dépendance sans la justifier dans le message de commit.

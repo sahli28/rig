@@ -277,9 +277,9 @@ Sur le PC, dans cet ordre :
    cette page. Un badge absent parce que la requête n'est jamais partie
    ressemble beaucoup à un badge cassé.
 2. `pnpm test:db:fresh` — un seed neuf. Les réservations prises dans l'app
-   pendant une passe font rougir `pnpm test:db` ensuite : ce n'est pas une
-   régression, c'est le décor. Relancer `test:db:fresh` **après** la passe avant
-   de croire un rouge.
+   pendant une passe font rougir `pnpm test:db` ensuite : c'est souvent le
+   décor. **« Souvent » n'est pas « toujours » — voir la règle du décor en fin
+   de page.**
 3. `pnpm --filter @rack/mobile start -c` — le `-c` n'est pas décoratif ici : le
    bundle change de forme de cache.
 
@@ -528,7 +528,8 @@ Sur le PC, dans cet ordre :
 
 1. **L'IP a changé** si la box wifi a changé : reprendre les sections 1 à 3.
 2. `pnpm test:db:fresh` — un seed neuf. Les réservations prises pendant la passe
-   font rougir `pnpm test:db` ensuite : c'est le décor, pas une régression.
+   font rougir `pnpm test:db` ensuite : c'est **souvent** le décor. La règle qui
+   décide est en fin de section.
 3. `pnpm --filter @rack/mobile start -c`.
 
 Comptes : `lea@example.com` (principal), `sarah@example.com` (le second compte du
@@ -642,8 +643,23 @@ Le dernier critère de `D-009`, et le seul que le harnais ne peut pas exercer.
 
 ### Après la passe
 
-- `pnpm test:db:fresh` — les réservations prises pendant la passe font rougir
-  `pnpm test:db` sinon.
+- **La règle du décor, et c'est une étape, pas un conseil** (`D-020`) :
+
+  > **Un rouge attribué au décor se prouve sur un seed neuf, ou il n'est pas
+  > attribué.**
+
+  `pnpm test:db:fresh`, puis **noter le verdict dans le journal des passes** :
+
+  | Résultat | Ce que ça veut dire | Ce qu'on fait |
+  | --- | --- | --- |
+  | **vert** | c'était le décor | on le note, avec la date. Fin |
+  | **rouge** | c'est un défaut | **il prend un ticket.** Pas une explication, pas « effet d'interaction » |
+
+  Aucune troisième issue. « Sans doute le décor » n'en est pas une — c'est
+  exactement la phrase qui a avalé un vrai défaut le 6 septembre 2026, revenu
+  deux jours plus tard (`D-020`). L'instruction qui apprend à ignorer un rouge
+  est justifiée, le bruit est réel ; c'est pour ça qu'elle doit rendre un
+  **résultat** plutôt qu'une impression de fin de session.
 - **Remettre `jwt_expiry = 900` dans `supabase/config.toml`** et redémarrer
   Supabase (bloc A1, étape 0). Une minute de jeton laissée en place ferait
   reconnecter l'app sans arrêt, et on chercherait longtemps pourquoi.
@@ -658,6 +674,11 @@ Le dernier critère de `D-009`, et le seul que le harnais ne peut pas exercer.
 
 Une passe se périme — Expo bouge, l'IP change, le trousseau se vide. Les dates
 sont donc la moitié de l'information.
+
+**Le verdict du décor s'écrit ici** (`D-020`) : chaque ligne de passe se termine
+par `test:db:fresh` — **vert = décor**, **rouge = défaut, et il a un ticket**.
+Une passe dont le journal ne dit pas ce que ce contrôle a rendu n'a pas eu lieu
+en entier.
 
 | Date | Appareil | Résultat |
 | --- | --- | --- |

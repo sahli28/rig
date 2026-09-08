@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **21,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **21,25 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -173,7 +173,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 101,25 j·h, dont **21,5 restants**
+## ① Jalon pilote — 101,25 j·h, dont **21,25 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -251,9 +251,9 @@ sait pas lui répondre.
 | D-015   | Monter un composant mobile dans un test           |    1,5 | à faire — **à arbitrer, avec son déclencheur**. La suite `.ts` d'`apps/mobile` existe ; ce qui manque est le montage et les gestes |
 | D-018   | L'écran se recharge au retour sur le planning     |      1 | ✅ **clos le 6 sept. 2026** — cause trouvée et corrigée (PR #48 : le focus se rejouait deux fois par retour), puis **sondes retirées** avant P1-005a. **0,5 → 1** : deux tours de mesure, comptés plutôt que cachés. Rechargement résiduel **arbitré et accepté** ; les quatre critères d'appareil restent `[ ]`, abandonnés et pas tenus |
 | D-019   | Trois affordances de débogage sur l'accueil       |    0,5 | ✅ **fait le 8 sept. 2026**. Le sélecteur de langue **déménage** dans les réglages — il tenait une vraie fonction, il était au mauvais endroit depuis `P0-003` ; les deux autres passent sous `__DEV__`. L'accueil ne porte plus **qu'une action primaire**, mesurée et non lue. **Et la garde est prouvée mordante** sur l'export de production : zéro appel aux deux chaînes, seules leurs traductions embarquent. Un critère `[ ]` — l'app iOS elle-même → passe groupée |
-| D-020   | Deux sœurs que la fixture bidon n'a pas vues      |   0,25 | à faire — **entre dans ①**. `D-014` a coché « aucune assertion » alors qu'il avait vérifié « aucune parmi celles que mon bruit touche ». Une session réelle en fait rougir deux autres, dont **le jumeau exact** de celle corrigée, dans le fichier d'à côté. Non bloquant : le rouge ne survient qu'après avoir cliqué dans l'app |
+| D-020   | Trois sœurs que la fixture bidon n'a pas vues     |   0,25 | ✅ **fait le 8 sept. 2026**, avant de reprendre la passe — un rouge connu pendant une passe est un rouge qu'on n'examine pas. **Une troisième trouvée** en cumulant les deux bruits, et elle ne rougissait pas : elle **cassait** `class_roster_test`, emportant vingt assertions. La règle du décor devient **mécanique** (`test-db.mjs`, page de passe), et `CLAUDE.md` gagne la **règle 10** |
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
-|         | **Total ①**                                       | **101,25** | dont **79,75 faits**, **21,5 restants** |
+|         | **Total ①**                                       | **101,25** | dont **80 faits**, **21,25 restants** |
 
 **Trois tickets ne sont pas dans ce total** — `P1-013`, `P1-005b` et, depuis le
 8 septembre 2026, `P0-005b`. Ils sont écrits et chiffrés, pas programmés, et
@@ -279,7 +279,8 @@ corrigé sans son calcul se re-conteste :
 | `D-016` + `D-014` fusionnés (0,75) | 104,5 | 79,25 | 25,25 |
 | `P0-005b` sort du total (4) | 100,5 | 79,25 | 21,25 |
 | `D-019` entre dans ① (0,5) | 101 | 79,25 | 21,75 |
-| `D-019` fait, `D-020` entre (0,25) | **101,25** | **79,75** | **21,5** |
+| `D-019` fait, `D-020` entre (0,25) | 101,25 | 79,75 | 21,5 |
+| `D-020` fait (0,25) | **101,25** | **80** | **21,25** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
@@ -414,7 +415,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-013  | RIG devient Rack                               | 0,5 | Décision produit du 4 sept. 2026 — **✅ fait**, **comptée dans ①**. Fait avant P1-003b : `bundleIdentifier` définitif après la première soumission, clés de stockage gratuites à renommer tant qu'aucune app n'est installée |
 | D-018  | L'écran se recharge au retour sur le planning   | 1 | P1-012, passe du 6 sept. 2026 — **✅ fait**, **comptée dans ①**. Cause trouvée : `useFocusEffect` rejouait l'effet à chaque changement d'identité de sa callback, donc deux lectures par retour. Corrigée, puis sondes retirées — elles avaient fusionné avec le correctif et écrivaient `userId` dans les journaux de l'appareil. **Une sonde qui survit à sa PR porte `__DEV__` dès sa première ligne** |
 | D-019  | Trois affordances de débogage sur l'accueil     | 0,5 | Relecture du 8 sept. 2026 — **comptée dans ①**. La règle 9 prise par l'autre bout : une affordance de débogage est une sonde, et **plus tenace qu'un `console.log` parce qu'elle a l'air d'une fonctionnalité**. Le sélecteur de langue attend depuis `P0-003` un déménagement qu'un commentaire promet |
-| D-020  | Deux sœurs que la fixture bidon n'a pas vues    | 0,25 | `D-019`, 8 sept. 2026 — **comptée dans ①**. La leçon dépasse les deux assertions : **une fixture de bruit écrite à la main hérite des angles morts de qui l'écrit**. Le bruit qui prouve quelque chose est celui qu'une session réelle produit |
+| D-020  | Trois sœurs que la fixture bidon n'a pas vues   | 0,25 | `D-019`, 8 sept. 2026 — **comptée dans ①**. La leçon dépasse les deux assertions : **une fixture de bruit écrite à la main hérite des angles morts de qui l'écrit**. Le bruit qui prouve quelque chose est celui qu'une session réelle produit |
 | D-017  | Flash blanc au démarrage en mode sombre        | 0,25 | D-009, PR #43 — **✅ fait**, **comptée dans ①**. Deuxième fois que du travail se range dans un ticket clos et disparaît des totaux. `null` n'est pas « clair » : la règle est écrite dans `.claude/rules/ui.md` |
 | D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — **✅ fait le 7 sept. 2026**. `planning.tsx` était parti dans P1-012, P1-005a avait retiré la moitié « places restantes » ; restaient `index.tsx` et `bookings.tsx`, faits ici. **La forme n'est plus à recopier** : `use-relire-au-retour.ts` porte celle corrigée par D-018 — sans ça, ces deux écrans auraient repris la version d'avant. Deux défauts corrigés au passage : `bookings.tsx` reposait un squelette à chaque lecture et s'effaçait au moindre échec. **Un critère `[ ]`** — l'accueil après réservation, mécanisme vérifié mais effet non observé (passe à 23 h 55, plus de cours ce jour-là) → passe groupée |
 |        | **Ouvert, hors totaux**                        | **6** | D-002, D-003, D-007, D-008, D-016 — D-004, D-011, D-012, D-013 et D-017 sont dans ①, D-010 est clos |
