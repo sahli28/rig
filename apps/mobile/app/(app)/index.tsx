@@ -4,16 +4,7 @@ import { useNetworkState } from 'expo-network';
 import { ScrollView, Text, View } from 'react-native';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
-import {
-  Badge,
-  Banner,
-  Button,
-  Card,
-  EmptyState,
-  ListRow,
-  SegmentedControl,
-  Skeleton,
-} from '@rack/ui/native';
+import { Badge, Banner, Button, Card, EmptyState, ListRow, Skeleton } from '@rack/ui/native';
 import {
   appliqueChangementAuCours,
   fetchDaySchedule,
@@ -213,7 +204,7 @@ function ProchainCours() {
 }
 export default function HomeScreen() {
   const theme = useTheme();
-  const { t, locale, setLocale } = useI18n();
+  const { t } = useI18n();
   const { me, activeTenantId, setActiveTenant, errorKey, signOut } = useSession();
 
   const memberships = me?.memberships ?? [];
@@ -270,7 +261,12 @@ export default function HomeScreen() {
         <ProchainCours />
       )}
 
-      {me === null ? null : (
+      {/* **Qui est connecté : une aide de passe, pas une information de membre**
+          (`D-019`). Elle sert à lire un écran sans se demander sous quel compte
+          on est — un besoin qui n'existe que de ce côté-ci. Un membre, lui, le
+          sait. Sous `__DEV__` : c'est une sonde, et la règle 9 vaut pour les
+          affordances comme pour les traces. */}
+      {__DEV__ && me !== null ? (
         <Text
           style={{
             color: theme.colors.textMuted,
@@ -280,19 +276,7 @@ export default function HomeScreen() {
         >
           {t('home.signed_in_as', { email: me.user.email })}
         </Text>
-      )}
-
-      {/* Le sélecteur de langue est ici pour prouver le critère de P0-003 :
-          l'interface bascule sans redémarrage. Il rejoindra les réglages. */}
-      <SegmentedControl
-        accessibilityLabel={t('language.label')}
-        value={locale}
-        onChange={(value) => setLocale(value === 'fr' ? 'fr' : 'en')}
-        options={[
-          { value: 'fr', label: t('language.fr') },
-          { value: 'en', label: t('language.en') },
-        ]}
-      />
+      ) : null}
 
       {/* L'action principale de l'accueil. Elle n'apparaît qu'une fois une box
           résolue : sans box, il n'y a pas de planning à montrer, et une porte
@@ -316,9 +300,23 @@ export default function HomeScreen() {
         </>
       )}
 
-      <Link href="/design-system" asChild>
-        <Button label={t('home.design_system_cta')} onPress={() => {}} fullWidth />
-      </Link>
+      {/* **La galerie de composants n'est pas une porte de membre** (`D-019`).
+          Elle était en variante primaire — le défaut de `Button` — donc l'accueil
+          portait **deux boutons pleins**, contre le principe 2 de §12.1 : « si
+          vous hésitez entre deux actions primaires, l'écran a un problème ».
+
+          `ghost` **même en développement** : une seule action primaire est une
+          règle d'écran, pas une règle de build. */}
+      {__DEV__ ? (
+        <Link href="/design-system" asChild>
+          <Button
+            label={t('home.design_system_cta')}
+            onPress={() => {}}
+            variant="ghost"
+            fullWidth
+          />
+        </Link>
+      ) : null}
 
       <Button label={t('home.sign_out')} variant="ghost" onPress={() => void signOut()} fullWidth />
     </ScrollView>

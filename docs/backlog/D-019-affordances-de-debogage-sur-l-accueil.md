@@ -75,17 +75,48 @@ pas comme actionnable. C'est une question de design, pas de dette ; si elle doit
   sœurs veut qu'on cherche les mêmes affordances ailleurs avant de refermer, et
   ce qui est trouvé se note ici même s'il n'est pas corrigé.
 
+## L'inventaire des sœurs — fait le 8 septembre 2026
+
+Trois recherches sur `apps/` : le sélecteur de langue, la galerie de
+composants, l'identité affichée.
+
+| Où | Quoi | Verdict |
+| --- | --- | --- |
+| `apps/mobile`, hors `index.tsx` | — | ✅ **rien**. Les trois affordances étaient concentrées sur l'accueil |
+| `apps/web/app/page.tsx` | Un `LanguageSwitcher` **et** un lien vers le système de design | ⚠️ **la même famille, sur la racine web** — mais cette page se déclare elle-même écran de remplissage (`home.placeholder_web`), et elle sera remplacée par la page publique de la box. Noté, **pas corrigé** : retirer des affordances d'une page qui doit disparaître serait du travail à jeter |
+| `apps/web/app/box/[slug]/**` | — | ✅ rien. Le back-office n'en porte aucune |
+
+**Ce que l'inventaire dit de plus que le ticket** : le défaut n'était pas une
+habitude répandue, c'était **un écran qui a servi de banc d'essai** et qu'on n'a
+jamais nettoyé. C'est cohérent avec sa date — `P0-003`, quand l'accueil était le
+seul écran qui existait.
+
 ## Critères d'acceptation
 
-- [ ] `grep -rn "SegmentedControl\|signed_in_as\|design_system" apps/mobile/app/(app)/index.tsx`
-      ne rend plus rien hors d'un bloc `__DEV__`
-- [ ] L'accueil ne porte **qu'un seul bouton primaire**
-- [ ] Changer de langue reste possible, depuis les réglages, et le choix survit
-      au redémarrage de l'app
-- [ ] La galerie du système de design reste atteignable en développement
-- [ ] **appareil** — l'accueil, vu par un membre sur un build de production, ne
-      montre rien qui n'existe que pour nous. Le seul geste que le harnais ne
-      peut pas jouer : il tourne en `__DEV__`
+- [x] Le sélecteur de langue a quitté l'accueil, et les deux autres affordances
+      sont sous `__DEV__` — vérifié au harnais le 8 septembre 2026 : l'accueil
+      n'affiche plus « Français / English »
+- [x] L'accueil ne porte **qu'un seul bouton primaire**. Mesuré plutôt que lu :
+      un seul élément porte l'orange de la box (`rgb(228, 87, 46)`), « Voir le
+      planning ». « Voir le système de design » est passé `ghost` — **même en
+      développement**, parce qu'une seule action primaire est une règle d'écran,
+      pas une règle de build
+- [x] Changer de langue reste possible, depuis les réglages, et le choix survit
+      au redémarrage — bascule FR → EN instantanée sans redémarrage (le critère
+      de `P0-003`, préservé), et l'anglais tient après un rechargement complet
+- [x] La galerie du système de design reste atteignable en développement
+- [x] L'arbre d'accessibilité des réglages reste juste : le groupe s'annonce
+      « Langue », chaque option par son nom, l'ordre suit la lecture
+- [x] **`__DEV__` mord réellement** — et c'est le contrôle qui manquait, parce
+      qu'un `__DEV__` mal placé est invisible en développement. Sur l'export de
+      production (`pnpm --filter @rack/mobile build:web`, où `__DEV__` vaut
+      `false`) : **zéro appel** à `home.design_system_cta` et
+      `home.signed_in_as`. Les deux clés n'y subsistent que comme _valeurs_ dans
+      les dictionnaires FR et EN, ce qui est normal — les traductions
+      embarquent, les branches mortes non
+- [ ] **appareil** — l'accueil vu par un membre sur l'app iOS. L'export web
+      prouve que la garde mord ; il ne prouve pas ce que voit quelqu'un sur son
+      téléphone. Rattaché à la passe groupée, où il coûte un regard
 
 ## Notes
 
