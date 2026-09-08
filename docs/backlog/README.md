@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **26 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **21,75 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -63,20 +63,7 @@ qui est en gras était absent du backlog jusqu'au 2 septembre 2026.
 
 ## Chemin critique hors code
 
-**Dernier examen : 6 septembre 2026** *(le précédent datait du 3, et cette
-section disait elle-même qu'une échéance non relue est une échéance oubliée —
-trois jours plus tard, elle avait raison)*.
-
-**Ce que ce réexamen a changé : le compte développeur Apple ne bloque plus un
-ticket lointain, il bloque le prochain.** Expo Go ne sait plus envoyer de push
-depuis le SDK 53 et le dépôt est en `~57.0.18` ; tester le push demande un
-*development build*, donc un compte Apple pour iOS. Or `P1-007` ouvre la chaîne
-`P1-007 → P1-006 → P1-008`, soit **16 des 26 j·h restants**, et `P1-006` dépend
-de `P1-007` pour la promotion de liste d'attente. Détail et prérequis vérifiés
-dans le ticket.
-
-**Android reste ouvert et gratuit** : development build APK, FCM, aucun compte
-payant. C'est ce qui rend la question d'ordre arbitrable au lieu d'être subie.
+**Dernier examen : 8 septembre 2026.**
 
 ### L'ordre arbitré le 6 septembre 2026
 
@@ -84,6 +71,12 @@ payant. C'est ce qui rend la question d'ordre arbitrable au lieu d'être subie.
 durables, et la box pilote est sur iPhone : un push qui ne marche que sur la
 moitié des téléphones n'est pas un jalon franchi. `P1-007 → P1-006` **reprennent
 quand le compte Apple est validé**, dans leur ordre écrit.
+
+> **La condition est remplie depuis le 8 septembre 2026** — deux jours après
+> l'arbitrage. **L'ordre ne change pas pour autant** : la passe groupée et
+> `P1-008` restent devant, parce que ce qui les précédait n'était pas l'attente
+> d'Apple mais leur propre valeur. Ce que la validation change, c'est que
+> `P1-007` ne sortira plus avec deux `[~]` : il pourra les tenir.
 
 D'ici là, quatre pas, et le troisième est ce qui les tient ensemble :
 
@@ -110,16 +103,51 @@ besoin d'un contexte sécurisé**. `getUserMedia` n'existe tout simplement pas s
 HTTPS sur la tablette, le scan n'est pas seulement intestable : il ne peut pas
 exister. À écrire **avant** de lancer le ticket, pas à découvrir dedans.
 
-Quatre démarches administratives bloquent du code déjà écrit ou déjà chiffré.
-**Aucune ne se rattrape en codant plus vite.** Elles ne vivent nulle part
-ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
+**Deux** démarches administratives bloquent encore du code déjà écrit ou déjà
+chiffré — elles étaient quatre jusqu'au 8 septembre 2026. **Aucune ne se rattrape
+en codant plus vite.** Elles ne vivent nulle part ailleurs dans le dépôt : ni un
+ticket, ni un test, ni la CI ne les rappellera.
 
 | Quoi | Bloque | Pourquoi maintenant |
 | --- | --- | --- |
-| **Trois `client_id` Google** (web, iOS, Android) | P0-005b, puis P2-003 | Bloqué depuis cinq sessions. URI de redirection **exactement** `http://127.0.0.1:55321/auth/v1/callback` en local : Google compare au caractère près, et `localhost` n'est pas `127.0.0.1` pour lui |
-| **Compte développeur Apple**, 99 $/an | **`P1-007` (le prochain ticket), `P1-006` derrière lui**, `P1-003b` et `P1-005a` pour leurs critères ouverts, `P2-003` et toute publication | **Promu au premier rang le 6 sept. 2026.** Il ne bloquait qu'une soumission lointaine ; il bloque désormais le push sur iOS — Expo Go ne le fait plus depuis le SDK 53, il faut un *development build*. Vérification d'identité, délai d'enrôlement variable. Câbler Google engage sur Apple avant soumission (guideline 4.8) |
+| ~~**Trois `client_id` Google**~~ | ~~P0-005b~~ | **Sort du chemin critique le 8 sept. 2026** — non parce qu'elle est faite, mais parce que `P0-005b` passe **non programmé** : câbler un SSO tiers rend `P2-003` obligatoire (guideline 4.8). Voir ci-dessous |
+| ✅ ~~**Compte développeur Apple**~~ | ~~`P1-007`, `P1-006`, `P1-003b`, `P2-003`~~ | **Actif le 8 septembre 2026**, jusqu'au 8 sept. 2027, renouvellement automatique. App Store Connect ouvert. Il aura été le premier rang pendant deux jours |
 | **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société |
-| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, et le retour Apple | **Trois éléments bloqués par une seule absence** — et depuis le 4 sept. 2026 le nom est connu (**Rack**), donc le domaine est achetable : c'est la seule des quatre démarches qui ne dépende que d'une carte bancaire |
+| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, et le retour Apple | **Trois éléments bloqués par une seule absence** — et depuis le 4 sept. 2026 le nom est connu (**Rack**), donc le domaine est achetable : c'est la seule des deux démarches restantes qui ne dépende que d'une carte bancaire |
+
+### ✅ Le compte Apple est actif — 8 septembre 2026
+
+Valable jusqu'au **8 septembre 2027**, renouvellement automatique, App Store
+Connect ouvert.
+
+**Ce qu'il débloque, et il bloquait le prochain ticket il y a deux jours** :
+`P1-007` peut sortir un *development build* iOS, donc exercer le push et le
+schéma `rack://`. Deux critères de `P1-007` et un de `P1-003b` n'attendaient
+que cette démarche.
+
+**`P1-007` n'est donc plus bloqué administrativement.** Ce qui reste devant lui
+est du code, et sa section de prérequis le nomme : **aucun émetteur** (ni edge
+function, ni route handler), **aucun journal d'envoi** pour le plafond
+marketing, et **`users` sans fuseau** alors que les quiet hours sont annoncées
+« heure locale du membre ».
+
+### Pourquoi `P0-005b` sort du chemin critique sans être fait
+
+**Non programmé** au sens de `P1-013` et `P1-005b` : écrit, chiffré, hors du
+total ①.
+
+Le calcul est simple et il tient en une phrase : **4 j·h qui en rendent 3 autres
+obligatoires.** Câbler un SSO tiers fait perdre l'exception « exclusivement vos
+propres systèmes » de la guideline 4.8 d'Apple, qui impose alors *Sign in with
+Apple* — c'est-à-dire `P2-003`. Et le magic link **ne peut pas** fournir
+l'option équivalente exigée par la guideline : celle-ci demande de pouvoir
+**masquer l'adresse e-mail**, ce qu'une connexion par code envoyé à cette
+adresse ne sait pas faire par construction.
+
+**Son déclencheur, pour que la décision ne se reprenne pas à vide** : le jour où
+l'onboarding d'une vraie box montre que le code à six chiffres coûte des
+inscriptions. C'est mesurable — taux de complétion, spec §16.4 — et c'est la
+seule chose qui rendrait ces 7 j·h justifiés.
 
 Le constat qui a fait écrire cette section : pendant quatre tickets d'affilée,
 le choix du ticket suivant s'est fait par élimination — c'était le seul travail
@@ -145,7 +173,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 104,5 j·h, dont **26 restants**
+## ① Jalon pilote — 101 j·h, dont **21,75 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -190,7 +218,7 @@ sait pas lui répondre.
 | P0-003  | i18n FR/EN                                        |      2 | ✅ fusionné (PR #3)  |
 | P0-004  | Schéma de base, RLS, test anti-fuite              |      6 | ✅ fusionné (PR #4)  |
 | P0-005a | Se connecter — code, session, `me()`              |      6 | ✅ fusionné (PR #6) — passe sur appareil faite le 3 sept. 2026 |
-| P0-005b | SSO Google et linking d'identités                 |      4 | 🔒 bloqué — trois `client_id` Google à créer |
+| P0-005b | SSO Google et linking d'identités                 |      4 | **non programmé le 8 sept. 2026** — sort du total ①. Ce n'est pas un blocage : c'est un calcul. **4 j·h qui en rendent 3 autres obligatoires**, parce que câbler un SSO tiers fait perdre l'exception « exclusivement vos propres systèmes » de la guideline 4.8 et impose `P2-003`. Le magic link ne peut pas fournir l'option équivalente : elle exige de masquer l'adresse e-mail, ce qu'un code envoyé à cette adresse ne sait pas faire. **Déclencheur** : le jour où le taux de complétion d'onboarding (spec §16.4) d'une vraie box montre que le code à six chiffres coûte des inscriptions |
 | P1-001a | Porte d'entrée du back-office web                 |    2,5 | ✅ fusionné (PR #11) |
 | P1-001b | Réglages box, horaires, types de cours            |      3 | ✅ fusionné (PR #12) |
 | P1-001c | Staff & Roles, invitations, journal d'audit       |   3,75 | ✅ fusionné (PR #13) |
@@ -222,17 +250,37 @@ sait pas lui répondre.
 | D-014   | Deux filets dont on connaît le trou               |    0,5 | ✅ **fait le 8 sept. 2026**. Le trou du garde est comblé par `pnpm migrations:immuables`, en CI : il regarde le résultat et non l'intention, donc voit les écritures par script — contrôle négatif joué **en Bash**, le chemin même que le hook ne voit pas. Bascule de la règle 13 dans une constante, les deux moitiés prouvées. Côté pgTAP, **quatre assertions corrigées sur 107**, trouvées en ajoutant du bruit au seed plutôt qu'en les lisant |
 | D-015   | Monter un composant mobile dans un test           |    1,5 | à faire — **à arbitrer, avec son déclencheur**. La suite `.ts` d'`apps/mobile` existe ; ce qui manque est le montage et les gestes |
 | D-018   | L'écran se recharge au retour sur le planning     |      1 | ✅ **clos le 6 sept. 2026** — cause trouvée et corrigée (PR #48 : le focus se rejouait deux fois par retour), puis **sondes retirées** avant P1-005a. **0,5 → 1** : deux tours de mesure, comptés plutôt que cachés. Rechargement résiduel **arbitré et accepté** ; les quatre critères d'appareil restent `[ ]`, abandonnés et pas tenus |
+| D-019   | Trois affordances de débogage sur l'accueil       |    0,5 | à faire — **entre dans ①** : c'est ce qu'un membre de la box pilote verrait. Sélecteur de langue, ligne « Connexion : … » et bouton vers le système de design, aucun sous `__DEV__`, et le dernier en variante primaire — donc **deux actions primaires**, contre le principe 2 de §12.1. Le principe 1 (deux taps), lui, **est tenu** : la carte du prochain cours est bien actionnable |
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
-|         | **Total ①**                                       | **104,5** | dont **78,5 faits**, **26 restants** |
+|         | **Total ①**                                       | **101** | dont **79,25 faits**, **21,75 restants** |
 
-**P1-013 et P1-005b ne sont pas dans ce total** : ils sont écrits et chiffrés,
-pas programmés. `P1-013` entrera le jour où la box pilote demandera à couper un
-droit sans exclure quelqu'un ; `P1-005b` le jour où elle réclamera des compteurs
-vivants dans la grille du back-office. Dans les deux cas la décision prendra une
-minute au lieu d'une session — c'est tout ce qu'on demande à un ticket non
-programmé. **Le total ① ne bouge pas à la découpe de `P1-005`** : les 3 j·h y
-restent, portés par `P1-005a`, et le volet web est un ajout hors total, pas un
-retrait déguisé.
+**Trois tickets ne sont pas dans ce total** — `P1-013`, `P1-005b` et, depuis le
+8 septembre 2026, `P0-005b`. Ils sont écrits et chiffrés, pas programmés, et
+**chacun porte son déclencheur** : `P1-013` le jour où la box pilote voudra
+couper un droit sans exclure quelqu'un ; `P1-005b` le jour où elle réclamera des
+compteurs vivants dans la grille ; `P0-005b` le jour où le taux de complétion
+d'onboarding (spec §16.4) montrera que le code à six chiffres coûte des
+inscriptions. Un ticket non programmé sans déclencheur est un ticket abandonné
+qui n'ose pas le dire.
+
+**Le total ① ne bouge pas à la découpe de `P1-005`** : les 3 j·h y restent,
+portés par `P1-005a`, et le volet web est un ajout hors total, pas un retrait
+déguisé.
+
+**Recompté le 8 septembre 2026, et c'est la troisième fois que ce total prend du
+retard sur les fusions.** Il disait « 78,5 faits, 26 restants » alors que
+`D-016` (0,25) et `D-014` (0,5) étaient fusionnés. Le détail, parce qu'un total
+corrigé sans son calcul se re-conteste :
+
+| Mouvement | Total ① | Faits | Restants |
+| --- | ---: | ---: | ---: |
+| Avant | 104,5 | 78,5 | 26 |
+| `D-016` + `D-014` fusionnés (0,75) | 104,5 | 79,25 | 25,25 |
+| `P0-005b` sort du total (4) | 100,5 | 79,25 | 21,25 |
+| `D-019` entre dans ① (0,5) | **101** | **79,25** | **21,75** |
+
+**21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
+C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
 
 **Un demi-jour retrouvé, et pourquoi on l'écrit.** Le lot du 4 septembre —
 façade `crypto`, sondes, refonte de la configuration ESLint — n'apparaissait dans
@@ -363,6 +411,7 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-015  | Monter un composant mobile dans un test        | 1,5 | P1-011, 5 sept. 2026 — **comptée dans ①**. Le premier défaut mobile qui aurait pu être attrapé sans téléphone, et l'option la moins chère ne l'aurait pas attrapé |
 | D-013  | RIG devient Rack                               | 0,5 | Décision produit du 4 sept. 2026 — **✅ fait**, **comptée dans ①**. Fait avant P1-003b : `bundleIdentifier` définitif après la première soumission, clés de stockage gratuites à renommer tant qu'aucune app n'est installée |
 | D-018  | L'écran se recharge au retour sur le planning   | 1 | P1-012, passe du 6 sept. 2026 — **✅ fait**, **comptée dans ①**. Cause trouvée : `useFocusEffect` rejouait l'effet à chaque changement d'identité de sa callback, donc deux lectures par retour. Corrigée, puis sondes retirées — elles avaient fusionné avec le correctif et écrivaient `userId` dans les journaux de l'appareil. **Une sonde qui survit à sa PR porte `__DEV__` dès sa première ligne** |
+| D-019  | Trois affordances de débogage sur l'accueil     | 0,5 | Relecture du 8 sept. 2026 — **comptée dans ①**. La règle 9 prise par l'autre bout : une affordance de débogage est une sonde, et **plus tenace qu'un `console.log` parce qu'elle a l'air d'une fonctionnalité**. Le sélecteur de langue attend depuis `P0-003` un déménagement qu'un commentaire promet |
 | D-017  | Flash blanc au démarrage en mode sombre        | 0,25 | D-009, PR #43 — **✅ fait**, **comptée dans ①**. Deuxième fois que du travail se range dans un ticket clos et disparaît des totaux. `null` n'est pas « clair » : la règle est écrite dans `.claude/rules/ui.md` |
 | D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — **✅ fait le 7 sept. 2026**. `planning.tsx` était parti dans P1-012, P1-005a avait retiré la moitié « places restantes » ; restaient `index.tsx` et `bookings.tsx`, faits ici. **La forme n'est plus à recopier** : `use-relire-au-retour.ts` porte celle corrigée par D-018 — sans ça, ces deux écrans auraient repris la version d'avant. Deux défauts corrigés au passage : `bookings.tsx` reposait un squelette à chaque lecture et s'effaçait au moindre échec. **Un critère `[ ]`** — l'accueil après réservation, mécanisme vérifié mais effet non observé (passe à 23 h 55, plus de cours ce jour-là) → passe groupée |
 |        | **Ouvert, hors totaux**                        | **6** | D-002, D-003, D-007, D-008, D-016 — D-004, D-011, D-012, D-013 et D-017 sont dans ①, D-010 est clos |

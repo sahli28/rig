@@ -1,13 +1,25 @@
 # `P1-007` — Notifications push
 
-**Phase** `P1` · **Estimation** `4` j·h *(à recompter — voir les prérequis)* · **Dépend de** `P0-005` ✅ · **Spec** §5.3, §12.3 · **🔒 Partiellement bloqué** — iOS, par le compte développeur Apple
+**Phase** `P1` · **Estimation** `4` j·h *(à recompter — voir les prérequis)* · **Dépend de** `P0-005` ✅ · **Spec** §5.3, §12.3 · **✅ Débloqué le 8 septembre 2026** — le compte Apple est actif
 
 ## Objectif
 
 Une place se libère à 19 h : la personne suivante l'apprend sur son téléphone,
 pas en rouvrant l'app le lendemain.
 
-## ⛔ Ce qui bloque, et ce que ça change pour l'ordre du jalon
+> ## ✅ Le blocage administratif est levé — 8 septembre 2026
+>
+> Le compte développeur Apple est actif (jusqu'au 8 sept. 2027), App Store
+> Connect est ouvert. Un *development build* iOS est donc possible : **les deux
+> critères `[~]` ci-dessous redeviennent exerçables**, et ils passent `[ ]`.
+>
+> **Ce qui reste devant ce ticket n'est plus administratif, c'est du code** — et
+> c'est sa section de prérequis qui le nomme : aucun émetteur, aucun journal
+> d'envoi, `users` sans fuseau. La section ci-dessous est conservée telle
+> quelle : elle explique pourquoi le ticket a attendu, et un blocage effacé une
+> fois levé se re-suspecte.
+
+## ⛔ Ce qui bloquait, et ce que ça a changé pour l'ordre du jalon
 
 *Écrit le 6 septembre 2026, en ouvrant le ticket. Il date d'avant la règle 8 et
 n'avait pas sa section de prérequis ; c'est la troisième fois qu'elle aurait
@@ -94,18 +106,17 @@ qu'on retire ici.
 ## Critères d'acceptation
 
 - [ ] **Android** — une notification arrive en moins de 30 secondes
-- [~] **iOS** — une notification arrive en moins de 30 secondes.
-      **Non exerçable** : Expo Go ne fait plus de push depuis le SDK 53 et le
-      dépôt est en 57. Débloqué par un **development build iOS**, lui-même par le
-      **compte développeur Apple**
+- [ ] **iOS** — une notification arrive en moins de 30 secondes. *(Était `[~]`
+      jusqu'au 8 sept. 2026 : Expo Go ne fait plus de push depuis le SDK 53.
+      Le compte Apple étant actif, le development build lève le blocage.)*
 - [ ] Un token invalide est supprimé automatiquement au premier échec d'envoi
 - [ ] Les quiet hours sont respectées, sauf pour l'annulation d'un cours imminent
 - [ ] Désactiver une catégorie n'affecte pas les autres
 - [ ] Le contenu s'affiche dans la langue du membre
-- [~] Toucher la notification ouvre l'écran concerné (deep link), pas l'accueil.
-      **Non exerçable** : c'est le schéma `rack://`, et Expo Go ouvre en `exp://`.
-      Même débloqueur que ci-dessus, et le même que le critère resté ouvert de
-      `P1-003b` — **deux tickets attendent la même démarche**
+- [ ] Toucher la notification ouvre l'écran concerné (deep link), pas l'accueil.
+      *(Était `[~]` : Expo Go ouvre en `exp://`. Le development build donne
+      `rack://`, et débloque du même coup le critère resté ouvert de
+      `P1-003b` — les deux attendaient la même démarche.)*
 - [ ] Le plafond marketing tient sur une semaine glissante, journal à l'appui
 
 ## Notes
