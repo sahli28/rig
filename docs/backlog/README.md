@@ -96,12 +96,27 @@ D'ici là, quatre pas, et le troisième est ce qui les tient ensemble :
 4. **`P1-008`** (6) — check-in QR et kiosque, qui ne dépend que de `P1-003`,
    fait.
 
-**Et `P1-008` n'ouvre pas sans sa section « ce que ce ticket suppose ».** Un
-prérequis est déjà connu et il n'est pas dans le ticket : **le mode kiosque a
-besoin d'un contexte sécurisé**. `getUserMedia` n'existe tout simplement pas sur
-`http://<IP>:3000` — pas « demande une permission », *absente de l'objet*. Sans
-HTTPS sur la tablette, le scan n'est pas seulement intestable : il ne peut pas
-exister. À écrire **avant** de lancer le ticket, pas à découvrir dedans.
+**`P1-008` a sa section « ce que ce ticket suppose », écrite le 8 septembre 2026
+avant ouverture** — et elle a trouvé trois choses qu'un lancement direct aurait
+découvertes en route.
+
+**Le kiosque est plus bloqué qu'on ne le croyait** : `getUserMedia` n'existe pas
+hors contexte sécurisé, et le seul HTTPS qu'on aura passe par **le nom de
+domaine** — la seconde des deux lignes du chemin critique. Le mode coach, lui,
+n'est pas concerné : caméra native, aucun contexte à fournir.
+
+**« Validation locale hors ligne » ne peut pas vouloir dire ce qu'elle dit** :
+vérifier une signature hors ligne mettrait la clé de la box sur une tablette de
+vestiaire. La note du ticket répond déjà mieux — on accepte et on met en file, on
+ne vérifie pas.
+
+**Une tablette de kiosque n'a pas d'identité**, et rien n'en prévoit : l'auth du
+produit est un code par e-mail, par personne. Trois issues, aucune gratuite, à
+trancher avant d'écrire.
+
+D'où une découpe recommandée — **`P1-008a`** le pointage et le mode coach, que
+rien ne bloque ; **`P1-008b`** le kiosque web, bloqué par le domaine. Et une
+estimation de 6 j·h qui ne tient pas.
 
 **Deux** démarches administratives bloquent encore du code déjà écrit ou déjà
 chiffré — elles étaient quatre jusqu'au 8 septembre 2026. **Aucune ne se rattrape
@@ -191,8 +206,8 @@ L'ORDRE ARBITRÉ DU 6 SEPT., déroulé
   La passe a fermé six critères sur quatre tickets : D-011 ✅, D-016, P1-005a, D-009.
 
 CE QUI RESTE, ET CE QUI LE RETIENT
-  P1-008                    ⟵ rien. **Le prochain.** Écrire sa section règle 8 avant
-                              de l'ouvrir : getUserMedia n'existe pas hors HTTPS
+  P1-008a ⟵ rien. **Le prochain** (pointage + mode coach)
+  P1-008b ⟵ le nom de domaine, pour l'HTTPS du kiosque — même blocage que D-008
   P1-007  ⟵ pas Apple, son propre travail préparatoire : découpe a/b + ADR 0004
   P1-006  ⟵ P1-007, et rien d'autre
   P1-009 → P1-001f          ⟵ rien. Après la démo
@@ -270,7 +285,7 @@ sait pas lui répondre.
 | P1-005b | Le même canal dans la grille du back-office       |      1 | **non programmé** — écrit, chiffré, hors du total. Au pilote, la valeur du temps réel est sur le téléphone du membre, là où deux personnes se disputent la dernière place ; le manager peut rafraîchir. Sort en une session si la box pilote le réclame |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière P1-007**, dont elle tient la promotion. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
 | P1-007  | Notifications push                                |      4 | 🔒 **partiellement bloqué — iOS**. Sa section « ce que ce ticket suppose », écrite le 6 sept. 2026, a trouvé trois trous que l'estimation ne couvre pas : **aucun émetteur** (ni edge function, ni route handler), **aucun journal d'envoi** pour le plafond marketing, et **`users` n'a pas de fuseau** alors que les quiet hours sont « heure locale du membre ». Deux critères en `[~]` : le push iOS et le deep link, tous deux derrière le **compte développeur Apple**. Android est ouvert et gratuit. **4 j·h à recompter au lancement** |
-| P1-008  | Check-in QR et mode kiosque                       |      6 | à faire              |
+| P1-008  | Check-in QR et mode kiosque                       |      6 | **prêt à ouvrir** — section règle 8 écrite le 8 sept. 2026, avant lancement. Elle a trouvé : aucune table `checkins`, aucun statut de présence sur `bookings`, aucune fenêtre de pointage dans les réglages, aucune bibliothèque QR, aucun PWA, **et aucune identité pour une tablette de kiosque**. Le bon côté : `hmac` est en base, donc le jeton signé reste transactionnel. **6 j·h ne tiennent pas**, et une découpe a/b est recommandée — le kiosque est bloqué par le domaine, le mode coach ne l'est pas |
 | P1-013  | Droits de réservation accordés à la main          |      2 | **non programmé** — écrit, chiffré, prêt. À sortir le jour où la box pilote veut couper un droit sans exclure quelqu'un. `member_has_booking_right()` rend `true` pour tout membre actif : c'est son appelant manquant |
 | P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. **Rend exerçable un critère `[~]` de P1-012** (deux boxes, sans passer par la déconnexion qui purge le cache). La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
 | D-011   | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | ✅ **fait à la passe groupée du 8 sept. 2026** — bloc A. Le compte précédent atteint par **session expirée** et non par déconnexion, seul chemin qui exerce le cloisonnement par la clé plutôt que l'effacement ; fuseau Tokyo ; contenu du cache relu sur l'appareil |
