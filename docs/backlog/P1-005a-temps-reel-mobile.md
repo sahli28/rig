@@ -160,16 +160,12 @@ l'ouverture, tenu : une passe, pas de second tour.
       pendant les transitions — `removeChannel()` est asynchrone — qui retombe
       seul. L'abonnement de l'accueil, lui, ne bouge pas : c'est la racine de la
       pile, elle ne remonte jamais
-- [ ] **appareil** — Passer l'app en arrière-plan puis revenir ne laisse pas de
-      canal orphelin, et l'écran retrouvé affiche l'état du moment. Le code est
-      là (`AppState`, `use-realtime-classes.ts`) ; **le harnais web n'a pas
-      d'arrière-plan**, et un onglet caché n'est pas un téléphone verrouillé.
-      **Le geste est écrit** — bloc C de la passe groupée, § 5 sexies de
-      `docs/passe-mobile-iphone.md`, le raisonnement restant au § 5 quinquies — et
-      il est plus étroit que « passer en arrière-plan » : l'écouteur se débranche
-      sur tout ce qui n'est pas `active`, or iOS émet `inactive` au moindre
-      centre de contrôle. Ce qui décide, c'est **tirer le centre de contrôle et
-      le refermer** ; le verrouillage teste l'autre moitié
+- [x] **appareil, 8 septembre 2026** — passer l'app en arrière-plan puis revenir
+      ne laisse aucun canal orphelin, et l'écran retrouvé affiche l'état du
+      moment. Bloc C de la passe groupée : verrouillage 30 s, réservation faite
+      depuis le PC pendant ce temps, compteur à jour au déverrouillage **sans
+      squelette ni rechargement visible**, et `realtime.subscription` de retour
+      à 2
 - [x] **Le compteur affiché ne fait jamais autorité** : la réservation reste
       refusée par la base si la place est prise. `book_class` sous verrou, prouvé
       en pgTAP et sous contention réelle en CI depuis P1-003 ; rien ici ne le
@@ -208,6 +204,31 @@ le figent, dont un qui reproduit la réutilisation par nom du vrai client.
 Le compteur plutôt qu'un aléa, et ce n'est pas un détail de style : `crypto` est
 interdit hors de sa façade, et `Math.random()` aurait été un repli silencieux là
 où un entier suffit.
+
+## ✅ Le soupçon du geste C1 est levé — et c'est un résultat, pas une case
+
+*Mesuré le 8 septembre 2026, sur iPhone.*
+
+La procédure de passe portait une hypothèse nommée, et un correctif candidat
+écrit **sans être appliqué** : `use-realtime-classes.ts` se débranche sur tout
+ce qui n'est pas `active`, or iOS émet `inactive` au moindre centre de contrôle,
+bandeau d'appel ou aperçu du sélecteur d'apps. On attendait donc une pastille
+qui clignote en « reconnexion » et une lecture réseau à chaque fois.
+
+**Elle ne clignote pas.** Tirer le centre de contrôle et le refermer, trois fois
+de suite, ne produit pas la nervosité attendue.
+
+**Ce qui change, et pourquoi ça s'écrit ici plutôt que de cocher une case** : le
+correctif candidat — ne se débrancher que sur `background` — reste non appliqué,
+et sa raison n'est plus « on suppose que ça va » mais **« mesuré, ça ne se
+produit pas »**. Sans cette ligne, le soupçon revient dans six mois et on repaie
+l'enquête — exactement ce qu'on s'est dit d'un blocage effacé une fois levé.
+
+Ce que la mesure ne dit **pas**, et il faut le borner : elle n'établit pas
+qu'`inactive` n'est jamais émis, seulement que **le cycle débranchement /
+rebranchement n'est pas visible** sur ce geste, sur cet appareil, sur cette
+version d'iOS. Si la pastille se met à clignoter un jour, ce n'est pas une
+régression du canal : c'est cette mesure qui a vieilli.
 
 ## Notes
 

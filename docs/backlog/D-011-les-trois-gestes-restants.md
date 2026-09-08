@@ -73,14 +73,14 @@ le rend inobservable pour le reste de la passe.
 
 ## Critères d'acceptation
 
-- [ ] Le fuseau du téléphone est changé et les heures affichées ne bougent pas
-- [ ] Les valeurs sous `rack.schedule.` sont relues à la main et ne contiennent
+- [x] Le fuseau du téléphone est changé et les heures affichées ne bougent pas — Tokyo, 8 sept. 2026
+- [x] Les valeurs sous `rack.schedule.` sont relues à la main et ne contiennent
       ni adresse, ni nom d'inscrit, ni jeton
-- [ ] Un second compte arrive **sans déconnexion préalable** et ne voit rien du
+- [x] Un second compte arrive **sans déconnexion préalable** et ne voit rien du
       premier
-- [ ] Le journal des passes de `docs/passe-mobile-iphone.md` porte la date,
+- [x] Le journal des passes de `docs/passe-mobile-iphone.md` porte la date,
       l'appareil et le résultat — une passe non datée ne prouve rien
-- [ ] Les trois cases correspondantes de `P1-002b` sont cochées, ou un défaut
+- [x] Les trois cases correspondantes de `P1-002b` sont cochées, ou un défaut
       est trouvé et corrigé ici
 
 ## Notes
