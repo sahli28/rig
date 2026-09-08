@@ -285,6 +285,57 @@ export type Database = {
           },
         ];
       };
+      class_workouts: {
+        Row: {
+          body: string;
+          class_id: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          published_at: string | null;
+          tenant_id: string;
+          title: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          body: string;
+          class_id: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          published_at?: string | null;
+          tenant_id: string;
+          title?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          body?: string;
+          class_id?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          published_at?: string | null;
+          tenant_id?: string;
+          title?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'class_workouts_class_same_tenant';
+            columns: ['class_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'classes';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'class_workouts_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       classes: {
         Row: {
           booked_count: number;
@@ -1098,6 +1149,7 @@ export type Database = {
       };
       current_admin_tenant_ids: { Args: never; Returns: string[] };
       current_policy_version: { Args: never; Returns: string };
+      current_staff_tenant_ids: { Args: never; Returns: string[] };
       current_tenant_ids: { Args: never; Returns: string[] };
       current_tenant_role: {
         Args: { p_tenant_id: string };

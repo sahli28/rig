@@ -1,5 +1,10 @@
 'use client';
 
+import type { ClassWorkout, WorkoutSource } from '@rack/core/supabase';
+import { sourcesPourOccurrence } from '@rack/core/supabase';
+
+type SourceCandidate = { id: string; classTypeId: string; day: string; label: string };
+import { WorkoutForm } from './workout-form';
 import { useActionState, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useI18n } from '@rack/ui/i18n';
@@ -24,12 +29,18 @@ export function WeekGrid({
   today,
   occurrences,
   editable,
+  staff,
+  workouts,
+  candidates,
 }: {
   slug: string;
   monday: string;
   today: string;
   occurrences: Occurrence[];
   editable: boolean;
+  staff: boolean;
+  workouts: Record<string, ClassWorkout>;
+  candidates: SourceCandidate[];
 }) {
   // Le fuseau vient du contexte, pas d'une prop : c'est celui de la box, et
   // `useI18n()` le porte déjà. Le passer depuis le serveur ferait un second
@@ -75,6 +86,17 @@ export function WeekGrid({
                       occurrence={occurrence}
                       time={formatTime(occurrence.starts_at)}
                       editable={editable}
+                      staff={staff}
+                      workout={workouts[occurrence.id] ?? null}
+                      sources={sourcesPourOccurrence({
+                        occurrence: {
+                          id: occurrence.id,
+                          classTypeId: occurrence.class_type_id,
+                          day: colonne.date,
+                        },
+                        candidates,
+                        workouts,
+                      })}
                     />
                   ))
                 )}
@@ -92,11 +114,17 @@ function OccurrenceCard({
   occurrence,
   time,
   editable,
+  staff,
+  workout,
+  sources,
 }: {
   slug: string;
   occurrence: Occurrence;
   time: string;
   editable: boolean;
+  staff: boolean;
+  workout: ClassWorkout | null;
+  sources: WorkoutSource[];
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -131,9 +159,10 @@ function OccurrenceCard({
 
   const classe = annule ? `${styles.slot} ${styles.slotCancelled}` : styles.slot;
 
-  // Un COACH voit le planning sans pouvoir le modifier : la carte reste une
-  // information, pas un bouton qui ne fait rien.
-  if (!editable) return <div className={classe}>{contenu}</div>;
+  // **Un COACH ouvre la carte depuis P1-015** : il n'administre pas le planning,
+  // mais c'est lui qui écrit la séance. Sans droit du tout, la carte reste une
+  // information — pas un bouton qui ne ferait rien.
+  if (!editable && !staff) return <div className={classe}>{contenu}</div>;
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -149,10 +178,25 @@ function OccurrenceCard({
             {time} · {occurrence.className}
           </Dialog.Title>
 
-          {annule ? (
-            <RestoreForm slug={slug} id={occurrence.id} />
-          ) : (
-            <CancelForm slug={slug} id={occurrence.id} />
+          {editable &&
+            (annule ? (
+              <RestoreForm slug={slug} id={occurrence.id} />
+            ) : (
+              <CancelForm slug={slug} id={occurrence.id} />
+            ))}
+
+          {staff && (
+            <WorkoutForm
+              slug={slug}
+              classId={occurrence.id}
+              title={workout?.title ?? null}
+              body={workout?.body ?? ''}
+              publishedAt={workout?.publishedAt ?? null}
+              // Les sources de pré-remplissage demandent deux requêtes de plus
+              // par cellule : elles arriveront quand l'écran aura prouvé qu'il
+              // sert. Le champ reste utilisable sans elles.
+              sources={sources}
+            />
           )}
         </Dialog.Content>
       </Dialog.Portal>

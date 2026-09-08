@@ -492,6 +492,45 @@ moins de 3 s, l'isolation entre boxes, le repli à 30 s et son arrêt au retour 
 canal, l'absence de fuite sur 20 écrans. Tout ça a été mesuré au harnais le
 6 septembre 2026 — la passe ne couvre que ce que le navigateur ne sait pas faire.
 
+## 5 septies. La séance du cours (P1-015)
+
+**Un seul critère d'appareil, et c'est celui qui décide du ticket.** P1-015 est
+le premier ticket venu d'un client : son effet ne se juge pas au harnais, il se
+juge sur l'écran où le coach lit sa propre séance et sur celui où le membre la
+découvre.
+
+### Le décor
+
+Sur le PC, dans le back-office (`/box/rueil/planning`), en **coach** —
+`sarah@example.com` — et non en gérant : c'est le droit que le ticket a ouvert,
+et le seul geste qui prouve que `current_staff_tenant_ids()` sert.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | Ouvrir une occurrence, écrire une séance sur **trois blocs séparés par des lignes vides** (échauffement / force / metcon), cocher « Publier », enregistrer | Enregistré, et l'écran dit que **publier ne prévient personne** |
+| 2 | Sur l'iPhone, ouvrir la fiche de ce cours | La séance s'affiche **avec ses sauts de ligne** — les trois blocs restent trois blocs |
+| 3 | Titre laissé vide au geste 1 ? | L'écran affiche **le nom du cours**, pas « Séance » |
+| 4 | Mode sombre, puis texte à **200 %** | Le texte reste lisible et ne déborde pas |
+| 5 | Sur une occurrence **sans** séance publiée | **Aucune section** — pas de bloc vide, pas de « rien à afficher » |
+| 6 | Écrire une séance **sans** cocher « Publier », rouvrir la fiche sur l'iPhone | **Rien.** Un brouillon n'existe pas pour un membre |
+
+### Le geste qui décide vraiment
+
+| # | Geste | Attendu |
+|---|---|---|
+| 7 | Sur le PC, **vider le champ** d'une séance existante et enregistrer | Une confirmation apparaît. **Sans la cocher, rien n'est supprimé** |
+| 8 | Idem avec **une seule espace** dans le champ | Même confirmation — « une espace » ne vaut pas « supprime » |
+
+Les gestes 7 et 8 sont ceux qui protègent le travail du dimanche soir. Le reste
+du ticket est vérifié en base et au harnais ; ceux-là ne se voient qu'à l'écran.
+
+### Le repère, à noter au journal
+
+**Chronométrer la saisie d'une semaine complète**, pré-remplissage compris, et la
+comparer à Hustle Up. C'est le seul repère du ticket : si le coach perd, il garde
+son outil et la fonctionnalité aura été livrée **sans gagner l'usage**. Une vue
+semaine deviendra alors un ticket — avec la mesure qui le justifie, pas avant.
+
 ## 5 sexies. La passe groupée — quatre dettes, une passe
 
 **Pourquoi groupée**, décidé le 6 septembre 2026 : quatre tickets ont laissé un

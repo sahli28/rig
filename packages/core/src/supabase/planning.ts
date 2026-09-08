@@ -28,6 +28,9 @@ import { shiftDays, weekDates } from './class-schedules';
 export type Occurrence = {
   id: string;
   schedule_id: string;
+  /** Le type de cours, **et pas seulement son nom** : le pré-remplissage de
+   * P1-015 compare des types, et deux types peuvent porter le même libellé. */
+  class_type_id: string;
   starts_at: string;
   ends_at: string;
   capacity: number;

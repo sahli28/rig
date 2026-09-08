@@ -156,6 +156,15 @@ export {
 } from './planning';
 
 export {
+  fetchClassWorkout,
+  sourcesPourOccurrence,
+  fetchWorkoutsByClass,
+  workoutTitle,
+  type ClassWorkout,
+  type WorkoutSource,
+} from './workouts';
+
+export {
   abonneAuxCoursDuTenant,
   appliqueChangementAuCours,
   appliqueChangementDeCours,

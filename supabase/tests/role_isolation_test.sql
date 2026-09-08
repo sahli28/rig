@@ -7,7 +7,7 @@
 -- fenêtre d'annulation de tout le monde.
 
 begin;
-select plan(28);
+select plan(29);
 
 -- ---------------------------------------------------------------------------
 -- Session de Léa — simple MEMBER de la box A
@@ -268,6 +268,44 @@ select is(
   (select count(*) from public.ledger_entries)::int,
   0,
   'un MEMBER ne lit pas la comptabilité de sa box — leur somme est le CA'
+);
+
+-- ---------------------------------------------------------------------------
+-- class_workouts — la séance s'écrit par le staff qui anime (P1-015)
+-- ---------------------------------------------------------------------------
+--
+-- **Ce cas est ici et pas dans `class_workouts_test.sql`, et la raison est la
+-- forme du refus.** Un `INSERT` refusé lève `42501` — bruyant, facile à tester,
+-- et c'est ce que fait l'autre fichier. Un `UPDATE` refusé par la policy, lui,
+-- **ne lève pas** : le `using` masque la ligne, l'ordre passe et n'affecte rien.
+-- Seule la **valeur inchangée** le prouve.
+--
+-- C'est exactement le motif de `tenants_member_update`, qui a fait naître ce
+-- fichier. Sans ce bloc, remplacer `current_staff_tenant_ids()` par
+-- `current_tenant_ids()` — une régression plausible, les deux ont la même
+-- forme — laisserait un membre réécrire la séance de sa box sans qu'aucun test
+-- ne rougisse.
+reset role;
+
+insert into public.class_workouts (tenant_id, class_id, body, published_at)
+select 'aaaaaaaa-0000-4000-8000-000000000001', c.id, 'Metcon : 5 rounds', now()
+from public.classes c
+where c.tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'
+  and c.deleted_at is null
+order by c.starts_at
+limit 1;
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
+
+update public.class_workouts set body = 'détourné'
+where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001';
+
+select is(
+  (select body from public.class_workouts
+   where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'),
+  'Metcon : 5 rounds',
+  'un MEMBER ne réécrit pas la séance de sa box — le refus se mesure à ce qui n''a pas bougé'
 );
 
 -- Sarah — COACH

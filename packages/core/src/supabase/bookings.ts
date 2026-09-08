@@ -31,6 +31,7 @@ import { UNKNOWN_ERROR_MESSAGE_KEY, appErrorCodeOf, errorMessageKey } from '../e
 import type { AppErrorCode } from '../errors';
 import type { PluralKey, TranslationKey } from '../i18n/types';
 import { tenantScope } from './active-tenant';
+import { fetchClassWorkout } from './workouts';
 import type { RackClient } from './client';
 import { localizedText } from './box-settings';
 import { CoachRowSchema, coachDisplayName, instantLocal, localDay } from './planning';
@@ -292,6 +293,14 @@ export interface ClassDetail {
   coachName: string;
   /** La réservation de la personne sur ce cours, si elle existe. */
   myBookingId: string | null;
+  /**
+   * La séance écrite par le coach (P1-015), **publiée seulement**.
+   *
+   * Un brouillon n'arrive jamais jusqu'ici : la policy le retient. L'écran n'a
+   * donc rien à filtrer, et il ne peut pas se tromper en oubliant de le faire.
+   */
+  workoutTitle: string | null;
+  workoutBody: string | null;
 }
 
 /**
@@ -317,7 +326,7 @@ export async function fetchClassDetail(
 ): Promise<ClassDetail | null> {
   const scope = tenantScope(client, tenantId);
 
-  const [classes, types, rooms, coaches, bookings] = await Promise.all([
+  const [classes, types, rooms, coaches, bookings, seance] = await Promise.all([
     scope.select('classes').eq('id', classId).is('deleted_at', null),
     scope.select('class_types').is('deleted_at', null),
     scope.select('rooms').is('deleted_at', null),
@@ -328,6 +337,7 @@ export async function fetchClassDetail(
       .eq('membership_id', membershipId)
       .eq('status', 'CONFIRMED')
       .maybeSingle(),
+    fetchClassWorkout(client, { tenantId, classId }),
   ]);
 
   if (classes.error !== null) throw classes.error;
@@ -354,6 +364,10 @@ export async function fetchClassDetail(
     roomName: room?.name ?? '',
     coachName: coach === undefined ? '' : coachDisplayName(coach),
     myBookingId: bookings.data?.id ?? null,
+    // **La séance, si elle est publiée** (P1-015). La RLS décide : un brouillon
+    // n'arrive tout simplement pas ici, il n'y a rien à filtrer côté écran.
+    workoutTitle: seance === null ? null : seance.title?.trim() || null,
+    workoutBody: seance?.body ?? null,
   };
 }
 

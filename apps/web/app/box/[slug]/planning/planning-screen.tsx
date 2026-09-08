@@ -1,5 +1,9 @@
 'use client';
 
+import type { ClassWorkout } from '@rack/core/supabase';
+
+type SourceCandidate = { id: string; classTypeId: string; day: string; label: string };
+
 import Link from 'next/link';
 import { useI18n } from '@rack/ui/i18n';
 import { parseWeeklyRrule } from '@rack/core/supabase';
@@ -29,6 +33,9 @@ export function PlanningScreen({
   rooms,
   coaches,
   editable,
+  staff,
+  workouts,
+  candidates,
 }: {
   slug: string;
   monday: string;
@@ -42,6 +49,9 @@ export function PlanningScreen({
   rooms: Choice[];
   coaches: Choice[];
   editable: boolean;
+  staff: boolean;
+  workouts: Record<string, ClassWorkout>;
+  candidates: SourceCandidate[];
 }) {
   const { t, formatDate } = useI18n();
   const lien = (semaine: string) => `/box/${slug}/planning?semaine=${semaine}`;
@@ -81,6 +91,9 @@ export function PlanningScreen({
           today={today}
           occurrences={occurrences}
           editable={editable}
+          staff={staff}
+          workouts={workouts}
+          candidates={candidates}
         />
       </section>
 
