@@ -152,22 +152,37 @@ une vue semaine deviendra un ticket — **avec la mesure qui le justifie**.
 
 ## Critères d'acceptation
 
-- [ ] Une séance écrite sur une occurrence n'apparaît **que** sur cette
-      occurrence — les autres cours du même jour et du même type ne bougent pas
-- [ ] Pré-remplir depuis un autre cours, puis modifier, **ne modifie pas la
-      source**
-- [ ] Une séance non publiée est invisible du membre ; publiée, elle s'affiche
-      sur la fiche de cours
-- [ ] **Modifier la série ne détruit pas les séances écrites** — le geste qui
-      aurait tout effacé : écrire un WOD sur une occurrence sans réservation,
-      puis changer l'horaire de la série. Test pgTAP obligatoire
-- [ ] Un membre d'une autre box ne lit aucune séance — test pgTAP dans les deux
-      sens
-- [ ] Le texte s'affiche tel qu'il a été tapé : sauts de ligne conservés, aucune
-      interprétation, aucun formatage inventé
-- [ ] Parité i18n, et l'arbre d'accessibilité relu sur les deux écrans
+- [x] Une séance écrite sur une occurrence n'apparaît **que** sur cette
+      occurrence — pgTAP **avec témoin** : une voisine du même type et de la même
+      série, sur laquelle rien n'apparaît. Sans elle, le fichier affirmait au
+      lieu de prouver
+- [x] Pré-remplir depuis un autre cours, puis modifier, **ne modifie pas la
+      source** — le pré-remplissage pose du texte dans un état local, jamais une
+      référence. Six tests unitaires sur la sélection des sources
+- [x] Une séance non publiée est invisible du membre ; publiée, elle s'affiche
+      sur la fiche de cours — pgTAP des deux côtés, et la policy retient le
+      brouillon : l'écran n'a rien à filtrer, donc rien à oublier
+- [x] **Modifier la série ne détruit pas les séances écrites** — pgTAP, et
+      **prouvé dans les deux sens** : la protection retirée, le test rougit.
+      Son premier décor était un faux vert, la cible étant protégée par sa date
+      et non par la séance. **Et sa sœur est couverte** : supprimer la série
+      emporte l'occurrence, sans quoi elle serait restée réservable sans série
+- [x] Un membre d'une autre box ne lit aucune séance — **une séance de chaque
+      côté**, donc le silence d'en face n'est pas de la cécité. Plus un cas dans
+      `role_isolation_test.sql` : un `UPDATE` refusé par policy **ne lève pas**,
+      seule la valeur inchangée le prouve
+- [x] Le texte s'affiche tel qu'il a été tapé : sauts de ligne conservés, aucune
+      interprétation. Aller-retour d'un `chr(10)` prouvé en base ; `<Text>` nu
+      côté mobile, aucun Markdown dans le dépôt. **Le `trim()` ne touche que les
+      bords** — les lignes vides internes portent la mise en forme du coach
+- [x] Parité i18n (471 clés, aucune orpheline). Côté web, `Feedback` et
+      `SubmitButton` sont désormais employés : sans eux, ni l'enregistrement ni
+      l'échec n'étaient annoncés, et la double soumission était ouverte
 - [ ] **appareil** — la séance se lit sur la fiche de cours, en clair comme en
-      sombre, à 200 % de taille de texte
+      sombre, à 200 % de taille de texte. **Le geste est écrit** :
+      `docs/passe-mobile-iphone.md`, § 5 septies, huit gestes dont les deux qui
+      protègent le travail du dimanche soir — vider le champ, et n'y laisser
+      qu'une espace
 
 ## Estimation
 

@@ -22,6 +22,7 @@ function occurrence(id: string, startsAt: string): Occurrence {
   return {
     id,
     schedule_id: 's1',
+    class_type_id: 't1',
     starts_at: startsAt,
     ends_at: startsAt,
     capacity: 12,

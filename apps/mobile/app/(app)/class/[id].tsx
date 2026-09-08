@@ -29,6 +29,7 @@ import {
   fetchClassDetail,
   fetchClassRoster,
   fetchUpcomingBookings,
+  workoutTitle,
   type BookingAffordance,
   type ClassDetail,
   type RosterPeer,
@@ -522,6 +523,47 @@ export default function ClassDetailScreen() {
               `class_roster` rend une liste vide à qui n'a pas réservé ce cours —
               c'est la base juridique, pas une optimisation d'affichage — donc
               l'écran n'affiche la section que lorsqu'on a sa place. */}
+          {/* **La séance du coach** (P1-015).
+              Elle n'arrive ici que **publiée** — la policy retient les
+              brouillons, donc cet écran n'a rien à filtrer et ne peut pas
+              oublier de le faire.
+              Le texte s'affiche **tel qu'il a été tapé** : les sauts de ligne
+              sont la structure que le coach a choisie, et rien ne les
+              réinterprète. C'est tout le contraire de ce que ferait un rendu
+              Markdown, et c'est délibéré. */}
+          {cours.workoutBody === null ? null : (
+            <View style={{ gap: theme.space(2) }}>
+              <Text
+                style={{
+                  color: theme.colors.text,
+                  fontSize: theme.typography.title,
+                  fontFamily: theme.fontFamily,
+                  fontWeight: '600',
+                }}
+              >
+                {workoutTitle(
+                  {
+                    id: '',
+                    classId: cours.id,
+                    title: cours.workoutTitle,
+                    body: cours.workoutBody,
+                    publishedAt: null,
+                  },
+                  cours.className,
+                )}
+              </Text>
+              <Text
+                style={{
+                  color: theme.colors.text,
+                  fontSize: theme.typography.body,
+                  fontFamily: theme.fontFamily,
+                }}
+              >
+                {cours.workoutBody}
+              </Text>
+            </View>
+          )}
+
           {cours.myBookingId === null ? null : (
             <View style={{ gap: theme.space(2) }}>
               <View

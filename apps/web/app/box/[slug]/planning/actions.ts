@@ -35,6 +35,8 @@ import { HORIZON_DAYS, type ActionState } from './action-state';
 const INVALID: ActionState = { status: 'error', key: 'planning.error_invalid' };
 const FORBIDDEN: ActionState = { status: 'error', key: 'errors.forbidden_role' };
 const OK: ActionState = { status: 'ok' };
+/** Effacer une séance demande un geste explicite : voir `saveWorkout`. */
+const CONFIRM_DELETE: ActionState = { status: 'error', key: 'workout.confirm_delete' };
 
 type Contexte = { client: RackClient; tenantId: string };
 
@@ -46,6 +48,29 @@ async function contexte(slug: string): Promise<Contexte | null> {
 
   if (membership === null) return null;
   if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') return null;
+
+  return { client, tenantId: membership.tenant_id };
+}
+
+/**
+ * Le contexte du **staff qui anime**, coachs compris.
+ *
+ * `contexte()` s'arrête à OWNER et MANAGER : c'est la garde des gestes
+ * d'administration — créer une série, annuler un cours. **Écrire la séance n'en
+ * est pas un** : c'est le travail du coach, et il n'administre rien.
+ *
+ * Sœur exacte de `current_staff_tenant_ids()` en base, et c'est voulu : les deux
+ * couches disent la même chose, la policy refuse de toute façon, et celle-ci
+ * transforme un refus opaque en phrase.
+ */
+async function contexteStaff(slug: string): Promise<Contexte | null> {
+  const client = await serverClient();
+  const me = await fetchMe(client);
+  const membership = findMembershipBySlug(me, slug);
+
+  if (membership === null) return null;
+  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER' && membership.role !== 'COACH')
+    return null;
 
   return { client, tenantId: membership.tenant_id };
 }
@@ -269,4 +294,96 @@ export async function restoreClass(slug: string, id: string): Promise<ActionStat
 /** Relit une série pour pré-remplir le formulaire d'édition. */
 export async function readRecurrence(rrule: string) {
   return parseWeeklyRrule(rrule);
+}
+
+/**
+ * Écrit ou remplace la séance d'une occurrence (P1-015).
+ *
+ * **Une seule séance vivante par occurrence**, garantie par un index unique en
+ * base : cette action fait donc un `upsert` sur `class_id`, et non un `insert`
+ * qui échouerait au second enregistrement.
+ *
+ * **Le corps vide efface la séance.** C'est le geste naturel — on vide le champ,
+ * on enregistre — et il passe par `deleted_at` : règle 10, pas de suppression
+ * physique sur une entité métier. Effacer libère aussi l'occurrence de la
+ * troisième protection, qui redevient rafraîchissable comme les autres.
+ *
+ * **Publier n'est pas enregistrer.** Deux boutons, deux gestes : le coach écrit
+ * son brouillon quand il veut, il le publie quand il est prêt. Confondre les
+ * deux publierait un texte à moitié tapé au premier enregistrement.
+ */
+export async function saveWorkout(
+  slug: string,
+  classId: string,
+  _prev: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contexteStaff(slug);
+  if (ctx === null) return FORBIDDEN;
+
+  const titre = texte(form.get('title'));
+  const corps = texte(form.get('body'));
+  const publier = form.get('publish') === 'on';
+
+  if (titre.length > 120) return INVALID;
+
+  const scope = tenantScope(ctx.client, ctx.tenantId);
+
+  const { data: existante, error: lecture } = await scope
+    .select('class_workouts')
+    .eq('class_id', classId)
+    .is('deleted_at', null)
+    .maybeSingle();
+  if (lecture) return echec(lecture);
+
+  // **Un corps vide efface une séance : ça se confirme, ça ne se déduit pas.**
+  //
+  // Le geste qui coûte : le coach sélectionne tout pour retaper, laisse une
+  // espace, enregistre — et son WOD disparaît sous un bouton qui dit
+  // « Enregistrer ». Le `trim()` ci-dessus fait qu'« une espace » vaut « vide »,
+  // et rien ne l'avertissait.
+  //
+  // Ce lot vient d'ajouter une troisième protection en base pour que la séance
+  // survive à une correction de série : laisser la même perte silencieuse dans
+  // l'écran contredirait le ticket, sur la seule fonction que la box attend.
+  //
+  // **La longueur d'une chaîne ne décide donc plus de rien** — c'est le drapeau
+  // de confirmation qui décide, et il est vérifié **ici**, pas seulement à
+  // l'écran : une action serveur qui fait confiance à son formulaire ne garde
+  // rien.
+  if (corps.length === 0) {
+    if (existante === null) return OK;
+    if (form.get('confirm') !== 'on') return CONFIRM_DELETE;
+
+    const { error } = await scope
+      .update('class_workouts', { deleted_at: new Date().toISOString() })
+      .eq('id', existante.id);
+    if (error) return echec(error);
+    revalidatePath(`/box/${slug}/planning`);
+    return OK;
+  }
+
+  const publishedAt = publier ? (existante?.published_at ?? new Date().toISOString()) : null;
+
+  if (existante === null) {
+    const { error } = await scope.insert('class_workouts', {
+      class_id: classId,
+      title: titre.length === 0 ? null : titre,
+      body: corps,
+      published_at: publishedAt,
+    });
+    if (error) return echec(error);
+  } else {
+    const { error } = await scope
+      .update('class_workouts', {
+        title: titre.length === 0 ? null : titre,
+        body: corps,
+        published_at: publishedAt,
+      })
+      .eq('id', existante.id);
+    if (error) return echec(error);
+  }
+
+  revalidatePath(`/box/${slug}/planning`);
+  return OK;
 }

@@ -458,5 +458,19 @@
   "booking.cancel_confirm_cta": "Cancel anyway",
   "booking.cancel_keep": "Keep my spot",
   "booking.cancelled_ok": "Booking cancelled. Your spot is freed.",
-  "booking.cancelled_ok_announce": "Booking cancelled for {class} at {time}. Your spot is freed."
+  "booking.cancelled_ok_announce": "Booking cancelled for {class} at {time}. Your spot is freed.",
+  "workout.confirm_delete": "The field is empty: saving now will **delete** this class session.",
+  "workout.confirm_delete_check": "Yes, delete the session",
+  "workout.delete": "Delete the session",
+  "workout.body": "The session",
+  "workout.body_hint": "Write it your way: warm-up, strength, metcon, loads, Rx and Scaled. The text shows exactly as you type it.",
+  "workout.prefill": "Reuse a session",
+  "workout.prefill_none": "Nothing to reuse — no other session today, none last week.",
+  "workout.publish": "Publish",
+  "workout.publish_no_notification": "Publishing sends no notification: the channel does not exist yet. Members will see the session when they open the class.",
+  "workout.published": "Published — members can see it",
+  "workout.save": "Save",
+  "workout.title_field": "Title",
+  "workout.title_hint": "Optional. Without a title, the class name is used.",
+  "workout.unpublished": "Draft — members cannot see it"
 }

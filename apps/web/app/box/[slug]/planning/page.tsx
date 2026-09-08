@@ -10,9 +10,11 @@ import {
   weekDates,
   instantLocal,
   localDay,
+  localDayIn,
   type Choice,
   type Occurrence,
   type Serie,
+  fetchWorkoutsByClass,
 } from '@rack/core/supabase';
 import { serverClient } from '../../../../lib/supabase/server';
 import { Notice } from '../notice';
@@ -74,12 +76,24 @@ export default async function Page({
   const debut = `${dates[0]}T00:00:00`;
   const fin = `${shiftWeeks(monday, 1)}T00:00:00`;
 
-  const classesRows = await scope
-    .select('classes')
-    .is('deleted_at', null)
-    .gte('starts_at', instantLocal(debut, timeZone))
-    .lt('starts_at', instantLocal(fin, timeZone))
-    .order('starts_at');
+  // **Deux semaines, une fois** (P1-015). Le pré-remplissage propose « le même
+  // cours la semaine dernière » : sans la semaine précédente en mémoire, il
+  // faudrait deux requêtes par cellule, sur une grille qui en affiche une
+  // quarantaine.
+  const [classesRows, semainePrecedenteRows] = await Promise.all([
+    scope
+      .select('classes')
+      .is('deleted_at', null)
+      .gte('starts_at', instantLocal(debut, timeZone))
+      .lt('starts_at', instantLocal(fin, timeZone))
+      .order('starts_at'),
+    scope
+      .select('classes')
+      .is('deleted_at', null)
+      .gte('starts_at', instantLocal(`${shiftWeeks(monday, -1)}T00:00:00`, timeZone))
+      .lt('starts_at', instantLocal(debut, timeZone))
+      .order('starts_at'),
+  ]);
 
   const typesById = new Map(
     (classTypesRows.data ?? []).map((row) => [row.id, localizedText(row.name_i18n, locale)]),
@@ -107,6 +121,7 @@ export default async function Page({
     booked_count: row.booked_count,
     status: row.status,
     cancellation_reason: row.cancellation_reason,
+    class_type_id: row.class_type_id,
     className: typesById.get(row.class_type_id) ?? '—',
     roomName: roomsById.get(row.room_id) ?? '—',
     coachName: staffById.get(row.coach_membership_id) ?? '—',
@@ -122,6 +137,25 @@ export default async function Page({
     rrule: row.rrule,
     capacity: row.capacity,
     className: typesById.get(row.class_type_id) ?? '—',
+  }));
+
+  // Les séances de la semaine, en une requête plutôt qu'une par cellule : la
+  // grille en affiche une quarantaine (P1-015).
+  const precedentes = semainePrecedenteRows.data ?? [];
+  const workouts = await fetchWorkoutsByClass(client, {
+    tenantId: membership.tenant_id,
+    classIds: [...occurrences.map((o) => o.id), ...precedentes.map((row) => row.id)],
+  });
+
+  // Ce dans quoi le pré-remplissage puise : les deux semaines, réduites à ce que
+  // la sélection compare — un identifiant, un type, un jour **local de la box**,
+  // et de quoi se reconnaître dans une liste.
+  const jourDe = localDayIn(timeZone);
+  const candidates = [...(classesRows.data ?? []), ...precedentes].map((row) => ({
+    id: row.id,
+    classTypeId: row.class_type_id,
+    day: jourDe(row.starts_at),
+    label: `${jourDe(row.starts_at)} · ${typesById.get(row.class_type_id) ?? '—'}`,
   }));
 
   const choix = (entries: Map<string, string>): Choice[] =>
@@ -144,6 +178,16 @@ export default async function Page({
       // `refresh_class_schedule()` refusent déjà un COACH. Ne pas proposer une
       // porte qui se ferme.
       editable={membership.role === 'OWNER' || membership.role === 'MANAGER'}
+      // **Un second droit, et il ne recouvre pas le premier** (P1-015).
+      // `editable` garde l'administration — créer une série, annuler un cours.
+      // Écrire la séance est le travail du coach, qui n'administre rien : sans
+      // ce drapeau, celui à qui le ticket est destiné ne pourrait pas s'en
+      // servir. Sœur de `current_staff_tenant_ids()` en base.
+      staff={
+        membership.role === 'OWNER' || membership.role === 'MANAGER' || membership.role === 'COACH'
+      }
+      workouts={workouts}
+      candidates={candidates}
     />
   );
 }
