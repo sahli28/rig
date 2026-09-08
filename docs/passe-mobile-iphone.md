@@ -545,12 +545,31 @@ Le chemin qui prouve quelque chose n'est pas la déconnexion, c'est la **session
 perdue** : elle n'appelle pas `signOut()`, donc pas `clearScheduleCache()`, et
 c'est la clé `(utilisateur, box, jour)` qui doit protéger toute seule.
 
-| # | Geste | Attendu |
-|---|---|---|
-| 1 | Avec `lea@example.com`, ouvrir le planning et **feuilleter trois jours** pour poser du cache | Les trois journées s'affichent |
-| 2 | Sur le PC : `docker exec supabase_db_imys psql -U postgres -d postgres -c "delete from auth.sessions where user_id='33333333-0000-4000-8000-000000000001';"` | La session de Léa est révoquée **sans que l'app le sache** |
-| 3 | Tuer l'app, la rouvrir | Elle retombe sur l'écran de connexion — session expirée, **aucune déconnexion** |
-| 4 | Se connecter en `sarah@example.com`, aller au planning, feuilleter les mêmes jours | **Rien du planning de Léa n'apparaît**, à aucun moment, pas même une fraction de seconde avant le chargement |
+> ### ⚠️ Révoquer la session ne suffit pas — corrigé le 8 septembre 2026
+>
+> **Trouvé en jouant le bloc A, et c'est la procédure qui avait tort, pas le
+> produit.** Supprimer la ligne d'`auth.sessions` révoque le *refresh token* ;
+> l'*access token* est un JWT autonome, vérifié par signature et expiration,
+> **sans jamais interroger la base**. `config.toml` porte `jwt_expiry = 900` et
+> `session.tsx` ne fait que `getSession()` (lecture locale) et
+> `onAuthStateChange` — aucun `getUser()`. L'app reste donc connectée jusqu'à
+> **quinze minutes** après la révocation, sans une seule requête au serveur.
+>
+> D'où l'étape 0 ci-dessous. **L'ordre compte** : seuls les jetons émis *après*
+> le changement sont courts, donc il faut se reconnecter entre les deux.
+
+| #   | Geste                                                                                                                                                                                     | Attendu                                                                                                        |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 0   | Dans `supabase/config.toml`, passer `jwt_expiry` à `60`, puis `pnpm exec supabase stop && pnpm exec supabase start`                                                                        | Les prochains jetons émis vivront une minute. **Remettre `900` après la passe**                                  |
+| 1   | **Se reconnecter** en `lea@example.com` — l'ancien jeton dure encore quinze minutes, il faut en émettre un neuf                                                                            | Session active, jeton court                                                                                      |
+| 2   | Ouvrir le planning et **feuilleter trois jours** pour poser du cache                                                                                                                      | Les trois journées s'affichent                                                                                   |
+| 3   | Sur le PC : `docker exec supabase_db_imys psql -U postgres -d postgres -c "delete from auth.sessions where user_id='33333333-0000-4000-8000-000000000001';"`                                | La session de Léa est révoquée **sans que l'app le sache**                                                       |
+| 4   | **Attendre une minute**, puis tuer l'app et la rouvrir                                                                                                                                    | Elle retombe sur l'écran de connexion — session expirée, **aucune déconnexion**                                  |
+| 5   | Se connecter en `sarah@example.com`, aller au planning, feuilleter les mêmes jours                                                                                                        | **Rien du planning de Léa n'apparaît**, à aucun moment, pas même une fraction de seconde avant le chargement      |
+
+**Et surtout : ne pas atteindre l'écran de connexion par « Se déconnecter ».**
+`clearScheduleCache()` efface tout le préfixe, et le vert serait faux —
+exactement le piège du scénario « deux boxes ».
 
 **A2. Le fuseau.** Réglages iOS → Général → Date et heure → fuseau **Tokyo**
 (l'écart ne se confond avec rien). Rouvrir le planning : **les heures restent
@@ -625,6 +644,9 @@ Le dernier critère de `D-009`, et le seul que le harnais ne peut pas exercer.
 
 - `pnpm test:db:fresh` — les réservations prises pendant la passe font rougir
   `pnpm test:db` sinon.
+- **Remettre `jwt_expiry = 900` dans `supabase/config.toml`** et redémarrer
+  Supabase (bloc A1, étape 0). Une minute de jeton laissée en place ferait
+  reconnecter l'app sans arrêt, et on chercherait longtemps pourquoi.
 - Remettre le fuseau du téléphone sur Paris (bloc A2).
 - **Dater le journal ci-dessous.** Une passe non datée ne prouve rien : c'est
   écrit dans `D-011` et c'est vrai des quatre.

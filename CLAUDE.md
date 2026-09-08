@@ -209,6 +209,16 @@ null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la 
    plafond de mesure se décide **à l'ouverture du ticket**, jamais au troisième
    tour. Chaque hypothèse y coûte un aller-retour par passe manuelle.
 
+   **Et une affordance de débogage dans l'interface est une sonde**, au même
+   titre qu'un `console.log` : un sélecteur de langue sur l'accueil d'un membre,
+   une ligne « Connexion : … », un bouton vers le système de design. Elle porte
+   `__DEV__` dès sa première ligne, ou elle vit dans un écran de réglages
+   auquel un membre a une raison d'aller. Celles-ci sont plus tenaces que les
+   traces, pour une raison simple : **elles ont l'air d'une fonctionnalité.**
+   Personne ne les retire, parce que personne ne les lit comme temporaires — un
+   commentaire promettait depuis `P0-003` que le sélecteur de langue
+   « rejoindra les réglages ». Il y est toujours (`D-019`).
+
 ## Ce qu'il ne faut pas faire
 
 - Ne pas ajouter de dépendance sans la justifier dans le message de commit.

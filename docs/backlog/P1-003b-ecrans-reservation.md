@@ -516,6 +516,11 @@ pas dans Expo Go** — celui-ci passe par `exp://`, et un schéma personnalisé
 n'existe que dans un *development build*. Le reliquat est chez `D-013` et part
 avec le premier build dédié, donc avec le compte développeur Apple.
 
+**Ce compte est actif depuis le 8 septembre 2026** : le critère `rack://`
+redevient exerçable, au premier development build. Il partira avec celui que
+`P1-007` doit produire pour son push — **un seul build ferme deux critères de
+deux tickets**, et c'est une raison de plus de ne pas éparpiller les builds.
+
 ## Notes
 
 **La clé d'idempotence se génère au tap, pas à l'appel.** Générée dans la

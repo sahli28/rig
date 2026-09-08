@@ -35,6 +35,30 @@ Chaque route suit le même ordre, sans exception :
    **Le `diff` n'est pas filtré par la base** : n'y mettre ni donnée de santé, ni
    e-mail, ni rien que `privacy.md` interdise de journaliser. Le tri se fait ici.
 
+## Révoquer une session ne coupe pas l'accès tout de suite
+
+**Découvert le 8 septembre 2026, en préparant un geste de passe** — et c'est une
+propriété du produit, pas de la procédure.
+
+Supprimer la ligne d'`auth.sessions` révoque le **refresh token**. L'**access
+token**, lui, est un JWT autonome : vérifié par signature et expiration, il
+n'interroge jamais la base. Tant qu'il n'a pas expiré, il ouvre tout ce que la
+RLS autorise à son porteur — la révocation ne le sait pas.
+
+`supabase/config.toml` porte `jwt_expiry = 900`. **Une session révoquée reste
+donc utilisable jusqu'à quinze minutes.** Et le mobile n'accélère rien :
+`apps/mobile/lib/session.tsx` n'appelle que `getSession()` — une lecture locale —
+et `onAuthStateChange` ; il n'y a aucun `getUser()`, donc aucune requête qui
+irait constater la révocation.
+
+**Sans effet au pilote**, où l'on ne coupe l'accès de personne dans l'urgence.
+C'est écrit ici pour le jour où une box voudra le faire — un membre exclu, un
+téléphone perdu, un staff qui part fâché — parce que ce jour-là la réponse
+« c'est révoqué » sera fausse pendant un quart d'heure, et qu'on ne veut pas la
+découvrir à ce moment-là. Les deux leviers existants : baisser `jwt_expiry`, ou
+ajouter un contrôle serveur qui interroge réellement la session. Les deux ont un
+coût, et aucun n'est nécessaire aujourd'hui.
+
 ## La RLS ne vous garde pas dans la box active
 
 **Toute requête doit ajouter `.eq('tenant_id', activeTenantId)`.**
