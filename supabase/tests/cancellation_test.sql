@@ -314,6 +314,27 @@ insert into public.classes (
    'a3000000-0000-4000-8000-000000000003',
    now() + interval '2 hours 2 minutes', now() + interval '3 hours', 2);
 
+-- **Le plafond est écarté, pas supposé absent** (`D-020`).
+--
+-- Ce bloc prend **trois** réservations à venir pour Léa, et le seed en autorise
+-- exactement trois. Il supposait donc qu'elle part de zéro — une affirmation sur
+-- le décor, et elle tombe dès qu'une session dans l'app lui en a laissé une :
+-- la troisième levait `MAX_UPCOMING_BOOKINGS_REACHED`, et le test rougissait en
+-- accusant l'annulation, qui n'y est pour rien.
+--
+-- **Le plafond n'est jamais le sujet ici** — aucune assertion de ce fichier ne
+-- le regarde — donc l'écarter ne retire rien à ce qui est prouvé. Même forme que
+-- dans `booking_test.sql` : trois de plus que ce qu'elle a réellement.
+update public.tenant_settings
+set max_upcoming_bookings = 3 + (
+  select count(*) from public.bookings b
+  join public.classes c on c.id = b.class_id
+  where b.membership_id = 'a3000000-0000-4000-8000-000000000002'
+    and b.status = 'CONFIRMED'
+    and c.starts_at > now()
+)
+where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001';
+
 set local role authenticated;
 set local request.jwt.claims =
   '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';

@@ -93,16 +93,27 @@ select is(
   'une inscrite voit les deux inscrites du cours, elle comprise'
 );
 
+-- **Bornées au cours testé** (`D-020`). Sans `class_id`, ces deux sous-requêtes
+-- supposent que Julie n'est inscrite **qu'à un seul cours** de toute la box :
+-- une seconde inscription ailleurs, et `select … where membership_id = …` rend
+-- deux lignes, donc `more than one row returned by a subquery` — le test ne
+-- rougit même pas, il **casse**, et emporte les vingt assertions qui suivent.
+--
+-- Celle-ci n'a été vue ni par la fixture de `D-014`, ni par le rejeu d'une
+-- session réelle : il a fallu **les deux à la fois**. C'est l'argument du
+-- ticket, démontré sur lui-même.
 select is(
   (select first_name from public.class_roster
-   where membership_id = 'a3000000-0000-4000-8000-000000000004'),
+   where membership_id = 'a3000000-0000-4000-8000-000000000004'
+     and class_id = (select id from cible)),
   'Julie',
   'le prénom d''un pair est lisible'
 );
 
 select is(
   (select last_initial from public.class_roster
-   where membership_id = 'a3000000-0000-4000-8000-000000000004'),
+   where membership_id = 'a3000000-0000-4000-8000-000000000004'
+     and class_id = (select id from cible)),
   'K',
   'son nom est réduit à son initiale'
 );

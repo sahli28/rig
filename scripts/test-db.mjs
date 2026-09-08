@@ -16,6 +16,17 @@
  * bandeau affiché à chaque exécution est un bandeau qu'on cesse de lire en trois
  * jours. Celui-ci n'apparaît qu'au moment où il sert.
  *
+ * **Et pourquoi il énonce une règle au lieu de donner un conseil** (`D-020`).
+ * Ce message disait « relancer `test:db:fresh` avant de croire un rouge ». Un
+ * conseil laisse une décision de jugement à quelqu'un en fin de session, et
+ * cette décision-là s'est mal prise : le 6 septembre 2026, `me_test` test 9 est
+ * sorti rouge sous une fixture de bruit, a été classé « effet d'interaction, à
+ * ne pas chasser », et est revenu deux jours plus tard — c'était un vrai défaut.
+ *
+ * Le texte qui apprend à ignorer un rouge a fonctionné exactement comme conçu :
+ * **il a avalé un défaut réel.** Il ne peut pas disparaître, le bruit existe.
+ * Il devient donc une règle à deux issues, sans troisième.
+ *
  * **Pourquoi pas un `db:reset` automatique** : la suite tourne à chaque `/check`,
  * et un reset systématique détruirait la base de travail — la box qu'on est en
  * train de cliquer — pour trente secondes de plus à chaque fois. Le reset reste
@@ -34,19 +45,27 @@ if (result.status !== 0) {
     [
       '',
       '─'.repeat(72),
-      '  Des tests pgTAP ont échoué. Avant de chercher un bug, une question :',
+      '  Des tests pgTAP ont échoué.',
       '',
-      '    as-tu cliqué dans l’app depuis le dernier `pnpm db:reset` ?',
+      '  UN ROUGE ATTRIBUÉ AU DÉCOR SE PROUVE SUR UN SEED NEUF,',
+      '  OU IL N’EST PAS ATTRIBUÉ.',
       '',
-      '  La suite part d’une base **fraîchement semée** et compte des lignes.',
-      '  Une série de cours, un membre invité ou une box créée à la main s’y',
-      '  ajoutent et font rougir des assertions parfaitement justes.',
+      '  La suite part d’une base fraîchement semée. Ce qu’on a créé en',
+      '  cliquant dans l’app s’y ajoute et peut faire rougir des assertions',
+      '  justes — c’est réel, et c’est pour ça que la tentation de classer',
+      '  l’échec sans regarder est forte.',
       '',
-      '  Pour lever le doute en une commande :',
+      '  Elle a déjà coûté : le 6 septembre 2026, un vrai défaut a été rangé',
+      '  dans « effets d’interaction » et est revenu deux jours plus tard',
+      '  (`D-020`). La règle ci-dessus existe pour que ce classement soit un',
+      '  **résultat**, pas une impression de fin de session.',
       '',
       '      pnpm test:db:fresh',
       '',
-      '  Si c’est encore rouge après ça, l’échec est réel.',
+      '  VERT   → c’était le décor. Le noter, avec la date.',
+      '  ROUGE  → c’est un défaut. Il a un ticket, pas une explication.',
+      '',
+      '  Aucune troisième issue. « Sans doute le décor » n’en est pas une.',
       '─'.repeat(72),
       '',
     ].join('\n'),

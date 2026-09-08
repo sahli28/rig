@@ -1,6 +1,6 @@
-# `D-020` — Deux sœurs que la fixture bidon n'a pas vues
+# `D-020` — Trois sœurs que la fixture bidon n'a pas vues
 
-**Phase** `dette` · **Estimation** `0,25` j·h · **Dépend de** `D-014` (fait) · **Origine** échec observé le 8 septembre 2026, pendant `D-019` · **Non bloquant**
+**Phase** `dette` · **Estimation** `0,25` j·h · **Dépend de** `D-014` (fait) · **Origine** échec observé le 8 septembre 2026, pendant `D-019` · **✅ fait le 8 septembre 2026**
 
 ## Objectif
 
@@ -75,14 +75,39 @@ Relire les 107 assertions. La méthode reste la bonne — ajouter du bruit et
 regarder qui rougit — elle demande seulement un bruit qui ne vienne pas de la
 même tête que les tests.
 
+## ✅ Une troisième, que ni l'un ni l'autre des deux bruits ne montrait
+
+`class_roster_test.sql:96` — et elle ne **rougissait** pas, elle **cassait** :
+
+    ERROR: more than one row returned by a subquery used as an expression
+
+`select first_name from class_roster where membership_id = <Julie>` suppose que
+Julie n'est inscrite qu'à **un seul cours de toute la box**. Deux inscriptions,
+et la sous-requête rend deux lignes : le fichier s'arrête, emportant les vingt
+assertions suivantes — un test qui casse est pire qu'un test qui rougit, il
+emmène ses voisins avec lui.
+
+**Elle n'apparaît qu'avec les deux bruits à la fois** : la fixture de `D-014`
+inscrit Julie une fois, la session réelle une seconde. Séparément, chacun laisse
+la suite verte. C'est l'argument du ticket démontré sur le ticket lui-même —
+**deux bruits d'origines différentes trouvent ce qu'aucun ne voit seul.**
+
 ## Critères d'acceptation
 
-- [ ] `cancellation_test.sql` et `me_test.sql` passent après une **session réelle
-      au harnais** (connexion, consentements, réservation), sans `db:reset`
-- [ ] Les deux corrections sont bornées à ce que l'appel testé fait, pas
-      supprimées
-- [ ] Le ticket `D-014` porte la correction de son affirmation, avec la raison —
-      un critère coché trop large est un faux vert, et c'en était un
+- [x] `cancellation_test.sql` et `me_test.sql` passent après une **session réelle**
+      (connexion, consentements, réservation) rejouée sur le seed : 437 verts
+- [x] Les corrections sont bornées à ce que l'appel testé fait, pas supprimées —
+      plafond calculé depuis l'état réel, précondition posée par le test,
+      sous-requêtes bornées au cours testé
+- [x] **Les deux bruits cumulés** — celui de `D-014` et celui d'une session
+      réelle — laissent 437 tests verts, et le seed neuf aussi
+- [x] Le ticket `D-014` porte la correction de son affirmation, avec la raison
+- [x] **La règle du décor est mécanique**, pas un conseil : `scripts/test-db.mjs`
+      énonce deux issues sans troisième, et la page de passe en fait une étape
+      dont le verdict s'écrit au journal
+- [x] `CLAUDE.md` **règle 10** — un critère universel ne se coche pas sur un
+      échantillon *(la numérotation donne 10 : la section « Workflow » s'arrête
+      à 9)*
 
 ## Notes
 
