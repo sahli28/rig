@@ -122,8 +122,11 @@ D'ici là, quatre pas, et le troisième est ce qui les tient ensemble :
 
 **`P1-008` a sa section « ce que ce ticket suppose », écrite le 8 septembre 2026
 avant ouverture** — et elle a trouvé trois choses qu'un lancement direct aurait
-découvertes en route. **Découpé le même jour** en `P1-008a` (7, le prochain) et
-`P1-008b` (3, hors pilote).
+découvertes en route. **Découpé le même jour** en `P1-008a` et `P1-008b`.
+
+> *Les chiffres de cette découpe — 7 et 3 — et l'ordre qu'elle posait sont
+> **révolus** : le retour de la box pilote les a remplacés quelques heures plus
+> tard, plus bas dans cette même section.*
 
 **Le kiosque est plus bloqué qu'on ne le croyait** : `getUserMedia` n'existe pas
 hors contexte sécurisé, et le seul HTTPS qu'on aura passe par **le nom de
@@ -136,8 +139,10 @@ vestiaire. La note du ticket répond déjà mieux — on accepte et on met en fi
 ne vérifie pas.
 
 **Une tablette de kiosque n'a pas d'identité**, et rien n'en prévoit : l'auth du
-produit est un code par e-mail, par personne. Trois issues, aucune gratuite, à
-trancher avant d'écrire.
+produit est un code par e-mail, par personne. Trois issues, aucune gratuite.
+
+> *Elles ont été **tranchées** dans le paragraphe suivant : pas de kiosque au
+> pilote. Ce qui précède décrit la question, pas une décision en attente.*
 
 **Découpe tranchée le 8 septembre 2026**, puis **retournée le même jour par la
 box pilote** : `P1-008a` se réduit au pointage manuel (**3,75**), et tout ce qui
@@ -337,6 +342,17 @@ sait pas lui répondre.
 | D-020   | Trois sœurs que la fixture bidon n'a pas vues     |   0,25 | ✅ **fait le 8 sept. 2026**, avant de reprendre la passe — un rouge connu pendant une passe est un rouge qu'on n'examine pas. **Une troisième trouvée** en cumulant les deux bruits, et elle ne rougissait pas : elle **cassait** `class_roster_test`, emportant vingt assertions. La règle du décor devient **mécanique** (`test-db.mjs`, page de passe), et `CLAUDE.md` gagne la **règle 10** |
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
 |         | **Total ①**                                       | **104** | dont **80,5 faits**, **23,5 restants** |
+
+**Les restants montent de 20,75 à 23,5, et c'est une bonne nouvelle.** Un chiffre
+qui monte se relit comme une dérive s'il ne porte pas sa raison : celui-ci monte
+parce qu'on a **retiré 7 j·h que la box pilote n'aurait pas utilisés** — le QR,
+le kiosque, le drop-in au scan — **pour ajouter 5 j·h qu'elle attend**, la séance
+du cours. Le jalon est plus long de 1,75 j·h et il livre ce qu'un client a
+demandé, au lieu de livrer ce qu'on avait supposé.
+
+C'est la différence entre les quatre dérapages d'estimation du projet et
+celui-ci : les autres coûtaient plus pour la même chose ; celui-là coûte un peu
+plus pour **autre chose**, choisie.
 
 **Quatre tickets ne sont pas dans ce total** — `P1-013`, `P1-005b`, `P0-005b` et
 `P1-008b`, les trois derniers depuis le 8 septembre 2026. Ils sont écrits et chiffrés, pas programmés, et
