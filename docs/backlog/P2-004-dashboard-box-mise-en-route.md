@@ -46,7 +46,7 @@ n'avait aucune source de données.**
 | Invitations et annuaire des membres | P1-001c, D-001 | ✅ existent |
 | Marque de la box | P1-001e | ✅ existe |
 | **`classes` et `bookings`** (« taux de remplissage ») | P1-002, P1-003 | ❌ **à créer par P1-002 et P1-003** |
-| **`checkins`** (« présences ») | P1-008 | ❌ **à créer par P1-008.** Sans lui, « présences » voudrait dire « réservations » — ce n'est pas la même chose et il ne faut pas l'étiqueter ainsi |
+| **`checkins`** (« présences ») | P1-008a | ❌ **à créer par P1-008a.** Sans lui, « présences » voudrait dire « réservations » — ce n'est pas la même chose et il ne faut pas l'étiqueter ainsi |
 | **`ledger_entries` avec des écritures** (« CA du mois ») | table depuis P0-004, écrivains depuis P2-006 | ❌ **c'était le trou.** Le KPI le plus vendeur de l'écran n'avait aucune source, et le ticket ne le disait pas. `revenue_report()` est livré par **P2-016** — d'où l'ordre P2-004 → P2-016, et un état vide honnête tant que P2-016 n'est pas là |
 | **Un composant graphique** (« graphique 30 jours ») | `packages/ui` | ❌ **à créer, ou à éviter.** Même arbitrage qu'en P2-016 : un tableau juste vaut mieux qu'une courbe approximative, et ajouter une bibliothèque de graphiques se justifie dans le message de commit |
 | Tests de rendu des composants | D-002 (dette ouverte) | ⚠️ **absente** |

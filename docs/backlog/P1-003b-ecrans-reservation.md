@@ -130,7 +130,7 @@ C'est le genre de choix qu'on ne regrette que dans un sens.
 | --------------- | ---------- | ------ |
 | `bookClass()` — la RPC, la clé d'idempotence, la traduction du code d'erreur | l'écran Détail du cours, l'accueil | celui-ci |
 | Écran Détail du cours | le membre, depuis le planning et depuis l'accueil | celui-ci |
-| Écran Mes réservations | le membre | celui-ci, puis P1-004 (s'y désinscrire) et P1-008 (y pointer) |
+| Écran Mes réservations | le membre | celui-ci, puis P1-004 (s'y désinscrire) et P1-008a (y pointer) |
 | La carte « prochain cours » de l'accueil | le membre | celui-ci |
 | Le premier écran qui afficherait une feuille d'inscrits | la vue des pairs | **P1-003c — à écrire après** |
 

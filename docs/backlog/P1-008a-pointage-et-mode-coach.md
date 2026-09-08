@@ -1,0 +1,120 @@
+# `P1-008a` — Le coach coche sa feuille, et l'absent est marqué
+
+**Phase** `P1` · **Estimation** `3,75` j·h *(6 → 7 → 3,75 — voir « Le ticket a été retourné »)* · **Dépend de** `P1-003` ✅, `P1-003c` ✅ · **Spec** §4-P3, RM3.4, RM3.6 · **Origine** retour de la box pilote, 8 septembre 2026
+
+## Objectif
+
+Le coach sait qui est venu, et l'absent qui n'a pas annulé est marqué comme tel.
+
+## ⤾ Le ticket a été retourné, et c'est le client qui l'a retourné
+
+`P1-008` s'ouvrait sur : « un membre entre, montre son téléphone, et la salle
+sait qu'il est là — **sans qu'un coach tienne une liste à la main** ».
+
+**C'est exactement le geste que le coach de la box pilote fait, et il ne le
+trouve pas pénible.** Il connaît tous ses adhérents par leur prénom et vérifie la
+liste des inscrits avant et pendant la séance, seul.
+
+Ce dont il a besoin était **en dernière ligne du périmètre, présenté comme un
+repli** : RM3.6, le pointage manuel par le coach. **Le repli est le produit ; le
+QR est l'extra.**
+
+Il veut sanctionner les absents, donc **la détection de no-show garde tout son
+sens**. Mais il sait déjà qui n'est pas venu : il lui faut **un endroit où
+l'enregistrer**, pas un lecteur de code-barres.
+
+Tout le reste — QR dynamique, kiosque, drop-in au scan, PWA, file hors ligne —
+part dans `P1-008b`, **non programmé**. Avec lui part la section « ce que ce
+ticket suppose » écrite le matin même : c'est elle qui portait la valeur, et ses
+trois trouvailles auraient coûté une journée chacune en plein développement.
+
+## Ce que ce ticket suppose et qui doit exister
+
+| Prérequis | Où il vit | État |
+| --- | --- | --- |
+| `bookings` | `20260903090000_bookings_and_book_class.sql:37` | ✅ c'est **la** ligne qu'on marque : pointer, c'est dire « cette réservation a été honorée » |
+| `class_roster` — qui est inscrit à ce cours | `20260905090000_class_roster.sql:140` | ✅ la feuille existe, **et sa règle d'exposition d'identité est déjà tranchée** |
+| `pg_cron` | `20260902120000:389`, en service | ✅ le job de no-show a son ordonnanceur |
+| Les rôles `COACH` / `MANAGER` | P0-004 | ✅ |
+| Le formulaire des règles de réservation | `apps/web/app/box/[slug]/reglages/booking-rules-form.tsx:34` | ✅ la fenêtre de pointage, c'est **deux champs de plus**, pas un écran |
+| **Un horodatage de présence** | *rien* — `booking_status` vaut `CONFIRMED` \| `CANCELLED` (`20260903090000:30`) | ❌ à créer ici |
+| **Une fenêtre de pointage** | *rien* dans `tenant_settings` | ❌ à créer ici |
+| **Un écran de feuille de cours côté coach** | *rien* — `class_roster` n'a **aucun écran** | ❌ à créer ici |
+
+### La présence va sur `bookings`, et pas dans une table `checkins`
+
+**C'est une décision, pas un raccourci.** Un pointage manuel marque **une
+réservation** comme honorée : la donnée a exactement la forme de la ligne qui
+existe déjà.
+
+Une table `checkins` n'a de sens que le jour où un pointage peut exister **sans
+réservation** — le drop-in — ou porter des événements propres : l'appareil,
+l'heure exacte, la source. Ces deux besoins sont dans `P1-008b`. **Créer la table
+maintenant serait un mécanisme avant son appelant** (règle 7), et il faudrait
+deviner ses colonnes sans le cas d'usage qui les dicte.
+
+`P1-008b` porte donc explicitement la reprise : il crée `checkins` et migre ce
+qui est sur `bookings`. C'est écrit **là-bas**, pour que ce ne soit pas une
+surprise.
+
+## Ce que ce ticket rend possible, et qui l'appellera
+
+| Ce que je livre | Appelé par | Ticket |
+| --- | --- | --- |
+| L'horodatage de présence | le job de no-show, puis le **reporting d'assiduité** | celui-ci, puis `P2-014` |
+| L'écran de feuille de cours | le coach, tous les jours | celui-ci |
+| Le statut de no-show | les frais d'absence | **`S5`, v1** — la box pilote punit à l'erg, ce qui n'est pas du logiciel |
+
+## Périmètre
+
+- **Un horodatage de présence sur `bookings`**, posé et retiré par le coach.
+- **L'écran de feuille de cours** : les inscrits, une case par personne, écriture
+  immédiate — pas de bouton « Enregistrer », même raison que dans l'écran de
+  préférences.
+- **La fenêtre de pointage** : deux colonnes dans `tenant_settings`, deux champs
+  dans le formulaire existant, 30 min avant / 15 min après par défaut.
+- **Le job de no-show** : `pg_cron` marque après le cours les réservations
+  confirmées sans pointage.
+- Fonction PLpgSQL transactionnelle et son pgTAP, i18n FR + EN.
+
+## Hors périmètre
+
+- **Tout ce qui scanne** → `P1-008b` : QR dynamique, kiosque, drop-in au scan,
+  PWA, file hors ligne.
+- **Les frais d'absence** → `S5`, v1. Confirmé par la box pilote le 8 septembre
+  2026 : elle aimerait facturer 5 €, et dit elle-même « pas tout de suite ».
+- **Le reporting d'assiduité** → `P2-014`. Ce ticket livre la donnée.
+
+## Critères d'acceptation
+
+- [ ] Le coach ouvre la feuille d'un cours, coche une personne, et c'est écrit —
+      sans bouton d'enregistrement
+- [ ] Décocher retire le pointage : c'est un geste réversible, pas un
+      enregistrement définitif
+- [ ] Hors fenêtre de pointage, la base refuse — pas seulement l'écran
+- [ ] Un no-show apparaît après le cours, et **seulement** pour une réservation
+      confirmée sans pointage. Une réservation annulée n'est pas un no-show
+- [ ] Un coach d'une autre box ne pointe rien ici — test pgTAP dans les deux sens
+- [ ] Parité i18n, arbre d'accessibilité relu : chaque case dit **qui** elle
+      pointe, pas « case à cocher »
+- [ ] **appareil** — la feuille se tient d'une main, en salle, cours en cours
+
+## Estimation
+
+| Lot | j·h |
+| --- | ---: |
+| Horodatage de présence, fenêtre de pointage, deux champs dans le formulaire existant | 1 |
+| Fonction de pointage transactionnelle + job `pg_cron` de no-show | 1 |
+| pgTAP | 0,75 |
+| Écran de feuille de cours côté coach | 1,25 |
+| i18n, accessibilité, passe appareil | 0,5 |
+
+**3,75 j·h**, contre 7 pour la version qui scannait. **Ce n'est pas une
+réestimation, c'est un autre ticket** : le QR, le kiosque et leurs prérequis sont
+partis, et avec eux la bibliothèque à ajouter, le jeton signé et sa rotation.
+
+## Notes
+
+**Ne jamais bloquer l'entrée d'un membre pour un problème réseau** (RM3.5) reste
+vrai et devient facile : il n'y a plus de scan à faire échouer. Le coach coche
+quand il peut ; s'il n'a pas de réseau, il coche après.

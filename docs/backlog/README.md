@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **20,75 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **23,5 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -55,6 +55,30 @@ corollaire, appliqué immédiatement à `P1-005a` : **le plafond de mesure d'un
 défaut qui ne s'observe qu'avec plusieurs clients se décide à l'ouverture du
 ticket**, jamais au troisième tour.
 
+## ⭐ À partir du 8 septembre 2026, l'ordre du jalon suit la box pilote
+
+**Ce n'est plus le même genre de décision**, et c'est pour ça que ça mérite sa
+note. Jusqu'ici l'ordre se déduisait — d'un blocage, d'une dette, d'un
+raisonnement sur ce qui empire avec le nombre d'écrans. **Le retour recueilli
+auprès du coach de la box pilote le 8 septembre 2026 est le premier client
+réel**, et il l'emporte sur le raisonnement.
+
+Ce qu'il a changé, en un jour :
+
+| Sujet            | Ce qu'on croyait                                      | Ce qu'il a dit                                                                                                                                              |
+| ---------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Le pointage      | il faut un QR pour éviter au coach de tenir une liste | **il tient la liste, et ça lui va.** Le repli du périmètre (RM3.6) _est_ le produit ; le QR est l'extra → `P1-008a` réduit à 3,75, `P1-008b` non programmé  |
+| La programmation | `P2-009`, après le MVP                                | **il l'écrit ailleurs aujourd'hui.** Sans elle il garde Hustle Up, et le pilote mesure une box qui ouvre deux applications → `P1-015`, devant tout le reste |
+| Les frais        | à trancher                                            | **il tranche : « pas tout de suite »**, il punit à l'erg. `S5` reste en v1, et une punition à l'erg n'est pas du logiciel                                   |
+
+**Ce que ça implique pour la suite** : un ordre déduit se re-discute avec des
+arguments, un ordre demandé par un client se re-discute avec **ce client**. Les
+deux se valent, mais on ne les mélange pas — et quand les deux disent des choses
+différentes, il est écrit ici lequel a gagné.
+
+Le risque **R4** — « le propriétaire achète, les coachs n'adoptent pas » — est le
+premier à bouger : celui-ci a adopté, et il demande précisément le
+différenciateur n°1 de la spec.
 **La ligne de démarcation est celle de la spec §2.6** : une box doit pouvoir
 créer son compte → configurer son planning → inviter ses membres → **vendre un
 abonnement et un pack de 10** → voir réserver, annuler, pointer → **publier le
@@ -74,7 +98,7 @@ quand le compte Apple est validé**, dans leur ordre écrit.
 
 > **La condition est remplie depuis le 8 septembre 2026** — deux jours après
 > l'arbitrage. **L'ordre ne change pas pour autant** : la passe groupée et
-> `P1-008` restent devant, parce que ce qui les précédait n'était pas l'attente
+> `P1-008a` restent devant, parce que ce qui les précédait n'était pas l'attente
 > d'Apple mais leur propre valeur. Ce que la validation change, c'est que
 > `P1-007` ne sortira plus avec deux `[~]` : il pourra les tenir.
 
@@ -93,12 +117,13 @@ D'ici là, quatre pas, et le troisième est ce qui les tient ensemble :
    (8 sept. 2026) : § 5 sexies de `docs/passe-mobile-iphone.md`, quatre blocs,
    avec l'ordre imposé et les deux contraintes qui gâcheraient la passe si on
    les découvrait dedans ;
-4. **`P1-008`** (6) — check-in QR et kiosque, qui ne dépend que de `P1-003`,
-   fait.
+4. **`P1-015`** (5) puis **`P1-008a`** (3,75) — la séance du cours, puis le
+   pointage. **L'ordre a changé le 8 sept. 2026** sur le retour de la box pilote.
 
 **`P1-008` a sa section « ce que ce ticket suppose », écrite le 8 septembre 2026
 avant ouverture** — et elle a trouvé trois choses qu'un lancement direct aurait
-découvertes en route.
+découvertes en route. **Découpé le même jour** en `P1-008a` (7, le prochain) et
+`P1-008b` (3, hors pilote).
 
 **Le kiosque est plus bloqué qu'on ne le croyait** : `getUserMedia` n'existe pas
 hors contexte sécurisé, et le seul HTTPS qu'on aura passe par **le nom de
@@ -114,9 +139,15 @@ ne vérifie pas.
 produit est un code par e-mail, par personne. Trois issues, aucune gratuite, à
 trancher avant d'écrire.
 
-D'où une découpe recommandée — **`P1-008a`** le pointage et le mode coach, que
-rien ne bloque ; **`P1-008b`** le kiosque web, bloqué par le domaine. Et une
-estimation de 6 j·h qui ne tient pas.
+**Découpe tranchée le 8 septembre 2026**, puis **retournée le même jour par la
+box pilote** : `P1-008a` se réduit au pointage manuel (**3,75**), et tout ce qui
+scanne part dans `P1-008b`, **non programmé**.
+Et l'identité de la tablette tranchée avec : **pas de kiosque au pilote**. Le
+compte de staff laissé connecté est écarté net — une tablette non surveillée qui
+porte des droits de `MANAGER` est impossible à écrire dans le registre RGPD ; le
+jeton de kiosque révocable est la bonne réponse **mais sans appelant**, et la
+règle 7 vaut dans ce sens-là aussi. RM3.6 tient le jalon sans lui : le coach
+coche à la main.
 
 **Deux** démarches administratives bloquent encore du code déjà écrit ou déjà
 chiffré — elles étaient quatre jusqu'au 8 septembre 2026. **Aucune ne se rattrape
@@ -188,7 +219,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 101,25 j·h, dont **20,75 restants**
+## ① Jalon pilote — 104 j·h, dont **23,5 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -201,20 +232,26 @@ LA CHAÎNE MOBILE, close
   D-010 ✅ · D-012 ✅ · D-013 ✅ · D-004 ✅ · D-017 ✅ · D-018 ✅
   P1-004 ✅ → P1-005a ✅          (annulation, puis le temps réel sur le téléphone)
 
-L'ORDRE ARBITRÉ DU 6 SEPT., déroulé
-  D-016 ✅ → D-014 ✅ → D-019 ✅ → D-020 ✅ → ✳ passe groupée ✅ (8 sept.) → P1-008
+L'ORDRE ARBITRÉ DU 6 SEPT., déroulé jusqu'au bout
+  D-016 ✅ → D-014 ✅ → D-019 ✅ → D-020 ✅ → ✳ passe groupée ✅ (8 sept.)
   La passe a fermé six critères sur quatre tickets : D-011 ✅, D-016, P1-005a, D-009.
 
+L'ORDRE DEPUIS LE RETOUR DE LA BOX PILOTE (8 sept.) — il remplace le précédent
+  P1-015 → P1-008a → P1-007 → P1-006
+  Le WOD passe devant le pointage : sans lui, le coach ouvre deux applications
+  pendant tout le pilote.
+
 CE QUI RESTE, ET CE QUI LE RETIENT
-  P1-008a ⟵ rien. **Le prochain** (pointage + mode coach)
-  P1-008b ⟵ le nom de domaine, pour l'HTTPS du kiosque — même blocage que D-008
-  P1-007  ⟵ pas Apple, son propre travail préparatoire : découpe a/b + ADR 0004
+  P1-015  ⟵ rien. **Le prochain** — la séance du cours, demandée par la box
+  P1-008a ⟵ rien — le coach coche sa feuille, l'absent est marqué
+  P1-007  ⟵ pas Apple : son propre travail préparatoire, découpe a/b + ADR 0004
   P1-006  ⟵ P1-007, et rien d'autre
-  P1-009 → P1-001f          ⟵ rien. Après la démo
+  P1-009 → P1-001f  ⟵ rien. Après la démo
   D-008   ⟵ le nom de domaine, seul blocage de sa ligne
 
 NON PROGRAMMÉS, chacun avec son déclencheur
   P0-005b · P1-005b · P1-013
+  P1-008b ⟵ tout ce qui scanne. À la première box qui n'est pas la pilote.
 
         ↓
   ═══ JALON : mise en production chez la box pilote ═══
@@ -285,7 +322,9 @@ sait pas lui répondre.
 | P1-005b | Le même canal dans la grille du back-office       |      1 | **non programmé** — écrit, chiffré, hors du total. Au pilote, la valeur du temps réel est sur le téléphone du membre, là où deux personnes se disputent la dernière place ; le manager peut rafraîchir. Sort en une session si la box pilote le réclame |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière P1-007**, dont elle tient la promotion. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
 | P1-007  | Notifications push                                |      4 | 🔒 **partiellement bloqué — iOS**. Sa section « ce que ce ticket suppose », écrite le 6 sept. 2026, a trouvé trois trous que l'estimation ne couvre pas : **aucun émetteur** (ni edge function, ni route handler), **aucun journal d'envoi** pour le plafond marketing, et **`users` n'a pas de fuseau** alors que les quiet hours sont « heure locale du membre ». Deux critères en `[~]` : le push iOS et le deep link, tous deux derrière le **compte développeur Apple**. Android est ouvert et gratuit. **4 j·h à recompter au lancement** |
-| P1-008  | Check-in QR et mode kiosque                       |      6 | **prêt à ouvrir** — section règle 8 écrite le 8 sept. 2026, avant lancement. Elle a trouvé : aucune table `checkins`, aucun statut de présence sur `bookings`, aucune fenêtre de pointage dans les réglages, aucune bibliothèque QR, aucun PWA, **et aucune identité pour une tablette de kiosque**. Le bon côté : `hmac` est en base, donc le jeton signé reste transactionnel. **6 j·h ne tiennent pas**, et une découpe a/b est recommandée — le kiosque est bloqué par le domaine, le mode coach ne l'est pas |
+| P1-015  | La séance du cours, écrite par le coach           |      5 | **prêt à ouvrir — le prochain**, et **le premier ticket venu d'un client réel**. Le coach de la box pilote écrit sa semaine dans Hustle Up ; sans ça, le pilote mesure une box qui ouvre deux applications. Une séance **par occurrence** — pas par (date, type), qui interdirait d'alléger le cours du soir — en texte libre, avec un pré-remplissage qui **copie sans lier**. Sa section règle 8 a trouvé qu'une modification de série **effacerait les séances en silence** |
+| P1-008a | Le coach coche sa feuille, et l'absent est marqué  |   3,75 | **retourné par la box pilote le 8 sept. 2026.** Le coach tient sa liste et ça lui va : RM3.6, le repli du périmètre, **est** le produit. Reste le pointage manuel, l'horodatage de présence et le job de no-show. **7 → 3,75 — ce n'est pas une réestimation, c'est un autre ticket** |
+| P1-008b | Le check-in QR : le membre scanne lui-même        |      6 | **non programmé** — la box pilote n'en a pas besoin. Mais §10 le classe « attendu par le marché » : **une box de 200 membres avec des coachs qui tournent ne connaît pas ses adhérents par leur prénom**. Déclencheur : la première box qui n'est pas la pilote. Porte tout ce qui scanne, **et la section règle 8** dont les trois trouvailles ont servi à décider de ne pas le lancer |
 | P1-013  | Droits de réservation accordés à la main          |      2 | **non programmé** — écrit, chiffré, prêt. À sortir le jour où la box pilote veut couper un droit sans exclure quelqu'un. `member_has_booking_right()` rend `true` pour tout membre actif : c'est son appelant manquant |
 | P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. **Rend exerçable un critère `[~]` de P1-012** (deux boxes, sans passer par la déconnexion qui purge le cache). La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
 | D-011   | Les trois gestes que la passe hors ligne n'a pas exercés | 0,5 | ✅ **fait à la passe groupée du 8 sept. 2026** — bloc A. Le compte précédent atteint par **session expirée** et non par déconnexion, seul chemin qui exerce le cloisonnement par la clé plutôt que l'effacement ; fuseau Tokyo ; contenu du cache relu sur l'appareil |
@@ -297,16 +336,17 @@ sait pas lui répondre.
 | D-019   | Trois affordances de débogage sur l'accueil       |    0,5 | ✅ **fait le 8 sept. 2026**. Le sélecteur de langue **déménage** dans les réglages — il tenait une vraie fonction, il était au mauvais endroit depuis `P0-003` ; les deux autres passent sous `__DEV__`. L'accueil ne porte plus **qu'une action primaire**, mesurée et non lue. **Et la garde est prouvée mordante** sur l'export de production : zéro appel aux deux chaînes, seules leurs traductions embarquent. Un critère `[ ]` — l'app iOS elle-même → passe groupée |
 | D-020   | Trois sœurs que la fixture bidon n'a pas vues     |   0,25 | ✅ **fait le 8 sept. 2026**, avant de reprendre la passe — un rouge connu pendant une passe est un rouge qu'on n'examine pas. **Une troisième trouvée** en cumulant les deux bruits, et elle ne rougissait pas : elle **cassait** `class_roster_test`, emportant vingt assertions. La règle du décor devient **mécanique** (`test-db.mjs`, page de passe), et `CLAUDE.md` gagne la **règle 10** |
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
-|         | **Total ①**                                       | **101,25** | dont **80,5 faits**, **20,75 restants** |
+|         | **Total ①**                                       | **104** | dont **80,5 faits**, **23,5 restants** |
 
-**Trois tickets ne sont pas dans ce total** — `P1-013`, `P1-005b` et, depuis le
-8 septembre 2026, `P0-005b`. Ils sont écrits et chiffrés, pas programmés, et
+**Quatre tickets ne sont pas dans ce total** — `P1-013`, `P1-005b`, `P0-005b` et
+`P1-008b`, les trois derniers depuis le 8 septembre 2026. Ils sont écrits et chiffrés, pas programmés, et
 **chacun porte son déclencheur** : `P1-013` le jour où la box pilote voudra
 couper un droit sans exclure quelqu'un ; `P1-005b` le jour où elle réclamera des
 compteurs vivants dans la grille ; `P0-005b` le jour où le taux de complétion
 d'onboarding (spec §16.4) montrera que le code à six chiffres coûte des
-inscriptions. Un ticket non programmé sans déclencheur est un ticket abandonné
-qui n'ose pas le dire.
+inscriptions ; `P1-008b` le jour où le domaine existera **et** qu'une box réelle
+réclamera le kiosque — **deux conditions, pas une**. Un ticket non programmé sans
+déclencheur est un ticket abandonné qui n'ose pas le dire.
 
 **Le total ① ne bouge pas à la découpe de `P1-005`** : les 3 j·h y restent,
 portés par `P1-005a`, et le volet web est un ajout hors total, pas un retrait
@@ -325,7 +365,9 @@ corrigé sans son calcul se re-conteste :
 | `D-019` entre dans ① (0,5) | 101 | 79,25 | 21,75 |
 | `D-019` fait, `D-020` entre (0,25) | 101,25 | 79,75 | 21,5 |
 | `D-020` fait (0,25) | 101,25 | 80 | 21,25 |
-| `D-011` fait à la passe du 8 sept. (0,5) | **101,25** | **80,5** | **20,75** |
+| `D-011` fait à la passe du 8 sept. (0,5) | 101,25 | 80,5 | 20,75 |
+| `P1-008` découpé : −6, +7 pour `P1-008a`, `P1-008b` hors total | 102,25 | 80,5 | 21,75 |
+| **Retour box pilote** : `P1-008a` 7 → 3,75, `P1-015` +5 | **104** | **80,5** | **23,5** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
@@ -422,7 +464,7 @@ ressembler à un oubli.
 | S2 | Événements Hyrox (heats, dossards, pairings) | v1 | Spec §13.5, bloc « Événements Hyrox », 8 j·h. Suppose S1 |
 | S3 | Benchmarks CrossFit (Fran, Grace, Murph) | v1 | Peu coûteux **une fois P2-013 fait** : ce sont des PR sur des séances nommées |
 | S4 | Notes de coach privées, suggestions de scaling | v1 | Données proches du sensible (règle 11). Mérite son propre cadrage |
-| S5 | Frais d'annulation tardive / no-show | v1 | **Référencé par RM2.4 (P1-004) et RM3.4 (P1-008)** : les deux tickets P1 doivent dire qu'ils s'arrêtent avant. Politiquement sensible → configurable, donc à concevoir avec de vrais propriétaires |
+| S5 | Frais d'annulation tardive / no-show | v1 | **Référencé par RM2.4 (P1-004) et RM3.4 (P1-008a)** : les deux tickets P1 doivent dire qu'ils s'arrêtent avant. Politiquement sensible → configurable, donc à concevoir avec de vrais propriétaires |
 | S7 | Partenariats inter-box | v1 | Le réseau est l'ambition, pas le MVP. Sans dix boxes, il n'a personne à connecter |
 | S8 | Commissions et partage de revenus inter-box | v1 | Suppose S7 et un ledger éprouvé sur un an |
 | S9 | Synchronisation calendrier (.ics, Google) | v1 | Demandé, pas bloquant |

@@ -137,7 +137,7 @@ ne se fera jamais.
 
 - **Écriture hors ligne, réservation différée** : P1-003 l'interdit par
   construction — une réservation est une transaction PostgreSQL ou n'est pas.
-- **Check-in hors ligne** : P1-008.
+- **Check-in hors ligne** : P1-008a.
 - **La grille de semaine** : le mobile affiche un jour. La semaine est un écran
   de conception, elle appartient au back-office.
 - **Le sélecteur de box** : P1-009.
