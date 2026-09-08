@@ -43,9 +43,16 @@ D'où une chaîne qui ne se résout pas en codant :
 et aucun geste n'existe pour les tenter. Android, lui, est ouvert.
 
 **Conséquence sur l'ordre du jalon, et c'est le point qui compte** : le README
-ordonne `P1-007 → P1-006 → P1-008a`, soit **17 des 21,75 j·h restants**, et `P1-006`
+ordonnait `P1-007 → P1-006 → P1-008a`, soit **17 des 21,75 j·h restants**, et `P1-006`
 dépend de `P1-007` pour la promotion de liste d'attente. Le chemin critique
 administratif ne bloque donc plus un ticket lointain : **il bloque le prochain.**
+
+> **Ce paragraphe est au passé depuis le 8 septembre 2026.** L'ordre est devenu
+> `P1-015 → P1-008a → P1-007 → P1-006`, sur le retour de la box pilote : le coach
+> demande la programmation, et sans elle il garde Hustle Up pendant tout le
+> pilote. `P1-007` reste devant `P1-006`, il n'est simplement plus le prochain.
+> Conservé tel quel parce qu'il explique pourquoi le compte Apple avait été
+> promu au premier rang — et un raisonnement effacé une fois dépassé se refait.
 
 ## Ce que ce ticket suppose et qui doit exister
 
