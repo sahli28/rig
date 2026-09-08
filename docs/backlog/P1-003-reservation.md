@@ -49,7 +49,7 @@ ce ticket a été rédigé avant le gabarit.
 | Ce que je livre | Appelé par | Ticket |
 | --------------- | ---------- | ------ |
 | `book_class(class, membership, idempotency_key)` | l'écran Détail du cours | **P1-003b** |
-| `bookings` | l'annulation, la waitlist, le check-in, le portefeuille | P1-004, P1-006, P1-008, P2-007 |
+| `bookings` | l'annulation, la waitlist, le check-in, le portefeuille | P1-004, P1-006, P1-008a, P2-007 |
 | `member_has_booking_right()` — le point de couture des droits | l'abonnement, le portefeuille | **P2-006 et P2-007 la remplacent**, voir ci-dessous |
 | L'infrastructure d'idempotence | toute écriture financière | P2-006, P2-007 |
 

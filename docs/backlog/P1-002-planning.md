@@ -36,7 +36,7 @@ base, un job de fond et deux écrans.
 | **`pg_cron`, activé et configuré** | `supabase/config.toml` | ❌ **à vérifier avant de chiffrer.** La matérialisation glissante en dépend, et aucun job de fond n'existe encore dans le produit. Si l'extension n'est pas activée en local, c'est le premier travail du ticket |
 | **Une grille de semaine (composant web)** | `packages/ui` / `apps/web` | ❌ **à créer.** Aucun écran n'affiche encore une grille temporelle. C'est le second composant lourd du produit après le Program Builder, et c'est ce qui peut faire dériver l'estimation |
 | Une bibliothèque RRULE | — | ❌ dépendance à ajouter (`rrule`), à justifier dans le commit. **Ou** l'expansion en SQL — à trancher au plan : la matérialisation étant faite par un job Postgres, une RRULE analysée en TypeScript devrait alors traverser la frontière |
-| Cache mobile pour l'affichage hors ligne | P1-002b | ❌ **sorti de ce ticket.** Le jalon pilote privilégie le planning fiable ; le check-in offline reste couvert par P1-008 |
+| Cache mobile pour l'affichage hors ligne | P1-002b | ❌ **sorti de ce ticket.** Le jalon pilote privilégie le planning fiable ; le check-in offline reste couvert par P1-008a |
 
 ## Ce que ce ticket rend possible, et qui l'appellera
 
@@ -79,7 +79,7 @@ redécouvre pas dans six mois comme un trou.
 ## Hors périmètre
 
 - Planning mobile, filtres et cache offline : **P1-002b** (~3–4 j·h), après ce
-  socle. Le check-in offline reste P1-008.
+  socle. Le check-in offline reste P1-008a.
 - RRULE RFC complète (mensuelle, `COUNT`, `BYSETPOS`, etc.) : hors pilote. Une
   règle refusée reçoit une alternative explicite dans l'UI (« utilise une
   récurrence hebdomadaire ou crée une seconde série »), jamais une approximation.

@@ -33,7 +33,7 @@ un chemin bien gardé (`scores`, tenant-scopé) et son jumeau qui ne l'est pas
 | `movements.measured_by` (TIME / LOAD / REPS / DISTANCE) | P2-009 | ❌ **à créer par P2-009** — sans elle, on ne sait pas ce qu'est un « meilleur » score |
 | Fenêtre de saisie configurable (défaut J+48 h, RM5.3) | `tenant_settings` (P1-001b) | ⚠️ **la table existe, la colonne non.** Une colonne à ajouter, dans l'écran de réglages existant |
 | `users.gender`, `users.birthdate` (catégories du leaderboard) | P0-004 | ✅ existent, **facultatifs** (RM1.5) |
-| `checkins`, pour ne proposer la saisie qu'aux présents | P1-008 | ❌ **à créer par P1-008.** Nuance, pas blocage : à défaut, on propose la saisie aux réservés |
+| `checkins`, pour ne proposer la saisie qu'aux présents | P1-008a | ❌ **à créer par P1-008a.** Nuance, pas blocage : à défaut, on propose la saisie aux réservés |
 
 ## Ce que ce ticket rend possible, et qui l'appellera
 

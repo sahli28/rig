@@ -5,7 +5,7 @@
 ## Pourquoi
 
 La policy de `public.users` est `id = auth.uid()` : personne ne voit personne
-d'autre. En l'état, le `Class Roster` (P1-003, P1-008) et `Members List` (P1-001)
+d'autre. En l'état, le `Class Roster` (P1-003, P1-008a) et `Members List` (P1-001)
 ne peuvent afficher aucun nom.
 
 **Ne pas élargir la policy de `users`.** La rendre « visible aux pairs du même

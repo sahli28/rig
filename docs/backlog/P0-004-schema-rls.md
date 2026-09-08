@@ -76,7 +76,7 @@ Passer ce ticket en plan mode et prendre le temps : c'est de l'irréversible.
 ### Décision — `users` reste invisible aux pairs
 
 Un coach ne peut lire le nom d'aucun de ses membres : la policy est
-`id = auth.uid()`. Le `Class Roster` (P1-003, P1-008) et `Members List` (P1-001)
+`id = auth.uid()`. Le `Class Roster` (P1-003, P1-008a) et `Members List` (P1-001)
 ne pourront donc rien afficher en l'état. **C'est délibéré.**
 
 La policy « visible aux pairs du même tenant » qui vient naturellement à l'esprit

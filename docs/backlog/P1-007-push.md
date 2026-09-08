@@ -43,7 +43,7 @@ D'où une chaîne qui ne se résout pas en codant :
 et aucun geste n'existe pour les tenter. Android, lui, est ouvert.
 
 **Conséquence sur l'ordre du jalon, et c'est le point qui compte** : le README
-ordonne `P1-007 → P1-006 → P1-008`, soit **16 des 26 j·h restants**, et `P1-006`
+ordonne `P1-007 → P1-006 → P1-008a`, soit **17 des 21,75 j·h restants**, et `P1-006`
 dépend de `P1-007` pour la promotion de liste d'attente. Le chemin critique
 administratif ne bloque donc plus un ticket lointain : **il bloque le prochain.**
 
