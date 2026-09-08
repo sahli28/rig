@@ -3,7 +3,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
-import { Banner, Skeleton, Switch, Toast } from '@rack/ui/native';
+import { Banner, SegmentedControl, Skeleton, Switch, Toast } from '@rack/ui/native';
 import { errorMessageKeyOf, type TranslationKey } from '@rack/core';
 import {
   fetchMyPreferences,
@@ -46,7 +46,7 @@ interface Etat {
 
 export default function PreferencesScreen() {
   const theme = useTheme();
-  const { t } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const { me, activeTenantId, reload } = useSession();
 
   const userId = me?.user.id ?? null;
@@ -149,6 +149,35 @@ export default function PreferencesScreen() {
       </Text>
 
       {errorKey === null ? null : <Banner title={t(errorKey)} tone="danger" />}
+
+      {/* **La langue, arrivée de l'accueil** (`D-019`).
+          Elle y était depuis `P0-003` pour prouver que l'interface bascule sans
+          redémarrage, avec un commentaire qui promettait ce déménagement. Elle
+          est **au-dessus du chargement** et non dedans : changer de langue ne
+          dépend d'aucune lecture réseau, et le rester utilisable quand les
+          préférences ne se chargent pas est exactement ce qu'on veut d'un
+          réglage d'affichage. */}
+      <View style={{ gap: theme.space(2) }}>
+        <Text
+          style={{
+            color: theme.colors.text,
+            fontSize: theme.typography.title,
+            fontFamily: theme.fontFamily,
+            fontWeight: '600',
+          }}
+        >
+          {t('preferences.language_heading')}
+        </Text>
+        <SegmentedControl
+          accessibilityLabel={t('language.label')}
+          value={locale}
+          onChange={(value) => setLocale(value === 'fr' ? 'fr' : 'en')}
+          options={[
+            { value: 'fr', label: t('language.fr') },
+            { value: 'en', label: t('language.en') },
+          ]}
+        />
+      </View>
 
       {etat.phase === 'chargement' ? (
         <View style={{ gap: theme.space(2) }}>
