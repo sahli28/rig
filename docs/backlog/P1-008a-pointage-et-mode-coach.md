@@ -39,7 +39,38 @@ trois trouvailles auraient coûté une journée chacune en plein développement.
 | Le formulaire des règles de réservation | `apps/web/app/box/[slug]/reglages/booking-rules-form.tsx:34` | ✅ la fenêtre de pointage, c'est **deux champs de plus**, pas un écran |
 | **Un horodatage de présence** | *rien* — `booking_status` vaut `CONFIRMED` \| `CANCELLED` (`20260903090000:30`) | ❌ à créer ici |
 | **Une fenêtre de pointage** | *rien* dans `tenant_settings` | ❌ à créer ici |
-| **Un écran de feuille de cours côté coach** | *rien* — `class_roster` n'a **aucun écran** | ❌ à créer ici |
+| **Un écran de feuille de cours côté coach** | *rien* — `class_roster` n'a **aucun écran** | ❌ à créer ici, **et sur mobile** — voir la décision ci-dessous |
+| **Une surface coach dans l'app mobile** | *rien* — `apps/mobile/app/(app)/` ne porte que cinq écrans membre, et **le mot `role` n'apparaît nulle part** dans `apps/mobile` (vérifié le 9 sept. 2026) | ❌ **la feuille sera la première surface de l'app qui dépend d'un rôle.** Ce n'est pas un écran de plus : c'est un point d'entrée, une garde et une navigation qui n'existent pas |
+
+### La feuille de cours est **mobile**, et c'est tranché
+
+**Décidé le 9 septembre 2026, hors ticket, pendant que la question était
+claire** — précisément pour qu'elle ne se découvre pas en cours de route.
+
+Le geste se fait **en salle, téléphone en main, pendant que les membres
+arrivent**. Pas sur un ordinateur portable posé quelque part. La spec le dit
+déjà en §4-P3 : « le coach scanne avec son téléphone », et `Coach Roster` y
+figure parmi les écrans du parcours, pas parmi ceux du back-office.
+
+**Trois conséquences, et la deuxième est celle qui coûte :**
+
+1. `D-021`, qui ouvre la porte du back-office web aux COACH, **ne sert pas ce
+   ticket**. Elle sert `P1-015` — le coach écrit son WOD le dimanche soir, sur un
+   ordinateur. Les deux gestes du coach ne vivent pas sur le même appareil, et
+   c'est normal : l'un se fait assis, l'autre debout ;
+2. **la feuille sera la première surface de l'app mobile qui dépend d'un rôle.**
+   Aujourd'hui `apps/mobile` ne lit jamais `membership.role` — cinq écrans
+   membre, une pile, aucune bifurcation. Il faut donc un point d'entrée visible
+   d'un coach et invisible d'un membre, une garde, et un retour. **Le lot
+   « écran de feuille » à 1,25 j·h ne couvre pas ça** : il a été chiffré comme un
+   écran, et c'est un mode ;
+3. la fenêtre de pointage reste **web** — deux champs dans le formulaire de
+   réglages existant, qui est un geste de gérant, pas de coach.
+
+> **L'estimation de 3,75 j·h est donc à recompter à l'ouverture**, comme celle
+> de `P1-007`. Elle n'est pas fausse d'un lot entier — la base, la fonction, le
+> job et le pgTAP ne bougent pas — mais le lot d'écran est sous-évalué, et le
+> dire maintenant vaut mieux que de le constater au troisième jour.
 
 ### La présence va sur `bookings`, et pas dans une table `checkins`
 
@@ -106,7 +137,7 @@ surprise.
 | Horodatage de présence, fenêtre de pointage, deux champs dans le formulaire existant | 1 |
 | Fonction de pointage transactionnelle + job `pg_cron` de no-show | 1 |
 | pgTAP | 0,75 |
-| Écran de feuille de cours côté coach | 1,25 |
+| Écran de feuille de cours côté coach — **sous-évalué, voir « La feuille de cours est mobile »** | 1,25 |
 | i18n, accessibilité, passe appareil | 0,5 |
 
 **3,75 j·h**, contre 7 pour la version qui scannait. **Ce n'est pas une

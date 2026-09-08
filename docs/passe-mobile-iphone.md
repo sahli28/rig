@@ -501,9 +501,23 @@ découvre.
 
 ### Le décor
 
-Sur le PC, dans le back-office (`/box/rueil/planning`), en **coach** —
-`sarah@example.com` — et non en gérant : c'est le droit que le ticket a ouvert,
-et le seul geste qui prouve que `current_staff_tenant_ids()` sert.
+Sur le PC, dans le back-office (`http://localhost:3000/box/crossfit-rueil/planning`),
+en **coach** — `sarah@example.com` — et non en gérant : c'est le droit que le
+ticket a ouvert, et le seul geste qui prouve que `current_staff_tenant_ids()`
+sert.
+
+> #### ⛔ Ce décor n'est pas jouable aujourd'hui — `D-021`
+>
+> **Passe du 9 septembre 2026 : Sarah n'entre pas.** La porte du back-office
+> (`apps/web/app/box/[slug]/layout.tsx:56`) arrête tout ce qui n'est ni OWNER ni
+> MANAGER, et `P1-015` ne l'a pas touchée. Les gestes ci-dessous ont donc été
+> joués avec un compte d'administration, ce qui vérifie la séance **et pas le
+> droit du coach**.
+>
+> Reprendre ce décor tel qu'il est écrit **après `D-021`** : c'est lui qui ouvre
+> la porte, et le critère correspondant de `P1-015` reste `[ ]` jusque-là.
+> Le slug est `crossfit-rueil` — `/box/rueil/…` n'existe pas, et cette page l'a
+> écrit pendant un jour.
 
 | # | Geste | Attendu |
 |---|---|---|
@@ -523,6 +537,12 @@ et le seul geste qui prouve que `current_staff_tenant_ids()` sert.
 
 Les gestes 7 et 8 sont ceux qui protègent le travail du dimanche soir. Le reste
 du ticket est vérifié en base et au harnais ; ceux-là ne se voient qu'à l'écran.
+
+**Et le geste 1 a trouvé autre chose, que personne n'avait vu en lisant le
+code** : pour atteindre « La séance », on traverse le champ « Motif » et le
+bouton « Annuler ce cours » du panneau d'annulation, en variante primaire. Deux
+zones de texte se suivent sans séparation, et se tromper de champ, c'est écrire
+son WOD dans celui qui annule le cours. Parti en `D-021` avec la porte.
 
 ### Le repère, à noter au journal
 
@@ -721,6 +741,7 @@ en entier.
 
 | Date | Appareil | Résultat |
 | --- | --- | --- |
+| **9 sept. 2026** | iPhone + back-office sur le PC, `lea@example.com` (membre) et un compte d'administration | **P1-015, § 5 septies. L'essentiel passe** : le pré-remplissage trouve sa source, la publication annonce qu'elle ne notifie personne, l'état passe bien à « Publiée — visible des membres », et la séance se lit sur la fiche de cours. **Deux défauts, tous deux invisibles en test** → `D-021`. **Le premier a empêché de jouer le décor** : `sarah@example.com`, COACH, est refusée par `layout.tsx:56` — `P1-015` a ouvert le droit du coach à **trois niveaux sur quatre** et pas à la porte, inchangée depuis `P1-001a`. La passe a donc été jouée en administration, et le critère du droit coach **repasse en `[ ]`** : le cocher aurait été un faux vert. **Le second n'est pas un défaut de code** : le formulaire de la séance est logé **sous** le panneau d'annulation, donc le geste quotidien traverse « Motif » et un « Annuler ce cours » primaire — trouvé en jouant, pas en lisant. **Une valeur littérale fausse corrigée dans cette page** : le décor disait `/box/rueil/…`, le slug du seed est `crossfit-rueil`. **Verdict du décor : `test:db:fresh` non consigné** — à rejouer et à écrire ici, la passe n'a pas eu lieu en entier sans lui |
 | **8 sept. 2026** | iPhone, `lea@example.com` + `sarah@example.com` | **La passe groupée, blocs A à D. Les quatre passent, aucun défaut trouvé** — et c'est la première passe qui ferme **six critères sur quatre tickets** : les trois gestes de `D-011` (compte précédent atteint par session expirée, fuseau Tokyo, contenu du cache), l'accueil de `D-016`, l'arrière-plan de `P1-005a`, le balayage de `D-009` — son dernier, ouvert depuis le 3 sept. **Un soupçon levé, consigné comme résultat** : le centre de contrôle ne fait **pas** clignoter la pastille, donc le correctif candidat de `P1-005a` reste non appliqué sur une mesure et non sur une hypothèse. **Verdict du décor : `test:db:fresh` vert (437)** — c'était bien le décor. `jwt_expiry` remis à 900, et vérifié dans le conteneur (`GOTRUE_JWT_EXP=900`) : le fichier ne ment pas sur ce qui tourne |
 | **3 sept. 2026** | iPhone 12 Pro Max, Expo Go, SDK 57 | Les cinq vérifications passent. **Quatre défauts trouvés**, aucun visible en test : la langue (D-004), le parcours d'invitation cassé de bout en bout (corrigé), le sélecteur de box sans retour (P1-009), les retours de navigation vers des écrans interdits (D-009) |
 | **4 sept. 2026** | idem | Tout passe, contrôle négatif compris : `/welcome` sans jeton est graphite, `/invitation/<jeton>` est orange et nomme la box, `nouveau@example.com` atterrit membre de CrossFit Rueil. Thème sombre et texte à 200 % tiennent ; la reconnexion après déconnexion est propre |
