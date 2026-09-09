@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@rack/ui/i18n';
 import { browserClient } from '../../../lib/supabase/client';
-import type { InvitationPreview } from '@rack/core/supabase';
+import { canEnterBackOffice, type InvitationPreview } from '@rack/core/supabase';
 import type { TranslationKey } from '@rack/core';
 import styles from './invitation.module.css';
 import { IDLE, type ActionState } from './action-state';
@@ -51,7 +51,9 @@ export function JoinCard({
     IDLE,
   );
 
-  const staff = preview.role === 'OWNER' || preview.role === 'MANAGER';
+  // La même décision que la porte du back-office, à la même source : un COACH
+  // invité doit apprendre qu'il y a une porte pour lui (`D-021`).
+  const staff = canEnterBackOffice(preview.role);
   const signedIn = session !== null;
 
   if (etatAdhesion.status === 'joined') {

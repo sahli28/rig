@@ -13,7 +13,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { fetchMe, findMembershipBySlug, importMembers } from '@rack/core/supabase';
+import { can, fetchMe, findMembershipBySlug, importMembers } from '@rack/core/supabase';
 import { ImportRowSchema, MAX_IMPORT_ROWS, errorMessageKeyOf } from '@rack/core';
 import { serverClient } from '../../../../lib/supabase/server';
 import type { ImportState } from './import-state';
@@ -29,7 +29,7 @@ export async function runImport(
   const me = await fetchMe(client);
   const membership = findMembershipBySlug(me, slug);
 
-  if (membership === null || (membership.role !== 'OWNER' && membership.role !== 'MANAGER')) {
+  if (membership === null || !can(membership.role, 'members')) {
     return { status: 'error', key: 'errors.forbidden_role' };
   }
 

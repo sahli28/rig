@@ -25,6 +25,7 @@ const Timestamp = z.string().min(1);
  * rejetterait le nouveau rôle sans qu'aucun test ne le voie venir.
  */
 export const MEMBERSHIP_ROLES = Constants.public.Enums.membership_role;
+export type MembershipRole = (typeof MEMBERSHIP_ROLES)[number];
 export const MEMBERSHIP_STATUSES = Constants.public.Enums.membership_status;
 
 export const MembershipSchema = z.object({

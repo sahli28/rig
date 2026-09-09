@@ -105,6 +105,29 @@ const PAS_D_IMPORT_EXPO_CRYPTO = {
     "`expo-crypto` ne s'importe que là où l'app installe sa source d'aléa (`installRandomBytesSource()`, au démarrage). Partout ailleurs, passez par `uuidV7()` de @rack/core : `Crypto.randomUUID()` rend un v4 et court-circuite la façade sans qu'aucun interdit de global ne le voie.",
 };
 
+/**
+ * 5. **Une comparaison de rôle dans une app.** `membership.role !== 'OWNER'`,
+ *    `actorRole === 'MANAGER'`, `role === 'COACH'` — chacune est une porte, et
+ *    chaque porte écrite à la main est une sœur qu'on oubliera. `P1-015` a
+ *    ouvert le droit du coach dans la policy, la Server Action, le drapeau
+ *    d'écran et la carte ; la porte du back-office (`layout.tsx`) avait sa
+ *    propre comparaison, personne ne l'a rouverte, et tous les tests étaient
+ *    verts (`D-021`).
+ *
+ *    La décision vit une fois, dans `packages/core/src/supabase/back-office.ts`
+ *    (`can()`, `canEnterBackOffice()`) et `staff.ts` (`canModifyMembership()`,
+ *    `grantableRoles()`). Une app **demande**, elle ne compare pas. Le
+ *    sélecteur vise `===` / `!==` dont un côté est une propriété `role` ou un
+ *    identifiant finissant par `role` — assez large pour attraper la forme
+ *    qu'on écrit naturellement, et `pnpm lint:sondes` vérifie qu'il mord.
+ */
+const PAS_DE_COMPARAISON_DE_ROLE = {
+  selector:
+    "BinaryExpression[operator=/^(===|!==)$/]:matches([left.property.name='role'], [right.property.name='role'], [left.name=/[rR]ole$/], [right.name=/[rR]ole$/])",
+  message:
+    "Comparaison de rôle dans une app : chaque porte écrite à la main est une sœur qu'on oubliera — la porte du coach est restée fermée ainsi (D-021). Demandez à @rack/core/supabase : `can(role, droit)`, `canEnterBackOffice(role)`, `canModifyMembership(acteur, cible)`, `grantableRoles(acteur)`. Un droit qui manque s'ajoute à la table de back-office.ts, avec sa ligne de test.",
+};
+
 export default tseslint.config(
   {
     ignores: [
@@ -153,7 +176,13 @@ export default tseslint.config(
     // existe, est écrit une fois en tête de fichier, sur sa constante.
     files: ['apps/**/*.{ts,tsx}', 'packages/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-syntax': ['error', PAS_DE_FROM_DIRECT, PAS_D_INTL, PAS_DE_CRYPTO],
+      'no-restricted-syntax': [
+        'error',
+        PAS_DE_FROM_DIRECT,
+        PAS_D_INTL,
+        PAS_DE_CRYPTO,
+        PAS_DE_COMPARAISON_DE_ROLE,
+      ],
       'no-restricted-imports': ['error', { paths: [PAS_D_IMPORT_EXPO_CRYPTO] }],
     },
   },
@@ -173,9 +202,11 @@ export default tseslint.config(
   },
   {
     // La porte de `tenantScope` : ce dossier **est** l'implémentation de la
-    // règle 1, il ne peut pas s'y soumettre. Les deux autres interdits restent,
-    // et c'est pour ça qu'ils sont réécrits ici — omettre une ligne dans un bloc
-    // d'exception, c'est désactiver l'interdit, pas l'alléger.
+    // règle 1, il ne peut pas s'y soumettre. Et c'est aussi là que vit la
+    // décision de rôle (`back-office.ts`, `staff.ts`) : l'interdit 5 ne s'y
+    // applique pas non plus. Les deux autres interdits restent, et c'est pour ça
+    // qu'ils sont réécrits ici — omettre une ligne dans un bloc d'exception,
+    // c'est désactiver l'interdit, pas l'alléger.
     files: ['packages/core/src/supabase/**/*.ts'],
     rules: {
       'no-restricted-syntax': ['error', PAS_D_INTL, PAS_DE_CRYPTO],

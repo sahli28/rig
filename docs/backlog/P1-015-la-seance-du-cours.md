@@ -180,19 +180,26 @@ une vue semaine deviendra un ticket — **avec la mesure qui le justifie**.
       l'échec n'étaient annoncés, et la double soumission était ouverte
 - [x] **appareil** — la séance se lit sur la fiche de cours, en clair comme en
       sombre, à 200 % de taille de texte. **Passe du 9 septembre 2026**, § 5
-      septies : les huit gestes passent, dont les deux qui protègent le travail
-      du dimanche soir — vider le champ, et n'y laisser qu'une espace. Le
-      pré-remplissage trouve sa source, la publication annonce qu'elle ne
-      notifie personne, l'état passe bien à « Publiée — visible des membres »
-- [ ] **le droit du coach est exercé** — écrire une séance en `COACH`, et non en
-      administration. **Impossible le 9 septembre 2026** : la porte du
-      back-office (`apps/web/app/box/[slug]/layout.tsx:56`) refuse tout ce qui
-      n'est ni OWNER ni MANAGER, et ce ticket ne l'a pas touchée. Il a ouvert le
-      droit à **trois niveaux sur quatre** — la policy, `contexteStaff()`
-      (`planning/actions.ts:72`), le drapeau `staff` (`planning/page.tsx:187`) —
-      donc rien n'est cassé dans le lot et tous les tests passent. **Ce critère
-      reste `[ ]` et non `[~]`** : il n'attend ni compte tiers ni environnement,
-      il attend un correctif de 0,75 j·h, nommé — `D-021`
+      septies, gestes 1 à 6 : le pré-remplissage trouve sa source, la
+      publication annonce qu'elle ne notifie personne, l'état passe bien à
+      « Publiée — visible des membres », la séance se lit sur l'iPhone
+- [ ] **les deux gestes qui protègent le travail du dimanche soir** — vider le
+      champ, et n'y laisser qu'une espace : la confirmation apparaît, et rien
+      n'est supprimé sans elle (gestes 7 et 8). **Résultat non consigné.** Ce
+      critère a été coché « les huit gestes passent » le 9 septembre sur un
+      compte rendu qui ne nommait que les gestes 1 à 6 — décoché le même jour,
+      c'est un faux vert qui a duré un après-midi. Il se coche avec le résultat
+      écrit, pas avec « l'essentiel passe »
+- [x] **le droit du coach est exercé** — écrire une séance en `COACH`, et non en
+      administration. **Impossible le matin du 9 septembre 2026** : la porte du
+      back-office (`layout.tsx:56`) refusait tout ce qui n'était ni OWNER ni
+      MANAGER, et ce ticket ne l'avait pas touchée — droit ouvert à trois
+      niveaux sur quatre, tous les tests verts. **Fermé le soir même par
+      `D-021`, passe web A14** : Sarah entre, écrit sa séance, et la restriction
+      se voit à trois endroits sans la chercher. **Provenance à connaître** : la
+      passe a été jouée sur l'arbre de travail de la branche de `D-021`, **avant
+      que son code soit sur `main`** — PR #68 n'a fusionné que la documentation,
+      le code est parti dans la PR suivante, à l'octet près ce qui a été joué
 
 ## Estimation
 

@@ -1,5 +1,6 @@
 import {
   DirectoryRowSchema,
+  can,
   fetchMe,
   findMembershipBySlug,
   tenantScope,
@@ -31,6 +32,7 @@ export default async function MembersPage({ params }: { params: Promise<{ slug: 
   const membership = findMembershipBySlug(me, slug);
 
   if (membership === null) return <Notice kind="unknown_box" />;
+  if (!can(membership.role, 'members')) return <Notice kind="role_forbidden" />;
 
   const scope = tenantScope(client, membership.tenant_id);
   const [annuaire, invitations] = await Promise.all([

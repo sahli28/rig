@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
 import { brandFromTheme } from '@rack/ui/theme';
-import { fetchMe, findMembershipBySlug } from '@rack/core/supabase';
+import { canEnterBackOffice, fetchMe, findMembershipBySlug } from '@rack/core/supabase';
 import { ThemeStyle } from '../../theme-style';
 import { serverClient } from '../../../lib/supabase/server';
 import { supabaseConfigured } from '../../../lib/supabase/config';
@@ -53,7 +53,11 @@ export default async function BoxLayout({
   // `current_admin_tenant_ids()` refusent déjà tout à un MEMBER — l'annuaire
   // rendrait zéro ligne, les réglages seraient en lecture seule. Elle existe
   // pour qu'il lise une phrase au lieu de contempler des écrans vides.
-  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') {
+  //
+  // Et elle ne compare plus de rôle elle-même : cette ligne a gardé la porte
+  // fermée au COACH pendant que `P1-015` lui ouvrait tout le reste (`D-021`).
+  // La décision vit dans `back-office.ts`, une fois, et chaque section demande.
+  if (!canEnterBackOffice(membership.role)) {
     return <Notice kind="staff_only" />;
   }
 

@@ -12,6 +12,7 @@
 import { revalidatePath } from 'next/cache';
 import {
   BoxAppearanceSchema,
+  can,
   fetchMe,
   findMembershipBySlug,
   tenantScope,
@@ -31,7 +32,7 @@ async function contexteProprietaire(
   const me = await fetchMe(client);
   const membership = findMembershipBySlug(me, slug);
 
-  if (membership === null || membership.role !== 'OWNER') return null;
+  if (membership === null || !can(membership.role, 'appearance')) return null;
   return { client, tenantId: membership.tenant_id };
 }
 

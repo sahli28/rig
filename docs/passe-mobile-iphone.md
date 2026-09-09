@@ -514,10 +514,12 @@ sert.
 > joués avec un compte d'administration, ce qui vérifie la séance **et pas le
 > droit du coach**.
 >
-> Reprendre ce décor tel qu'il est écrit **après `D-021`** : c'est lui qui ouvre
-> la porte, et le critère correspondant de `P1-015` reste `[ ]` jusque-là.
-> Le slug est `crossfit-rueil` — `/box/rueil/…` n'existe pas, et cette page l'a
-> écrit pendant un jour.
+> **`D-021` ouvre la porte** (branche `feat/D-021-la-porte-du-coach`, 9 sept.
+> 2026). Dès qu'il est sur `main`, ce décor se joue tel qu'il est écrit — **mais
+> le geste 1 vit désormais côté web** : `docs/passe-manuelle-web.md`, extension
+> A″, gestes A10 à A15, et c'est A14 qui ferme le critère de `P1-015`. Ici ne
+> restent que les gestes 2 à 8, sur l'iPhone. Le slug est `crossfit-rueil` —
+> `/box/rueil/…` n'existe pas, et cette page l'a écrit pendant un jour.
 
 | # | Geste | Attendu |
 |---|---|---|
@@ -741,6 +743,7 @@ en entier.
 
 | Date | Appareil | Résultat |
 | --- | --- | --- |
+| **9 sept. 2026**, soir | **harnais web sur le PC**, `sarah@example.com` (COACH) puis `marc@rueil.example` | **`D-021`, extension A″ de `passe-manuelle-web.md`. A14 ✅ : Sarah entre et écrit sa séance — le critère d'écran de `P1-015` est fermé.** La restriction du coach se voit à trois endroits sans la chercher : navigation réduite à Tableau de bord et Planning, séries sans « Modifier » ni « Nouvelle série », panneau sans annulation. En propriétaire, la disposition est conforme : séance, trait, « Annuler ce cours » en danger, « Enregistrer » seule action primaire. **Provenance** : jouée sur l'arbre de travail de la branche, **avant la fusion du code** — PR #68 n'avait fusionné que la documentation, ce que personne n'a vu avant de relire `origin/main`. **Non consignés** : A9, A11–A12, le badge « Coach ». **Verdict du décor : `test:db:fresh` toujours non consigné** — `test:db` seul est rouge sur trois fichiers avec la signature du décor (cinq séances là où le seed en a une, une série coachée par Marc), et le diff ne touche pas `supabase/` |
 | **9 sept. 2026** | iPhone + back-office sur le PC, `lea@example.com` (membre) et un compte d'administration | **P1-015, § 5 septies. L'essentiel passe** : le pré-remplissage trouve sa source, la publication annonce qu'elle ne notifie personne, l'état passe bien à « Publiée — visible des membres », et la séance se lit sur la fiche de cours. **Deux défauts, tous deux invisibles en test** → `D-021`. **Le premier a empêché de jouer le décor** : `sarah@example.com`, COACH, est refusée par `layout.tsx:56` — `P1-015` a ouvert le droit du coach à **trois niveaux sur quatre** et pas à la porte, inchangée depuis `P1-001a`. La passe a donc été jouée en administration, et le critère du droit coach **repasse en `[ ]`** : le cocher aurait été un faux vert. **Le second n'est pas un défaut de code** : le formulaire de la séance est logé **sous** le panneau d'annulation, donc le geste quotidien traverse « Motif » et un « Annuler ce cours » primaire — trouvé en jouant, pas en lisant. **Une valeur littérale fausse corrigée dans cette page** : le décor disait `/box/rueil/…`, le slug du seed est `crossfit-rueil`. **Verdict du décor : `test:db:fresh` non consigné** — à rejouer et à écrire ici, la passe n'a pas eu lieu en entier sans lui |
 | **8 sept. 2026** | iPhone, `lea@example.com` + `sarah@example.com` | **La passe groupée, blocs A à D. Les quatre passent, aucun défaut trouvé** — et c'est la première passe qui ferme **six critères sur quatre tickets** : les trois gestes de `D-011` (compte précédent atteint par session expirée, fuseau Tokyo, contenu du cache), l'accueil de `D-016`, l'arrière-plan de `P1-005a`, le balayage de `D-009` — son dernier, ouvert depuis le 3 sept. **Un soupçon levé, consigné comme résultat** : le centre de contrôle ne fait **pas** clignoter la pastille, donc le correctif candidat de `P1-005a` reste non appliqué sur une mesure et non sur une hypothèse. **Verdict du décor : `test:db:fresh` vert (437)** — c'était bien le décor. `jwt_expiry` remis à 900, et vérifié dans le conteneur (`GOTRUE_JWT_EXP=900`) : le fichier ne ment pas sur ce qui tourne |
 | **3 sept. 2026** | iPhone 12 Pro Max, Expo Go, SDK 57 | Les cinq vérifications passent. **Quatre défauts trouvés**, aucun visible en test : la langue (D-004), le parcours d'invitation cassé de bout en bout (corrigé), le sélecteur de box sans retour (P1-009), les retours de navigation vers des écrans interdits (D-009) |

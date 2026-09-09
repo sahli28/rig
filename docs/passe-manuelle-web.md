@@ -79,7 +79,23 @@ box qui n'est pas la sienne, et un rôle insuffisant est refusé proprement.
 | A6 | Se connecter en `hugo@rueil.example`, aller sur `/box/crossfit-rueil` | Badge « Gestionnaire », et **pas de lien Apparence** dans le menu |
 | A7 | Taper quand même `/box/crossfit-rueil/apparence` | Refus « réservé au propriétaire ». Le menu caché ne suffit pas : c'est le serveur qui doit dire non. |
 | A8 | Aller sur `/box/crossfit-nanterre` (Hugo y est simple membre) | « Espace réservé au staff » — et **pas** « box inconnue ». La nuance compte : il appartient à cette box, il n'y administre rien. |
-| A9 | Se déconnecter, se connecter en `lea@example.com`, aller sur `/box/crossfit-rueil` | « Espace réservé au staff » |
+| A9 | Se déconnecter, se connecter en `lea@example.com`, aller sur `/box/crossfit-rueil` | « Espace réservé au staff » — et le texte nomme **les trois rôles** qui entrent : propriétaire, gestionnaire, coach |
+
+### Extension A″ — la porte du coach (`D-021`)
+
+Ce qu'elle prouve : le coach entre, ne voit que ce qui le concerne, et le
+serveur refuse le reste même quand on tape l'adresse. **C'est la passe qui
+ferme le critère resté ouvert de `P1-015`** — le 9 septembre 2026, Sarah était
+refusée à la porte et la séance avait été jouée en administration.
+
+| # | Action | Résultat attendu |
+|---|---|---|
+| A10 | Se déconnecter, se connecter en `sarah@example.com` (COACH), aller sur `/box/crossfit-rueil` | **Elle entre.** Badge « Coach », menu : Tableau de bord · **Planning** — et rien d'autre. Ni Réglages, ni Équipe, ni Membres, ni Apparence |
+| A11 | Taper `/box/crossfit-rueil/reglages`, puis `/staff`, puis `/membres` | « Section réservée », et le texte dit **où aller** : le planning. Le menu caché ne suffit pas, c'est le serveur qui dit non |
+| A12 | Taper `/box/crossfit-rueil/apparence` | « Section réservée » aussi — **pas** « réservé au propriétaire », dont le texte promet les horaires et l'équipe à qui ne les a pas |
+| A13 | Planning → ouvrir une occurrence | **La séance vient en premier.** Titre, pré-remplissage, champ, « Publier », puis « Enregistrer » — **aucun** panneau d'annulation, aucun « Motif » : un coach n'annule pas. Un seul bouton primaire. « Fermer » en bas |
+| A14 | Écrire trois blocs séparés par des lignes vides, cocher « Publier », enregistrer | « Enregistré » — **c'est le geste du § 5 septies de la passe iPhone, joué dans le rôle que le ticket visait**. Cocher le critère de `P1-015` seulement maintenant |
+| A15 | Se reconnecter en `marc@rueil.example`, ouvrir la même occurrence | La séance de Sarah est là, en premier. **Sous un trait**, un bouton « Annuler ce cours » en variante danger — pas de champ « Motif » tant qu'on ne l'a pas pressé. Le presser ouvre le motif et « Confirmer l'annulation », **qui n'est pas primaire**. Fermer, rouvrir : le motif est replié |
 
 ---
 

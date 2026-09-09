@@ -14,6 +14,7 @@ import { z } from 'zod';
 import {
   MEMBERSHIP_ROLES,
   createInvitation,
+  can,
   fetchMe,
   findMembershipBySlug,
   removeMember,
@@ -41,7 +42,7 @@ async function contexte(slug: string): Promise<Contexte | null> {
   const membership = findMembershipBySlug(me, slug);
 
   if (membership === null) return null;
-  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') return null;
+  if (!can(membership.role, 'staff')) return null;
 
   return { client, tenantId: membership.tenant_id, role: membership.role };
 }

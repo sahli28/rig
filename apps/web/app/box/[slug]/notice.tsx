@@ -10,6 +10,7 @@ import styles from './notice.module.css';
 type Kind =
   | 'unknown_box'
   | 'staff_only'
+  | 'role_forbidden'
   | 'owner_only'
   | 'not_configured'
   | 'coming_soon'
@@ -18,6 +19,9 @@ type Kind =
 const TEXTS: Record<Kind, { title: TranslationKey; body: TranslationKey }> = {
   unknown_box: { title: 'shell.unknown_box_title', body: 'shell.unknown_box_body' },
   staff_only: { title: 'shell.staff_only_title', body: 'shell.staff_only_body' },
+  // Entré, mais pas ici : un COACH qui tape `/reglages`. Le menu ne le propose
+  // pas ; c'est le serveur qui dit non, et il dit où aller (`D-021`).
+  role_forbidden: { title: 'shell.role_forbidden_title', body: 'shell.role_forbidden_body' },
   // Le white-label est au propriétaire (spec §5.2). La policy `themes_update`
   // refuse déjà — mais un refus de la RLS n'affecte aucune ligne et ne dit rien.
   owner_only: { title: 'shell.owner_only_title', body: 'shell.owner_only_body' },
@@ -59,10 +63,10 @@ export function Notice({ kind }: { kind: Kind }) {
       )}
 
       {/* Sortie de secours d'un cul-de-sac réel : la coquille — donc le menu de
-          compte, donc la déconnexion — ne se rend que pour un OWNER ou un
-          MANAGER. Un COACH ou un MEMBER connecté sur le web n'avait donc aucun
-          moyen de se déconnecter. Invisible tant que le web n'ouvrait de session
-          qu'au staff ; la page d'invitation en ouvre désormais à tous les rôles. */}
+          compte, donc la déconnexion — ne se rend que pour qui entre. Un MEMBER
+          connecté sur le web n'avait donc aucun moyen de se déconnecter (et un
+          COACH non plus, jusqu'à `D-021`). Invisible tant que le web n'ouvrait
+          de session qu'au staff ; la page d'invitation en ouvre à tous les rôles. */}
       {kind === 'staff_only' ? (
         <button type="button" className={styles.link} onClick={() => void seDeconnecter()}>
           {t('shell.sign_out')}
