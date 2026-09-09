@@ -128,19 +128,48 @@ surprise.
   2026 : elle aimerait facturer 5 €, et dit elle-même « pas tout de suite ».
 - **Le reporting d'assiduité** → `P2-014`. Ce ticket livre la donnée.
 
+## Ce qui a été fait — 10 septembre 2026
+
+**Quatre lots, sur `feat/P1-008a-pointage`** (voir « Ordre des lots » du plan) :
+la base SQL (deux colonnes sur `bookings`, la fenêtre dans `tenant_settings`, la
+vue `class_attendance_sheet`, `set_attendance()`, le job `mark_no_shows()`), le
+module core (`attendance.ts`, `canTakeAttendance()`), les deux champs web, et le
+mode coach mobile (route `/attendance/:id` + point d'entrée gardé).
+
+**Découverte qui a corrigé le ticket** : `class_roster` était annoncée « la
+feuille existe ✅ » — elle est *peer-scoped*, inutilisable par un coach. D'où une
+**vue neuve**, et l'arbitrage RGPD de la 4e audience (`privacy.md`), tranché
+prénom + initiale, `hidden_from_roster` ignoré (traitement légitime).
+
+`pnpm test:db` vert (498, dont `attendance_test.sql` 27, contrôles négatifs
+joués), `rls-auditor` **SAFE**, 489 tests Vitest, typecheck/lint/sondes/i18n
+verts.
+
 ## Critères d'acceptation
 
-- [ ] Le coach ouvre la feuille d'un cours, coche une personne, et c'est écrit —
-      sans bouton d'enregistrement
-- [ ] Décocher retire le pointage : c'est un geste réversible, pas un
-      enregistrement définitif
-- [ ] Hors fenêtre de pointage, la base refuse — pas seulement l'écran
-- [ ] Un no-show apparaît après le cours, et **seulement** pour une réservation
-      confirmée sans pointage. Une réservation annulée n'est pas un no-show
-- [ ] Un coach d'une autre box ne pointe rien ici — test pgTAP dans les deux sens
-- [ ] Parité i18n, arbre d'accessibilité relu : chaque case dit **qui** elle
-      pointe, pas « case à cocher »
-- [ ] **appareil** — la feuille se tient d'une main, en salle, cours en cours
+- [~] Le coach ouvre la feuille d'un cours, coche une personne, et c'est écrit —
+      sans bouton d'enregistrement. **Mécanisme prouvé** (pgTAP `set_attendance`
+      + écriture immédiate façon `preferences.tsx`) ; l'**ouverture de la feuille
+      sur l'appareil** reste au critère appareil
+- [x] Décocher retire le pointage : c'est un geste réversible, pas un
+      enregistrement définitif — pgTAP `set_attendance(false)` remet
+      `attended_at` à `null`, et l'écran l'appelle
+- [x] Hors fenêtre de pointage, la base refuse — pas seulement l'écran. pgTAP,
+      code applicatif `ATTENDANCE_WINDOW_CLOSED`, **contrôle négatif joué**
+      (fenêtre élargie → l'appel hors-fenêtre passe)
+- [x] Un no-show apparaît après le cours, et **seulement** pour une réservation
+      confirmée sans pointage. Une réservation annulée n'est pas un no-show —
+      pgTAP, et le job idempotent
+- [x] Un coach d'une autre box ne pointe rien ici — pgTAP dans les deux sens
+      (Sarah sur Nanterre refusée ; un membre refusé ; la vue cloisonnée des
+      deux côtés)
+- [x] **Parité i18n** (493 clés, alignées). Arbre d'accessibilité : chaque case
+      porte **le nom** en libellé (« Léa M. »), pas « case à cocher » — la
+      **lecture VoiceOver** reste à confirmer à la passe
+- [ ] **appareil** — la feuille se tient d'une main, en salle, cours en cours ;
+      l'entrée « Feuille de présence » est **visible d'un coach, invisible d'un
+      membre** ; VoiceOver annonce chaque case par qui elle pointe. Geste écrit :
+      `docs/passe-mobile-iphone.md`, § 5 octies
 
 ## Estimation
 
@@ -155,6 +184,21 @@ surprise.
 **3,75 j·h**, contre 7 pour la version qui scannait. **Ce n'est pas une
 réestimation, c'est un autre ticket** : le QR, le kiosque et leurs prérequis sont
 partis, et avec eux la bibliothèque à ajouter, le jeton signé et sa rotation.
+
+### Réestimé à l'ouverture — 3,75 → 5,5 (10 septembre 2026)
+
+La consigne du ticket : réestimer à l'ouverture, **dire de combien**. Deux
+moteurs, mesurés en écrivant, pas devinés :
+
+- **l'écran mobile est un mode** (+1,25, déjà pressenti) : point d'entrée gardé,
+  garde de rôle, route, retour — pas « un écran » ;
+- **la vue coach + l'arbitrage RGPD** (+0,5) : l'estimation supposait la feuille
+  existante ; `class_roster` étant peer-scoped, il a fallu une vue neuve, son
+  pgTAP, et trancher la 4e audience de `privacy.md`.
+
+Le lot « écran de feuille » passe de 1,25 à 2,5 ; le lot base gagne 0,25 pour la
+vue. **Total 5,5.** Le total ① bouge en conséquence à l'ouverture (voir
+`README.md`).
 
 ## Notes
 

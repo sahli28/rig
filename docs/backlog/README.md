@@ -23,7 +23,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **21,25 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **23 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -328,7 +328,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 104 j·h, dont **23,5 restants**
+## ① Jalon pilote — 111,75 j·h, dont **23 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -355,8 +355,9 @@ L'ORDRE DEPUIS LE RETOUR DE LA BOX PILOTE (8 sept.) — il remplace le précéde
 CE QUI RESTE, ET CE QUI LE RETIENT
   D-021 ✅ fait et passé le 9 sept. — A14 ferme le critère d'écran de P1-015.
             PR #68 n'a fusionné que la doc : le code est dans la PR suivante
-  P1-008a ⟵ rien. **Le prochain** — le coach coche sa feuille, l'absent est
-            marqué. Il porte aussi la découpe P1-007a/b et l'amendement d'ADR 0004.
+  P1-008a ✅ code fait (feat/P1-008a-pointage, 10 sept.) — **passe iPhone en
+            attente**, § 5 octies. Réestimé 3,75 → 5,5 à l'ouverture. Il porte
+            aussi la découpe P1-007a/b et l'amendement d'ADR 0004.
             À réestimer à l'ouverture, en disant de combien (première
             lecture : +1,25)
   P1-017  ⟵ rien — la première infrastructure de production, jouée PENDANT
@@ -458,7 +459,7 @@ sait pas lui répondre.
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière P1-007**, dont elle tient la promotion. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
 | P1-007  | Notifications push                                |      4 | 🔒 **partiellement bloqué — iOS**. Sa section « ce que ce ticket suppose », écrite le 6 sept. 2026, a trouvé trois trous que l'estimation ne couvre pas : **aucun émetteur** (ni edge function, ni route handler), **aucun journal d'envoi** pour le plafond marketing, et **`users` n'a pas de fuseau** alors que les quiet hours sont « heure locale du membre ». Deux critères en `[~]` : le push iOS et le deep link, tous deux derrière le **compte développeur Apple**. Android est ouvert et gratuit. **4 j·h à recompter au lancement** |
 | P1-015  | La séance du cours, écrite par le coach           |    5,5 | ✅ **clos le 9 sept. 2026 — onze critères verts.** Le **premier ticket venu d'un client réel**, et il est tenu : une séance **par occurrence**, en texte libre, pré-remplissage qui **copie sans lier**, troisième protection contre le rafraîchissement de série. Fusionné incomplet (PR #63), il a fallu **trois passes** pour le clore : `D-021` (la porte du coach + la place du panneau, A14 ✅), puis les **gestes 7 et 8** — NOK à la passe, le **piège 13** (la policy de lecture masquait l'archivé à tout le monde, PostgreSQL 17 refuse alors l'`update` qui archive), sa **sœur** cassant « supprimer une série » **depuis P1-002**, corrigé (`fix/P1-015-gestes-7-et-8`, **5 → 5,5**) et **rejoué OK sur `main`**. Reste hors critère le seul repère qui compte : la semaine chronométrée vs Hustle Up, à `P1-016` |
-| P1-008a | Le coach coche sa feuille, et l'absent est marqué  |   3,75 | **retourné par la box pilote le 8 sept. 2026.** Le coach tient sa liste et ça lui va : RM3.6, le repli du périmètre, **est** le produit. Reste le pointage manuel, l'horodatage de présence et le job de no-show. **7 → 3,75 — ce n'est pas une réestimation, c'est un autre ticket**. **À recompter à l'ouverture** (9 sept. 2026) : la feuille est **mobile**, tranché sur la spec §4-P3, et elle sera **la première surface de l'app qui dépend d'un rôle** — `apps/mobile` ne lit `role` nulle part. Le lot d'écran à 1,25 a été chiffré comme un écran ; c'est un mode. **Cinquième dérapage vu avant l'ouverture** — réestimer à l'ouverture, pas absorber, **et dire de combien** : première lecture +1,25 (3,75 → 5), à tenir par qui ouvre le ticket. `P1-017` se joue pendant celui-ci |
+| P1-008a | Le coach coche sa feuille, et l'absent est marqué  |    5,5 | **code fait sur `feat/P1-008a-pointage` (10 sept. 2026), passe appareil en attente** — deviendra « fait » à la fusion, ses critères d'appareil se suivant à part. Quatre lots : base SQL (présence sur `bookings`, vue coach, `set_attendance()`, job de no-show), core, deux champs web, mode coach mobile. `test:db` vert (498), `rls-auditor` **SAFE**. **Réestimé à l'ouverture 3,75 → 5,5** : +1,25 (l'écran est un mode, pas un écran) + 0,5 (`class_roster` était peer-scoped, il a fallu une **vue neuve** et trancher la 4e audience RGPD — le ticket la croyait existante). `P1-017` se joue pendant celui-ci |
 | P1-008b | Le check-in QR : le membre scanne lui-même        |      6 | **non programmé** — la box pilote n'en a pas besoin. Mais §10 le classe « attendu par le marché » : **une box de 200 membres avec des coachs qui tournent ne connaît pas ses adhérents par leur prénom**. Déclencheur : la première box qui n'est pas la pilote. Porte tout ce qui scanne, **et la section règle 8** dont les trois trouvailles ont servi à décider de ne pas le lancer |
 | P1-013  | Droits de réservation accordés à la main          |      2 | **non programmé** — écrit, chiffré, prêt. À sortir le jour où la box pilote veut couper un droit sans exclure quelqu'un. `member_has_booking_right()` rend `true` pour tout membre actif : c'est son appelant manquant |
 | P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. **Rend exerçable un critère `[~]` de P1-012** (deux boxes, sans passer par la déconnexion qui purge le cache). La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
@@ -476,7 +477,7 @@ sait pas lui répondre.
 | P1-016  | La mise en service chez la box pilote             |   1,75 | à faire, **en dernier** — écrit le 9 sept. 2026, entré dans ① le jour même (PR #64), **puis découpé après PR #65** : le projet hébergé et le déploiement partent dans `P1-017` pour ne pas concentrer l'inconnu la semaine de la box. Reste ici ce qui dépend vraiment du reste — build TestFlight, sauvegarde restaurée — **+ 4 jours d'accompagnement** qui ne sont pas des j·h. **Et le RGPD y est daté** : DPA, registre, politique de confidentialité **avant le premier import** — la sous-traitance art. 28 commence le jour de la mise en service, et `consents.tsx` horodate depuis le 31 août un consentement à une politique **qui n'existe pas** |
 | P1-017  | La première infrastructure de production          |   1,25 | à faire, **pendant `P1-008a`** — sorti de `P1-016` le 9 sept. 2026. Projet Supabase hébergé (major **17** lu dans le projet, `pg_cron` à réactiver, `test:db` contre la base distante) et déploiement de `apps/web`. **A trouvé un trou en s'écrivant** : le SMTP intégré d'un projet hébergé ne tient pas 80 invitations, donc un SMTP tiers, donc le domaine — quatrième élément bloqué par cette démarche |
 | D-023   | Le consentement pointe vers un texte, et la constante en porte la date | 0,5 | **écrit le 9 sept. 2026, s'ouvre quand le texte existe** — sa rédaction n'est pas du code et n'est pas dans ce ticket. Le lien depuis `consents.tsx`, `current_policy_version()` alignée sur la date réelle, et **un test qui lie les deux** : la règle 10 appliquée à une valeur. **Bloque `P1-016`** : aucun import réel avant, sinon 80 personnes consentent à un texte inexistant et recochent toutes quand la constante change |
-|         | **Total ①**                                       | **110** | dont **88,75 faits**, **21,25 restants** |
+|         | **Total ①**                                       | **111,75** | dont **88,75 faits**, **23 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
 nouvelle.** Un chiffre qui monte se relit comme une dérive s'il ne porte pas sa
@@ -542,7 +543,8 @@ corrigé sans son calcul se re-conteste :
 | `P1-016` découpé après PR #65 : −1,25, +1,25 pour `P1-017` — **le moment change, pas le total** | 109 | 86,5 | 22,5 |
 | `D-023` entre dans ① (0,5) : il bloque `P1-016` | 109,5 | 86,5 | 23 |
 | `D-021` fait (1,75) — **le premier code depuis `P1-015`** | 109,5 | 88,25 | 21,25 |
-| `P1-015` 5 → 5,5 : les gestes 7 et 8 rouges à la passe, le piège 13 et sa sœur | **110** | **88,75** | **21,25** |
+| `P1-015` 5 → 5,5 : les gestes 7 et 8 rouges à la passe, le piège 13 et sa sœur | 110 | 88,75 | 21,25 |
+| `P1-008a` réestimé à l'ouverture 3,75 → 5,5 (+1,75) : l'écran est un mode, et la vue coach était à créer | **111,75** | **88,75** | **23** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
