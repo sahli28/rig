@@ -5,6 +5,16 @@ On lance un ticket avec `/ticket P0-001`. Le gabarit est `_gabarit.md`, et sa
 section « Ce que ce ticket suppose et qui doit exister » est **obligatoire**
 (règle 8 de `CLAUDE.md`).
 
+## Reprise de session
+
+Pour un agent ou une personne qui arrive : lire `CLAUDE.md`, puis ce README,
+puis **le ticket en tête de l'ordre du jalon** (section « ① Jalon pilote →
+Ordre », ligne « CE QUI RESTE »). **L'état du projet vit ici et nulle part
+ailleurs** — un ticket dit ce qu'il fait, ce README dit où on en est, et les
+passes se datent dans `docs/passe-mobile-iphone.md` et `docs/passe-manuelle-web.md`.
+Règle 11 de `CLAUDE.md` avant d'écrire un document de plus : le prochain merge
+porte du code.
+
 ## Deux horizons, et il faut cesser de les confondre
 
 Ce README n'en montrait qu'un — celui du pilote — et on pouvait croire que
@@ -13,7 +23,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **22,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **23 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -135,6 +145,12 @@ avant le premier import** : le texte, la constante, le lien. Et **le domaine
 est le changement du jour** : jugé non urgent deux fois, il est sur le chemin de
 la mise en service par un chemin que personne n'avait vu — SMTP bridé → SMTP
 tiers → domaine vérifié. **Achat décidé cette semaine.**
+
+**Dernier tour du 9 septembre, et il pose une règle sur lui-même.** `D-023`
+écrit — le ticket de code du consentement, 0,5, qui s'ouvre quand le texte
+existe et bloque `P1-016` ; total ① **109,5**. Et **la règle 11 de `CLAUDE.md`**,
+sur un constat chiffré : huit commits hors fusion, un `feat`, sept `docs`. Le
+prochain merge porte du code — `D-021`, dans la même branche que ces lignes.
 
 ## ⭐ À partir du 8 septembre 2026, l'ordre du jalon suit la box pilote
 
@@ -356,6 +372,9 @@ NON PROGRAMMÉS, chacun avec son déclencheur
   D-022   ⟵ le filet qui ouvre un navigateur (dette ④, 1,5). Deux déclencheurs :
             un second défaut « une porte, un rôle », ou l'ouverture de P2-001.
 
+  D-023   ⟵ la RÉDACTION de la politique de confidentialité, qui n'est pas du
+            code. Un ticket de code court (0,5) : le lien, la constante, le
+            test qui les lie. Bloque P1-016 : aucun import réel avant.
         ↓
   P1-016  ⟵ LA MISE EN SERVICE. 1,75 j·h de technique (build TestFlight,
             sauvegarde restaurée) + 4 jours d'accompagnement qui ne sont pas
@@ -455,7 +474,8 @@ sait pas lui répondre.
 | D-021   | La porte du coach, et la place de la séance       |   1,75 | **le prochain** — né de la passe du 9 sept. 2026. `P1-015` a ouvert le droit du coach à **trois niveaux sur quatre** : `layout.tsx:56` est resté celui de `P1-001a`, donc la personne à qui le ticket est destiné n'atteint pas son écran. Avec la place du formulaire de séance, et **le contrôle qui manquait** : un test qui exerce la porte du back-office par rôle |
 | P1-016  | La mise en service chez la box pilote             |   1,75 | à faire, **en dernier** — écrit le 9 sept. 2026, entré dans ① le jour même (PR #64), **puis découpé après PR #65** : le projet hébergé et le déploiement partent dans `P1-017` pour ne pas concentrer l'inconnu la semaine de la box. Reste ici ce qui dépend vraiment du reste — build TestFlight, sauvegarde restaurée — **+ 4 jours d'accompagnement** qui ne sont pas des j·h. **Et le RGPD y est daté** : DPA, registre, politique de confidentialité **avant le premier import** — la sous-traitance art. 28 commence le jour de la mise en service, et `consents.tsx` horodate depuis le 31 août un consentement à une politique **qui n'existe pas** |
 | P1-017  | La première infrastructure de production          |   1,25 | à faire, **pendant `P1-008a`** — sorti de `P1-016` le 9 sept. 2026. Projet Supabase hébergé (major **17** lu dans le projet, `pg_cron` à réactiver, `test:db` contre la base distante) et déploiement de `apps/web`. **A trouvé un trou en s'écrivant** : le SMTP intégré d'un projet hébergé ne tient pas 80 invitations, donc un SMTP tiers, donc le domaine — quatrième élément bloqué par cette démarche |
-|         | **Total ①**                                       | **109** | dont **86,5 faits**, **22,5 restants** |
+| D-023   | Le consentement pointe vers un texte, et la constante en porte la date | 0,5 | **écrit le 9 sept. 2026, s'ouvre quand le texte existe** — sa rédaction n'est pas du code et n'est pas dans ce ticket. Le lien depuis `consents.tsx`, `current_policy_version()` alignée sur la date réelle, et **un test qui lie les deux** : la règle 10 appliquée à une valeur. **Bloque `P1-016`** : aucun import réel avant, sinon 80 personnes consentent à un texte inexistant et recochent toutes quand la constante change |
+|         | **Total ①**                                       | **109,5** | dont **86,5 faits**, **23 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
 nouvelle.** Un chiffre qui monte se relit comme une dérive s'il ne porte pas sa
@@ -518,7 +538,8 @@ corrigé sans son calcul se re-conteste :
 | `P1-015` fusionné (5) | 104,25 | 86,5 | 17,75 |
 | `D-021` entre dans ① (1,75) | 106 | 86,5 | 19,5 |
 | `P1-016` entre dans ① (3), tranché après la fusion de PR #64 | 109 | 86,5 | 22,5 |
-| `P1-016` découpé après PR #65 : −1,25, +1,25 pour `P1-017` — **le moment change, pas le total** | **109** | **86,5** | **22,5** |
+| `P1-016` découpé après PR #65 : −1,25, +1,25 pour `P1-017` — **le moment change, pas le total** | 109 | 86,5 | 22,5 |
+| `D-023` entre dans ① (0,5) : il bloque `P1-016` | **109,5** | **86,5** | **23** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
@@ -679,7 +700,8 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — **✅ fait le 7 sept. 2026**. `planning.tsx` était parti dans P1-012, P1-005a avait retiré la moitié « places restantes » ; restaient `index.tsx` et `bookings.tsx`, faits ici. **La forme n'est plus à recopier** : `use-relire-au-retour.ts` porte celle corrigée par D-018 — sans ça, ces deux écrans auraient repris la version d'avant. Deux défauts corrigés au passage : `bookings.tsx` reposait un squelette à chaque lecture et s'effaçait au moindre échec. **Un critère `[ ]`** — l'accueil après réservation, mécanisme vérifié mais effet non observé (passe à 23 h 55, plus de cours ce jour-là) → passe groupée, qui l'a fermé le 8 sept. **Comptée dans ①**, où elle a enfin sa ligne depuis le 9 sept. 2026 |
 | D-021  | La porte du coach, et la place de la séance    | 1,75 | `P1-015`, passe du 9 sept. 2026 — **comptée dans ①**, et **le prochain ticket**. Deux constats d'une même passe : le COACH est refusé par `layout.tsx:56`, resté celui de `P1-001a` alors que `P1-015` ouvrait le droit à trois autres niveaux ; et le formulaire de la séance est logé sous le panneau d'annulation. **Un cas de plus de la règle des sœurs, et cette fois la sœur oubliée est une garde d'écran, pas une policy** |
 | D-022  | Un filet qui ouvre un navigateur               | 1,5 | `D-021` et la porte du coach, 9 sept. 2026 — **ouvert, hors totaux**. `CLAUDE.md` annonçait `pnpm e2e:web` sans Playwright ni script : **la ligne a été retirée le jour même**, parce qu'un document qui promet une commande inexistante fait croire au filet. La dette, elle, reste — et **sa justification n'est plus théorique** : la porte fermée aux COACH est exactement ce qu'un test de bout en bout attrape, et il a fallu un humain. **Déclencheur** : un second défaut « une porte, un rôle », ou l'ouverture de `P2-001` |
-|        | **Ouvert, hors totaux**                        | **7,25** | D-002, D-003, D-007, D-008, D-022 — D-004, D-011, D-012, D-013, D-014, D-016, D-017, D-018, D-019, D-020 et D-021 sont dans ①, D-010 est clos. **Recompté le 9 sept. 2026** : `D-016` figurait ici comme ouverte alors qu'elle est faite, ce qui gonflait cette ligne de 0,25 |
+| D-023  | Le consentement pointe vers un texte           | 0,5 | `P1-016`, 9 sept. 2026 — **comptée dans ①**, elle bloque le jalon. **S'ouvre quand le texte existe.** Une constante qui conditionne l'accès et qu'aucun texte ne porte : le lien, la date, et le test qui interdit qu'ils divergent |
+|        | **Ouvert, hors totaux**                        | **7,25** | D-002, D-003, D-007, D-008, D-022 — D-004, D-011, D-012, D-013, D-014, D-016, D-017, D-018, D-019, D-020, D-021 et D-023 sont dans ①, D-010 est clos. **Recompté le 9 sept. 2026** : `D-016` figurait ici comme ouverte alors qu'elle est faite, ce qui gonflait cette ligne de 0,25 |
 
 Ces 7,25 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
 une dette qu'on additionne au chemin critique le rend indiscutable, une dette
