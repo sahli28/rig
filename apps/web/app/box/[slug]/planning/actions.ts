@@ -38,6 +38,8 @@ const FORBIDDEN: ActionState = { status: 'error', key: 'errors.forbidden_role' }
 const OK: ActionState = { status: 'ok' };
 /** Effacer une séance demande un geste explicite : voir `saveWorkout`. */
 const CONFIRM_DELETE: ActionState = { status: 'error', key: 'workout.confirm_delete' };
+/** … et une fois fait, l'écran le dit avec le bon mot — pas « enregistré ». */
+const DELETED: ActionState = { status: 'ok', key: 'workout.deleted' };
 
 type Contexte = { client: RackClient; tenantId: string };
 
@@ -355,12 +357,18 @@ export async function saveWorkout(
     if (existante === null) return OK;
     if (form.get('confirm') !== 'on') return CONFIRM_DELETE;
 
+    // Cet `update` a été refusé par la base pendant toute une journée, sans
+    // qu'aucun test le voie : `class_workouts_select` masquait les lignes
+    // archivées à tout le monde, et PostgreSQL 17 exige que la ligne mise à
+    // jour reste visible de qui la met à jour (`database.md`, piège 13). La
+    // policy a changé ; le geste, lui, est resté un update nu, et son pgTAP
+    // le joue sous l'identité du coach.
     const { error } = await scope
       .update('class_workouts', { deleted_at: new Date().toISOString() })
       .eq('id', existante.id);
     if (error) return echec(error);
     revalidatePath(`/box/${slug}/planning`);
-    return OK;
+    return DELETED;
   }
 
   const publishedAt = publier ? (existante?.published_at ?? new Date().toISOString()) : null;

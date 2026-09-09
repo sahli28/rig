@@ -149,7 +149,12 @@ export function WorkoutForm({
       )}
 
       <div className={styles.actions}>
-        <SubmitButton label={efface ? t('workout.delete') : t('workout.save')} />
+        {/* L'envoi destructeur n'a pas l'air d'un enregistrement : même règle
+            que l'annulation du cours, un cran plus haut dans ce dialogue. */}
+        <SubmitButton
+          label={efface ? t('workout.delete') : t('workout.save')}
+          variant={efface ? 'danger' : 'primary'}
+        />
       </div>
 
       {/* `Feedback` porte `role="status"` / `role="alert"` : sans lui, ni

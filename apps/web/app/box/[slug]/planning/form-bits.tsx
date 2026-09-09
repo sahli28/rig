@@ -20,7 +20,7 @@ export function Feedback({ state }: { state: ActionState }) {
   if (state.status === 'ok') {
     return (
       <span className={styles.feedback} role="status">
-        {t('planning.saved')}
+        {t(state.key ?? 'planning.saved')}
       </span>
     );
   }

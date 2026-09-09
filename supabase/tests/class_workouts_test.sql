@@ -19,7 +19,7 @@
 -- redevienne jamais vrai.
 
 begin;
-select plan(27);
+select plan(30);
 
 -- ---------------------------------------------------------------------------
 -- 1. La forme
@@ -351,6 +351,73 @@ select isnt(
   null,
   'la série supprimée emporte **aussi** l''occurrence qui portait une séance — pas de cours fantôme'
 );
+
+-- ---------------------------------------------------------------------------
+-- 7. Effacer sa séance — le geste 7 de la passe, rouge le 9 septembre 2026
+-- ---------------------------------------------------------------------------
+--
+-- Le coach vide le champ, confirme, et l'écran répondait « une erreur est
+-- survenue » : `update … set deleted_at` était refusé par **la policy de
+-- lecture**. Sur PostgreSQL 17, la ligne mise à jour doit rester visible de
+-- celui qui la met à jour ; `deleted_at is null` pour tout le monde dans
+-- `class_workouts_select` rendait l'archivage impossible à quiconque n'est pas
+-- `security definer`. Mesuré sur le moteur du produit, pas déduit d'une doc —
+-- et la sœur exacte vivait dans `class_schedules_select` depuis P1-002
+-- (`database.md`, piège 13).
+--
+-- **Sous l'identité du coach, et sur un update nu** : c'est le chemin de
+-- `saveWorkout()`, pas celui d'une fonction qui contournerait la RLS. Joué sous
+-- `postgres`, ce test serait vert avec la policy d'avant.
+reset role;
+
+create temporary table autre as
+select id
+from public.classes
+where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'
+  and deleted_at is null
+  and status = 'SCHEDULED'
+  and starts_at > now()
+  and schedule_id is distinct from 'a7000000-0000-4000-8000-000000000001'
+order by starts_at
+limit 1;
+
+-- Une table temporaire créée sous `postgres` n'est pas lisible sous
+-- `authenticated` : sans ce grant, la section meurt sur « permission denied »
+-- avant sa première assertion — et un plan de 30 pour 27 joués.
+grant select on autre to authenticated;
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub":"44444444-0000-4000-8000-000000000001","role":"authenticated","email":"sarah@example.com"}';
+
+insert into public.class_workouts (tenant_id, class_id, body, published_at)
+values ('aaaaaaaa-0000-4000-8000-000000000001', (select id from autre), 'À effacer', now());
+
+select lives_ok(
+  $$update public.class_workouts set deleted_at = now()
+    where class_id = (select id from autre) and deleted_at is null$$,
+  'le coach efface sa séance — sous son identité, par un update, comme l''écran le fait'
+);
+
+set local request.jwt.claims =
+  '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
+
+select is(
+  (select count(*) from public.class_workouts where class_id = (select id from autre))::int,
+  0,
+  'effacée, elle n''existe plus pour un membre — même publiée'
+);
+
+set local request.jwt.claims =
+  '{"sub":"44444444-0000-4000-8000-000000000001","role":"authenticated","email":"sarah@example.com"}';
+
+select lives_ok(
+  $$insert into public.class_workouts (tenant_id, class_id, body)
+    values ('aaaaaaaa-0000-4000-8000-000000000001', (select id from autre), 'La suivante')$$,
+  'et il en écrit une nouvelle sur la même occurrence : l''unicité ne compte que les vivantes'
+);
+
+reset role;
 
 select * from finish();
 rollback;

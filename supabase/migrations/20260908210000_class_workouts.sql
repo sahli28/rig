@@ -111,13 +111,23 @@ alter table public.class_workouts force row level security;
 
 -- Lire une séance **publiée** fait partie du droit de tout membre : c'est ce
 -- qu'il vient chercher sur la fiche de cours. Le brouillon reste au staff.
+--
+-- **`deleted_at is null` ne borne que le membre, jamais le staff** — et ce n'est
+-- pas une faveur, c'est ce qui rend l'archivage possible. Sur PostgreSQL 17, la
+-- ligne mise à jour doit rester visible de celui qui la met à jour : avec la
+-- condition sur tout le monde, `update … set deleted_at = now()` sous
+-- `authenticated` rendait « new row violates row-level security policy », et
+-- effacer sa séance était impossible depuis l'écran (passe du 9 septembre
+-- 2026, gestes 7 et 8 ; `database.md`, piège 13). Les lectures du staff
+-- filtrent explicitement, comme pour `rooms` et `class_types`.
 create policy class_workouts_select on public.class_workouts for select to authenticated
   using (
-    deleted_at is null
-    and (
-      (tenant_id in (select public.current_tenant_ids()) and published_at is not null)
-      or tenant_id in (select public.current_staff_tenant_ids())
+    (
+      tenant_id in (select public.current_tenant_ids())
+      and published_at is not null
+      and deleted_at is null
     )
+    or tenant_id in (select public.current_staff_tenant_ids())
   );
 
 create policy class_workouts_insert on public.class_workouts for insert to authenticated

@@ -8,8 +8,15 @@ import type { TranslationKey } from '@rack/core';
  * exporter que des fonctions asynchrones**. Y laisser `IDLE` passe le typecheck
  * et casse le rendu à l'exécution, sur un message qui ne nomme pas le coupable.
  */
+/**
+ * `ok` porte une clé **facultative** : « Enregistré » convient à presque tout,
+ * mais pas à un effacement — dire « enregistré » d'une séance qu'on vient de
+ * supprimer, c'est le genre de mot qui fait douter de ce qui s'est passé.
+ */
 export type ActionState =
-  { status: 'idle' } | { status: 'ok' } | { status: 'error'; key: TranslationKey };
+  | { status: 'idle' }
+  | { status: 'ok'; key?: TranslationKey }
+  | { status: 'error'; key: TranslationKey };
 
 export const IDLE: ActionState = { status: 'idle' };
 
