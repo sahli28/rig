@@ -313,6 +313,19 @@
   color: var(--rack-color-text);
 }
 
+/*
+ * La ligne entre la séance et l'annulation, dans le dialogue d'une occurrence.
+ * Deux zones de texte se suivaient sans rien entre elles — « Motif » puis
+ * « La séance » — et se tromper de champ, c'était écrire son WOD dans celui
+ * qui annule le cours (`D-021`). La séance vient en premier, et ce trait dit
+ * où finit le geste quotidien.
+ */
+.separator {
+  border: 0;
+  border-top: 1px solid var(--rack-color-border);
+  margin: 20px 0 12px;
+}
+
 /* Boîtes de dialogue ----------------------------------------------------- */
 
 .overlay {

@@ -29,15 +29,18 @@ export {
   type CurrentTenant,
   type Me,
   type Membership,
+  type MembershipRole,
   type RequiredAction,
   type TenantTheme,
 } from './me';
+export { BACK_OFFICE_RIGHTS, can, canEnterBackOffice, type BackOfficeRight } from './back-office';
 export {
   DirectoryRowSchema,
   ImportResultSchema,
   importMembers,
   type ImportResult,
   INVITATION_STATES,
+  canModifyMembership,
   createInvitation,
   displayName,
   filterDirectory,

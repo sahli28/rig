@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '@rack/ui/i18n';
 import { browserClient } from '../../lib/supabase/client';
-import type { PendingInvitation } from '@rack/core/supabase';
+import { canEnterBackOffice, type PendingInvitation } from '@rack/core/supabase';
 import type { TranslationKey } from '@rack/core';
 import styles from './invitations.module.css';
 import { IDLE, type JoinState } from './join-state';
@@ -91,9 +91,11 @@ function PendingRow({ invitation }: { invitation: PendingInvitation }) {
         <span className={styles.rowMain}>
           {t('invitation.welcome_title', { box: invitation.tenant_name })}
         </span>
-        {/* Un COACH ou un MEMBER n'a rien à faire dans le back-office : la
-            coquille lui répondrait « espace réservé au staff ». */}
-        {invitation.role === 'OWNER' || invitation.role === 'MANAGER' ? (
+        {/* Un MEMBER n'a rien à faire dans le back-office : la coquille lui
+            répondrait « espace réservé au staff ». Le COACH, lui, y écrit sa
+            séance — cette ligne le privait du lien jusqu'à `D-021`, la sœur
+            oubliée de la porte. Même décision que la porte, donc même source. */}
+        {canEnterBackOffice(invitation.role) ? (
           <Link className={styles.link} href={`/box/${state.slug}`}>
             {t('invitation.welcome_open_backoffice')}
           </Link>

@@ -21,6 +21,7 @@ import { revalidatePath } from 'next/cache';
 import {
   ClassSchedulePatchSchema,
   buildWeeklyRrule,
+  can,
   fetchMe,
   findMembershipBySlug,
   parseWeeklyRrule,
@@ -47,7 +48,7 @@ async function contexte(slug: string): Promise<Contexte | null> {
   const membership = findMembershipBySlug(me, slug);
 
   if (membership === null) return null;
-  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') return null;
+  if (!can(membership.role, 'planning_admin')) return null;
 
   return { client, tenantId: membership.tenant_id };
 }
@@ -69,8 +70,7 @@ async function contexteStaff(slug: string): Promise<Contexte | null> {
   const membership = findMembershipBySlug(me, slug);
 
   if (membership === null) return null;
-  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER' && membership.role !== 'COACH')
-    return null;
+  if (!can(membership.role, 'workout')) return null;
 
   return { client, tenantId: membership.tenant_id };
 }

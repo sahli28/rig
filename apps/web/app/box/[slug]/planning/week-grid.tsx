@@ -128,6 +128,9 @@ function OccurrenceCard({
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  // L'annulation est repliée derrière une affordance secondaire, et se replie
+  // avec le dialogue : rouvrir une occurrence ne doit pas rouvrir le motif.
+  const [annulationOuverte, setAnnulationOuverte] = useState(false);
   const annule = occurrence.status === 'CANCELLED';
 
   const contenu = (
@@ -165,7 +168,13 @@ function OccurrenceCard({
   if (!editable && !staff) return <div className={classe}>{contenu}</div>;
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(suivant) => {
+        setOpen(suivant);
+        if (!suivant) setAnnulationOuverte(false);
+      }}
+    >
       <Dialog.Trigger asChild>
         <button type="button" className={classe}>
           {contenu}
@@ -178,13 +187,12 @@ function OccurrenceCard({
             {time} · {occurrence.className}
           </Dialog.Title>
 
-          {editable &&
-            (annule ? (
-              <RestoreForm slug={slug} id={occurrence.id} />
-            ) : (
-              <CancelForm slug={slug} id={occurrence.id} />
-            ))}
-
+          {/* **La séance d'abord.** C'est le geste quotidien — quinze à vingt
+              fois par semaine — et jusqu'à `D-021` il venait sous le panneau
+              d'annulation : pour écrire un WOD, on traversait « Motif » et un
+              « Annuler ce cours » primaire. L'annulation est un geste rare et
+              destructeur ; elle vient après un trait, derrière un bouton, et
+              son envoi n'a pas l'air d'un enregistrement. */}
           {staff && (
             <WorkoutForm
               slug={slug}
@@ -198,6 +206,37 @@ function OccurrenceCard({
               sources={sources}
             />
           )}
+
+          {editable && (
+            <>
+              {staff && <hr className={styles.separator} />}
+              {annule ? (
+                <RestoreForm slug={slug} id={occurrence.id} />
+              ) : annulationOuverte ? (
+                <CancelForm slug={slug} id={occurrence.id} />
+              ) : (
+                <div className={styles.actions}>
+                  <button
+                    type="button"
+                    className={styles.danger}
+                    onClick={() => setAnnulationOuverte(true)}
+                  >
+                    {t('planning.cancel_class')}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Fermer vit au niveau du dialogue, pas dans un formulaire : un coach
+              n'a pas de panneau d'annulation, et il doit pouvoir sortir aussi. */}
+          <div className={styles.actions} style={{ marginTop: 16 }}>
+            <Dialog.Close asChild>
+              <button type="button" className={styles.secondary}>
+                {t('common.close')}
+              </button>
+            </Dialog.Close>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -225,12 +264,9 @@ function CancelForm({ slug, id }: { slug: string; id: string }) {
       </label>
 
       <div className={styles.actions}>
-        <SubmitButton label={t('planning.cancel_class')} />
-        <Dialog.Close asChild>
-          <button type="button" className={styles.secondary}>
-            {t('common.close')}
-          </button>
-        </Dialog.Close>
+        {/* Une seule action primaire par écran, et c'est « Enregistrer » la
+            séance. L'envoi destructeur est en variante `danger`. */}
+        <SubmitButton label={t('planning.cancel_confirm')} variant="danger" />
         <Feedback state={state} />
       </div>
     </form>
@@ -242,14 +278,13 @@ function RestoreForm({ slug, id }: { slug: string; id: string }) {
 
   return (
     <div className={styles.actions}>
-      <button type="button" className={styles.primary} onClick={() => void restoreClass(slug, id)}>
+      <button
+        type="button"
+        className={styles.secondary}
+        onClick={() => void restoreClass(slug, id)}
+      >
         {t('planning.restore_class')}
       </button>
-      <Dialog.Close asChild>
-        <button type="button" className={styles.secondary}>
-          {t('common.close')}
-        </button>
-      </Dialog.Close>
     </div>
   );
 }

@@ -103,6 +103,21 @@ export function grantableRoles(actorRole: string): readonly string[] {
   return actorRole === 'OWNER' ? MEMBERSHIP_ROLES : ['MEMBER', 'COACH'];
 }
 
+/**
+ * Un acteur peut-il toucher cette appartenance — changer son rôle, la retirer ?
+ *
+ * Miroir de `MANAGER_CANNOT_MODIFY_ADMIN` : un gestionnaire ne touche ni un
+ * propriétaire ni un autre gestionnaire. Vivait dans `directory.tsx` jusqu'à
+ * `D-021` ; c'est la seule comparaison de rôle du back-office qui ne dépend pas
+ * que de l'acteur, et elle est ici pour la même raison que les autres — une
+ * app ne compare pas un rôle, elle demande.
+ */
+export function canModifyMembership(actorRole: string, targetRole: string): boolean {
+  if (actorRole === 'OWNER') return true;
+  if (actorRole === 'MANAGER') return targetRole !== 'OWNER' && targetRole !== 'MANAGER';
+  return false;
+}
+
 /** Change le rôle d'une appartenance. Jamais un `update` : la base l'interdit. */
 export async function setMemberRole(
   client: RackClient,

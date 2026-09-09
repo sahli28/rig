@@ -6,6 +6,7 @@ import { useI18n } from '@rack/ui/i18n';
 import {
   MEMBERSHIP_ROLES,
   MEMBERSHIP_STATUSES,
+  canModifyMembership,
   displayName,
   filterDirectory,
   grantableRoles,
@@ -149,7 +150,7 @@ function MemberRow({
 
   // L'écran masque ce que la fonction refuse : un gestionnaire ne touche ni un
   // propriétaire ni un autre gestionnaire (`MANAGER_CANNOT_MODIFY_ADMIN`).
-  const modifiable = actorRole === 'OWNER' || (row.role !== 'OWNER' && row.role !== 'MANAGER');
+  const modifiable = canModifyMembership(actorRole, row.role);
   const roles = grantableRoles(actorRole);
 
   return (

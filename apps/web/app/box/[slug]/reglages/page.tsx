@@ -1,4 +1,4 @@
-import { fetchMe, findMembershipBySlug, tenantScope } from '@rack/core/supabase';
+import { can, fetchMe, findMembershipBySlug, tenantScope } from '@rack/core/supabase';
 import { serverClient } from '../../../../lib/supabase/server';
 import { Notice } from '../notice';
 import { SettingsTabs } from './tabs';
@@ -29,6 +29,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   // Le layout a déjà rendu ce cas ; ici, il ne reste que la course entre son
   // contrôle et le rendu de la page.
   if (membership === null) return <Notice kind="unknown_box" />;
+  // Le layout laisse entrer qui a un droit ; la section, elle, demande le sien.
+  if (!can(membership.role, 'settings')) return <Notice kind="role_forbidden" />;
 
   const scope = tenantScope(client, membership.tenant_id);
 
@@ -63,7 +65,11 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           id: 'identite',
           labelKey: 'settings.tab_identity',
           content: (
-            <IdentityForm slug={slug} identite={identite} editable={membership.role === 'OWNER'} />
+            <IdentityForm
+              slug={slug}
+              identite={identite}
+              editable={can(membership.role, 'identity')}
+            />
           ),
         },
         {

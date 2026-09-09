@@ -140,31 +140,84 @@ _Chaque état est vérifié dans le dépôt, le 9 septembre 2026._
 > personne ne relise « test de la porte » comme « un navigateur a joué le
 > rôle ».**
 
+## Ce qui a été fait, le 9 septembre 2026
+
+**Une décision, un endroit** : `packages/core/src/supabase/back-office.ts` —
+neuf droits, quatre rôles, `can(role, droit)` et `canEnterBackOffice(role)` ;
+`canModifyMembership()` rejoint `grantableRoles()` dans `staff.ts`. **Quinze
+comparaisons de rôle ont disparu d'`apps/web`** : la porte, la coquille, quatre
+pages de section, six Server Actions, l'annuaire, et les deux sœurs des
+invitations (`pending-list.tsx`, `join-card.tsx` — la seconde n'était pas dans
+le ticket, la sonde l'a trouvée en mordant). Chaque section demande son droit au
+serveur ; une notice « Section réservée » dit où aller.
+
+**L'interdit est dans ESLint, pas dans un test qui lit des fichiers** :
+`PAS_DE_COMPARAISON_DE_ROLE` s'applique à `apps/**` et `packages/**`, sauf
+`packages/core/src/supabase/` où la décision vit. **Cinq sondes** dans
+`pnpm lint:sondes` — dont la forme exacte de `layout.tsx:56`, la forme mobile
+que `P1-008a` écrira, et le contrôle négatif : comparer un `status` passe.
+**18 sondes, toutes mordantes.**
+
+**Le panneau** : la séance d'abord ; un trait ; « Annuler ce cours » en variante
+danger, qui déplie le motif et un « Confirmer l'annulation » **non primaire** ;
+« Fermer » au niveau du dialogue, pour le coach qui n'a pas de panneau. Un seul
+bouton primaire : « Enregistrer ».
+
+**Contrôle négatif du test de table, joué et rétabli** : retirer `workout` au
+COACH → **2 tests rouges** (« COACH a exactement les droits attendus », « le
+coach entre »). Typecheck, lint, 391 tests core, i18n 479 clés sans orpheline.
+
+**Ce qui n'a pas été fait dans ce lot** : aucun navigateur n'a été ouvert. Le
+harnais n'existe pas (`D-022`), et la sonde réseau qui aurait dit si le serveur
+local tournait a été refusée — donc rien n'est coché ci-dessous qui demande un
+écran. **C'est la passe web, sur `main`, qui les coche** (A10 à A15).
+
 ## Critères d'acceptation
 
-- [ ] Sarah (`sarah@example.com`, COACH de `crossfit-rueil`) atteint
+- [x] Sarah (`sarah@example.com`, COACH de `crossfit-rueil`) atteint
       `/box/crossfit-rueil/planning`, ouvre une occurrence et enregistre une
-      séance — **le geste que la passe du 9 septembre n'a pas pu jouer**
+      séance — **le geste que la passe du matin n'avait pas pu jouer**. **Passe
+      web du 9 septembre 2026, A14** — jouée sur l'arbre de travail de la
+      branche, le code n'étant pas encore sur `main` (PR #68 n'a fusionné que la
+      documentation). Ce qui a été joué est, à l'octet près, ce qui est commité
 - [ ] Elle ne voit **ni** Réglages, **ni** Équipe, **ni** Membres, **ni**
       Apparence dans la navigation, et taper l'adresse d'une de ces sections la
-      refuse — le menu caché ne suffit pas, c'est le serveur qui dit non
-- [ ] La coquille l'annonce « Coach », pas « Gestionnaire »
+      refuse — le menu caché ne suffit pas, c'est le serveur qui dit non.
+      **Moitié observée** (A10) : la navigation n'a que Tableau de bord et
+      Planning, les séries n'ont plus « Modifier » ni « Nouvelle série », le
+      panneau n'a pas d'annulation. **Moitié non consignée** : le refus **par
+      l'adresse** (A11, A12) — c'est celle qui compte, le menu caché ne prouvant
+      rien
+- [ ] La coquille l'annonce « Coach », pas « Gestionnaire ». *A10, non
+      consigné*
 - [ ] Un MEMBER reste refusé, et le texte qu'il lit dit **la règle qui
-      s'applique** — pas « réservé aux propriétaires et gestionnaires »
+      s'applique** — pas « réservé aux propriétaires et gestionnaires ».
+      *Passe web A9, texte réécrit dans les deux langues*
 - [ ] Un COACH qui accepte son invitation reçoit le lien vers le back-office
-      (`pending-list.tsx`), là où il lisait « bienvenue » sans issue
-- [ ] Le test par rôle existe : **quatre rôles × toutes les sections**, et il
-      **rougit** quand on rétablit la garde d'origine — prouvé dans les deux
-      sens, sinon il n'a rien vu
-- [ ] La sonde refuse une seconde comparaison de rôle sous `apps/web/app/box/`,
-      et **elle mord** : prouvée sur une comparaison ajoutée exprès, puis retirée
-- [ ] Dans le dialogue d'une occurrence, **la séance vient en premier** et
+      (`pending-list.tsx`), là où il lisait « bienvenue » sans issue. *Code fait
+      dans les deux écrans d'invitation ; le seed n'a pas d'invitation COACH,
+      à créer pour l'observer*
+- [x] Le test par rôle existe : **quatre rôles × tous les droits**, et il
+      **rougit** quand la table change — prouvé dans les deux sens : 2 rouges
+      sur `workout` retiré au COACH, puis rétabli. La garde d'origine, elle, ne
+      peut plus être rétablie sans que le lint rougisse — c'est la sonde
+      suivante
+- [x] La sonde refuse une comparaison de rôle dans une app, et **elle mord** :
+      cinq cas, dont la forme exacte de `layout.tsx:56`, et un contrôle négatif
+      qui passe
+- [x] Dans le dialogue d'une occurrence, **la séance vient en premier** et
       l'annulation est derrière une affordance secondaire. Un seul bouton
-      primaire à l'écran, quel que soit le rôle
-- [ ] Parité i18n FR + EN, aucune clé orpheline
-- [ ] **appareil** — rien à jouer sur l'iPhone : le back-office est un écran de
-      PC. **La passe est web** (`docs/passe-manuelle-web.md`), et elle ferme du
-      même coup le critère resté ouvert de `P1-015`
+      primaire à l'écran, quel que soit le rôle. **A13 et A15, 9 sept. 2026** :
+      en coach, la séance seule ; en propriétaire, séance, trait, « Annuler ce
+      cours » en variante danger sous le trait, « Enregistrer » seule action
+      primaire, « Modifier la série » de retour dans la liste
+- [x] Parité i18n FR + EN, aucune clé orpheline — 479 clés
+- [x] **appareil** — rien à jouer sur l'iPhone : le back-office est un écran de
+      PC. **La passe est web** (`docs/passe-manuelle-web.md`, extension A″),
+      **jouée le 9 septembre 2026**, et elle a fermé le critère resté ouvert de
+      `P1-015`. Restent non consignés : A9 (le texte lu par un MEMBER), A11–A12
+      (le refus par l'adresse), le badge « Coach », et l'invitation d'un COACH
+      — que le seed ne permet pas de jouer sans en créer une
 
 ## Estimation
 

@@ -1,5 +1,6 @@
 import {
   UNCONFIGURED_BOX_PRIMARY,
+  can,
   fetchMe,
   findMembershipBySlug,
   tenantScope,
@@ -27,7 +28,11 @@ export default async function AppearancePage({ params }: { params: Promise<{ slu
   const membership = findMembershipBySlug(me, slug);
 
   if (membership === null) return <Notice kind="unknown_box" />;
-  if (membership.role !== 'OWNER') return <Notice kind="owner_only" />;
+  // Le texte « réservé au propriétaire » promet au lecteur les horaires et
+  // l'équipe : vrai pour un gestionnaire, faux pour un coach, qui lit l'autre.
+  if (!can(membership.role, 'appearance')) {
+    return <Notice kind={can(membership.role, 'settings') ? 'owner_only' : 'role_forbidden'} />;
+  }
 
   const scope = tenantScope(client, membership.tenant_id);
   const [theme, tenant] = await Promise.all([

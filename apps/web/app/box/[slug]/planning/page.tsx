@@ -14,6 +14,7 @@ import {
   type Choice,
   type Occurrence,
   type Serie,
+  can,
   fetchWorkoutsByClass,
 } from '@rack/core/supabase';
 import { serverClient } from '../../../../lib/supabase/server';
@@ -177,15 +178,14 @@ export default async function Page({
       // Garde d'ergonomie, pas de sécurité : les policies et
       // `refresh_class_schedule()` refusent déjà un COACH. Ne pas proposer une
       // porte qui se ferme.
-      editable={membership.role === 'OWNER' || membership.role === 'MANAGER'}
+      editable={can(membership.role, 'planning_admin')}
       // **Un second droit, et il ne recouvre pas le premier** (P1-015).
       // `editable` garde l'administration — créer une série, annuler un cours.
       // Écrire la séance est le travail du coach, qui n'administre rien : sans
       // ce drapeau, celui à qui le ticket est destiné ne pourrait pas s'en
-      // servir. Sœur de `current_staff_tenant_ids()` en base.
-      staff={
-        membership.role === 'OWNER' || membership.role === 'MANAGER' || membership.role === 'COACH'
-      }
+      // servir. Sœur de `current_staff_tenant_ids()` en base — et depuis
+      // `D-021`, la même table que la porte, qui ne l'avait pas suivi.
+      staff={can(membership.role, 'workout')}
       workouts={workouts}
       candidates={candidates}
     />

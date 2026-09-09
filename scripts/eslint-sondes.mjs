@@ -23,11 +23,12 @@ import { ESLint } from 'eslint';
 
 const RÈGLES = ['no-restricted-syntax', 'no-restricted-imports'];
 
-/** Les quatre interdits, reconnus à un fragment distinctif de leur message. */
+/** Les cinq interdits, reconnus à un fragment distinctif de leur message. */
 const FROM = 'Accès direct à une table de box';
 const INTL = '`Intl` n’est pas complet';
 const CRYPTO = '`crypto` n’existe pas';
 const IMPORT_EXPO_CRYPTO = "`expo-crypto` ne s'importe que";
+const ROLE = 'Comparaison de rôle dans une app';
 
 /**
  * Les sondes. `attendu` liste les interdits qui **doivent** mordre sur ce
@@ -73,6 +74,40 @@ const SONDES = [
     source:
       "export const a = client.from('classes');\nexport const b = new Intl.PluralRules('fr');\nexport const c = crypto.randomUUID();\n",
     attendu: [FROM, INTL, CRYPTO],
+  },
+  // ------------------------------------------------------------------
+  // L'interdit 5 : une comparaison de rôle dans une app (D-021).
+  // ------------------------------------------------------------------
+  {
+    nom: 'le back-office web — `membership.role !== …`, la forme de layout.tsx',
+    chemin: 'apps/web/app/box/[slug]/sonde.tsx',
+    source:
+      "export const x = (m: { role: string }) => m.role !== 'OWNER' && m.role !== 'MANAGER';\n",
+    attendu: [ROLE, ROLE],
+  },
+  {
+    nom: 'le back-office web — un identifiant `actorRole`, et le littéral à gauche',
+    chemin: 'apps/web/app/box/[slug]/staff/sonde.tsx',
+    source: "export const x = (actorRole: string) => 'OWNER' === actorRole;\n",
+    attendu: [ROLE],
+  },
+  {
+    nom: 'une app mobile — la même porte y mordra (P1-008a)',
+    chemin: 'apps/mobile/app/(app)/sonde.tsx',
+    source: "export const x = (role: string) => role === 'COACH';\n",
+    attendu: [ROLE],
+  },
+  {
+    nom: 'comparer autre chose qu’un rôle : ça passe',
+    chemin: 'apps/web/app/box/[slug]/sonde.tsx',
+    source: "export const x = (o: { status: string }) => o.status !== 'CANCELLED';\n",
+    attendu: [],
+  },
+  {
+    nom: 'la décision elle-même, dans core : une comparaison de rôle y a sa place',
+    chemin: 'packages/core/src/supabase/back-office.ts',
+    source: "export const x = (role: string) => role === 'OWNER';\n",
+    attendu: [],
   },
   {
     nom: 'une position de **type** `Intl` ne s’exécute jamais : elle passe',
@@ -142,7 +177,7 @@ function interditDe(message) {
   const texte = message.replaceAll('’', "'");
   // `includes` et non `startsWith` : `no-restricted-imports` préfixe le message
   // par « 'expo-crypto' import is restricted from being used. »
-  const trouvé = [FROM, INTL, CRYPTO, IMPORT_EXPO_CRYPTO].find((m) =>
+  const trouvé = [FROM, INTL, CRYPTO, IMPORT_EXPO_CRYPTO, ROLE].find((m) =>
     texte.includes(m.replaceAll('’', "'")),
   );
   return trouvé ?? `(message inconnu) ${texte.slice(0, 40)}`;

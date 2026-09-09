@@ -26,6 +26,7 @@ import {
   LocationPatchSchema,
   OpeningHourSchema,
   RoomPatchSchema,
+  can,
   fetchMe,
   findMembershipBySlug,
   overlappingSlots,
@@ -48,7 +49,7 @@ async function contexte(slug: string): Promise<Contexte | null> {
   const membership = findMembershipBySlug(me, slug);
 
   if (membership === null) return null;
-  if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') return null;
+  if (!can(membership.role, 'settings')) return null;
 
   return { client, tenantId: membership.tenant_id, role: membership.role };
 }
@@ -82,7 +83,7 @@ function texteOuNul(value: FormDataEntryValue | null): string | null {
  */
 export async function saveIdentity(slug: string, _prev: ActionState, form: FormData) {
   const ctx = await contexte(slug);
-  if (ctx === null || ctx.role !== 'OWNER') return FORBIDDEN;
+  if (ctx === null || !can(ctx.role, 'identity')) return FORBIDDEN;
 
   const parsed = BoxIdentitySchema.safeParse({
     name: texte(form.get('name')),
