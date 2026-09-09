@@ -126,6 +126,8 @@ export async function saveBookingRules(slug: string, _prev: ActionState, form: F
     cancel_window_minutes: nombre(form.get('cancel_window_minutes')),
     max_upcoming_bookings: nombre(form.get('max_upcoming_bookings')),
     default_visitor_capacity: nombre(form.get('default_visitor_capacity')),
+    checkin_window_before_minutes: nombre(form.get('checkin_window_before_minutes')),
+    checkin_window_after_minutes: nombre(form.get('checkin_window_after_minutes')),
   });
   if (!parsed.success) return INVALID;
 

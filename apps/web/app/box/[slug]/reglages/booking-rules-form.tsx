@@ -14,6 +14,8 @@ type Regles = {
   cancel_window_minutes: number;
   max_upcoming_bookings: number;
   default_visitor_capacity: number;
+  checkin_window_before_minutes: number;
+  checkin_window_after_minutes: number;
 };
 
 const CHAMPS: ReadonlyArray<{
@@ -57,6 +59,22 @@ const CHAMPS: ReadonlyArray<{
     helpKey: 'settings.rules_visitor_capacity_help',
     min: 0,
     max: 500,
+  },
+  // La fenêtre de pointage (P1-008a) : quand le staff peut cocher la présence,
+  // autour du début du cours. Deux champs de plus, la grille les rend seule.
+  {
+    name: 'checkin_window_before_minutes',
+    labelKey: 'settings.rules_checkin_open',
+    helpKey: 'settings.rules_checkin_open_help',
+    min: 0,
+    max: 10080,
+  },
+  {
+    name: 'checkin_window_after_minutes',
+    labelKey: 'settings.rules_checkin_close',
+    helpKey: 'settings.rules_checkin_close_help',
+    min: 0,
+    max: 10080,
   },
 ];
 

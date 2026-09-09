@@ -134,13 +134,17 @@ export function timeZoneOptions(current: string): string[] {
 // Règles de réservation — `tenant_settings`, ouvertes au MANAGER
 // ---------------------------------------------------------------------------
 
-/** Miroir de `tenant_settings_windows_positive`. */
+/** Miroir de `tenant_settings_windows_positive` et `_checkin_window_positive`. */
 export const BookingRulesPatchSchema = z.object({
   open_days_before: z.number().int().min(0).max(365),
   close_minutes_before: z.number().int().min(0).max(10080),
   cancel_window_minutes: z.number().int().min(0).max(10080),
   max_upcoming_bookings: z.number().int().min(1).max(100),
   default_visitor_capacity: z.number().int().min(0).max(500),
+  // La fenêtre de pointage (P1-008a). Bornes hautes comme les autres minutes ;
+  // la base ne porte que la borne basse (`>= 0`).
+  checkin_window_before_minutes: z.number().int().min(0).max(10080),
+  checkin_window_after_minutes: z.number().int().min(0).max(10080),
 });
 
 export type BookingRulesPatch = z.infer<typeof BookingRulesPatchSchema>;
