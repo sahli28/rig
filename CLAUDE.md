@@ -238,6 +238,20 @@ null (reading 'useRef')` au build web, indéchiffrable si on ne connaît pas la 
     elle doit rendre un **résultat**, jamais une impression. La forme qui marche
     est celle de `scripts/test-db.mjs` : deux issues nommées, aucune troisième.
 
+11. **La cadence : le prochain merge porte du code.** Posée le 9 septembre 2026,
+    sur un constat chiffré : les huit derniers commits hors fusion étaient
+    **un `feat` et sept `docs`**, dont quatre d'affilée depuis `P1-015` — et
+    depuis sa fusion, ① n'avait pas avancé d'un jour-homme. Chaque document
+    était justifié et plusieurs ont évité des défauts coûteux ; ce n'est pas la
+    qualité qui était en cause, c'est le rythme, et la cause était que **chaque
+    revue produisait un ticket de plus**. Trois règles :
+    - une trouvaille faite pendant un lot se **note** dans le ticket courant ou
+      dans son message de commit ; elle ne devient un ticket qu'au **prochain
+      lot de documentation** — sauf si elle bloque ;
+    - **au plus une branche `docs/` par jour**, qui groupe tout ce qui a été
+      trouvé ;
+    - **jamais deux merges de suite sans code produit.**
+
 ## Ce qu'il ne faut pas faire
 
 - Ne pas ajouter de dépendance sans la justifier dans le message de commit.
