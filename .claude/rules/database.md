@@ -75,10 +75,12 @@ create policy <table>_tenant_write on <table> for all to authenticated
 Le `(select …)` autour de l'appel n'est pas cosmétique : il permet à Postgres de
 mettre le résultat en cache d'initplan au lieu de le réévaluer à chaque ligne.
 
-### Douze pièges déjà payés, à ne pas repayer
+### Treize pièges déjà payés, à ne pas repayer
 
-Chacun a coûté un aller-retour d'audit sur le ticket P0-004. Ils sont ici plutôt
-que dans le ticket parce qu'un ticket clos ne se relit jamais.
+Chacun a coûté un aller-retour d'audit sur le ticket P0-004 — sauf le
+treizième, qui a coûté une passe manuelle et une journée de « supprimer une
+série » cassé sans que personne le sache. Ils sont ici plutôt que dans le ticket
+parce qu'un ticket clos ne se relit jamais.
 
 1. **`current_tenant_ids()` est `security definer`, et ne doit jamais prendre de
    paramètre.** En `security invoker` elle serait soumise à la RLS de
@@ -149,6 +151,31 @@ que dans le ticket parce qu'un ticket clos ne se relit jamais.
     `name_i18n -> 'fr' is not null and …` — parce que `false and null` vaut
     `false`. Trouvé par un test, pas par la relecture : la contrainte se lisait
     juste.
+
+13. **Une policy de lecture qui masque les lignes archivées interdit de les
+    archiver par `update`.** Sur PostgreSQL 17 — **mesuré sur le moteur du
+    produit** le 9 septembre 2026, pas déduit d'une doc — la ligne mise à jour
+    doit rester visible de celui qui la met à jour : `set deleted_at = now()`
+    sous `authenticated` rend « new row violates row-level security policy »,
+    même pour un OWNER, même sans `RETURNING`. `class_workouts_select` et
+    `class_schedules_select` portaient `deleted_at is null` **pour tout le
+    monde** ; effacer une séance et supprimer une série étaient donc impossibles
+    depuis l'écran — la seconde **depuis P1-002**, et aucun test ne l'a vu parce
+    que tous jouaient l'archivage sous `postgres`, qui ne voit pas la RLS. La
+    règle : `deleted_at is null` ne borne que les **non-staff** ; qui a le droit
+    d'archiver voit ce qu'il archive, et **les lectures filtrent explicitement**
+    (`.is('deleted_at', null)`), comme `rooms` et `class_types` le faisaient
+    déjà. Et un test d'archivage se joue **sous l'identité qui archive**. Le
+    diagnostic qui a tranché tenait en une transaction annulée : la même
+    `update` avec la policy amputée de sa condition passe (`alter policy` est
+    transactionnel). **La branche qui voit l'archivé est celle qui a le droit
+    d'écrire** — staff pour `class_workouts`, admin pour `class_schedules` —
+    et c'est l'invariant à tenir, pas une exception par table. Sœur en
+    sursis, relevée par `rls-auditor` le même jour : `classes_select` a
+    exactement la forme fautive, et n'y échappe que parce que son seul
+    archiveur, `refresh_class_schedule()`, tourne sous un propriétaire
+    `bypassrls`. Le premier `update classes set deleted_at` écrit sous
+    `authenticated` rejouera ce piège tel quel.
 
 ### La RLS ne borne pas les colonnes
 

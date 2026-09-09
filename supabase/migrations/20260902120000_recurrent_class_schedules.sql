@@ -403,10 +403,17 @@ alter table public.classes force row level security;
 
 -- Lire un planning fait partie du droit de tout membre. Construire ou modifier
 -- une série est opérationnel, donc OWNER/MANAGER comme class_types et salles.
+-- **`deleted_at is null` ne borne que le membre, jamais l'administrateur.** Sur
+-- PostgreSQL 17, la ligne mise à jour doit rester visible de celui qui la met à
+-- jour : avec la condition sur tout le monde, `archiveSchedule()` — un
+-- `update … set deleted_at` sous l'identité du gérant — était refusé, et
+-- supprimer une série depuis l'écran n'a jamais fonctionné. Trouvé par sa sœur
+-- `class_workouts` le 9 septembre 2026 (`database.md`, piège 13) ; aucun test ne
+-- jouait ce geste autrement que sous `postgres`, qui ne voit pas la RLS.
 create policy class_schedules_select on public.class_schedules for select to authenticated
   using (
-    tenant_id in (select public.current_tenant_ids())
-    and deleted_at is null
+    (tenant_id in (select public.current_tenant_ids()) and deleted_at is null)
+    or tenant_id in (select public.current_admin_tenant_ids())
   );
 create policy class_schedules_insert on public.class_schedules for insert to authenticated
   with check (tenant_id in (select public.current_admin_tenant_ids()));

@@ -185,11 +185,21 @@ une vue semaine deviendra un ticket — **avec la mesure qui le justifie**.
       « Publiée — visible des membres », la séance se lit sur l'iPhone
 - [ ] **les deux gestes qui protègent le travail du dimanche soir** — vider le
       champ, et n'y laisser qu'une espace : la confirmation apparaît, et rien
-      n'est supprimé sans elle (gestes 7 et 8). **Résultat non consigné.** Ce
-      critère a été coché « les huit gestes passent » le 9 septembre sur un
-      compte rendu qui ne nommait que les gestes 1 à 6 — décoché le même jour,
-      c'est un faux vert qui a duré un après-midi. Il se coche avec le résultat
-      écrit, pas avec « l'essentiel passe »
+      n'est supprimé sans elle (gestes 7 et 8). **NOK le 9 septembre 2026, soir**
+      : la confirmation apparaît, mais la confirmer rend « Une erreur est
+      survenue ». **Cause trouvée et prouvée en base** : `update … set
+      deleted_at` était refusé par `class_workouts_select`, dont le
+      `deleted_at is null` valait pour tout le monde — sur PostgreSQL 17, la
+      ligne mise à jour doit rester visible de qui la met à jour. Aucun test ne
+      jouait l'effacement sous l'identité du coach. **Corrigé le jour même**
+      (`fix/P1-015-gestes-7-et-8`) : la policy ne borne plus que les membres,
+      pgTAP joue l'effacement en COACH, la **sœur** `class_schedules_select`
+      avait le même trou depuis P1-002 — supprimer une série n'a jamais marché
+      depuis l'écran — et est corrigée avec son test. Plus deux défauts d'écran
+      vus sur la capture : `**supprimera**` rendu tel quel, et « Supprimer la
+      séance » en bouton primaire. **Reste `[ ]` jusqu'à ce que les gestes 7 et
+      8 soient rejoués sur `main`.** Ce critère avait été coché à tort
+      l'après-midi, sur un compte rendu qui ne les nommait pas
 - [x] **le droit du coach est exercé** — écrire une séance en `COACH`, et non en
       administration. **Impossible le matin du 9 septembre 2026** : la porte du
       back-office (`layout.tsx:56`) refusait tout ce qui n'était ni OWNER ni
@@ -212,8 +222,11 @@ une vue semaine deviendra un ticket — **avec la mesure qui le justifie**.
 | Back-office : affordance sur l'occurrence, formulaire, Server Action, pré-remplissage | 1,5 |
 | Affichage sur la fiche de cours du membre | 0,5 |
 | i18n, accessibilité, passe appareil | 0,5 |
+| **Les gestes 7 et 8, rouges à la passe, et leur sœur** — piège 13, deux policies, six assertions pgTAP, deux défauts d'écran (`fix/P1-015-gestes-7-et-8`) | 0,5 |
 
-**5 j·h.** Ce qui aurait pu coûter plus et ne coûtera pas : la grille web affiche
+**5,5 j·h** — **5 → 5,5 le 9 septembre 2026**, le prix d'un archivage que
+personne n'avait joué sous la bonne identité, compté plutôt que caché. Ce qui
+aurait pu coûter plus et ne coûtera pas : la grille web affiche
 déjà les occurrences et porte des actions par occurrence, et la fiche de cours
 existe — il n'y a **aucun écran à créer**, seulement une affordance et une
 fonction à étendre.

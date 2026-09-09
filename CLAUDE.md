@@ -19,7 +19,7 @@ Backlog exécutable : `docs/backlog/` — un fichier par ticket.
 
 ## Le contexte qui coûte le plus cher à redécouvrir
 
-- **`.claude/rules/database.md` porte douze pièges déjà payés**, et surtout la
+- **`.claude/rules/database.md` porte treize pièges déjà payés**, et surtout la
   **règle des sœurs** : cinq des cinq trous trouvés depuis P0-004 ont la même
   forme — un chemin bien gardé, et son jumeau oublié. Aucun n'a été trouvé par
   les tests ni par `rls-auditor`, qui vérifient ce qui est écrit, pas ce qui

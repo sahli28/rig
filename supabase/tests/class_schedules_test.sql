@@ -2,7 +2,7 @@
 -- projection construite côté client. Ces tests précèdent la migration P1-002.
 
 begin;
-select plan(24);
+select plan(27);
 
 select has_table('public', 'class_schedules', 'la série récurrente existe');
 select has_table('public', 'classes', 'les occurrences matérialisées existent');
@@ -364,6 +364,45 @@ select is(
   2::bigint,
   'matérialiser une série n''en matérialise aucune autre, même dans la même box'
 );
+
+-- ---------------------------------------------------------------------------
+-- Archiver une série — la sœur du piège 13, ouverte depuis P1-002
+-- ---------------------------------------------------------------------------
+--
+-- `archiveSchedule()` fait `update … set deleted_at` sous l'identité du gérant.
+-- Avec `deleted_at is null` pour tout le monde dans `class_schedules_select`,
+-- PostgreSQL 17 refusait la mise à jour : la ligne devenait invisible de son
+-- auteur. Trouvé par sa sœur `class_workouts` le 9 septembre 2026. Aucun test
+-- ne jouait ce geste autrement que sous `postgres`, qui ne voit pas la RLS —
+-- d'où celui-ci, sous l'identité qui archive.
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub":"11111111-0000-4000-8000-000000000001","role":"authenticated","email":"marc@rueil.example"}';
+
+select lives_ok(
+  $$update public.class_schedules set deleted_at = now()
+    where id = 'a6000000-0000-4000-8000-0000000000cc'$$,
+  'le gérant archive une série — sous son identité, par un update, comme l''écran le fait'
+);
+
+select is(
+  (select count(*) from public.class_schedules
+   where id = 'a6000000-0000-4000-8000-0000000000cc' and deleted_at is not null)::int,
+  1,
+  'et il la voit encore, archivée : sans cette visibilité, l''archivage lui-même est refusé'
+);
+
+set local request.jwt.claims =
+  '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
+
+select is(
+  (select count(*) from public.class_schedules
+   where id = 'a6000000-0000-4000-8000-0000000000cc')::int,
+  0,
+  'archivée, elle n''existe plus pour un membre'
+);
+
+reset role;
 
 select * from finish();
 rollback;
