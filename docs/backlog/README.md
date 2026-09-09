@@ -103,6 +103,23 @@ et `D-021` ne se dimensionne pas « au cas où ». La décision est écrite dans
 `P1-008a`, avec ce qu'elle coûte : la feuille sera **la première surface de l'app
 mobile qui dépend d'un rôle**, et son lot d'écran à 1,25 j·h ne couvre pas ça.
 
+**Revue du 9 septembre 2026, après PR #65 — deux remarques sur `P1-016`, qui
+est par ailleurs le bon ticket.** La première : **le RGPD y était sous-dit.**
+Le jour de la mise en service, la personne qui développe Rack devient
+sous-traitante de la box (art. 28), sans entité juridique — une personne physique
+peut l'être, ce n'est pas bloquant, mais ça expose et ça ne s'improvise pas le
+lundi matin. Trois pièces datées « avant le premier import » : DPA, registre,
+politique de confidentialité. Et en vérifiant la troisième, le dépôt a montré
+que **`consents.tsx` fait cocher « j'ai lu la politique » et enregistre la
+version `2026-08-01` d'un texte qui n'existe pas**, sans lien vers rien. La ligne
+« entité juridique » du chemin critique n'a plus Stripe pour seule conséquence.
+La seconde : **ne pas concentrer l'inconnu.** Deux lots de `P1-016` ne dépendent
+de rien et portent toute la nouveauté — ils partent dans **`P1-017`**, joué
+pendant `P1-008a`. Même raisonnement que pour le compte Apple. En s'écrivant,
+`P1-017` a trouvé que le SMTP intégré d'un projet hébergé ne tient pas 80
+invitations : **le domaine bloque désormais quatre choses, dont la mise en
+service.** Total ① inchangé à 109.
+
 ## ⭐ À partir du 8 septembre 2026, l'ordre du jalon suit la box pilote
 
 **Ce n'est plus le même genre de décision**, et c'est pour ça que ça mérite sa
@@ -208,16 +225,18 @@ règle 7 vaut dans ce sens-là aussi. RM3.6 tient le jalon sans lui : le coach
 coche à la main.
 
 **Deux** démarches administratives bloquent encore du code déjà écrit ou déjà
-chiffré — elles étaient quatre jusqu'au 8 septembre 2026. **Aucune ne se rattrape
-en codant plus vite.** Elles ne vivent nulle part ailleurs dans le dépôt : ni un
-ticket, ni un test, ni la CI ne les rappellera.
+chiffré — elles étaient quatre jusqu'au 8 septembre 2026 — **et une troisième
+ne bloque rien mais expose, avec une échéance qui n'est plus lointaine.**
+**Aucune ne se rattrape en codant plus vite.** Elles ne vivent nulle part
+ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
 
 | Quoi | Bloque | Pourquoi maintenant |
 | --- | --- | --- |
 | ~~**Trois `client_id` Google**~~ | ~~P0-005b~~ | **Sort du chemin critique le 8 sept. 2026** — non parce qu'elle est faite, mais parce que `P0-005b` passe **non programmé** : câbler un SSO tiers rend `P2-003` obligatoire (guideline 4.8). Voir ci-dessous |
 | ✅ ~~**Compte développeur Apple**~~ | ~~`P1-007`, `P1-006`, `P1-003b`, `P2-003`~~ | **Actif le 8 septembre 2026**, jusqu'au 8 sept. 2027, renouvellement automatique. App Store Connect ouvert. Il aura été le premier rang pendant deux jours |
-| **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société |
-| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, et le retour Apple | **Trois éléments bloqués par une seule absence** — et depuis le 4 sept. 2026 le nom est connu (**Rack**), donc le domaine est achetable : c'est la seule des deux démarches restantes qui ne dépende que d'une carte bancaire |
+| **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société — **donc l'entité juridique, ligne suivante** |
+| **Une entité juridique** | rien — **mais expose, personnellement** | **Cette ligne n'avait qu'une conséquence jusqu'au 9 sept. 2026 : Stripe, sans échéance avant mi-2027. Elle en a deux.** Le jour de `P1-016`, la personne qui développe Rack devient **sous-traitante de la box au sens de l'art. 28** (spec §15.1 : « sans ce document, vous êtes en infraction dès le premier client »). Une personne physique peut l'être — ce n'est pas bloquant — mais c'est elle qui signe le DPA et porte le registre. **Échéance : la mise en service, pas le MVP.** Les trois pièces — DPA, registre, politique de confidentialité — sont des prérequis datés de `P1-016` |
+| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, le retour Apple — **et `P1-016` depuis le 9 sept. 2026** | **Quatre éléments bloqués par une seule absence** — et depuis le 4 sept. 2026 le nom est connu (**Rack**), donc le domaine est achetable : c'est la seule des démarches restantes qui ne dépende que d'une carte bancaire. **Le quatrième est venu de `P1-017`** : le SMTP intégré d'un projet Supabase hébergé est limité à quelques envois par heure, donc inviter 80 membres exige un SMTP tiers, donc un domaine signé |
 
 ### ✅ Le compte Apple est actif — 8 septembre 2026
 
@@ -295,7 +314,7 @@ L'ORDRE ARBITRÉ DU 6 SEPT., déroulé jusqu'au bout
   La passe a fermé six critères sur quatre tickets : D-011 ✅, D-016, P1-005a, D-009.
 
 L'ORDRE DEPUIS LE RETOUR DE LA BOX PILOTE (8 sept.) — il remplace le précédent
-  P1-015 ✅ → D-021 → P1-008a → P1-007 → P1-006
+  P1-015 ✅ → D-021 → P1-008a ∥ P1-017 → P1-007 → P1-006
   Le WOD passe devant le pointage : sans lui, le coach ouvre deux applications
   pendant tout le pilote.
   D-021 s'intercale le 9 sept., après la passe : P1-015 est fusionné et sa
@@ -304,7 +323,12 @@ L'ORDRE DEPUIS LE RETOUR DE LA BOX PILOTE (8 sept.) — il remplace le précéde
 CE QUI RESTE, ET CE QUI LE RETIENT
   D-021   ⟵ rien. **Le prochain** — la porte du coach, et la place de la séance
   P1-008a ⟵ rien — le coach coche sa feuille, l'absent est marqué. Il porte
-            aussi la découpe P1-007a/b et l'amendement d'ADR 0004
+            aussi la découpe P1-007a/b et l'amendement d'ADR 0004.
+            À réestimer à l'ouverture, en disant de combien (première
+            lecture : +1,25)
+  P1-017  ⟵ rien — la première infrastructure de production, jouée PENDANT
+            P1-008a et pas la semaine de la box : ce dont on ne contrôle pas
+            le déroulé se lance tôt
   P1-007  ⟵ pas Apple : son propre travail préparatoire, découpe a/b + ADR 0004
   P1-006  ⟵ P1-007, et rien d'autre
   P1-009 → P1-001f  ⟵ rien. Après la démo
@@ -317,8 +341,9 @@ NON PROGRAMMÉS, chacun avec son déclencheur
             un second défaut « une porte, un rôle », ou l'ouverture de P2-001.
 
         ↓
-  P1-016  ⟵ LA MISE EN SERVICE. 3 j·h de technique, dans ① depuis le 9 sept.,
-            + 4 jours d'accompagnement qui ne sont pas des j·h.
+  P1-016  ⟵ LA MISE EN SERVICE. 1,75 j·h de technique (build TestFlight,
+            sauvegarde restaurée) + 4 jours d'accompagnement qui ne sont pas
+            des j·h. Et trois pièces RGPD datées « avant le premier import ».
         ↓
   ═══ JALON : mise en production chez la box pilote ═══
 ```
@@ -397,7 +422,7 @@ sait pas lui répondre.
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière P1-007**, dont elle tient la promotion. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
 | P1-007  | Notifications push                                |      4 | 🔒 **partiellement bloqué — iOS**. Sa section « ce que ce ticket suppose », écrite le 6 sept. 2026, a trouvé trois trous que l'estimation ne couvre pas : **aucun émetteur** (ni edge function, ni route handler), **aucun journal d'envoi** pour le plafond marketing, et **`users` n'a pas de fuseau** alors que les quiet hours sont « heure locale du membre ». Deux critères en `[~]` : le push iOS et le deep link, tous deux derrière le **compte développeur Apple**. Android est ouvert et gratuit. **4 j·h à recompter au lancement** |
 | P1-015  | La séance du cours, écrite par le coach           |      5 | ✅ **fusionné (PR #63) — passe jouée le 9 sept. 2026, et incomplète.** Le **premier ticket venu d'un client réel**, et il tient : une séance **par occurrence**, en texte libre, avec un pré-remplissage qui **copie sans lier**, et la troisième protection contre le rafraîchissement de série. **Deux défauts à la passe, aucun visible en test** → `D-021` : le COACH est refusé par la porte du back-office, donc le droit ouvert à trois niveaux sur quatre ne s'exerce pas — **son critère repasse en `[ ]`** ; et le formulaire de la séance est logé sous le panneau d'annulation. **Fusionné n'est pas clos** |
-| P1-008a | Le coach coche sa feuille, et l'absent est marqué  |   3,75 | **retourné par la box pilote le 8 sept. 2026.** Le coach tient sa liste et ça lui va : RM3.6, le repli du périmètre, **est** le produit. Reste le pointage manuel, l'horodatage de présence et le job de no-show. **7 → 3,75 — ce n'est pas une réestimation, c'est un autre ticket**. **À recompter à l'ouverture** (9 sept. 2026) : la feuille est **mobile**, tranché sur la spec §4-P3, et elle sera **la première surface de l'app qui dépend d'un rôle** — `apps/mobile` ne lit `role` nulle part. Le lot d'écran à 1,25 a été chiffré comme un écran ; c'est un mode |
+| P1-008a | Le coach coche sa feuille, et l'absent est marqué  |   3,75 | **retourné par la box pilote le 8 sept. 2026.** Le coach tient sa liste et ça lui va : RM3.6, le repli du périmètre, **est** le produit. Reste le pointage manuel, l'horodatage de présence et le job de no-show. **7 → 3,75 — ce n'est pas une réestimation, c'est un autre ticket**. **À recompter à l'ouverture** (9 sept. 2026) : la feuille est **mobile**, tranché sur la spec §4-P3, et elle sera **la première surface de l'app qui dépend d'un rôle** — `apps/mobile` ne lit `role` nulle part. Le lot d'écran à 1,25 a été chiffré comme un écran ; c'est un mode. **Cinquième dérapage vu avant l'ouverture** — réestimer à l'ouverture, pas absorber, **et dire de combien** : première lecture +1,25 (3,75 → 5), à tenir par qui ouvre le ticket. `P1-017` se joue pendant celui-ci |
 | P1-008b | Le check-in QR : le membre scanne lui-même        |      6 | **non programmé** — la box pilote n'en a pas besoin. Mais §10 le classe « attendu par le marché » : **une box de 200 membres avec des coachs qui tournent ne connaît pas ses adhérents par leur prénom**. Déclencheur : la première box qui n'est pas la pilote. Porte tout ce qui scanne, **et la section règle 8** dont les trois trouvailles ont servi à décider de ne pas le lancer |
 | P1-013  | Droits de réservation accordés à la main          |      2 | **non programmé** — écrit, chiffré, prêt. À sortir le jour où la box pilote veut couper un droit sans exclure quelqu'un. `member_has_booking_right()` rend `true` pour tout membre actif : c'est son appelant manquant |
 | P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. **Rend exerçable un critère `[~]` de P1-012** (deux boxes, sans passer par la déconnexion qui purge le cache). La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
@@ -412,7 +437,8 @@ sait pas lui répondre.
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
 | D-016   | Trois écrans qui ne relisent rien au retour       |   0,25 | ✅ fait le 7 sept. 2026. **Ligne ajoutée le 9 sept. 2026** : son 0,25 était crédité aux faits par le tableau des mouvements sans avoir de ligne ici, donc compté dans un total où il ne figurait pas |
 | D-021   | La porte du coach, et la place de la séance       |   1,75 | **le prochain** — né de la passe du 9 sept. 2026. `P1-015` a ouvert le droit du coach à **trois niveaux sur quatre** : `layout.tsx:56` est resté celui de `P1-001a`, donc la personne à qui le ticket est destiné n'atteint pas son écran. Avec la place du formulaire de séance, et **le contrôle qui manquait** : un test qui exerce la porte du back-office par rôle |
-| P1-016  | La mise en service chez la box pilote             |      3 | à faire — **écrit le 9 sept. 2026, entré dans ① le jour même**, après la fusion de PR #64. Le jalon dit « mise en production chez la box pilote », pas « le code est fini ». Ce ticket est l'écart : **3 j·h de technique** (projet Supabase hébergé, déploiement web, build iOS + TestFlight, restauration testée) **+ 4 jours d'accompagnement** qui ne sont pas des j·h et **n'entrent pas ici**. La colonne « à arbitrer » n'a duré qu'une revue, comme le ticket l'exigeait |
+| P1-016  | La mise en service chez la box pilote             |   1,75 | à faire, **en dernier** — écrit le 9 sept. 2026, entré dans ① le jour même (PR #64), **puis découpé après PR #65** : le projet hébergé et le déploiement partent dans `P1-017` pour ne pas concentrer l'inconnu la semaine de la box. Reste ici ce qui dépend vraiment du reste — build TestFlight, sauvegarde restaurée — **+ 4 jours d'accompagnement** qui ne sont pas des j·h. **Et le RGPD y est daté** : DPA, registre, politique de confidentialité **avant le premier import** — la sous-traitance art. 28 commence le jour de la mise en service, et `consents.tsx` horodate depuis le 31 août un consentement à une politique **qui n'existe pas** |
+| P1-017  | La première infrastructure de production          |   1,25 | à faire, **pendant `P1-008a`** — sorti de `P1-016` le 9 sept. 2026. Projet Supabase hébergé (major **17** lu dans le projet, `pg_cron` à réactiver, `test:db` contre la base distante) et déploiement de `apps/web`. **A trouvé un trou en s'écrivant** : le SMTP intégré d'un projet hébergé ne tient pas 80 invitations, donc un SMTP tiers, donc le domaine — quatrième élément bloqué par cette démarche |
 |         | **Total ①**                                       | **109** | dont **86,5 faits**, **22,5 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
@@ -475,7 +501,8 @@ corrigé sans son calcul se re-conteste :
 | **Recompte ligne à ligne du 9 sept.** : `D-018` (1) jamais crédité, `D-016` (0,25) crédité sans ligne — voir ci-dessous | 104,25 | 81,5 | 22,75 |
 | `P1-015` fusionné (5) | 104,25 | 86,5 | 17,75 |
 | `D-021` entre dans ① (1,75) | 106 | 86,5 | 19,5 |
-| `P1-016` entre dans ① (3), tranché après la fusion de PR #64 | **109** | **86,5** | **22,5** |
+| `P1-016` entre dans ① (3), tranché après la fusion de PR #64 | 109 | 86,5 | 22,5 |
+| `P1-016` découpé après PR #65 : −1,25, +1,25 pour `P1-017` — **le moment change, pas le total** | **109** | **86,5** | **22,5** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
