@@ -1,6 +1,6 @@
 # `P1-016` — La mise en service chez la box pilote
 
-**Phase** `P1` · **Estimation** `≈ 3` j·h de technique **à arbitrer** + `4` jours d'accompagnement, **qui ne sont pas des j·h** · **Dépend de** tout le reste de ① · **Spec** §18.3, §18.4 · **Origine** l'écart de date, 9 septembre 2026
+**Phase** `P1` · **Estimation** `3` j·h de technique, **dans ①** + `4` jours d'accompagnement, **qui ne sont pas des j·h** · **Dépend de** tout le reste de ① · **Spec** §18.3, §18.4 · **Origine** l'écart de date, 9 septembre 2026
 
 ## Objectif
 
@@ -41,32 +41,31 @@ avoir fini. La règle 8 le dit pour un ticket ; ici elle s'applique au jalon.
 
 | Lot | Nature | Coût |
 | --- | --- | ---: |
-| Projet Supabase hébergé, migrations appliquées, **major 17 vérifié**, secrets | technique | **à arbitrer** |
-| Déploiement du back-office web, un domaine ou l'URL du fournisseur | technique | **à arbitrer** |
-| *Development build* iOS, TestFlight, et les 80 invitations qui vont avec | technique | **à arbitrer** |
-| Sauvegarde quotidienne + **une restauration réellement testée** | technique | **à arbitrer** |
+| Projet Supabase hébergé, migrations appliquées, **major 17 vérifié**, secrets | technique | 0,75 j·h |
+| Déploiement du back-office web, un domaine ou l'URL du fournisseur | technique | 0,5 j·h |
+| *Development build* iOS, TestFlight, et les 80 invitations qui vont avec | technique | 1,25 j·h |
+| Sauvegarde quotidienne + **une restauration réellement testée** | technique | 0,5 j·h |
 | Configuration en visio avec la box : types de cours, salles, règles, horaires récurrents réels (§18.3 : 1 h annoncée) | accompagnement | 0,5 j |
 | Import du fichier de membres, invitations, relance des non-inscrits | accompagnement | 0,5 j |
 | **Présence en salle la première semaine**, deux créneaux | accompagnement | 1 j |
 | Suivi J+7, appel J+30 (§18.3), et les correctifs de première semaine | accompagnement | 1 j |
 | Réserve — la première semaine d'une vraie box n'est jamais celle qu'on a prévue | accompagnement | 1 j |
 
-**≈ 3 j·h de technique, à arbitrer** — le chiffre est une première estimation et
-il n'est **pas** dans le total ① aujourd'hui. **4 jours d'accompagnement**, qui
-ne sont pas des jours-homme de développement et ne doivent pas y entrer : les
-mélanger rendrait les deux chiffres inutilisables.
+**3 j·h de technique, dans ①** — total 109. **4 jours d'accompagnement**, qui ne
+sont pas des jours-homme de développement et n'y entrent pas : les mélanger
+rendrait les deux chiffres inutilisables.
 
-> ### La partie technique est du développement, et il faut trancher où elle vit
+> ### La partie technique est du développement, et c'est tranché : elle vit ici
 >
-> Trois des quatre premiers lots ci-dessus sont du travail d'ingénierie, pas de
-> l'accompagnement. Les laisser hors du total ① reproduit **exactement** l'erreur
-> que le recompte du 9 septembre vient de corriger — un travail réel qui ne
-> figure dans aucun chiffre finit par ne figurer nulle part.
+> Les quatre premiers lots ci-dessus sont du travail d'ingénierie, pas de
+> l'accompagnement. Les laisser hors du total ① aurait reproduit **exactement**
+> l'erreur que le recompte du 9 septembre venait de corriger — un travail réel
+> qui ne figure dans aucun chiffre finit par ne figurer nulle part.
 >
-> **Deux issues, à choisir explicitement** : les faire entrer dans ① (+3 j·h,
-> total 109), ou en faire un ticket séparé `P1-017` qui y entre. Ce qui n'est pas
-> une issue, c'est de les laisser dans une colonne « à arbitrer » plus d'une
-> revue.
+> **Tranché le 9 septembre 2026, après la fusion de PR #64** : les 3 j·h entrent
+> dans ① sous ce ticket, pas sous un `P1-017` séparé. La colonne « à arbitrer »
+> n'aura duré que le temps d'une fusion. Le découpage ci-dessus est une première
+> répartition — c'est le total qui est tenu, pas chaque ligne.
 
 ## Ce que ce ticket demande de la box
 

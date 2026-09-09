@@ -13,7 +13,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **19,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **22,5 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -29,7 +29,10 @@ qu'elles sont ; les connaître vaut mieux que les découvrir.
 > box, l'import de ses ~80 membres, et la présence en salle la première semaine.
 > **C'était dans la date et dans aucun ticket** : la forme la plus coûteuse d'un
 > travail manquant, parce qu'elle ne se découvre qu'au moment où on croyait avoir
-> fini. Elles ont avancé
+> fini. Depuis que ses 3 j·h de technique sont dans ①, le calcul donne
+> 22,5 ÷ 2,3 ≈ 10 semaines — plus près de la date, sans l'atteindre, et c'est
+> normal : les 4 jours d'accompagnement n'y sont pas, et **ne doivent pas y
+> être**. Ils se comptent en créneaux chez quelqu'un d'autre, pas en j·h. Elles ont avancé
 d'un mois le 3 septembre 2026 : P1-002 et le lot SQL de P1-003 sont fusionnés.
 
 **Revue de backlog du 5 septembre 2026 (soir).** Le tableau d'état disait
@@ -79,7 +82,9 @@ passe a donc produit **trois tickets et deux corrections de documents** :
   `CLAUDE.md` annonçait `pnpm e2e:web` sans Playwright ni script : **la ligne a
   été retirée le jour même**, la dette est ouverte avec son déclencheur ;
 - **`P1-016`** — la mise en service chez la box pilote, qui était dans la date
-  et dans aucun ticket. Voir l'encadré en tête de fichier ;
+  et dans aucun ticket. Voir l'encadré en tête de fichier. **Ses 3 j·h de
+  technique sont entrés dans ① le jour même**, après la fusion de PR #64 —
+  total **109** ;
 - le total ① a été **recompté ligne à ligne** et il était faux de 1 j·h (tableau
   des mouvements) ; le décor du § 5 septies écrivait `/box/rueil/…` là où le slug
   du seed est `crossfit-rueil`. **Les autres identifiants de la page ont été
@@ -312,8 +317,8 @@ NON PROGRAMMÉS, chacun avec son déclencheur
             un second défaut « une porte, un rôle », ou l'ouverture de P2-001.
 
         ↓
-  P1-016  ⟵ LA MISE EN SERVICE. ≈3 j·h de technique à arbitrer, + 4 jours
-            d'accompagnement qui ne sont pas des j·h. Écrit le 9 sept. 2026.
+  P1-016  ⟵ LA MISE EN SERVICE. 3 j·h de technique, dans ① depuis le 9 sept.,
+            + 4 jours d'accompagnement qui ne sont pas des j·h.
         ↓
   ═══ JALON : mise en production chez la box pilote ═══
 ```
@@ -407,8 +412,8 @@ sait pas lui répondre.
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
 | D-016   | Trois écrans qui ne relisent rien au retour       |   0,25 | ✅ fait le 7 sept. 2026. **Ligne ajoutée le 9 sept. 2026** : son 0,25 était crédité aux faits par le tableau des mouvements sans avoir de ligne ici, donc compté dans un total où il ne figurait pas |
 | D-021   | La porte du coach, et la place de la séance       |   1,75 | **le prochain** — né de la passe du 9 sept. 2026. `P1-015` a ouvert le droit du coach à **trois niveaux sur quatre** : `layout.tsx:56` est resté celui de `P1-001a`, donc la personne à qui le ticket est destiné n'atteint pas son écran. Avec la place du formulaire de séance, et **le contrôle qui manquait** : un test qui exerce la porte du back-office par rôle |
-| P1-016  | La mise en service chez la box pilote             |      — | **écrit le 9 sept. 2026, hors total — et c'est une décision en attente.** Le jalon dit « mise en production chez la box pilote », pas « le code est fini ». Ce ticket est l'écart : **≈ 3 j·h de technique** (projet Supabase hébergé, déploiement web, build iOS + TestFlight, restauration testée) **+ 4 jours d'accompagnement** qui ne sont pas des j·h. Les 3 j·h doivent entrer dans ① ou devenir `P1-017` — **pas rester dans une colonne « à arbitrer » plus d'une revue** |
-|         | **Total ①**                                       | **106** | dont **86,5 faits**, **19,5 restants** — **hors `P1-016`** |
+| P1-016  | La mise en service chez la box pilote             |      3 | à faire — **écrit le 9 sept. 2026, entré dans ① le jour même**, après la fusion de PR #64. Le jalon dit « mise en production chez la box pilote », pas « le code est fini ». Ce ticket est l'écart : **3 j·h de technique** (projet Supabase hébergé, déploiement web, build iOS + TestFlight, restauration testée) **+ 4 jours d'accompagnement** qui ne sont pas des j·h et **n'entrent pas ici**. La colonne « à arbitrer » n'a duré qu'une revue, comme le ticket l'exigeait |
+|         | **Total ①**                                       | **109** | dont **86,5 faits**, **22,5 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
 nouvelle.** Un chiffre qui monte se relit comme une dérive s'il ne porte pas sa
@@ -430,6 +435,12 @@ destiné d'atteindre son écran. **Une dette qui naît d'une passe entre dans le
 total le jour où elle est écrite**, pas le jour où elle est faite — sinon le
 jalon paraît plus court qu'il n'est, ce qui est exactement la dérive que ce
 tableau documente trois fois.
+
+**Puis remontent à 22,5 le même jour** : les 3 j·h de technique de `P1-016`
+entrent dans ①. Ils étaient « à arbitrer » dans le commit précédent, et le
+ticket exigeait que ça ne dure pas plus d'une revue — ça n'a pas duré une
+journée. **Ce chiffre-là monte pour la bonne raison** : un travail qui était
+dans la date sans être dans aucun ticket est désormais dans les deux.
 
 **Quatre tickets ne sont pas dans ce total** — `P1-013`, `P1-005b`, `P0-005b` et
 `P1-008b`, les trois derniers depuis le 8 septembre 2026. Ils sont écrits et chiffrés, pas programmés, et
@@ -463,7 +474,8 @@ corrigé sans son calcul se re-conteste :
 | **Retour box pilote** : `P1-008a` 7 → 3,75, `P1-015` +5 | **104** | **80,5** | **23,5** |
 | **Recompte ligne à ligne du 9 sept.** : `D-018` (1) jamais crédité, `D-016` (0,25) crédité sans ligne — voir ci-dessous | 104,25 | 81,5 | 22,75 |
 | `P1-015` fusionné (5) | 104,25 | 86,5 | 17,75 |
-| `D-021` entre dans ① (1,75) | **106** | **86,5** | **19,5** |
+| `D-021` entre dans ① (1,75) | 106 | 86,5 | 19,5 |
+| `P1-016` entre dans ① (3), tranché après la fusion de PR #64 | **109** | **86,5** | **22,5** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
