@@ -71,6 +71,18 @@ figure parmi les écrans du parcours, pas parmi ceux du back-office.
 > de `P1-007`. Elle n'est pas fausse d'un lot entier — la base, la fonction, le
 > job et le pgTAP ne bougent pas — mais le lot d'écran est sous-évalué, et le
 > dire maintenant vaut mieux que de le constater au troisième jour.
+>
+> **C'est le cinquième dérapage d'estimation vu avant l'ouverture**, et la
+> consigne est la même que pour les quatre autres : **réestimer à l'ouverture,
+> pas absorber, et dire de combien.** Première lecture, à confirmer ou corriger
+> le jour même — le lot d'écran passe de 1,25 à **2,5** (point d'entrée réservé
+> au coach, garde, la feuille, le retour), soit **+1,25, 3,75 → 5**. Le total ①
+> ne bouge pas avant que ce chiffre soit tenu par quelqu'un qui a ouvert le
+> ticket.
+>
+> **Et `P1-017` se joue pendant ce ticket** — le projet Supabase hébergé et le
+> déploiement web, sortis de `P1-016` pour ne pas concentrer l'inconnu la
+> semaine de la box. Ils ne touchent pas ce lot ; ils partagent son calendrier.
 
 ### La présence va sur `bookings`, et pas dans une table `checkins`
 
