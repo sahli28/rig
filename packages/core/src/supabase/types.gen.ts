@@ -74,6 +74,7 @@ export type Database = {
       };
       bookings: {
         Row: {
+          attended_at: string | null;
           booked_at: string;
           cancelled_at: string | null;
           cancelled_within_window: boolean | null;
@@ -82,11 +83,13 @@ export type Database = {
           id: string;
           idempotency_key: string;
           membership_id: string;
+          no_show_at: string | null;
           status: Database['public']['Enums']['booking_status'];
           tenant_id: string;
           updated_at: string;
         };
         Insert: {
+          attended_at?: string | null;
           booked_at?: string;
           cancelled_at?: string | null;
           cancelled_within_window?: boolean | null;
@@ -95,11 +98,13 @@ export type Database = {
           id?: string;
           idempotency_key: string;
           membership_id: string;
+          no_show_at?: string | null;
           status?: Database['public']['Enums']['booking_status'];
           tenant_id: string;
           updated_at?: string;
         };
         Update: {
+          attended_at?: string | null;
           booked_at?: string;
           cancelled_at?: string | null;
           cancelled_within_window?: boolean | null;
@@ -108,6 +113,7 @@ export type Database = {
           id?: string;
           idempotency_key?: string;
           membership_id?: string;
+          no_show_at?: string | null;
           status?: Database['public']['Enums']['booking_status'];
           tenant_id?: string;
           updated_at?: string;
@@ -880,6 +886,8 @@ export type Database = {
       tenant_settings: {
         Row: {
           cancel_window_minutes: number;
+          checkin_window_after_minutes: number;
+          checkin_window_before_minutes: number;
           close_minutes_before: number;
           created_at: string;
           default_visitor_capacity: number;
@@ -890,6 +898,8 @@ export type Database = {
         };
         Insert: {
           cancel_window_minutes?: number;
+          checkin_window_after_minutes?: number;
+          checkin_window_before_minutes?: number;
           close_minutes_before?: number;
           created_at?: string;
           default_visitor_capacity?: number;
@@ -900,6 +910,8 @@ export type Database = {
         };
         Update: {
           cancel_window_minutes?: number;
+          checkin_window_after_minutes?: number;
+          checkin_window_before_minutes?: number;
           close_minutes_before?: number;
           created_at?: string;
           default_visitor_capacity?: number;
@@ -1045,6 +1057,34 @@ export type Database = {
       };
     };
     Views: {
+      class_attendance_sheet: {
+        Row: {
+          attended_at: string | null;
+          booking_id: string | null;
+          class_id: string | null;
+          first_name: string | null;
+          last_initial: string | null;
+          membership_id: string | null;
+          no_show_at: string | null;
+          tenant_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bookings_class_same_tenant';
+            columns: ['class_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'classes';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'bookings_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       class_roster: {
         Row: {
           class_id: string | null;
@@ -1211,6 +1251,7 @@ export type Database = {
         Returns: string;
       };
       maintain_class_occurrences: { Args: never; Returns: undefined };
+      mark_no_shows: { Args: never; Returns: number };
       materialize_class_occurrences: {
         Args: { p_from: string; p_schedule_id?: string; p_until: string };
         Returns: number;
@@ -1245,6 +1286,10 @@ export type Database = {
       restore_booking_entitlement: {
         Args: { p_booking_id: string; p_within_window: boolean };
         Returns: undefined;
+      };
+      set_attendance: {
+        Args: { p_booking_id: string; p_present: boolean };
+        Returns: string;
       };
       set_member_role: {
         Args: {

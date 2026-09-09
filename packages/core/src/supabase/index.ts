@@ -33,7 +33,22 @@ export {
   type RequiredAction,
   type TenantTheme,
 } from './me';
-export { BACK_OFFICE_RIGHTS, can, canEnterBackOffice, type BackOfficeRight } from './back-office';
+export {
+  BACK_OFFICE_RIGHTS,
+  can,
+  canEnterBackOffice,
+  canTakeAttendance,
+  type BackOfficeRight,
+} from './back-office';
+export {
+  attendanceStateOf,
+  summarizeAttendance,
+  fetchAttendanceSheet,
+  setAttendance,
+  type AttendanceRow,
+  type AttendanceState,
+  type AttendanceSummary,
+} from './attendance';
 export {
   DirectoryRowSchema,
   ImportResultSchema,

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { BACK_OFFICE_RIGHTS, can, canEnterBackOffice, type BackOfficeRight } from './back-office';
+import {
+  BACK_OFFICE_RIGHTS,
+  can,
+  canEnterBackOffice,
+  canTakeAttendance,
+  type BackOfficeRight,
+} from './back-office';
 import { MEMBERSHIP_ROLES } from './me';
 import { canModifyMembership } from './staff';
 
@@ -63,6 +69,28 @@ describe('la porte du back-office, par rôle', () => {
       expect(can('OWNER', right)).toBe(true);
       expect(can('MANAGER', right)).toBe(false);
       expect(can('COACH', right)).toBe(false);
+    }
+  });
+});
+
+describe('canTakeAttendance — le staff de la box (P1-008a)', () => {
+  it.each([
+    ['OWNER', true],
+    ['MANAGER', true],
+    ['COACH', true],
+    ['MEMBER', false],
+  ] as const)('%s → %s', (role, attendu) => {
+    expect(canTakeAttendance(role)).toBe(attendu);
+  });
+
+  it('un rôle inconnu ne pointe rien, prototype compris', () => {
+    expect(canTakeAttendance('ADMIN')).toBe(false);
+    expect(canTakeAttendance('constructor')).toBe(false);
+  });
+
+  it('même portée que le droit workout — les deux suivent current_staff_tenant_ids()', () => {
+    for (const role of MEMBERSHIP_ROLES) {
+      expect(canTakeAttendance(role)).toBe(can(role, 'workout'));
     }
   });
 });

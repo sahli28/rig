@@ -79,3 +79,20 @@ export function can(role: string, right: BackOfficeRight): boolean {
 export function canEnterBackOffice(role: string): boolean {
   return rightsOf(role).size > 0;
 }
+
+// La portée « staff de la box » : OWNER, MANAGER, COACH. Sœur exacte de
+// `current_staff_tenant_ids()` en base et de la vue `class_attendance_sheet`.
+const STAFF_ROLES = new Set<MembershipRole>(['OWNER', 'MANAGER', 'COACH']);
+
+/**
+ * Pointer une présence (P1-008a) — une capacité **mobile**, pas une section du
+ * back-office, d'où un prédicat à part plutôt qu'un droit dans la table
+ * ci-dessus. Elle vit ici parce que c'est le seul endroit où ESLint autorise
+ * une décision de rôle (`PAS_DE_COMPARAISON_DE_ROLE`), et pour que le mobile la
+ * **demande** au lieu de comparer `role === 'COACH'` en ligne. La base refuse
+ * déjà de toute façon : `set_attendance()` est bornée à
+ * `current_staff_tenant_ids()`.
+ */
+export function canTakeAttendance(role: string): boolean {
+  return (STAFF_ROLES as ReadonlySet<string>).has(role);
+}

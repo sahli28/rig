@@ -56,6 +56,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     cancel_window_minutes: 240,
     max_upcoming_bookings: 3,
     default_visitor_capacity: 0,
+    checkin_window_before_minutes: 30,
+    checkin_window_after_minutes: 15,
   };
 
   return (

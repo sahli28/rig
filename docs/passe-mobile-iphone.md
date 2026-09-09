@@ -562,6 +562,46 @@ comparer à Hustle Up. C'est le seul repère du ticket : si le coach perd, il ga
 son outil et la fonctionnalité aura été livrée **sans gagner l'usage**. Une vue
 semaine deviendra alors un ticket — avec la mesure qui le justifie, pas avant.
 
+## 5 octies. La feuille de présence (P1-008a)
+
+**La première surface de l'app réservée à un rôle.** Tout le reste est prouvé en
+base et au harnais (`attendance_test.sql`, 27 assertions, `rls-auditor` SAFE) ;
+ce qui ne se voit qu'à l'écran, c'est que la porte s'ouvre pour le coach et
+**pas** pour le membre, et que la feuille se tient d'une main.
+
+### Le décor
+
+Sur l'iPhone, connecté en **coach** — `sarah@example.com`. Un cours **maintenant**
+est nécessaire (la fenêtre par défaut est 30 min avant / 15 après le début) : au
+besoin, sur le PC en `psql`, poser un cours de Rueil à `now()` avec deux ou trois
+réservations confirmées, ou décaler la fenêtre de pointage à 10080 dans les
+réglages pour pointer un cours du jour.
+
+| # | Geste | Attendu |
+|---|---|---|
+| 1 | En coach, ouvrir la fiche d'un cours du jour | Un bouton **« Feuille de présence »** est visible, en haut |
+| 2 | L'ouvrir | La liste des inscrits, **prénom + initiale** — jamais de nom complet, jamais d'e-mail |
+| 3 | Cocher une personne | La bascule reste, **sans bouton Enregistrer**, et un toast de succès. Rouvrir la feuille : toujours cochée |
+| 4 | Décocher | La bascule retombe, écrit immédiatement |
+| 5 | Un cours **hors fenêtre** (dans deux jours) | Cocher est refusé, le toast dit « juste avant et juste après le début » — **la base refuse, pas l'écran** |
+| 6 | Mode sombre, texte à **200 %** | La liste se tient, les noms ne débordent pas |
+| 7 | VoiceOver sur une case | Annonce **« Léa M., activé/désactivé »** — le nom, pas « case à cocher » |
+
+### Le geste qui décide vraiment
+
+| # | Geste | Attendu |
+|---|---|---|
+| 8 | Se reconnecter en **membre** (`lea@example.com`), ouvrir la même fiche de cours | **Aucun** bouton « Feuille de présence ». Taper l'URL `/attendance/<id>` à la main : « Réservé au staff » |
+
+Le geste 8 est celui qui prouve que la porte est bien une porte. Le reste vérifie
+que le geste du coach en salle est tenable d'une main.
+
+### Le repère, à noter au journal
+
+**Le pointage manuel doit être plus rapide que la feuille papier**, sinon le coach
+la garde. Chronométrer une classe complète et le noter — même logique que le
+repère de `P1-015`.
+
 ## 5 sexies. La passe groupée — quatre dettes, une passe
 
 **Pourquoi groupée**, décidé le 6 septembre 2026 : quatre tickets ont laissé un

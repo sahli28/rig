@@ -232,11 +232,18 @@ select is(
 -- mais il attrape le cas qui compte : une vue posée sans **aucun** filtre de
 -- tenant. Comme le parcours porte sur le catalogue, toute vue ajoutée plus tard
 -- est couverte sans qu'on ait à tenir une liste.
+-- Les trois prédicats de tenant reconnus, tous `security definer` et dérivés
+-- d'`auth.uid()` : `current_tenant_ids()` (mes boxes), `current_admin_tenant_ids()`
+-- (celles où je suis OWNER/MANAGER), `current_staff_tenant_ids()` (OWNER/MANAGER/
+-- COACH). Le troisième est entré ici avec `class_attendance_sheet` (P1-008a),
+-- première vue à se scoper au staff. Le contrôle **comportemental** 8 le prouve
+-- borné ; celui-ci n'est que le grep structurel.
 select is(
   (select coalesce(string_agg(v.view_name, ', ' order by v.view_name), '')
    from business_views v
    where v.definition not like '%current_tenant_ids%'
-     and v.definition not like '%current_admin_tenant_ids%'),
+     and v.definition not like '%current_admin_tenant_ids%'
+     and v.definition not like '%current_staff_tenant_ids%'),
   '',
   'toute vue dérive son tenant d''auth.uid(), jamais d''un paramètre'
 );

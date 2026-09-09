@@ -88,7 +88,7 @@ ad hoc aux règles différentes, ce sont trois surfaces qu'on ne compare jamais.
 | **Admin** — OWNER/MANAGER sur tous les membres | tout, **e-mail compris** | responsabilité de traitement de la box | `member_admin_directory` (D-001) |
 | **Coach** — un membre sur qui anime son cours | prénom, **initiale** du nom | exécution du contrat du coach : son nom est déjà au mur et sur le site | `tenant_coaches` (P1-010) |
 | **Pair** — un membre sur les autres inscrits **du même cours** | prénom, **initiale** du nom | **intérêt légitime**, avec information et **opposition** — un pair n'exerce aucune fonction, contrairement au coach | `class_roster` (P1-003c) |
-| **Présence** — un coach sur son propre cours | à trancher | à trancher | pas de ticket |
+| **Présence** — le staff sur un cours de sa box | prénom, **initiale** du nom | **traitement légitime de la box** : pointer une présence exécute son contrat, comme la feuille d'appel d'une salle. **Ignore l'opposition `hidden_from_roster`** — elle masque aux pairs, pas au coach qui coche | `class_attendance_sheet` (P1-008a) |
 
 Ce qui vaut pour **toute** audience non administrative :
 

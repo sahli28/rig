@@ -22,6 +22,7 @@ import {
   affordanceHint,
   affordanceLabelKey,
   bookClass,
+  canTakeAttendance,
   cancelBooking,
   cancelConsequence,
   bookingAffordance,
@@ -328,6 +329,11 @@ export default function ClassDetailScreen() {
     membership !== null &&
     !inscrits.some((pair) => pair.membership_id === membership.id);
 
+  // Le staff pointe la présence (P1-008a). On **demande** le droit à `@rack/core`
+  // au lieu de comparer `role === 'COACH'` : ESLint l'interdit dans une app, et
+  // la décision doit vivre à un seul endroit. Invisible d'un membre.
+  const peutPointer = membership !== null && canTakeAttendance(membership.role);
+
   return (
     <ScrollView
       contentContainerStyle={{
@@ -358,6 +364,22 @@ export default function ClassDetailScreen() {
         />
       ) : (
         <>
+          {/* Le point d'entrée du staff vers la feuille de présence (P1-008a) —
+              la première porte de l'app réservée à un rôle. Invisible d'un
+              membre, en haut parce que c'est le geste du coach en salle. */}
+          {peutPointer ? (
+            <Button
+              label={t('attendance.open_sheet')}
+              accessibilityLabel={t('attendance.open_sheet_a11y', {
+                class: cours.className,
+                time: formatTime(cours.starts_at),
+              })}
+              onPress={() => router.push(`/attendance/${cours.id}`)}
+              variant="secondary"
+              fullWidth
+            />
+          ) : null}
+
           <Card>
             <View style={{ gap: theme.space(2) }}>
               <Text
