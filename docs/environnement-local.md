@@ -52,8 +52,28 @@ version ni clés héritées nécessaires. Le détail des variables est dans le
 ## Après un `db:reset`, la session du navigateur est morte
 
 Et la première requête peut échouer en `PGRST303 « JWT issued at future »` :
-décalage d'horloge entre le conteneur Postgres et l'hôte. Se reconnecter, ou
-attendre quelques secondes et recharger.
+décalage d'horloge entre les conteneurs et l'hôte. Se reconnecter, ou attendre
+quelques secondes et recharger.
+
+## `PGRST303 « JWT issued at future »` — surtout après une mise en veille
+
+**Le déclencheur n'est pas que `db:reset`**, contrairement à ce que la note
+ci-dessus laissait croire, et c'est le piège : il tombe **en pleine session**,
+sur un `500` du planning juste après un login qui a réussi. Vu le 9 septembre
+2026, hors de tout reset.
+
+Le mécanisme, mesuré sur les conteneurs (pas déduit) : **GoTrue** estampille le
+jeton avec `iat = maintenant`, **PostgREST** le valide contre *son* horloge, et
+si l'horloge de la VM WSL2 a fait un saut — ce qu'elle fait au réveil de la
+machine — le jeton paraît émis dans le futur. C'est **du décor** : sur Supabase
+hébergé, les deux services sont synchronisés au temps réseau et ce `PGRST303`
+n'existe pas.
+
+**Le corriger** : se reconnecter suffit presque toujours — le nouveau jeton
+porte un `iat` correct. S'il persiste, l'horloge de la VM est encore décalée :
+`docker restart supabase_auth_imys supabase_rest_imys`, ou `wsl --shutdown` puis
+relancer Docker Desktop, la resynchronise. Se mesure en une commande, l'écart
+conteneur ↔ hôte : `docker exec supabase_auth_imys date -u` comparé à `date -u`.
 
 ## Expo réécrit `apps/mobile/tsconfig.json`
 

@@ -183,23 +183,20 @@ une vue semaine deviendra un ticket — **avec la mesure qui le justifie**.
       septies, gestes 1 à 6 : le pré-remplissage trouve sa source, la
       publication annonce qu'elle ne notifie personne, l'état passe bien à
       « Publiée — visible des membres », la séance se lit sur l'iPhone
-- [ ] **les deux gestes qui protègent le travail du dimanche soir** — vider le
+- [x] **les deux gestes qui protègent le travail du dimanche soir** — vider le
       champ, et n'y laisser qu'une espace : la confirmation apparaît, et rien
-      n'est supprimé sans elle (gestes 7 et 8). **NOK le 9 septembre 2026, soir**
-      : la confirmation apparaît, mais la confirmer rend « Une erreur est
-      survenue ». **Cause trouvée et prouvée en base** : `update … set
-      deleted_at` était refusé par `class_workouts_select`, dont le
-      `deleted_at is null` valait pour tout le monde — sur PostgreSQL 17, la
-      ligne mise à jour doit rester visible de qui la met à jour. Aucun test ne
-      jouait l'effacement sous l'identité du coach. **Corrigé le jour même**
-      (`fix/P1-015-gestes-7-et-8`) : la policy ne borne plus que les membres,
-      pgTAP joue l'effacement en COACH, la **sœur** `class_schedules_select`
-      avait le même trou depuis P1-002 — supprimer une série n'a jamais marché
-      depuis l'écran — et est corrigée avec son test. Plus deux défauts d'écran
-      vus sur la capture : `**supprimera**` rendu tel quel, et « Supprimer la
-      séance » en bouton primaire. **Reste `[ ]` jusqu'à ce que les gestes 7 et
-      8 soient rejoués sur `main`.** Ce critère avait été coché à tort
-      l'après-midi, sur un compte rendu qui ne les nommait pas
+      n'est supprimé sans elle (gestes 7 et 8). **Rejoués sur `main` le
+      9 septembre 2026, OK.** Le chemin qui y mène raconte tout ce que ce dépôt
+      traque : coché à tort l'après-midi sur un compte rendu qui ne les nommait
+      pas ; décoché ; **NOK à la vraie passe du soir** — la confirmation
+      apparaît, la confirmer rend « Une erreur est survenue » ; cause prouvée en
+      base — `update … set deleted_at` refusé par `class_workouts_select`, dont
+      le `deleted_at is null` valait pour tout le monde, alors que PostgreSQL 17
+      exige que la ligne mise à jour reste visible de qui la met à jour ; la
+      **sœur** `class_schedules_select` cassait « supprimer une série » depuis
+      P1-002, sans qu'aucun test le voie ; corrigé (`fix/P1-015-gestes-7-et-8`,
+      piège 13, six pgTAP sous l'identité qui archive, deux défauts d'écran) ;
+      **puis, seulement là, coché — sur `main`, avec le geste joué**
 - [x] **le droit du coach est exercé** — écrire une séance en `COACH`, et non en
       administration. **Impossible le matin du 9 septembre 2026** : la porte du
       back-office (`layout.tsx:56`) refusait tout ce qui n'était ni OWNER ni
@@ -231,11 +228,21 @@ déjà les occurrences et porte des actions par occurrence, et la fiche de cours
 existe — il n'y a **aucun écran à créer**, seulement une affordance et une
 fonction à étendre.
 
-## Ce que la passe du 9 septembre 2026 a laissé ouvert
+## ✅ Clos le 9 septembre 2026 — les onze critères verts
 
-**Fusionné (PR #63) n'est pas clos.** Deux constats sont sortis de la passe, tous
-deux partis dans `D-021` — un lot court de 1,75 j·h qui touche le même écran et
-le même utilisateur :
+Le dernier `[ ]` — les gestes 7 et 8 — s'est fermé sur `main` après trois
+détours : un faux vert coché puis décoché, un vrai défaut de base trouvé à la
+passe (`fix/P1-015-gestes-7-et-8`), et le geste enfin rejoué. **C'est le premier
+ticket venu d'un client, et il est tenu.** Reste à mesurer, hors critère
+d'acceptation, le seul repère qui compte vraiment : la saisie d'une semaine
+complète, plus rapide que dans Hustle Up — au journal de `docs/passe-mobile-iphone.md`,
+à la première semaine réelle (`P1-016`).
+
+## Ce que la passe du 9 septembre 2026 a laissé ouvert, et qui a été traité
+
+**Fusionné (PR #63) n'était pas clos.** Deux constats sont sortis de la passe,
+tous deux partis dans `D-021` — un lot court de 1,75 j·h qui touche le même écran
+et le même utilisateur :
 
 1. **la porte du back-office**, ci-dessus : le coach n'atteint pas l'écran que ce
    ticket lui a construit. C'est le critère resté `[ ]` ;
