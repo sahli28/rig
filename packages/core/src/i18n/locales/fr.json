@@ -104,6 +104,7 @@
   "errors.already_booked": "Ta place est déjà réservée pour ce cours.",
   "errors.already_member": "Tu fais déjà partie de cette box.",
   "errors.append_only": "Cette écriture est définitive et ne peut pas être modifiée.",
+  "errors.attendance_window_closed": "Le pointage n'est ouvert que juste avant et juste après le début du cours.",
   "errors.auth_required": "Connecte-toi pour continuer.",
   "errors.booking_window_closed": "Les réservations ne sont pas encore ouvertes pour ce cours.",
   "errors.cancel_window_passed": "Le délai d'annulation est dépassé.",

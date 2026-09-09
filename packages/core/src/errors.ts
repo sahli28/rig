@@ -36,6 +36,7 @@ export const APP_ERROR_CODES = [
   'ALREADY_BOOKED',
   'ALREADY_MEMBER',
   'APPEND_ONLY',
+  'ATTENDANCE_WINDOW_CLOSED',
   'AUTH_REQUIRED',
   'BOOKING_WINDOW_CLOSED',
   'CLASS_ALREADY_STARTED',
@@ -150,6 +151,10 @@ export const ERROR_MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   // d'annuler (elle marque l'annulation comme tardive), le cours commencé si.
   // Deux codes parce que ce sont deux réponses, pas deux formulations.
   CLASS_ALREADY_STARTED: 'errors.class_already_started',
+  // Le pointage est refusé hors de la fenêtre (30 min avant / 15 après par
+  // défaut). Comme les fenêtres de réservation, la base porte un `23514`
+  // générique — le code applicatif discrimine.
+  ATTENDANCE_WINDOW_CLOSED: 'errors.attendance_window_closed',
   NO_VALID_ENTITLEMENT: 'errors.no_valid_entitlement',
   MAX_UPCOMING_BOOKINGS_REACHED: 'errors.max_upcoming_bookings_reached',
   QUOTA_EXCEEDED: 'errors.quota_exceeded',
