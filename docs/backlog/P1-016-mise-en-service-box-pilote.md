@@ -41,28 +41,58 @@ avoir fini. La règle 8 le dit pour un ticket ; ici elle s'applique au jalon.
 
 ### Le RGPD n'est pas un item de §18.4 : c'est l'échéance de ce ticket
 
-**Au moment où `P1-016` s'exécute, Skynder devient sous-traitante de la box**
-au sens de l'article 28 — la spec le pose sans détour en §15.1 : pour les
+**Au moment où `P1-016` s'exécute, l'éditeur du service devient sous-traitant
+de la box** au sens de l'article 28 — la spec le pose sans détour en §15.1 : pour les
 données des membres, **la box est responsable de traitement et Rack est
 sous-traitant**, et « sans ce document, vous êtes en infraction dès le premier
 client ». Le premier client, c'est la box pilote, et le premier jour, c'est
 celui de l'import.
 
 **Et il n'y a pas d'entité juridique.** Une personne physique peut être
-sous-traitante, donc ce n'est pas bloquant. Mais ça expose personnellement, et
-ça ne s'improvise pas le lundi matin. D'où **trois pièces, datées « avant le
+sous-traitante, donc ce n'est pas bloquant. Mais ça expose personnellement —
+jusqu'à la société, c'est un nom d'état civil qui engage — et ça ne s'improvise
+pas le lundi matin. *(Ce ticket prépare un DPA : ses formulations finiront
+copiées dans un contrat. D'où un rôle — « l'éditeur du service » — et jamais un
+nom.)* D'où **trois pièces, datées « avant le
 premier import »** :
 
 | Pièce | Ce qu'elle est | Ce que le dépôt en sait aujourd'hui |
 | --- | --- | --- |
 | **Le DPA** (art. 28) | le contrat de sous-traitance signé avec la box — la spec le veut « intégré au parcours d'inscription, acceptation horodatée » ; **au pilote, une signature suffit** | *rien* |
 | **Le registre des traitements** (art. 30) | « un tableur suffit, mais il doit exister » (§15.1). Avec la liste des sous-traitants ultérieurs et leur localisation : Supabase, Vercel, Expo, le SMTP tiers | *rien* |
-| **La politique de confidentialité** — l'information des membres | le document que le parcours de consentement **pointe déjà**, et qui doit **exister et être vrai** | ⚠️ **c'est le point le plus net.** `consents.tsx:113` fait cocher « J'ai lu la politique de confidentialité », et `current_policy_version()` (`20260831133636:16`) enregistre le consentement sous la version **`2026-08-01`**. **Aucun texte ne porte cette version, et l'écran ne pointe vers rien** — aucun lien, aucune adresse. Le produit horodate depuis le 31 août un consentement à un document qui n'existe pas |
+| **La politique de confidentialité** — l'information des membres | le document que le parcours de consentement **pointe déjà**, et qui doit **exister et être vrai** | ❌ **c'est le point le plus grave des trois, et il a l'air conforme.** `consents.tsx:113` fait cocher « J'ai lu la politique de confidentialité » **sans pointer vers rien** — aucun lien, aucune adresse. Le consentement est enregistré sous la version **`2026-08-01`** de `current_policy_version()` (`20260831133636:16`), **avec IP et user-agent** (`consents.ip`, `consents.user_agent`). Et cette constante **n'est pas décorative** : `me_function.sql:135` s'en sert pour décider si les consentements sont satisfaits — **elle conditionne l'accès**. Voir ci-dessous |
+
+**Ce n'est pas un document manquant, c'est un consentement nul.** Le produit
+fait cocher, enregistre un consentement horodaté avec IP et user-agent, et
+**ouvre l'accès** — sur un document qui n'existe pas. Il n'est donc pas éclairé.
+Et il a l'air conforme, ce qui est le pire cas : une table `consents`, des
+versions, des horodatages, une preuve conservée même après suppression du
+compte — **le défaut est invisible depuis les données.**
+
+**Et il y a une conséquence de séquence.** Le jour où la politique sera écrite,
+la constante passera à sa vraie date, et `me()` tiendra **tous les consentements
+antérieurs pour périmés** : `ACCEPT_CONSENTS` revient pour tout le monde. Avant
+les 80 membres, c'est invisible. Deux semaines après la mise en service, c'est
+**redemander leur consentement à 80 personnes dans une box qui vient de changer
+d'outil.** D'où la forme exacte du prérequis :
+
+> **La politique existe, la constante porte sa date, et l'écran y mène — les
+> trois AVANT le premier import.** Pas « la politique avant l'import et la
+> constante quand on y pensera » : le document peut exister sans que l'écran y
+> mène, et la constante peut rester à `2026-08-01` avec un texte daté d'ailleurs.
+> Chacune des trois, seule, laisse le défaut en place.
+
+*(La constante vit dans une migration, et le seed porte la même version dans ses
+lignes de `consents` : les deux bougent ensemble. Règle 13 : tant qu'aucune base
+de production n'existe, ça s'édite en place — et `P1-017` en crée une. Donc
+avant `P1-017`, ou en migration ajoutée après ; ce qui n'est pas une option,
+c'est de laisser la question à `P1-016`.)*
 
 **Ce que ça exige de ce ticket, et pas du lancement commercial** : les trois
-pièces existent, la politique est lisible depuis l'écran de consentement, et la
-version que `current_policy_version()` retourne est celle du texte publié.
-Le reste de §18.4 — CGU, CGV, juriste, AIPD — reste au MVP.
+pièces existent, **l'écran de consentement mène à la politique** (un lien, pas
+une phrase), et **`current_policy_version()` retourne la date du texte publié
+avant que le premier membre réel ne coche**. Le reste de §18.4 — CGU, CGV,
+juriste, AIPD — reste au MVP.
 
 ## Ce que ce ticket demande de vous
 
@@ -121,8 +151,10 @@ bloquer une date :**
 
 - Ce qui reste de la mise en production technique : le build TestFlight et la
   sauvegarde restaurée. Le projet hébergé et le déploiement sont `P1-017`.
-- **Les trois pièces RGPD**, avant le premier import, et la politique de
-  confidentialité **atteignable depuis l'écran de consentement**.
+- **Les trois pièces RGPD**, avant le premier import — et pour la politique,
+  **les trois conditions** : le texte existe, `current_policy_version()` porte
+  sa date, `consents.tsx` y mène par un lien. Aucune des trois n'est ici sans les
+  deux autres.
 - La configuration de la box avec elle, en visio.
 - L'import, les invitations, la relance.
 - La présence en salle et le suivi.
@@ -151,9 +183,12 @@ bloquer une date :**
       adresse qu'elle peut mettre en favori
 - [ ] `P1-017` est fait **avant**, pas la même semaine que la box : projet
       hébergé, back-office déployé, e-mails qui partent pour de vrai
-- [ ] Les trois pièces RGPD existent **avant le premier import**, et l'écran de
-      consentement mène à la politique de confidentialité — dont la version est
-      celle que `current_policy_version()` retourne
+- [ ] Les trois pièces RGPD existent **avant le premier import**
+- [ ] **Avant le premier import aussi** : `current_policy_version()` retourne la
+      date du texte publié, et `consents.tsx` mène à ce texte par un lien. **Le
+      contrôle négatif** : aucun membre réel n'a de ligne dans `consents` sous
+      une version antérieure à celle du texte — sinon `me()` les fera tous
+      recocher deux semaines après la mise en service
 - [ ] Une sauvegarde a été **restaurée**, une fois, pour de vrai
 - [ ] Le journal de première semaine existe, daté, et chaque défaut qu'il contient
       a un ticket ou une raison écrite de ne pas en avoir

@@ -105,8 +105,8 @@ mobile qui dépend d'un rôle**, et son lot d'écran à 1,25 j·h ne couvre pas 
 
 **Revue du 9 septembre 2026, après PR #65 — deux remarques sur `P1-016`, qui
 est par ailleurs le bon ticket.** La première : **le RGPD y était sous-dit.**
-Le jour de la mise en service, la personne qui développe Rack devient
-sous-traitante de la box (art. 28), sans entité juridique — une personne physique
+Le jour de la mise en service, l'éditeur du service devient
+sous-traitant de la box (art. 28), sans entité juridique — une personne physique
 peut l'être, ce n'est pas bloquant, mais ça expose et ça ne s'improvise pas le
 lundi matin. Trois pièces datées « avant le premier import » : DPA, registre,
 politique de confidentialité. Et en vérifiant la troisième, le dépôt a montré
@@ -119,6 +119,22 @@ pendant `P1-008a`. Même raisonnement que pour le compte Apple. En s'écrivant,
 `P1-017` a trouvé que le SMTP intégré d'un projet hébergé ne tient pas 80
 invitations : **le domaine bloque désormais quatre choses, dont la mise en
 service.** Total ① inchangé à 109.
+
+**Même jour, troisième tour — deux choses ont changé de gravité.** La trouvaille
+du consentement est **plus sérieuse qu'écrite** : `current_policy_version()`
+n'est pas décorative, `me_function.sql:135` s'en sert pour décider si les
+consentements sont satisfaits — **elle conditionne l'accès**. Le produit fait
+donc cocher, enregistre un consentement horodaté **avec IP et user-agent**, et
+ouvre l'accès, sur un document qui n'existe pas. **Ce n'est pas un document
+manquant, c'est un consentement nul** — pas éclairé — et il a l'air conforme,
+ce qui est le pire cas. Avec une conséquence de séquence que le ticket ne tirait
+pas : le jour où la constante passe à la vraie date, `me()` tient **tous** les
+consentements antérieurs pour périmés, et 80 personnes recochent deux semaines
+après avoir changé d'outil. Le prérequis de `P1-016` dit désormais **les trois
+avant le premier import** : le texte, la constante, le lien. Et **le domaine
+est le changement du jour** : jugé non urgent deux fois, il est sur le chemin de
+la mise en service par un chemin que personne n'avait vu — SMTP bridé → SMTP
+tiers → domaine vérifié. **Achat décidé cette semaine.**
 
 ## ⭐ À partir du 8 septembre 2026, l'ordre du jalon suit la box pilote
 
@@ -235,8 +251,8 @@ ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
 | ~~**Trois `client_id` Google**~~ | ~~P0-005b~~ | **Sort du chemin critique le 8 sept. 2026** — non parce qu'elle est faite, mais parce que `P0-005b` passe **non programmé** : câbler un SSO tiers rend `P2-003` obligatoire (guideline 4.8). Voir ci-dessous |
 | ✅ ~~**Compte développeur Apple**~~ | ~~`P1-007`, `P1-006`, `P1-003b`, `P2-003`~~ | **Actif le 8 septembre 2026**, jusqu'au 8 sept. 2027, renouvellement automatique. App Store Connect ouvert. Il aura été le premier rang pendant deux jours |
 | **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société — **donc l'entité juridique, ligne suivante** |
-| **Une entité juridique** | rien — **mais expose, personnellement** | **Cette ligne n'avait qu'une conséquence jusqu'au 9 sept. 2026 : Stripe, sans échéance avant mi-2027. Elle en a deux.** Le jour de `P1-016`, la personne qui développe Rack devient **sous-traitante de la box au sens de l'art. 28** (spec §15.1 : « sans ce document, vous êtes en infraction dès le premier client »). Une personne physique peut l'être — ce n'est pas bloquant — mais c'est elle qui signe le DPA et porte le registre. **Échéance : la mise en service, pas le MVP.** Les trois pièces — DPA, registre, politique de confidentialité — sont des prérequis datés de `P1-016` |
-| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, le retour Apple — **et `P1-016` depuis le 9 sept. 2026** | **Quatre éléments bloqués par une seule absence** — et depuis le 4 sept. 2026 le nom est connu (**Rack**), donc le domaine est achetable : c'est la seule des démarches restantes qui ne dépende que d'une carte bancaire. **Le quatrième est venu de `P1-017`** : le SMTP intégré d'un projet Supabase hébergé est limité à quelques envois par heure, donc inviter 80 membres exige un SMTP tiers, donc un domaine signé |
+| **Une entité juridique** | rien — **mais expose, personnellement** | **Cette ligne n'avait qu'une conséquence jusqu'au 9 sept. 2026 : Stripe, sans échéance avant mi-2027. Elle en a deux.** Le jour de `P1-016`, **l'éditeur du service** devient **sous-traitant de la box au sens de l'art. 28** (spec §15.1 : « sans ce document, vous êtes en infraction dès le premier client »). Une personne physique peut l'être — ce n'est pas bloquant — mais jusqu'à la société, c'est **un nom d'état civil** qui signe le DPA et porte le registre. **Échéance : la mise en service, pas le MVP.** Les trois pièces — DPA, registre, politique de confidentialité — sont des prérequis datés de `P1-016` |
+| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, le retour Apple — **et `P1-016` depuis le 9 sept. 2026** | **Quatre éléments bloqués par une seule absence** — et depuis le 4 sept. 2026 le nom est connu (**Rack**), donc le domaine est achetable : c'est la seule des démarches restantes qui ne dépende que d'une carte bancaire. **Le quatrième est venu de `P1-017`** : le SMTP intégré d'un projet Supabase hébergé est limité à quelques envois par heure, donc inviter 80 membres exige un SMTP tiers, donc un domaine signé. **Le changement du jour, 9 sept. 2026** : cette ligne avait été jugée non urgente deux fois — « rien avant 2027 », puis « plus sur le chemin du jalon depuis que le kiosque en est sorti ». **Elle est sur le chemin de la mise en service, et l'achat est décidé cette semaine** |
 
 ### ✅ Le compte Apple est actif — 8 septembre 2026
 
