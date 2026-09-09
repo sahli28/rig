@@ -178,11 +178,21 @@ une vue semaine deviendra un ticket — **avec la mesure qui le justifie**.
 - [x] Parité i18n (471 clés, aucune orpheline). Côté web, `Feedback` et
       `SubmitButton` sont désormais employés : sans eux, ni l'enregistrement ni
       l'échec n'étaient annoncés, et la double soumission était ouverte
-- [ ] **appareil** — la séance se lit sur la fiche de cours, en clair comme en
-      sombre, à 200 % de taille de texte. **Le geste est écrit** :
-      `docs/passe-mobile-iphone.md`, § 5 septies, huit gestes dont les deux qui
-      protègent le travail du dimanche soir — vider le champ, et n'y laisser
-      qu'une espace
+- [x] **appareil** — la séance se lit sur la fiche de cours, en clair comme en
+      sombre, à 200 % de taille de texte. **Passe du 9 septembre 2026**, § 5
+      septies : les huit gestes passent, dont les deux qui protègent le travail
+      du dimanche soir — vider le champ, et n'y laisser qu'une espace. Le
+      pré-remplissage trouve sa source, la publication annonce qu'elle ne
+      notifie personne, l'état passe bien à « Publiée — visible des membres »
+- [ ] **le droit du coach est exercé** — écrire une séance en `COACH`, et non en
+      administration. **Impossible le 9 septembre 2026** : la porte du
+      back-office (`apps/web/app/box/[slug]/layout.tsx:56`) refuse tout ce qui
+      n'est ni OWNER ni MANAGER, et ce ticket ne l'a pas touchée. Il a ouvert le
+      droit à **trois niveaux sur quatre** — la policy, `contexteStaff()`
+      (`planning/actions.ts:72`), le drapeau `staff` (`planning/page.tsx:187`) —
+      donc rien n'est cassé dans le lot et tous les tests passent. **Ce critère
+      reste `[ ]` et non `[~]`** : il n'attend ni compte tiers ni environnement,
+      il attend un correctif de 0,75 j·h, nommé — `D-021`
 
 ## Estimation
 
@@ -200,6 +210,25 @@ une vue semaine deviendra un ticket — **avec la mesure qui le justifie**.
 déjà les occurrences et porte des actions par occurrence, et la fiche de cours
 existe — il n'y a **aucun écran à créer**, seulement une affordance et une
 fonction à étendre.
+
+## Ce que la passe du 9 septembre 2026 a laissé ouvert
+
+**Fusionné (PR #63) n'est pas clos.** Deux constats sont sortis de la passe, tous
+deux partis dans `D-021` — un lot court de 1,75 j·h qui touche le même écran et
+le même utilisateur :
+
+1. **la porte du back-office**, ci-dessus : le coach n'atteint pas l'écran que ce
+   ticket lui a construit. C'est le critère resté `[ ]` ;
+2. **la place du formulaire** : la séance est logée **sous** le panneau
+   d'annulation du cours, donc le geste quotidien traverse un champ « Motif » et
+   un bouton « Annuler ce cours » en variante primaire. Deux zones de texte se
+   suivent sans séparation, et deux actions primaires cohabitent — contre le
+   principe 2 du §12.1. **Trouvé en jouant, pas en lisant** : c'est le repère de
+   ce ticket qui en pâtit, pas sa correction.
+
+Aucun des deux n'était visible en test, et le second ne le sera jamais. Le
+premier le deviendra : `D-021` porte **le contrôle qui manquait** — un test qui
+exerce la porte du back-office par rôle.
 
 ## Notes
 

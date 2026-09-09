@@ -13,12 +13,23 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **23,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **19,5 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
 **janvier 2027**, MVP vendable vers **septembre 2027**. Ces dates sont ce
-qu'elles sont ; les connaître vaut mieux que les découvrir. Elles ont avancé
+qu'elles sont ; les connaître vaut mieux que les découvrir.
+
+> **L'écart entre le calcul et la date a un nom depuis le 9 septembre 2026.**
+> 19,5 ÷ 2,3 ≈ 8,5 semaines, donc début novembre — et le jalon est annoncé en
+> janvier. Ce n'est pas le calcul qui est faux : **le jalon ne dit pas « le code
+> est fini », il dit « mise en production chez la box pilote »**. Ce que janvier
+> contient et que ① ne contenait pas, c'est `P1-016` — le projet hébergé, le
+> déploiement, l'app sur les téléphones des membres, la configuration avec la
+> box, l'import de ses ~80 membres, et la présence en salle la première semaine.
+> **C'était dans la date et dans aucun ticket** : la forme la plus coûteuse d'un
+> travail manquant, parce qu'elle ne se découvre qu'au moment où on croyait avoir
+> fini. Elles ont avancé
 d'un mois le 3 septembre 2026 : P1-002 et le lot SQL de P1-003 sont fusionnés.
 
 **Revue de backlog du 5 septembre 2026 (soir).** Le tableau d'état disait
@@ -55,6 +66,38 @@ corollaire, appliqué immédiatement à `P1-005a` : **le plafond de mesure d'un
 défaut qui ne s'observe qu'avec plusieurs clients se décide à l'ouverture du
 ticket**, jamais au troisième tour.
 
+**Revue du 9 septembre 2026, après la passe de `P1-015`.** Le ticket est fusionné
+(PR #63) et **sa passe l'a rouvert** : le COACH n'atteint pas le back-office,
+donc le droit que le ticket a ouvert à trois niveaux ne s'exerce à aucun. Une
+passe a donc produit **trois tickets et deux corrections de documents** :
+
+- **`D-021`** (1,75, dans ①) — la porte du coach et la place de la séance,
+  **devant `P1-008a`** : un ticket fusionné dont l'utilisateur n'atteint pas
+  l'écran vaut zéro. Il porte **le contrôle qui manquait**, un test de la porte
+  par rôle ;
+- **`D-022`** (1,5, hors totaux) — le filet qui ouvre un navigateur.
+  `CLAUDE.md` annonçait `pnpm e2e:web` sans Playwright ni script : **la ligne a
+  été retirée le jour même**, la dette est ouverte avec son déclencheur ;
+- **`P1-016`** — la mise en service chez la box pilote, qui était dans la date
+  et dans aucun ticket. Voir l'encadré en tête de fichier ;
+- le total ① a été **recompté ligne à ligne** et il était faux de 1 j·h (tableau
+  des mouvements) ; le décor du § 5 septies écrivait `/box/rueil/…` là où le slug
+  du seed est `crossfit-rueil`. **Les autres identifiants de la page ont été
+  relus contre `supabase/seed.sql`** — comptes, jeton d'invitation, `CF Rueil`,
+  ports — et ils sont justes.
+
+**Une décision de forme confirmée, pour qu'elle ne se re-conteste pas** :
+`P1-015` compte **parmi les faits** avec un critère d'appareil ouvert. C'est la
+même convention que `P1-005a` le 6 septembre. **Fusionné = fait ; les critères
+d'appareil se suivent à part**, dans le ticket et dans le journal des passes.
+
+**Et une fourche tranchée hors ticket, pendant qu'elle était claire** : la
+feuille de cours du coach (`P1-008a`) est **mobile** — en salle, téléphone en
+main (spec §4-P3). Donc la porte de `D-021` sert `P1-015` et **pas** `P1-008a`,
+et `D-021` ne se dimensionne pas « au cas où ». La décision est écrite dans
+`P1-008a`, avec ce qu'elle coûte : la feuille sera **la première surface de l'app
+mobile qui dépend d'un rôle**, et son lot d'écran à 1,25 j·h ne couvre pas ça.
+
 ## ⭐ À partir du 8 septembre 2026, l'ordre du jalon suit la box pilote
 
 **Ce n'est plus le même genre de décision**, et c'est pour ça que ça mérite sa
@@ -87,7 +130,7 @@ qui est en gras était absent du backlog jusqu'au 2 septembre 2026.
 
 ## Chemin critique hors code
 
-**Dernier examen : 8 septembre 2026.**
+**Dernier examen : 9 septembre 2026.**
 
 ### L'ordre arbitré le 6 septembre 2026
 
@@ -117,8 +160,13 @@ D'ici là, quatre pas, et le troisième est ce qui les tient ensemble :
    (8 sept. 2026) : § 5 sexies de `docs/passe-mobile-iphone.md`, quatre blocs,
    avec l'ordre imposé et les deux contraintes qui gâcheraient la passe si on
    les découvrait dedans ;
-4. **`P1-015`** (5) puis **`P1-008a`** (3,75) — la séance du cours, puis le
-   pointage. **L'ordre a changé le 8 sept. 2026** sur le retour de la box pilote.
+4. **`P1-015`** ✅ **fusionné le 9 sept. 2026** (5), puis **`D-021`** (1,75) et
+   **`P1-008a`** (3,75) — la séance du cours, ce que sa passe a trouvé, puis le
+   pointage. **L'ordre a changé le 8 sept. 2026** sur le retour de la box pilote,
+   et `D-021` s'y est intercalé le 9 : **un ticket fusionné dont l'utilisateur
+   n'atteint pas l'écran vaut zéro**, et enchaîner en laissant ça derrière, c'est
+   « livré sans appelant » à l'échelle d'un lot. `D-021` ne sert **que** `P1-015`
+   — la feuille de cours de `P1-008a` est mobile, tranché le 9 sept.
 
 **`P1-008` a sa section « ce que ce ticket suppose », écrite le 8 septembre 2026
 avant ouverture** — et elle a trouvé trois choses qu'un lancement direct aurait
@@ -242,13 +290,16 @@ L'ORDRE ARBITRÉ DU 6 SEPT., déroulé jusqu'au bout
   La passe a fermé six critères sur quatre tickets : D-011 ✅, D-016, P1-005a, D-009.
 
 L'ORDRE DEPUIS LE RETOUR DE LA BOX PILOTE (8 sept.) — il remplace le précédent
-  P1-015 → P1-008a → P1-007 → P1-006
+  P1-015 ✅ → D-021 → P1-008a → P1-007 → P1-006
   Le WOD passe devant le pointage : sans lui, le coach ouvre deux applications
   pendant tout le pilote.
+  D-021 s'intercale le 9 sept., après la passe : P1-015 est fusionné et sa
+  valeur est nulle tant que son seul utilisateur n'atteint pas l'écran.
 
 CE QUI RESTE, ET CE QUI LE RETIENT
-  P1-015  ⟵ rien. **Le prochain** — la séance du cours, demandée par la box
-  P1-008a ⟵ rien — le coach coche sa feuille, l'absent est marqué
+  D-021   ⟵ rien. **Le prochain** — la porte du coach, et la place de la séance
+  P1-008a ⟵ rien — le coach coche sa feuille, l'absent est marqué. Il porte
+            aussi la découpe P1-007a/b et l'amendement d'ADR 0004
   P1-007  ⟵ pas Apple : son propre travail préparatoire, découpe a/b + ADR 0004
   P1-006  ⟵ P1-007, et rien d'autre
   P1-009 → P1-001f  ⟵ rien. Après la démo
@@ -257,7 +308,12 @@ CE QUI RESTE, ET CE QUI LE RETIENT
 NON PROGRAMMÉS, chacun avec son déclencheur
   P0-005b · P1-005b · P1-013
   P1-008b ⟵ tout ce qui scanne. À la première box qui n'est pas la pilote.
+  D-022   ⟵ le filet qui ouvre un navigateur (dette ④, 1,5). Deux déclencheurs :
+            un second défaut « une porte, un rôle », ou l'ouverture de P2-001.
 
+        ↓
+  P1-016  ⟵ LA MISE EN SERVICE. ≈3 j·h de technique à arbitrer, + 4 jours
+            d'accompagnement qui ne sont pas des j·h. Écrit le 9 sept. 2026.
         ↓
   ═══ JALON : mise en production chez la box pilote ═══
 ```
@@ -276,6 +332,14 @@ d'ouverture, à tenir :
 
 > **`P1-007` s'ouvre quand sa découpe a/b et l'amendement d'ADR 0004 sont
 > écrits.** Apple était nécessaire, pas suffisant.
+>
+> **Ni l'une ni l'autre n'est écrite au 9 septembre 2026, et elles ont désormais
+> un moment** : pendant `P1-008a`, pas au lancement de `P1-007` — c'est
+> exactement le travail qu'on découvre en route quand personne ne lui a donné de
+> date. L'amendement a sa cible : `docs/adr/0004-pas-de-couche-api.md:33`
+> annonce que « `P1-003` construira `apps/web/app/api/v1/` ». `P1-003` est
+> fusionné depuis le 4 septembre et **ce répertoire n'existe pas** — l'ADR décrit
+> un avenir qui n'a pas eu lieu, au présent.
 
 **Et le premier development build se prépare comme un événement.** Il ferme des
 critères de **quatre** tickets — `P1-003b` (le schéma `rack://`), `D-013` (son
@@ -327,8 +391,8 @@ sait pas lui répondre.
 | P1-005b | Le même canal dans la grille du back-office       |      1 | **non programmé** — écrit, chiffré, hors du total. Au pilote, la valeur du temps réel est sur le téléphone du membre, là où deux personnes se disputent la dernière place ; le manager peut rafraîchir. Sort en une session si la box pilote le réclame |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière P1-007**, dont elle tient la promotion. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
 | P1-007  | Notifications push                                |      4 | 🔒 **partiellement bloqué — iOS**. Sa section « ce que ce ticket suppose », écrite le 6 sept. 2026, a trouvé trois trous que l'estimation ne couvre pas : **aucun émetteur** (ni edge function, ni route handler), **aucun journal d'envoi** pour le plafond marketing, et **`users` n'a pas de fuseau** alors que les quiet hours sont « heure locale du membre ». Deux critères en `[~]` : le push iOS et le deep link, tous deux derrière le **compte développeur Apple**. Android est ouvert et gratuit. **4 j·h à recompter au lancement** |
-| P1-015  | La séance du cours, écrite par le coach           |      5 | **prêt à ouvrir — le prochain**, et **le premier ticket venu d'un client réel**. Le coach de la box pilote écrit sa semaine dans Hustle Up ; sans ça, le pilote mesure une box qui ouvre deux applications. Une séance **par occurrence** — pas par (date, type), qui interdirait d'alléger le cours du soir — en texte libre, avec un pré-remplissage qui **copie sans lier**. Sa section règle 8 a trouvé qu'une modification de série **effacerait les séances en silence** |
-| P1-008a | Le coach coche sa feuille, et l'absent est marqué  |   3,75 | **retourné par la box pilote le 8 sept. 2026.** Le coach tient sa liste et ça lui va : RM3.6, le repli du périmètre, **est** le produit. Reste le pointage manuel, l'horodatage de présence et le job de no-show. **7 → 3,75 — ce n'est pas une réestimation, c'est un autre ticket** |
+| P1-015  | La séance du cours, écrite par le coach           |      5 | ✅ **fusionné (PR #63) — passe jouée le 9 sept. 2026, et incomplète.** Le **premier ticket venu d'un client réel**, et il tient : une séance **par occurrence**, en texte libre, avec un pré-remplissage qui **copie sans lier**, et la troisième protection contre le rafraîchissement de série. **Deux défauts à la passe, aucun visible en test** → `D-021` : le COACH est refusé par la porte du back-office, donc le droit ouvert à trois niveaux sur quatre ne s'exerce pas — **son critère repasse en `[ ]`** ; et le formulaire de la séance est logé sous le panneau d'annulation. **Fusionné n'est pas clos** |
+| P1-008a | Le coach coche sa feuille, et l'absent est marqué  |   3,75 | **retourné par la box pilote le 8 sept. 2026.** Le coach tient sa liste et ça lui va : RM3.6, le repli du périmètre, **est** le produit. Reste le pointage manuel, l'horodatage de présence et le job de no-show. **7 → 3,75 — ce n'est pas une réestimation, c'est un autre ticket**. **À recompter à l'ouverture** (9 sept. 2026) : la feuille est **mobile**, tranché sur la spec §4-P3, et elle sera **la première surface de l'app qui dépend d'un rôle** — `apps/mobile` ne lit `role` nulle part. Le lot d'écran à 1,25 a été chiffré comme un écran ; c'est un mode |
 | P1-008b | Le check-in QR : le membre scanne lui-même        |      6 | **non programmé** — la box pilote n'en a pas besoin. Mais §10 le classe « attendu par le marché » : **une box de 200 membres avec des coachs qui tournent ne connaît pas ses adhérents par leur prénom**. Déclencheur : la première box qui n'est pas la pilote. Porte tout ce qui scanne, **et la section règle 8** dont les trois trouvailles ont servi à décider de ne pas le lancer |
 | P1-013  | Droits de réservation accordés à la main          |      2 | **non programmé** — écrit, chiffré, prêt. À sortir le jour où la box pilote veut couper un droit sans exclure quelqu'un. `member_has_booking_right()` rend `true` pour tout membre actif : c'est son appelant manquant |
 | P1-009  | Sélecteur de box (mobile)                         |    1,5 | à faire — après le jalon. **Rend exerçable un critère `[~]` de P1-012** (deux boxes, sans passer par la déconnexion qui purge le cache). La place lui est laissée dans l'en-tête du planning. Porte la moitié « deux boxes » de D-011 |
@@ -341,18 +405,31 @@ sait pas lui répondre.
 | D-019   | Trois affordances de débogage sur l'accueil       |    0,5 | ✅ **fait le 8 sept. 2026**. Le sélecteur de langue **déménage** dans les réglages — il tenait une vraie fonction, il était au mauvais endroit depuis `P0-003` ; les deux autres passent sous `__DEV__`. L'accueil ne porte plus **qu'une action primaire**, mesurée et non lue. **Et la garde est prouvée mordante** sur l'export de production : zéro appel aux deux chaînes, seules leurs traductions embarquent. Un critère `[ ]` — l'app iOS elle-même → passe groupée |
 | D-020   | Trois sœurs que la fixture bidon n'a pas vues     |   0,25 | ✅ **fait le 8 sept. 2026**, avant de reprendre la passe — un rouge connu pendant une passe est un rouge qu'on n'examine pas. **Une troisième trouvée** en cumulant les deux bruits, et elle ne rougissait pas : elle **cassait** `class_roster_test`, emportant vingt assertions. La règle du décor devient **mécanique** (`test-db.mjs`, page de passe), et `CLAUDE.md` gagne la **règle 10** |
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
-|         | **Total ①**                                       | **104** | dont **80,5 faits**, **23,5 restants** |
+| D-016   | Trois écrans qui ne relisent rien au retour       |   0,25 | ✅ fait le 7 sept. 2026. **Ligne ajoutée le 9 sept. 2026** : son 0,25 était crédité aux faits par le tableau des mouvements sans avoir de ligne ici, donc compté dans un total où il ne figurait pas |
+| D-021   | La porte du coach, et la place de la séance       |   1,75 | **le prochain** — né de la passe du 9 sept. 2026. `P1-015` a ouvert le droit du coach à **trois niveaux sur quatre** : `layout.tsx:56` est resté celui de `P1-001a`, donc la personne à qui le ticket est destiné n'atteint pas son écran. Avec la place du formulaire de séance, et **le contrôle qui manquait** : un test qui exerce la porte du back-office par rôle |
+| P1-016  | La mise en service chez la box pilote             |      — | **écrit le 9 sept. 2026, hors total — et c'est une décision en attente.** Le jalon dit « mise en production chez la box pilote », pas « le code est fini ». Ce ticket est l'écart : **≈ 3 j·h de technique** (projet Supabase hébergé, déploiement web, build iOS + TestFlight, restauration testée) **+ 4 jours d'accompagnement** qui ne sont pas des j·h. Les 3 j·h doivent entrer dans ① ou devenir `P1-017` — **pas rester dans une colonne « à arbitrer » plus d'une revue** |
+|         | **Total ①**                                       | **106** | dont **86,5 faits**, **19,5 restants** — **hors `P1-016`** |
 
-**Les restants montent de 20,75 à 23,5, et c'est une bonne nouvelle.** Un chiffre
-qui monte se relit comme une dérive s'il ne porte pas sa raison : celui-ci monte
-parce qu'on a **retiré 7 j·h que la box pilote n'aurait pas utilisés** — le QR,
-le kiosque, le drop-in au scan — **pour ajouter 5 j·h qu'elle attend**, la séance
-du cours. Le jalon est plus long de 1,75 j·h et il livre ce qu'un client a
-demandé, au lieu de livrer ce qu'on avait supposé.
+**Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
+nouvelle.** Un chiffre qui monte se relit comme une dérive s'il ne porte pas sa
+raison : celui-là montait parce qu'on a **retiré 7 j·h que la box pilote
+n'aurait pas utilisés** — le QR, le kiosque, le drop-in au scan — **pour ajouter
+5 j·h qu'elle attend**, la séance du cours. Le jalon était plus long de 1,75 j·h
+et il livrait ce qu'un client avait demandé, au lieu de livrer ce qu'on avait
+supposé.
 
 C'est la différence entre les quatre dérapages d'estimation du projet et
 celui-ci : les autres coûtaient plus pour la même chose ; celui-là coûte un peu
 plus pour **autre chose**, choisie.
+
+**Le 9 septembre, ils redescendent à 19,5** : `P1-015` est fusionné (−5) et
+`D-021` entre dans ① (+1,75). Ce n'est pas la fusion qui a fait entrer `D-021`,
+c'est **sa passe** : les deux défauts qu'elle a trouvés n'étaient visibles ni en
+test ni en relecture, et le premier empêche la personne à qui `P1-015` est
+destiné d'atteindre son écran. **Une dette qui naît d'une passe entre dans le
+total le jour où elle est écrite**, pas le jour où elle est faite — sinon le
+jalon paraît plus court qu'il n'est, ce qui est exactement la dérive que ce
+tableau documente trois fois.
 
 **Quatre tickets ne sont pas dans ce total** — `P1-013`, `P1-005b`, `P0-005b` et
 `P1-008b`, les trois derniers depuis le 8 septembre 2026. Ils sont écrits et chiffrés, pas programmés, et
@@ -384,9 +461,33 @@ corrigé sans son calcul se re-conteste :
 | `D-011` fait à la passe du 8 sept. (0,5) | 101,25 | 80,5 | 20,75 |
 | `P1-008` découpé : −6, +7 pour `P1-008a`, `P1-008b` hors total | 102,25 | 80,5 | 21,75 |
 | **Retour box pilote** : `P1-008a` 7 → 3,75, `P1-015` +5 | **104** | **80,5** | **23,5** |
+| **Recompte ligne à ligne du 9 sept.** : `D-018` (1) jamais crédité, `D-016` (0,25) crédité sans ligne — voir ci-dessous | 104,25 | 81,5 | 22,75 |
+| `P1-015` fusionné (5) | 104,25 | 86,5 | 17,75 |
+| `D-021` entre dans ① (1,75) | **106** | **86,5** | **19,5** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
+
+**Quatrième fois, et cette fois le recompte n'a pas suivi la chaîne — il a
+additionné les lignes.** C'est la seule méthode qui ne rejoue pas l'erreur qu'on
+cherche : une chaîne de mouvements se vérifie contre elle-même, et une ligne
+oubliée y reste oubliée à chaque étape. Le tableau ci-dessus disait
+« 80,5 faits, 23,5 restants » là où **la somme des lignes du tableau d'état
+donnait 81,25 et 22,75**. Deux écarts, et ils vont en sens contraires :
+
+- **`D-018` (1 j·h), fait le 6 septembre, n'est jamais passé des restants aux
+  faits.** C'est exactement le montant de l'écart, et c'est la troisième fois
+  qu'un ticket clos ne rejoint pas les faits ;
+- **`D-016` (0,25) était crédité aux faits par la chaîne sans avoir de ligne dans
+  ①**, tout en figurant parmi les dettes « ouvertes, hors totaux » de la section
+  ④ — comptée deux fois d'un côté, absente de l'autre. Elle a désormais sa ligne,
+  et le total ① passe de 104 à 104,25 avant les mouvements du jour.
+
+**Ce que ça change pour les décisions : rien, et c'est le pire cas.** Un total
+faux de 1 j·h ne fait pas rater une échéance, il fait perdre la confiance dans le
+chiffre — après quoi plus personne ne le corrige. La règle qui en sort tient en
+une ligne : **le total se recompte en additionnant les lignes, jamais en
+prolongeant la chaîne.**
 
 **Un demi-jour retrouvé, et pourquoi on l'écrit.** Le lot du 4 septembre —
 façade `crypto`, sondes, refonte de la configuration ESLint — n'apparaissait dans
@@ -495,7 +596,7 @@ SHOULD payé en avance, à ne pas recompter.
 
 ---
 
-## ④ Dette convertie en tickets — 6,25 j·h ouverts
+## ④ Dette convertie en tickets — 7,25 j·h ouverts
 
 `CLAUDE.md` dit « ce qui déborde devient un nouveau ticket ». La dette accumulée
 dans les tickets clos y échappait : un ticket clos ne se relit pas.
@@ -520,10 +621,12 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-019  | Trois affordances de débogage sur l'accueil     | 0,5 | Relecture du 8 sept. 2026 — **comptée dans ①**. La règle 9 prise par l'autre bout : une affordance de débogage est une sonde, et **plus tenace qu'un `console.log` parce qu'elle a l'air d'une fonctionnalité**. Le sélecteur de langue attend depuis `P0-003` un déménagement qu'un commentaire promet |
 | D-020  | Trois sœurs que la fixture bidon n'a pas vues   | 0,25 | `D-019`, 8 sept. 2026 — **comptée dans ①**. La leçon dépasse les deux assertions : **une fixture de bruit écrite à la main hérite des angles morts de qui l'écrit**. Le bruit qui prouve quelque chose est celui qu'une session réelle produit |
 | D-017  | Flash blanc au démarrage en mode sombre        | 0,25 | D-009, PR #43 — **✅ fait**, **comptée dans ①**. Deuxième fois que du travail se range dans un ticket clos et disparaît des totaux. `null` n'est pas « clair » : la règle est écrite dans `.claude/rules/ui.md` |
-| D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — **✅ fait le 7 sept. 2026**. `planning.tsx` était parti dans P1-012, P1-005a avait retiré la moitié « places restantes » ; restaient `index.tsx` et `bookings.tsx`, faits ici. **La forme n'est plus à recopier** : `use-relire-au-retour.ts` porte celle corrigée par D-018 — sans ça, ces deux écrans auraient repris la version d'avant. Deux défauts corrigés au passage : `bookings.tsx` reposait un squelette à chaque lecture et s'effaçait au moindre échec. **Un critère `[ ]`** — l'accueil après réservation, mécanisme vérifié mais effet non observé (passe à 23 h 55, plus de cours ce jour-là) → passe groupée |
-|        | **Ouvert, hors totaux**                        | **6** | D-002, D-003, D-007, D-008, D-016 — D-004, D-011, D-012, D-013 et D-017 sont dans ①, D-010 est clos |
+| D-016  | Trois écrans qui ne relisent rien au retour    | 0,25 | P1-003c, passe du 5 sept. 2026 — **✅ fait le 7 sept. 2026**. `planning.tsx` était parti dans P1-012, P1-005a avait retiré la moitié « places restantes » ; restaient `index.tsx` et `bookings.tsx`, faits ici. **La forme n'est plus à recopier** : `use-relire-au-retour.ts` porte celle corrigée par D-018 — sans ça, ces deux écrans auraient repris la version d'avant. Deux défauts corrigés au passage : `bookings.tsx` reposait un squelette à chaque lecture et s'effaçait au moindre échec. **Un critère `[ ]`** — l'accueil après réservation, mécanisme vérifié mais effet non observé (passe à 23 h 55, plus de cours ce jour-là) → passe groupée, qui l'a fermé le 8 sept. **Comptée dans ①**, où elle a enfin sa ligne depuis le 9 sept. 2026 |
+| D-021  | La porte du coach, et la place de la séance    | 1,75 | `P1-015`, passe du 9 sept. 2026 — **comptée dans ①**, et **le prochain ticket**. Deux constats d'une même passe : le COACH est refusé par `layout.tsx:56`, resté celui de `P1-001a` alors que `P1-015` ouvrait le droit à trois autres niveaux ; et le formulaire de la séance est logé sous le panneau d'annulation. **Un cas de plus de la règle des sœurs, et cette fois la sœur oubliée est une garde d'écran, pas une policy** |
+| D-022  | Un filet qui ouvre un navigateur               | 1,5 | `D-021` et la porte du coach, 9 sept. 2026 — **ouvert, hors totaux**. `CLAUDE.md` annonçait `pnpm e2e:web` sans Playwright ni script : **la ligne a été retirée le jour même**, parce qu'un document qui promet une commande inexistante fait croire au filet. La dette, elle, reste — et **sa justification n'est plus théorique** : la porte fermée aux COACH est exactement ce qu'un test de bout en bout attrape, et il a fallu un humain. **Déclencheur** : un second défaut « une porte, un rôle », ou l'ouverture de `P2-001` |
+|        | **Ouvert, hors totaux**                        | **7,25** | D-002, D-003, D-007, D-008, D-022 — D-004, D-011, D-012, D-013, D-014, D-016, D-017, D-018, D-019, D-020 et D-021 sont dans ①, D-010 est clos. **Recompté le 9 sept. 2026** : `D-016` figurait ici comme ouverte alors qu'elle est faite, ce qui gonflait cette ligne de 0,25 |
 
-Ces 6,25 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
+Ces 7,25 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
 une dette qu'on additionne au chemin critique le rend indiscutable, une dette
 qu'on cache le rend faux. Elle se paie quand un ticket la rend bloquante — et
 elle entre alors dans le total, comme D-004 vient de le faire pour P1-003b.

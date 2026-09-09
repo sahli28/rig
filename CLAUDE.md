@@ -56,16 +56,16 @@ Backlog exécutable : `docs/backlog/` — un fichier par ticket.
 
 ## Stack
 
-| Couche           | Choix                                                                      | Note                                                                                                               |
-| ---------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Monorepo         | Turborepo + pnpm                                                           | `apps/mobile`, `apps/web`, `packages/core`, `packages/ui`, `supabase/`                                             |
-| Mobile           | Expo (React Native) + expo-router + TypeScript                             | OTA updates activées                                                                                               |
-| Web              | Next.js App Router + TypeScript                                            | back-office box + pages publiques SSR                                                                              |
-| Données          | Supabase (Postgres 17, région **EU**) + RLS                                | migrations SQL versionnées dans `supabase/migrations/`. **Le major suit `supabase/config.toml`** — voir ci-dessous |
-| Logique critique | **fonctions PLpgSQL transactionnelles**                                    | réservation, annulation, crédits, waitlist                                                                         |
-| Paiement         | Stripe + **Connect Express**                                               | destination charges, jamais d'encaissement en propre                                                               |
-| Validation       | Zod, schémas partagés dans `packages/core`                                 | une seule source de vérité mobile/web/API                                                                          |
-| Tests            | Vitest (unit), pgTAP (SQL/RLS), Playwright (web E2E), Maestro (mobile E2E) |                                                                                                                    |
+| Couche           | Choix                                                         | Note                                                                                                               |
+| ---------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Monorepo         | Turborepo + pnpm                                              | `apps/mobile`, `apps/web`, `packages/core`, `packages/ui`, `supabase/`                                             |
+| Mobile           | Expo (React Native) + expo-router + TypeScript                | OTA updates activées                                                                                               |
+| Web              | Next.js App Router + TypeScript                               | back-office box + pages publiques SSR                                                                              |
+| Données          | Supabase (Postgres 17, région **EU**) + RLS                   | migrations SQL versionnées dans `supabase/migrations/`. **Le major suit `supabase/config.toml`** — voir ci-dessous |
+| Logique critique | **fonctions PLpgSQL transactionnelles**                       | réservation, annulation, crédits, waitlist                                                                         |
+| Paiement         | Stripe + **Connect Express**                                  | destination charges, jamais d'encaissement en propre                                                               |
+| Validation       | Zod, schémas partagés dans `packages/core`                    | une seule source de vérité mobile/web/API                                                                          |
+| Tests            | Vitest (unit), pgTAP (SQL/RLS) — **c'est tout ce qui existe** | Le bout-en-bout est **absent des deux côtés** : Playwright → `D-022`, Maestro → `D-010`, arbitré et non installé   |
 
 **Ce tableau disait « Postgres 16 » jusqu'au 6 septembre 2026, et la pile
 tournait en 17.** Corrigé dans ce sens-là : `supabase/config.toml:41` porte
@@ -116,7 +116,6 @@ pnpm typecheck          # tsc sur tous les packages
 pnpm lint               # eslint + prettier
 pnpm test               # vitest
 pnpm test:db            # tests pgTAP, dont le test anti-fuite inter-tenant
-pnpm e2e:web            # Playwright
 pnpm db:migrate         # applique les migrations Supabase en local
 pnpm db:reset           # reset + seed local
 pnpm migrations:immuables # une migration déjà versionnée a-t-elle changé ? (D-014)
