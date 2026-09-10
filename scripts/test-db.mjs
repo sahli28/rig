@@ -71,7 +71,7 @@ import { readdirSync } from 'node:fs';
  * le bouger est alors un geste délibéré — c'est exactement ce qu'on veut d'un
  * garde.
  */
-const FICHIERS_ATTENDUS = 24;
+const FICHIERS_ATTENDUS = 29;
 
 const fichiersSurDisque = readdirSync('supabase/tests').filter((f) => f.endsWith('.sql')).length;
 

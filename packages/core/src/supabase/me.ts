@@ -75,6 +75,7 @@ export const MeUserSchema = z.object({
   first_name: z.string().nullable(),
   last_name: z.string().nullable(),
   locale: z.string(),
+  timezone: z.string().nullable(),
   avatar_url: z.string().nullable(),
 });
 

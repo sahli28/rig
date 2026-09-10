@@ -776,6 +776,124 @@ export type Database = {
           },
         ];
       };
+      notification_preferences: {
+        Row: {
+          category: Database['public']['Enums']['notification_category'];
+          created_at: string;
+          enabled: boolean;
+          id: string;
+          membership_id: string;
+          tenant_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          category: Database['public']['Enums']['notification_category'];
+          created_at?: string;
+          enabled?: boolean;
+          id?: string;
+          membership_id: string;
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          category?: Database['public']['Enums']['notification_category'];
+          created_at?: string;
+          enabled?: boolean;
+          id?: string;
+          membership_id?: string;
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_preferences_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'notification_preferences_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'memberships';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'notification_preferences_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenant_coaches';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'notification_preferences_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notification_sends: {
+        Row: {
+          category: Database['public']['Enums']['notification_category'];
+          channel: string;
+          created_at: string;
+          id: string;
+          membership_id: string;
+          sent_at: string;
+          tenant_id: string;
+        };
+        Insert: {
+          category: Database['public']['Enums']['notification_category'];
+          channel?: string;
+          created_at?: string;
+          id?: string;
+          membership_id: string;
+          sent_at?: string;
+          tenant_id: string;
+        };
+        Update: {
+          category?: Database['public']['Enums']['notification_category'];
+          channel?: string;
+          created_at?: string;
+          id?: string;
+          membership_id?: string;
+          sent_at?: string;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_sends_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'notification_sends_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'memberships';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'notification_sends_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenant_coaches';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'notification_sends_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       opening_hours: {
         Row: {
           closes_at: string;
@@ -1025,6 +1143,7 @@ export type Database = {
           id: string;
           last_name: string | null;
           locale: string;
+          timezone: string | null;
           updated_at: string;
         };
         Insert: {
@@ -1038,6 +1157,7 @@ export type Database = {
           id: string;
           last_name?: string | null;
           locale?: string;
+          timezone?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -1051,6 +1171,7 @@ export type Database = {
           id?: string;
           last_name?: string | null;
           locale?: string;
+          timezone?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -1261,6 +1382,30 @@ export type Database = {
         Args: { p_class_starts_at: string; p_membership_id: string };
         Returns: boolean;
       };
+      notification_counts_toward_cap: {
+        Args: {
+          p_category: Database['public']['Enums']['notification_category'];
+        };
+        Returns: boolean;
+      };
+      notification_eligibility: {
+        Args: {
+          p_category: Database['public']['Enums']['notification_category'];
+          p_membership_id: string;
+          p_now?: string;
+        };
+        Returns: string;
+      };
+      notification_marketing_count_7d: {
+        Args: { p_membership_id: string; p_now?: string };
+        Returns: number;
+      };
+      notification_respects_quiet_hours: {
+        Args: {
+          p_category: Database['public']['Enums']['notification_category'];
+        };
+        Returns: boolean;
+      };
       pending_invitations_for_me: {
         Args: never;
         Returns: {
@@ -1331,6 +1476,8 @@ export type Database = {
       ledger_direction: 'CREDIT' | 'DEBIT';
       membership_role: 'OWNER' | 'MANAGER' | 'COACH' | 'MEMBER';
       membership_status: 'ACTIVE' | 'SUSPENDED' | 'LEFT' | 'REMOVED';
+      notification_category:
+        'CLASS_REMINDER' | 'WAITLIST_PROMOTION' | 'CLASS_CANCELLATION' | 'MARKETING';
       tenant_status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
     };
     CompositeTypes: {
@@ -1471,6 +1618,12 @@ export const Constants = {
       ledger_direction: ['CREDIT', 'DEBIT'],
       membership_role: ['OWNER', 'MANAGER', 'COACH', 'MEMBER'],
       membership_status: ['ACTIVE', 'SUSPENDED', 'LEFT', 'REMOVED'],
+      notification_category: [
+        'CLASS_REMINDER',
+        'WAITLIST_PROMOTION',
+        'CLASS_CANCELLATION',
+        'MARKETING',
+      ],
       tenant_status: ['ACTIVE', 'SUSPENDED', 'CLOSED'],
     },
   },

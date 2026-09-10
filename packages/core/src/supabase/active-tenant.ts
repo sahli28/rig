@@ -14,11 +14,13 @@
  * `.claude/rules/api.md` porte la même règle pour la future couche API.
  */
 
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 import type { RackClient } from './client';
 import type { Database } from './types.gen';
 
 type Tables = Database['public']['Tables'];
 type Views = Database['public']['Views'];
+type PublicSchema = Database['public'];
 
 /**
  * Les tables portant un `tenant_id`. Le type se déduit du schéma généré : une
@@ -53,6 +55,50 @@ export type TenantScopedRelation = TenantScopedTable | TenantScopedView;
 export type TenantInsert<T extends TenantScopedTable> = Omit<Tables[T]['Insert'], 'tenant_id'> & {
   tenant_id?: string;
 };
+
+/**
+ * **Les constructeurs de requête PostgREST, nommés une fois.** Sans ces alias,
+ * `tsc` doit *matérialiser* le type de retour agrégé de `tenantScope()` — les
+ * builders sur les ~vingt tables du schéma — et dépasse la longueur qu'il sait
+ * sérialiser dès que le schéma grandit (TS7056, apparu à P1-007 avec deux tables
+ * de plus). En annotant chaque méthode avec un alias, il sérialise un **nom**,
+ * pas l'expansion.
+ *
+ * `PgOptions` est le premier paramètre du builder (`ClientServerOptions`),
+ * épinglé à la version de `@supabase/supabase-js` du dépôt (2.112). À revoir à
+ * la montée de version majeure — c'est le seul point fragile, et il est isolé
+ * ici, sous un nom.
+ */
+type PgOptions = { PostgrestVersion: '12' };
+type Relationships<T extends TenantScopedTable> = Tables[T] extends { Relationships: infer R }
+  ? R
+  : unknown;
+type ViewRow<V extends TenantScopedView> = Views[V]['Row'];
+
+type ScopedSelect<T extends TenantScopedTable> = PostgrestFilterBuilder<
+  PgOptions,
+  PublicSchema,
+  Tables[T]['Row'],
+  Tables[T]['Row'][],
+  T,
+  Relationships<T>
+>;
+type ScopedWrite<T extends TenantScopedTable> = PostgrestFilterBuilder<
+  PgOptions,
+  PublicSchema,
+  Tables[T]['Row'],
+  null,
+  T,
+  Relationships<T>
+>;
+type ScopedViewSelect<V extends TenantScopedView> = PostgrestFilterBuilder<
+  PgOptions,
+  PublicSchema,
+  ViewRow<V>,
+  ViewRow<V>[],
+  V,
+  unknown
+>;
 
 /**
  * Lie un client à une box. Toute lecture ou écriture d'une table de box passe
@@ -90,8 +136,8 @@ export function tenantScope(client: RackClient, tenantId: string) {
      * lourde ou sensible, la réponse sera une **vue**, pas une projection
      * passée en chaîne.
      */
-    select<T extends TenantScopedTable>(table: T) {
-      return whereTenant(client.from(table).select('*'), tenantId);
+    select<T extends TenantScopedTable>(table: T): ScopedSelect<T> {
+      return whereTenant(client.from(table).select('*'), tenantId) as unknown as ScopedSelect<T>;
     },
 
     /**
@@ -103,8 +149,11 @@ export function tenantScope(client: RackClient, tenantId: string) {
      * L'asymétrie n'est pas qu'un contournement : une vue ne s'écrit pas, et
      * c'est précisément pourquoi elle n'a ni `insert` ni `update` ici.
      */
-    selectView<V extends TenantScopedView>(view: V, columns = '*') {
-      return whereTenant(client.from(view).select(columns), tenantId);
+    selectView<V extends TenantScopedView>(view: V, columns = '*'): ScopedViewSelect<V> {
+      return whereTenant(
+        client.from(view).select(columns),
+        tenantId,
+      ) as unknown as ScopedViewSelect<V>;
     },
 
     /**
@@ -139,13 +188,16 @@ export function tenantScope(client: RackClient, tenantId: string) {
      * de l'appelant est écrasée, pour qu'une ligne ne puisse pas atterrir dans
      * une autre box par recopie d'un objet.
      */
-    insert<T extends TenantScopedTable>(table: T, values: TenantInsert<T> | TenantInsert<T>[]) {
+    insert<T extends TenantScopedTable>(
+      table: T,
+      values: TenantInsert<T> | TenantInsert<T>[],
+    ): ScopedWrite<T> {
       const rows = (Array.isArray(values) ? values : [values]).map((row) => ({
         ...row,
         tenant_id: tenantId,
       }));
       const query = client.from(table);
-      return query.insert(rows as Parameters<typeof query.insert>[0]);
+      return query.insert(rows as Parameters<typeof query.insert>[0]) as unknown as ScopedWrite<T>;
     },
 
     /**
@@ -162,10 +214,13 @@ export function tenantScope(client: RackClient, tenantId: string) {
      * Symétrique d'`insert`, qui impose le `tenant_id` au lieu de le retirer :
      * dans les deux cas, la box de destination n'est pas négociable.
      */
-    update<T extends TenantScopedTable>(table: T, patch: Tables[T]['Update']) {
+    update<T extends TenantScopedTable>(table: T, patch: Tables[T]['Update']): ScopedWrite<T> {
       const { tenant_id: _immuable, ...safe } = patch as Record<string, unknown>;
       const query = client.from(table);
-      return whereTenant(query.update(safe as Parameters<typeof query.update>[0]), tenantId);
+      return whereTenant(
+        query.update(safe as Parameters<typeof query.update>[0]),
+        tenantId,
+      ) as unknown as ScopedWrite<T>;
     },
   };
 }
