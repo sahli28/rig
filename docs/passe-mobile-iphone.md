@@ -12,10 +12,15 @@ Compter 30 minutes la première fois, 3 minutes ensuite.
 
 **La numérotation est non linéaire** (`bis`, `ter`, … `nonies`) : les sections se
 sont ajoutées au fil des tickets, pas dans l'ordre alphabétique. Ce sommaire est
-l'ordre qui compte. **La dernière colonne est la plus importante** : un geste dont
-le décor n'existe pas se lit comme un défaut par qui l'ignore — c'est ce qui a
-coûté vingt minutes à la passe de `P1-007`, où le code s'abstient sans erreur
-quand il manque un `projectId`, sans que rien ne le signale.
+l'ordre qui compte. **La dernière colonne est la plus importante, et elle a une
+règle payée trois fois** : elle liste **tout ce qui doit être vrai** pour qu'un
+geste marche, **pas seulement ce qui manquait la dernière fois**. `P1-007` a été
+annoncé jouable trois fois et ne l'était pas — la porte coach, puis le build,
+puis l'émetteur non servi — parce qu'à chaque fois la colonne ne portait que le
+dernier obstacle connu. Un geste dont un prérequis manque se lit comme un défaut
+par qui l'ignore, d'autant que **le code s'abstient souvent sans erreur**
+(`projectId` absent, émetteur absent) : rien ne signale que le décor est
+incomplet.
 
 | § | Ce que ça prouve | Ticket | Jouable aujourd'hui ? |
 | --- | --- | --- | --- |
@@ -27,7 +32,7 @@ quand il manque un `projectId`, sans que rien ne le signale.
 | 5 quinquies | Les places restantes en temps réel | P1-005a | ✅ **sauf l'arrière-plan** (demande un vrai appareil) |
 | 5 septies | La séance du cours (WOD) | P1-015 | ⚠️ le décor coach dépendait de `D-021` (porte coach, **corrigé**) — rejouer le décor en COACH |
 | 5 octies | La feuille de présence, la porte par rôle | P1-008a | ✅ (jouée et close le 10 sept. 2026) |
-| 5 nonies | Les notifications push | P1-007 | ⛔ **exige un development build iOS** — Expo Go ne fait plus de push (SDK 53). Le `projectId` EAS est désormais dans `app.json` ; il ne manque que le build. Le harnais SQL prouve la décision, l'appareil le `< 30 s` et le `rack://` |
+| 5 nonies | Les notifications push | P1-007 | ⛔ **pas jouable en local tel quel — TROIS prérequis, pas un** : (1) development build iOS ✅ ; (2) `projectId` EAS dans `app.json` ✅ ; (3) **l'émetteur servi** ✗ — `supabase start` ne le sert pas ; il faut `functions serve` + un réglage superutilisateur (env. local, § « Servir l'émetteur push en local »). Sans (3), la ligne reste `pending`, le téléphone ne sonne pas. **Le vrai chemin est hébergé (`P1-017`)** ; le local est un montage jetable. Device-registration déjà prouvée (build du 11 sept.) |
 | 5 sexies | La passe groupée (quatre dettes) | D-011/016, P1-005a, D-009 | ✅ (historique, jouée le 8 sept. 2026) |
 
 En amont de tout : **Ce qui doit être vrai avant de commencer** (Supabase démarré,
@@ -634,20 +639,32 @@ repère de `P1-015`.
 
 ## 5 nonies. Les notifications push (P1-007)
 
-> #### ⛔ Ce geste n'est PAS jouable avec Expo Go / Metro
+> #### ⛔ Trois prérequis, pas un — et le dernier n'est pas le build
 >
-> Le push exige un **development build iOS** (Expo Go ne fait plus de push depuis
-> le SDK 53). Le `projectId` EAS, l'autre prérequis, **est en place** depuis le
-> 11 septembre (`app.json`, `extra.eas.projectId`) — il ne reste donc que le
-> build. Sans lui, `useDeviceSync` s'abstient **sans erreur** — l'app tourne,
-> aucune notification ne part, rien à cocher. Ce geste se joue **après** le
-> premier dev build iOS, et il se coordonne avec `P1-016` (même build).
+> 1. **Development build iOS** — ✅ fait le 11 septembre (Expo Go ne fait plus de
+>    push depuis le SDK 53). La **moitié « téléphone » tient** : l'app
+>    s'enregistre, une ligne `ios` est en base (`devices`).
+> 2. **`projectId` EAS** dans `app.json` (`extra.eas.projectId`) — ✅ en place.
+> 3. **L'émetteur servi** — ✗ **le blocage réel aujourd'hui.** `supabase start`
+>    ne sert **aucune** fonction : sans `functions serve` **et** le réglage
+>    `app.settings.push_emitter_url`, la ligne s'enfile, reste `pending`, et le
+>    téléphone ne sonne jamais. `useDeviceSync` comme `kick_push_emitter`
+>    s'abstiennent **sans erreur** : rien ne signale le manque. La marche à suivre
+>    — acrobatique, quatre pièges dont un réglage superutilisateur et l'URL du
+>    réseau Docker — est dans `environnement-local.md`, § « Servir l'émetteur push
+>    en local ».
+>
+> **L'arbitrage, à trancher avant de jouer.** Le montage local **peut** fermer les
+> deux critères d'appareil (l'émission vers `exp.host` → APNs est réelle), mais il
+> est jetable et sa latence est approximative. Le vrai chemin est **`P1-017`**
+> (projet hébergé, fonction déployée, réglage posé par la plateforme) : il prouve
+> la chaîne qui part chez la box. Coûts comparés en env. local.
 
 ### La passe partielle au harnais SQL — et pourquoi `pending` est normal
 
-Avant le dev build, on prouve déjà **la couche décision et l'enfilage** en base,
-sans appareil. Décor : un membre avec consentement PUSH, inscrit à un cours,
-annulé depuis le back-office web par un admin.
+Tant que l'émetteur n'est pas servi, on prouve déjà **la couche décision et
+l'enfilage** en base, sans appareil. Décor : un membre avec consentement PUSH,
+inscrit à un cours, annulé depuis le back-office web par un admin.
 
 Ce qu'on lit alors dans `push_outbox` : **une ligne `CLASS_CANCELLATION` par
 membre consentant, au statut `pending`** — et elle **y reste**. Ce n'est pas une
@@ -671,9 +688,11 @@ Ce qui se prouve alors en SQL, **sans cocher aucun critère du ticket** :
 
 ### Ce qui ferme quatre critères d'un coup
 
-Un seul dev build iOS prouve : **iOS < 30 s** et **le toucher ouvre l'écran via
-`rack://`** (`P1-007`), et du même coup le reliquat `rack://` de `D-013` et le
-`[~]` resté ouvert de `P1-003b`. Rassembler la liste **avant** de lancer le build.
+**Une fois l'émetteur servi** (montage local ou `P1-017`), la passe sur le dev
+build ferme quatre critères de quatre tickets : **iOS < 30 s** et **le toucher
+ouvre l'écran via `rack://`** (`P1-007`), et du même coup le reliquat `rack://`
+de `D-013` et le `[~]` resté ouvert de `P1-003b`. Le build seul ne suffit pas —
+il porte le téléphone, pas l'émission.
 
 ### Le décor
 
@@ -892,6 +911,7 @@ en entier.
 
 | Date | Appareil | Résultat |
 | --- | --- | --- |
+| **11 sept. 2026**, soir | **iPhone — premier development build iOS** (dev client connecté à Metro) | **`P1-007`, build EAS vert. La moitié « téléphone » tient ; l'émission, non.** Le build passe après le correctif reanimated/worklets (4.5.1 / 0.10.1) — le mésappariement d'ABI `executeSync` est levé. L'app s'installe, se lance, s'enregistre : **une ligne `ios` dans `devices`**. **Mais les deux critères d'appareil restent `[ ]`** : `supabase start` ne sert **aucune** edge function, donc la notification s'enfile en `pending` et ne part pas — ni le `< 30 s` ni le `rack://` ne sont exerçables tant que l'émetteur n'est pas servi (montage local acrobatique **ou** `P1-017` hébergé — voir env. local, § « Servir l'émetteur push en local »). **Prouvé ce soir : l'enregistrement d'appareil. Non prouvé : l'émission et le lien profond.** Troisième prérequis de § 5 nonies découvert ici, après la porte coach et le build |
 | **11 sept. 2026** | **hors appareil — harnais SQL sur le PC** ; annulations déclenchées depuis le back-office web en `marc` (OWNER), Léa consentante | **`P1-007`, § 5 nonies. PARTIELLE — aucun critère du ticket coché.** Prouvé sans appareil : `users.timezone = Europe/Paris` écrit seul au démarrage ; l'écran Préférences porte le bloc Notifications (trois interrupteurs, grisés sans le consentement Push, persistants au retour). Annulation avec « Cours annulé » **coupé** : aucune ligne enfilée — le refus se joue **avant** la file. Deux annulations catégorie active : deux `CLASS_CANCELLATION` en file, une par cours, `pending` — **état local normal**, aucun émetteur servi donc ni envoi ni `failed` (voir § 5 nonies). Les autres inscrits, sans consentement PUSH au seed, écartés à l'enfilage. `notification_eligibility` rend `OK` pour Léa. **Les deux critères appareil (iOS < 30 s, le toucher ouvre l'écran via `rack://`) restent `[ ]` — ils attendent le development build.** Trouvaille : le staff ne voit pas ce compte-rendu → `D-024`. **Verdict du décor : `test:db:fresh` vert (576)** |
 | **10 sept. 2026** | iPhone, `sarah@example.com` (COACH) puis `lea@example.com` (membre) | **`P1-008a`, § 5 octies. OK — le ticket est clos.** En coach : l'entrée « Feuille de présence » est là, la feuille montre prénom + initiale, cocher/décocher écrit sans bouton, un cours hors fenêtre refuse le pointage (message « juste avant et juste après »), VoiceOver annonce « Léa M., activé ». Mode sombre et 200 % tiennent. **Geste 8, celui qui décide** : en membre, **aucun** bouton « Feuille de présence », et `/attendance/<id>` tapé à la main rend « Réservé au staff ». La porte est bien une porte. **Verdict du décor : `test:db:fresh` vert (498)** |
 | **9 sept. 2026**, tard | **harnais web sur le PC**, sur `main` après fusion du correctif | **Gestes 7 et 8 rejoués : OK.** Vider le champ et n'y laisser qu'une espace font apparaître la confirmation ; sans la cocher, rien n'est supprimé ; cochée, la séance disparaît et l'écran dit « Séance supprimée », le bouton n'est plus orange. **`P1-015` est clos — onze critères verts.** Un `PGRST303 « JWT issued at future »` (500 du planning après login) rencontré au passage : **du décor**, pas le produit — décalage d'horloge GoTrue↔PostgREST au réveil de la machine, mesuré (l'`auth` était en retard sur l'hôte au moment de la mesure, donc déjà resynchronisé). Note élargie dans `environnement-local.md` : le déclencheur n'est pas que `db:reset`. Se reconnecter le lève |

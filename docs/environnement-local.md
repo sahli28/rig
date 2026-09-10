@@ -222,3 +222,70 @@ La parade, posée le jour même, et la règle qui en sort :
   dépendance non déclarée, donc ne l'aurait pas signalée ;
 - **toute dépendance native ajoutée doit être vérifiée par un build EAS**, pas par
   le harnais. Le vert local ne dit rien de la compilation native.
+
+## Servir l'émetteur push en local — quatre pièges, et un arbitrage
+
+`supabase start` ne sert **aucune** edge function. Vérifié le 11 septembre 2026 :
+les conteneurs levés sont `db`, `kong`, `auth`, `rest`, `realtime`, `storage`,
+`studio`, `inbucket`, `analytics`, `vector` — **pas d'edge-runtime**
+(`docker ps | grep edge_runtime` ne rend rien). L'émetteur `rack-push-emitter`
+existe dans `supabase/functions/`, mais **rien ne le sert** : une notification
+s'enfile, reste `pending`, et le téléphone ne sonne jamais. `kick_push_emitter`
+et le balayage `pg_cron` réveillent un émetteur absent, dans le vide.
+
+Le servir en local demande quatre gestes, et **chacun est un piège** (tous
+vérifiés en base, pas supposés) :
+
+1. **Un serveur de fonctions qui tourne en continu**, dans un terminal à part —
+   il lève le conteneur `supabase_edge_runtime_imys` que Kong attend :
+
+   ```bash
+   supabase functions serve rack-push-emitter
+   ```
+
+   Vérifier : `docker ps | grep edge_runtime` doit désormais montrer le conteneur.
+
+2. **L'URL est celle du réseau Docker, pas de ton PC.** `net.http_post` s'exécute
+   **dans** le conteneur postgres, où `localhost:55321` (le port mappé sur l'hôte)
+   est injoignable. Vérifié : depuis `supabase_db_imys`, `kong:8000` est ouvert, et
+   la route Kong `/functions/v1/*` pointe vers `supabase_edge_runtime_imys:8081`.
+   L'URL joignable **depuis le conteneur** est donc, et rien d'autre :
+
+   ```
+   http://kong:8000/functions/v1/rack-push-emitter
+   ```
+
+3. **Poser le réglage — et seul le superutilisateur le peut.** Le rôle `postgres`
+   n'est **pas** superutilisateur en local (`is_superuser = off`) : un
+   `alter database … set app.settings.push_emitter_url` s'y solde par
+   « permission denied to set parameter ». Il faut `supabase_admin` :
+
+   ```bash
+   docker exec supabase_db_imys psql -U supabase_admin -d postgres -c \
+     "alter database postgres set app.settings.push_emitter_url = 'http://kong:8000/functions/v1/rack-push-emitter';"
+   ```
+
+   Un `SET` de **session** ne suffit pas : `pg_cron` et l'app ouvrent d'autres
+   connexions. `alter database` est le bon niveau (les nouvelles connexions en
+   héritent — vérifié) ; reconnecter, ou attendre le prochain passage du cron.
+
+4. **`pg_net` doit traverser le réseau Docker.** C'est la ride connue (`D-010`) :
+   la joignabilité db→Kong pour le coup de sonnette n'est couverte par aucun test.
+   `kong:8000` répond (vérifié), mais si l'envoi ne part pas, c'est là qu'il faut
+   regarder — `net._http_response` porte le verdict.
+
+**Ce que ce montage prouve, et ce qu'il ne prouve pas.** L'émission est **réelle**
+— la fonction POST vers le vrai `exp.host`, qui route vers APNs, qui atteint
+l'iPhone : le montage **peut** donc fermer les critères d'appareil. Mais
+l'hébergement db + émetteur est local (`functions serve` n'est pas la fonction
+déployée ; le réglage posé à la main n'est pas la config de plateforme), et la
+latence « < 30 s » y est approximative. **C'est un montage jetable.**
+
+**L'arbitrage — le vrai chemin est `P1-017`.** Le projet Supabase hébergé y déploie
+la fonction pour de bon, la plateforme pose le réglage, l'URL est celle du projet,
+et `pg_net` n'a plus de réseau Docker à franchir. Jouer § 5 nonies **là** prouve la
+chaîne exacte qui part chez la box, pas un montage. Coût : attendre `P1-017` (la
+mise en service, qui a ses propres prérequis). Coût du local : les ~30–60 min
+d'acrobaties ci-dessus, à l'issue incertaine (`pg_net`). **On tranche selon qu'on
+veut fermer les deux critères tout de suite (local) ou sur le vrai chemin
+(hébergé)** — pas une évidence.
