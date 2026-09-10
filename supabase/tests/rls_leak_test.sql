@@ -22,7 +22,8 @@ insert into tenant_id_exempt values
 -- Tables sans policy, et pourquoi.
 create temporary table policy_exempt (table_name text primary key, reason text);
 insert into policy_exempt values
-  ('processed_webhook_events', 'RLS forcée sans policy = invisible à authenticated, voulu');
+  ('processed_webhook_events', 'RLS forcée sans policy = invisible à authenticated, voulu'),
+  ('push_outbox',              'file d''envoi interne : RLS forcée sans policy, écrite/lue en service_role, jamais par un client (P1-007)');
 
 create temporary table business_tables as
 select c.relname::text as table_name

@@ -29,6 +29,7 @@ function payload(overrides: Record<string, unknown> = {}) {
       first_name: 'Léa',
       last_name: 'Martin',
       locale: 'fr',
+      timezone: null,
       avatar_url: null,
     },
     memberships: [

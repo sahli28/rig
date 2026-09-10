@@ -4,7 +4,7 @@
 -- réellement à empêcher toute divulgation, sans contrôle réécrit dans la fonction.
 
 begin;
-select plan(17);
+select plan(19);
 
 -- ---------------------------------------------------------------------------
 -- Léa — membre d'une seule box, profil complet, consentements du seed
@@ -17,6 +17,27 @@ select is(
   (select public.me() -> 'user' ->> 'email'),
   'lea@example.com',
   'me() retourne le profil de l''appelant'
+);
+
+-- **Le fuseau du membre voyage avec la session** (P1-007). `null` tant qu'il n'a
+-- pas été écrit : c'est le signal de repli sur `tenants.timezone`, résolu là où
+-- la règle des quiet hours s'applique (`notification_eligibility`), pas ici. La
+-- clé est bien présente — sans quoi ce serait un `->` sur une clé absente,
+-- indiscernable d'une valeur nulle par `->>`, d'où le test sur le `jsonb` nul.
+select is(
+  (select public.me() -> 'user' -> 'timezone'),
+  'null'::jsonb,
+  'le fuseau du membre est exposé, et null par défaut (repli box)'
+);
+
+-- Écrit par le membre lui-même — `grant update (timezone)` plus la policy
+-- `users_self_update` — et relu par `me()` : le tour complet, celui dont le hook
+-- mobile dépend pour poser le fuseau sans que la personne ait à le saisir.
+update public.users set timezone = 'Pacific/Auckland' where id = (select auth.uid());
+select is(
+  (select public.me() -> 'user' ->> 'timezone'),
+  'Pacific/Auckland',
+  'un fuseau écrit par le membre revient dans me()'
 );
 
 select is(

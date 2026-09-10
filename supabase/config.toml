@@ -406,6 +406,13 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# P1-007 — L'émetteur de push. `verify_jwt = false` : il est réveillé par un
+# net.http_post (kick_push_emitter / le balayage pg_cron) qui ne porte pas de
+# JWT ; l'accès à la base se fait par le service_role injecté dans le runtime,
+# pas par un jeton d'appelant. Il ne lit aucune entrée client — il draine la file.
+[functions.rack-push-emitter]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 55327

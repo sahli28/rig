@@ -88,18 +88,28 @@ export {
   isPlatformConsent,
   fetchMyPreferences,
   recordConsents,
+  setNotificationPreference,
   setRosterVisibility,
   type MyPreferences,
   updateLocale,
   updateProfile,
   CONSENT_PURPOSES,
+  NOTIFICATION_CATEGORIES,
   PLATFORM_CONSENT_PURPOSES,
   ProfilePatchSchema,
+  updateTimezone,
   type ConsentChoice,
   type ConsentPurpose,
+  type NotificationCategory,
   type ProfilePatch,
   type RecordConsentsInput,
 } from './profile';
+export {
+  registerDevice,
+  forgetDevice,
+  type DevicePlatform,
+  type DeviceRegistration,
+} from './devices';
 export {
   BoxAppearanceSchema,
   FONT_OPTIONS,

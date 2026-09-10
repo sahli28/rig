@@ -49,6 +49,19 @@ jobs:
       - name: Tests unitaires
         run: pnpm test
 
+      # L'émetteur de push (P1-007) tourne sous Deno, le vrai moteur de cette
+      # brique — donc ses fonctions pures (rendu i18n du message, lecture de la
+      # réponse Expo) se testent sous Deno, pas sous Node. Ce n'est pas une
+      # violation de D-010 : Deno EST le moteur ici, contrairement à Vitest sous
+      # Node pour du code qui part tourner sous Hermes.
+      - name: Deno (émetteur push)
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Fonctions edge · rendu i18n et mapping Expo
+        run: pnpm test:functions
+
       - name: Parité des traductions
         run: pnpm i18n:check
 

@@ -9,8 +9,10 @@ import {
   fetchMyPreferences,
   fetchPolicyVersion,
   recordConsents,
+  setNotificationPreference,
   setRosterVisibility,
   type ConsentPurpose,
+  type NotificationCategory,
 } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
@@ -37,11 +39,21 @@ import { useSession } from '../../lib/session';
  * horodatés, avec leur version de politique).
  */
 
+/** Les catégories que le membre peut couper lui-même (P1-007). MARKETING = P2. */
+const CATEGORIES_MEMBRE = ['CLASS_REMINDER', 'WAITLIST_PROMOTION', 'CLASS_CANCELLATION'] as const;
+
+const LIBELLE_CATEGORIE: Record<(typeof CATEGORIES_MEMBRE)[number], TranslationKey> = {
+  CLASS_REMINDER: 'preferences.notif_reminder',
+  WAITLIST_PROMOTION: 'preferences.notif_promotion',
+  CLASS_CANCELLATION: 'preferences.notif_cancellation',
+};
+
 interface Etat {
   phase: 'chargement' | 'prêt' | 'indisponible';
   visible: boolean;
   push: boolean;
   leaderboard: boolean;
+  categories: Record<NotificationCategory, boolean>;
 }
 
 export default function PreferencesScreen() {
@@ -55,9 +67,18 @@ export default function PreferencesScreen() {
     visible: true,
     push: false,
     leaderboard: false,
+    categories: {
+      CLASS_REMINDER: true,
+      WAITLIST_PROMOTION: true,
+      CLASS_CANCELLATION: true,
+      MARKETING: true,
+    },
   });
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
   const [enregistre, setEnregistre] = useState(false);
+
+  // L'appartenance active porte l'id qu'un réglage de catégorie vise.
+  const membershipId = me?.memberships.find((m) => m.tenant_id === activeTenantId)?.id ?? null;
 
   const charger = useCallback(async () => {
     if (activeTenantId === null || userId === null) return;
@@ -70,6 +91,7 @@ export default function PreferencesScreen() {
         visible: !prefs.hiddenFromRoster,
         push: prefs.push ?? false,
         leaderboard: prefs.leaderboard ?? false,
+        categories: prefs.categories,
       });
     } catch (error) {
       setErrorKey(errorMessageKeyOf(error));
@@ -125,6 +147,21 @@ export default function PreferencesScreen() {
       });
     },
     [activeTenantId, userId, appliquer, reload],
+  );
+
+  const basculerCategorie = useCallback(
+    (category: NotificationCategory, enabled: boolean) => {
+      if (activeTenantId === null || membershipId === null) return;
+      void appliquer({ categories: { ...etat.categories, [category]: enabled } }, () =>
+        setNotificationPreference(supabase, {
+          tenantId: activeTenantId,
+          membershipId,
+          category,
+          enabled,
+        }),
+      );
+    },
+    [activeTenantId, membershipId, appliquer, etat.categories],
   );
 
   return (
@@ -217,6 +254,30 @@ export default function PreferencesScreen() {
             value={etat.leaderboard}
             onValueChange={(v) => basculerConsentement('LEADERBOARD', v)}
           />
+
+          {/* Les catégories de push (P1-007) — opt-out, indépendantes. Grisées
+              quand le push est coupé : couper une catégorie n'a de sens que si
+              on en reçoit. */}
+          <Text
+            style={{
+              color: theme.colors.text,
+              fontSize: theme.typography.title,
+              fontFamily: theme.fontFamily,
+              fontWeight: '600',
+            }}
+          >
+            {t('preferences.notifications_heading')}
+          </Text>
+
+          {CATEGORIES_MEMBRE.map((category) => (
+            <Switch
+              key={category}
+              label={t(LIBELLE_CATEGORIE[category])}
+              value={etat.categories[category]}
+              disabled={!etat.push}
+              onValueChange={(v) => basculerCategorie(category, v)}
+            />
+          ))}
         </View>
       )}
 

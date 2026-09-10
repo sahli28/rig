@@ -9,6 +9,7 @@ import { BrandProvider, useBrand } from '../lib/brand';
 import { INITIAL_SCHEME, nextScheme } from '../lib/color-scheme';
 import { deviceLocale, deviceTimeZone, useLocaleStorage } from '../lib/locale';
 import { SessionProvider, useSession } from '../lib/session';
+import { useDeviceSync } from '../lib/push';
 
 /**
  * Aiguillage. Une seule fonction décide où l'on doit être, pour que la règle
@@ -79,6 +80,8 @@ function ThemedStack() {
   const theme = useTheme();
   const { status } = useSession();
   useAuthRedirect();
+  // Fuseau, jeton push, lien profond — best-effort, ne bloque jamais le rendu.
+  useDeviceSync();
 
   if (status === 'loading') {
     return (

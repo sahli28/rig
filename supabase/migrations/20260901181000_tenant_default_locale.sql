@@ -146,6 +146,7 @@ begin
       'first_name', v_user.first_name,
       'last_name', v_user.last_name,
       'locale', v_user.locale,
+      'timezone', v_user.timezone,
       'avatar_url', v_user.avatar_url
     ),
     'memberships', v_memberships,

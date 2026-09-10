@@ -13,6 +13,7 @@ import type { Session } from '@supabase/supabase-js';
 import { chooseActiveTenant, fetchMe, type Me } from '@rack/core/supabase';
 import { errorMessageKeyOf, type TranslationKey } from '@rack/core';
 import { forgetLocale } from './locale';
+import { forgetPushToken } from './push-registration';
 import { clearScheduleCache } from './schedule-cache';
 import { startSessionAutoRefresh, supabase } from './supabase';
 
@@ -163,6 +164,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // qui reste du compte précédent sur un téléphone partagé est précisément ce
     // qu'on ne veut pas garder (P1-002b, contrainte 1).
     await clearScheduleCache();
+    // Le jeton push de cet appareil s'oublie **avant** `auth.signOut()`, tant que
+    // la RLS reconnaît encore l'appelant : sur un téléphone partagé, la personne
+    // suivante ne doit pas hériter des notifications de la précédente (P1-007).
+    await forgetPushToken(supabase);
     await supabase.auth.signOut();
   }, []);
 

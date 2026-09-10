@@ -43,13 +43,13 @@ tel qu'il est écrit.
 > devant lui.
 >
 > **La première vraie brique serveur du produit est l'émetteur de notifications
-> push (`P1-007a`), et c'est une edge function Supabase, pas un route handler
-> Next.** Trois raisons : (1) un envoi push ne peut vivre **ni en SQL** — ni
-> `pg_net` ni `http` ne sont activés, une fonction Postgres ne fait aucun appel
-> sortant — **ni côté client** — le secret Expo/APNs ne s'expose jamais ; (2) il
-> se déclenche en fond (`pg_cron`, promotion de liste d'attente) et non sur une
-> requête entrante, ce qui n'est pas la forme d'un route handler ; (3) c'est le
-> choix que `P1-007a` nomme déjà. La couche `api.md` (route handlers, Zod,
+> push (`P1-007`), et c'est une edge function Supabase, pas un route handler
+> Next.** Trois raisons : (1) un envoi push ne peut vivre **ni en SQL** — une
+> fonction Postgres n'émet pas vers Expo/APNs, `pg_net` ne sert qu'à réveiller
+> l'émetteur — **ni côté client** — le secret Expo/APNs ne s'expose jamais ;
+> (2) il se déclenche en fond (`pg_cron`, promotion de liste d'attente) et non sur
+> une requête entrante, ce qui n'est pas la forme d'un route handler ; (3) c'est
+> le choix que `P1-007` nomme déjà. La couche `api.md` (route handlers, Zod,
 > `Idempotency-Key`) **reste en attente de son objet** — les webhooks Stripe de
 > P2, où une requête entrante doit être validée et sa signature vérifiée. Elle
 > n'est toujours pas abrogée ; elle attend simplement un autre objet que celui

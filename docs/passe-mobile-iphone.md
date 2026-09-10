@@ -602,6 +602,49 @@ que le geste du coach en salle est tenable d'une main.
 la garde. Chronométrer une classe complète et le noter — même logique que le
 repère de `P1-015`.
 
+## 5 nonies. Les notifications push (P1-007)
+
+> #### ⛔ Ce geste n'est PAS jouable avec Expo Go / Metro
+>
+> Le push exige un **development build iOS** (Expo Go ne fait plus de push depuis
+> le SDK 53) **et** un `projectId` EAS écrit dans `app.json` (`eas init`). Tant que
+> ces deux-là n'existent pas, `useDeviceSync` s'abstient **sans erreur** — l'app
+> tourne, aucune notification ne part, et il n'y a rien à cocher. Ce geste se joue
+> **après** le premier dev build iOS, et il se coordonne avec `P1-016` (même build).
+
+### Ce qui ferme quatre critères d'un coup
+
+Un seul dev build iOS prouve : **iOS < 30 s** et **le toucher ouvre l'écran via
+`rack://`** (`P1-007`), et du même coup le reliquat `rack://` de `D-013` et le
+`[~]` resté ouvert de `P1-003b`. Rassembler la liste **avant** de lancer le build.
+
+### Le décor
+
+1. Membre `lea@example.com` inscrite à un cours de demain (pour le rappel) **et**
+   à un cours d'aujourd'hui (pour l'annulation, plus rapide à déclencher).
+2. Dans l'app : écran **Préférences** → activer le consentement **Push**, accepter
+   l'invite système de notifications. Laisser les catégories activées.
+
+### Le geste qui décide vraiment — l'annulation (déclenchable à la demande)
+
+Le rappel J-1 part à 18 h locales ; l'annulation part **tout de suite**, c'est
+donc elle qu'on chronomètre.
+
+| # | Geste | Attendu |
+| --- | --- | --- |
+| 1 | Depuis le back-office web, annuler le cours d'aujourd'hui où Léa est inscrite (motif quelconque) | **Une notification arrive sur l'iPhone en < 30 s** — « Cours annulé / … est annulé. » |
+| 2 | Toucher la notification | L'app **ouvre la fiche du cours** (`/class/[id]`) via `rack://`, **pas** l'accueil |
+| 3 | Ouvrir la fiche : le motif d'annulation s'y lit (`planning.cancelled_because`) | Le membre voit *pourquoi*, via le lien profond — la boucle est fermée |
+| 4 | Dans Préférences, couper **« Annulation de cours »**, réserver puis faire annuler un autre cours | **Aucune** notification pour cette catégorie ; les autres continueraient |
+| 5 | Rejouer l'annulation en mode **sombre** et à **200 %** | La notification et la fiche ouverte tiennent |
+
+### Le repère, à noter au journal
+
+**La latence réelle**, chronométrée entre l'annulation web et l'arrivée sur le
+téléphone. Le critère est « < 30 s » ; noter le chiffre observé, pas seulement
+« OK » — c'est lui qui dira si le balayage 30 s + le coup de sonnette suffisent,
+ou s'il faut resserrer la granularité `pg_cron`.
+
 ## 5 sexies. La passe groupée — quatre dettes, une passe
 
 **Pourquoi groupée**, décidé le 6 septembre 2026 : quatre tickets ont laissé un

@@ -71,6 +71,25 @@ export async function updateLocale(
   if (error) throw error;
 }
 
+/**
+ * Écrit le fuseau du membre. Jumeau d'`updateLocale` : `timezone` est dans le
+ * même `grant update (…) on public.users`, la policy `id = auth.uid()` borne la
+ * ligne, aucune fonction SQL n'est nécessaire.
+ *
+ * Écrit **inconditionnellement** par le hook mobile (best-effort, même push
+ * refusé) : le fuseau sert aux quiet hours (spec §5.3), qui se calculent que la
+ * personne reçoive des push ou non. `null` en base = repli sur `tenants.timezone`,
+ * résolu dans `notification_eligibility` — on n'écrit donc que si on a une valeur.
+ */
+export async function updateTimezone(
+  client: RackClient,
+  userId: string,
+  timezone: string,
+): Promise<void> {
+  const { error } = await client.from('users').update({ timezone }).eq('id', userId);
+  if (error) throw error;
+}
+
 /** Repris des types générés : la liste des finalités fait foi en base. */
 export const CONSENT_PURPOSES = Constants.public.Enums.consent_purpose;
 
@@ -172,13 +191,28 @@ export async function setRosterVisibility(
   if (error) throw error;
 }
 
-/** Ce que l'écran de préférences affiche, et qui vient de deux endroits. */
+/**
+ * Les catégories de notification (P1-007), miroir de l'enum
+ * `notification_category`. `MARKETING` est P2 ; l'écran ne propose que les trois
+ * premières, mais la préférence existe pour les quatre.
+ */
+export const NOTIFICATION_CATEGORIES = [
+  'CLASS_REMINDER',
+  'WAITLIST_PROMOTION',
+  'CLASS_CANCELLATION',
+  'MARKETING',
+] as const;
+export type NotificationCategory = (typeof NOTIFICATION_CATEGORIES)[number];
+
+/** Ce que l'écran de préférences affiche, et qui vient de trois endroits. */
 export interface MyPreferences {
   /** Opposition à la feuille d'inscrits, portée par l'appartenance. */
   hiddenFromRoster: boolean;
   /** Consentements de box, `null` tant que la personne n'a rien dit. */
   push: boolean | null;
   leaderboard: boolean | null;
+  /** Réglages par catégorie, **opt-out** : absent = activé (P1-007). */
+  categories: Record<NotificationCategory, boolean>;
 }
 
 /**
@@ -194,7 +228,7 @@ export async function fetchMyPreferences(
   client: RackClient,
   { tenantId, userId }: { tenantId: string; userId: string },
 ): Promise<MyPreferences> {
-  const [visibilite, consents] = await Promise.all([
+  const [visibilite, consents, categories] = await Promise.all([
     // **Une RPC et non une lecture de `memberships`.** La colonne est hors du
     // grant de lecture de la table depuis P1-003c : un `select *` y échoue en
     // `42501`, et c'est voulu — sans ce grant de colonne, n'importe quel membre
@@ -207,19 +241,56 @@ export async function fetchMyPreferences(
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
       .order('granted_at', { ascending: false }),
+    // Les réglages par catégorie : la RLS `notification_preferences_self_select`
+    // borne déjà à l'appartenance de l'appelant, donc `eq('tenant_id', …)` suffit.
+    client.from('notification_preferences').select('category, enabled').eq('tenant_id', tenantId),
   ]);
 
   if (visibilite.error !== null) throw visibilite.error;
   if (consents.error !== null) throw consents.error;
+  if (categories.error !== null) throw categories.error;
 
   // Le premier trouvé est le plus récent : la table est append-only, un refus
   // est une ligne de plus, et c'est la dernière qui vaut.
   const dernier = (purpose: string): boolean | null =>
     (consents.data ?? []).find((row) => row.purpose === purpose)?.granted ?? null;
 
+  // Opt-out : on part de « tout activé », et chaque ligne ne fait que **retirer**.
+  const parCategorie = Object.fromEntries(NOTIFICATION_CATEGORIES.map((c) => [c, true])) as Record<
+    NotificationCategory,
+    boolean
+  >;
+  for (const row of categories.data ?? []) {
+    if (row.category in parCategorie)
+      parCategorie[row.category as NotificationCategory] = row.enabled;
+  }
+
   return {
     hiddenFromRoster: visibilite.data ?? false,
     push: dernier('PUSH'),
     leaderboard: dernier('LEADERBOARD'),
+    categories: parCategorie,
   };
+}
+
+/**
+ * Bascule un réglage de catégorie. Upsert : une seule ligne par
+ * `(appartenance, catégorie)`, bornée par la policy self-service.
+ */
+export async function setNotificationPreference(
+  client: RackClient,
+  {
+    tenantId,
+    membershipId,
+    category,
+    enabled,
+  }: { tenantId: string; membershipId: string; category: NotificationCategory; enabled: boolean },
+): Promise<void> {
+  const { error } = await client
+    .from('notification_preferences')
+    .upsert(
+      { tenant_id: tenantId, membership_id: membershipId, category, enabled },
+      { onConflict: 'membership_id,category' },
+    );
+  if (error) throw error;
 }
