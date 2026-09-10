@@ -1,4 +1,4 @@
-# `P1-007` — Notifications push (re-fusionné, prouvé sur iPhone)
+# `P1-007` — Notifications push (re-fusionné, passe iPhone en attente)
 
 **Phase** `P1` · **Estimation** `6` j·h *(4 → 6 ; la frontière a/b reposait sur un appareil Android qui n'existe pas)* · **Dépend de** `P0-005` ✅ · **Spec** §5.3, §12.3 · **État** : lots 1–3 livrés sur `feat/P1-007-push`, **passe iPhone en attente**
 
