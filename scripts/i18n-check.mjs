@@ -14,7 +14,12 @@ import { join, extname } from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const LOCALES_DIR = join(ROOT, 'packages/core/src/i18n/locales');
-const SOURCE_DIRS = ['apps', 'packages'];
+// `supabase/functions` en fait partie : une edge function rend des chaînes
+// visibles (le titre d'une notification push, P1-007) à partir des mêmes clés
+// `fr.json`/`en.json`. Sans elle, ces clés paraîtraient orphelines alors qu'elles
+// sont l'unique source de vérité i18n, rendue côté serveur faute de pouvoir
+// l'être dans l'app (une push se compose quand l'app ne tourne pas).
+const SOURCE_DIRS = ['apps', 'packages', 'supabase/functions'];
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx']);
 const IGNORED_DIRS = new Set(['node_modules', '.next', '.expo', 'dist', 'build', '.turbo']);
 

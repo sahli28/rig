@@ -250,12 +250,14 @@ function CancelForm({ slug, id }: { slug: string; id: string }) {
   return (
     <form action={formAction} className={styles.form}>
       {/*
-        Le point le plus important de cet écran, et il dit une limite plutôt
-        qu'une fonctionnalité : **personne n'est prévenu**. Le push est P1-007,
-        l'e-mail P2-015 ; aucun des deux n'existe. Laisser croire le contraire
-        ferait annuler un cours en pensant que seize personnes le savent.
+        Le point le plus important de cet écran. Il disait « personne n'est
+        prévenu » ; depuis P1-007, c'est faux — l'annulation envoie une push aux
+        membres inscrits. Mais **seulement à ceux qui l'ont activée** : pas de
+        push consentie, pas d'appareil, pas d'e-mail (P2-015) => pas prévenu. Le
+        silence recréerait exactement le risque que cette ligne existe pour
+        écarter : annuler en croyant que seize personnes le savent.
       */}
-      <p className={styles.warning}>{t('planning.cancel_no_notification')}</p>
+      <p className={styles.warning}>{t('planning.cancel_push_only')}</p>
 
       <label className={styles.field}>
         <span className={styles.label}>{t('planning.cancel_reason')}</span>
