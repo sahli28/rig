@@ -33,6 +33,28 @@ que le client ne peut pas fournir honnêtement :
 C'est P1-003 qui construira `apps/web/app/api/v1/`, et `api.md` s'appliquera alors
 tel qu'il est écrit.
 
+> **Amendement du 10 septembre 2026 — cette phrase est caduque, et la première
+> couche serveur n'est pas celle qu'elle annonçait.** `P1-003` est fusionné
+> depuis le 3 septembre 2026 et **n'a construit aucun `apps/web/app/api/v1/`**
+> (le répertoire n'existe pas) : la réservation a résolu son `Idempotency-Key`
+> **dans la base** — contrainte unique sur `bookings` + `book_class()` PLpgSQL —
+> donc le déclencheur que cet ADR posait n'a rien produit. Ce n'est pas un oubli,
+> c'est le bon choix : l'idempotence vivait mieux sous le verrou de ligne que
+> devant lui.
+>
+> **La première vraie brique serveur du produit est l'émetteur de notifications
+> push (`P1-007a`), et c'est une edge function Supabase, pas un route handler
+> Next.** Trois raisons : (1) un envoi push ne peut vivre **ni en SQL** — ni
+> `pg_net` ni `http` ne sont activés, une fonction Postgres ne fait aucun appel
+> sortant — **ni côté client** — le secret Expo/APNs ne s'expose jamais ; (2) il
+> se déclenche en fond (`pg_cron`, promotion de liste d'attente) et non sur une
+> requête entrante, ce qui n'est pas la forme d'un route handler ; (3) c'est le
+> choix que `P1-007a` nomme déjà. La couche `api.md` (route handlers, Zod,
+> `Idempotency-Key`) **reste en attente de son objet** — les webhooks Stripe de
+> P2, où une requête entrante doit être validée et sa signature vérifiée. Elle
+> n'est toujours pas abrogée ; elle attend simplement un autre objet que celui
+> que cet ADR avait prévu.
+
 ## Alternative écartée
 
 Construire la couche dès P0-005a « pour poser le motif ». Trois jours-homme de

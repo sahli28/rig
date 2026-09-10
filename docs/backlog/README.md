@@ -362,10 +362,13 @@ CE QUI RESTE, ET CE QUI LE RETIENT
             côté technique, mais il crée des comptes hébergés (Supabase, Vercel)
             que seule la commanditaire ouvre : c'est une procédure à jouer, pas
             du code à écrire ici
-  P1-007a ⟵ rien — le push Android, débloqué. Ouvert par la découpe faite le
-            10 sept. ; ADR 0004 amendé (la couche API existe pour l'edge du push)
+  P1-007a ⟵ rien. **Le prochain à coder.** Le push Android + l'émetteur + tout
+            le partagé. Découpe et amendement d'ADR 0004 écrits le 10 sept. :
+            la première brique serveur est l'edge function de l'émetteur, pas la
+            couche API que l'ADR annonçait pour P1-003
   P1-007b ⟵ Apple + le premier development build : le push iOS et le deep link
-  P1-006  ⟵ P1-007, et rien d'autre
+  P1-006  ⟵ P1-007a pour la promotion Android ; sa garantie « 30 s » sur iOS
+            attend P1-007b
   P1-009 → P1-001f  ⟵ rien. Après la démo
   D-008   ⟵ le nom de domaine, seul blocage de sa ligne
 
@@ -398,16 +401,15 @@ administrative à son propre travail préparatoire. Écrire « débloqué » tou
 ferait repartir le ticket sur un chiffre qu'on sait faux. D'où la condition
 d'ouverture, à tenir :
 
-> **`P1-007` s'ouvre quand sa découpe a/b et l'amendement d'ADR 0004 sont
-> écrits.** Apple était nécessaire, pas suffisant.
->
-> **Ni l'une ni l'autre n'est écrite au 9 septembre 2026, et elles ont désormais
-> un moment** : pendant `P1-008a`, pas au lancement de `P1-007` — c'est
-> exactement le travail qu'on découvre en route quand personne ne lui a donné de
-> date. L'amendement a sa cible : `docs/adr/0004-pas-de-couche-api.md:33`
-> annonce que « `P1-003` construira `apps/web/app/api/v1/` ». `P1-003` est
-> fusionné depuis le 4 septembre et **ce répertoire n'existe pas** — l'ADR décrit
-> un avenir qui n'a pas eu lieu, au présent.
+> **`P1-007` s'ouvrait quand sa découpe a/b et l'amendement d'ADR 0004 étaient
+> écrits.** Apple était nécessaire, pas suffisant. **C'est fait le 10 septembre
+> 2026**, avec la clôture de `P1-008a` : `P1-007a` (Android + l'émetteur + tout
+> le partagé) et `P1-007b` (iOS) sont des fichiers, et
+> `docs/adr/0004-pas-de-couche-api.md` est amendé — la ligne qui promettait
+> `apps/web/app/api/v1/` pour `P1-003` est déclarée caduque, la première brique
+> serveur étant l'émetteur push de `P1-007a`, une edge function. **`P1-007a` est
+> donc prêt à ouvrir** ; il reste à recompter son estimation à l'ouverture
+> (+1,25 pressenti).
 
 **Et le premier development build se prépare comme un événement.** Il ferme des
 critères de **quatre** tickets — `P1-003b` (le schéma `rack://`), `D-013` (son
@@ -457,8 +459,9 @@ sait pas lui répondre.
 | P1-012  | Le planning dit ce qui est déjà réservé           |      1 | ✅ **fusionné (PR #46) — passe faite le 6 sept. 2026** : tout passe sauf le clignotement au retour (→ `D-018`), et le critère « deux boxes » reste `[~]` faute de `P1-009`. **2 → 1 le 6 sept. 2026** : P1-014 a livré le chemin de données et tranché la décision hors ligne. Reste le détail par cours, le badge, et **le volet `planning.tsx` de `D-016`, absorbé ici** — sans lui le badge serait faux au retour sur la liste |
 | P1-005a | Places restantes en temps réel, sur le téléphone  |      3 | ✅ **fait le 6 sept. 2026 — passe harnais à deux clients**, dix critères sur onze. L'isolation du canal est **prouvée** là où pgTAP ne peut pas : sonde sans filtre de box, un seul des deux événements reçu. Un défaut trouvé et corrigé — deux écrans partageaient un nom de canal, et `channel()` rend l'existant. **Un critère `[ ]` : l'arrière-plan**, qu'un onglet caché ne sait pas exercer → prochaine passe iPhone. Découpé de `P1-005` le même jour : `waitlist_length` → `P1-006`, le web → `P1-005b` |
 | P1-005b | Le même canal dans la grille du back-office       |      1 | **non programmé** — écrit, chiffré, hors du total. Au pilote, la valeur du temps réel est sur le téléphone du membre, là où deux personnes se disputent la dernière place ; le manager peut rafraîchir. Sort en une session si la box pilote le réclame |
-| P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière P1-007**, dont elle tient la promotion. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
-| P1-007  | Notifications push                                |      4 | 🔒 **partiellement bloqué — iOS**. Sa section « ce que ce ticket suppose », écrite le 6 sept. 2026, a trouvé trois trous que l'estimation ne couvre pas : **aucun émetteur** (ni edge function, ni route handler), **aucun journal d'envoi** pour le plafond marketing, et **`users` n'a pas de fuseau** alors que les quiet hours sont « heure locale du membre ». Deux critères en `[~]` : le push iOS et le deep link, tous deux derrière le **compte développeur Apple**. Android est ouvert et gratuit. **4 j·h à recompter au lancement** |
+| P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière `P1-007a`** (l'émetteur qui délivre la promotion) ; la garantie « promotion en moins de 30 s » sur iOS attend `P1-007b`, le blocage se transmet. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
+| P1-007a | Push : l'émetteur, et tout ce qui ne dépend pas d'Apple |   3 | **prêt à ouvrir** — découpé de `P1-007` le 10 sept. 2026, sa condition d'ouverture (découpe a/b + amendement d'ADR 0004) est **remplie**. Porte les trois trous que la règle 8 avait trouvés : **l'émetteur** (edge function → Expo Push, la première vraie brique serveur), le **journal d'envoi** tenant-scopé, et **`users.timezone`** (tranché : colonne + repli box). Testable sur **Android sans Apple** (Expo Push proxifie FCM). **3 j·h à recompter à l'ouverture — +1,25 pressenti** (émetteur + pont SQL + journal). Débloque la promotion de `P1-006` côté Android |
+| P1-007b | Push : iOS — APNs, le build dédié, le deep link      |    1 | derrière le **premier _development build_ iOS**. Aucune logique neuve : clé APNs, EAS iOS, et le `rack://` qu'Expo Go ne sait pas exercer. **Un seul build ferme trois critères de trois tickets** — celui-ci, le reliquat `rack://` de `D-013`, et le `[~]` de `P1-003b`. Coordonné avec le build de `P1-016` |
 | P1-015  | La séance du cours, écrite par le coach           |    5,5 | ✅ **clos le 9 sept. 2026 — onze critères verts.** Le **premier ticket venu d'un client réel**, et il est tenu : une séance **par occurrence**, en texte libre, pré-remplissage qui **copie sans lier**, troisième protection contre le rafraîchissement de série. Fusionné incomplet (PR #63), il a fallu **trois passes** pour le clore : `D-021` (la porte du coach + la place du panneau, A14 ✅), puis les **gestes 7 et 8** — NOK à la passe, le **piège 13** (la policy de lecture masquait l'archivé à tout le monde, PostgreSQL 17 refuse alors l'`update` qui archive), sa **sœur** cassant « supprimer une série » **depuis P1-002**, corrigé (`fix/P1-015-gestes-7-et-8`, **5 → 5,5**) et **rejoué OK sur `main`**. Reste hors critère le seul repère qui compte : la semaine chronométrée vs Hustle Up, à `P1-016` |
 | P1-008a | Le coach coche sa feuille, et l'absent est marqué  |    5,5 | ✅ **clos le 10 sept. 2026** (PR #72) — fusionné **et** passe iPhone jouée le jour même (§ 5 octies, geste 8 compris : le membre refusé par l'adresse). Quatre lots : base SQL (présence sur `bookings`, vue coach, `set_attendance()`, job de no-show), core, deux champs web, mode coach mobile. `test:db` vert (498), `rls-auditor` **SAFE**. **Réestimé à l'ouverture 3,75 → 5,5** : +1,25 (l'écran est un mode) + 0,5 (`class_roster` peer-scoped → **vue neuve** + 4e audience RGPD tranchée). La **première surface de l'app réservée à un rôle** |
 | P1-008b | Le check-in QR : le membre scanne lui-même        |      6 | **non programmé** — la box pilote n'en a pas besoin. Mais §10 le classe « attendu par le marché » : **une box de 200 membres avec des coachs qui tournent ne connaît pas ses adhérents par leur prénom**. Déclencheur : la première box qui n'est pas la pilote. Porte tout ce qui scanne, **et la section règle 8** dont les trois trouvailles ont servi à décider de ne pas le lancer |
