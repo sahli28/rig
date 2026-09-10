@@ -128,6 +128,13 @@ surprise.
   2026 : elle aimerait facturer 5 €, et dit elle-même « pas tout de suite ».
 - **Le reporting d'assiduité** → `P2-014`. Ce ticket livre la donnée.
 
+## ✅ Clos le 10 septembre 2026
+
+Fusionné (PR #72) **et** passe iPhone jouée le jour même (§ 5 octies), geste 8
+compris : le coach ouvre la feuille et coche d'une main, le membre est refusé
+par l'adresse. Les sept critères sont verts. Le no-show sanctionnable existe
+sans QR, et `R4` bouge encore : le coach a un second geste dans l'app.
+
 ## Ce qui a été fait — 10 septembre 2026
 
 **Quatre lots, sur `feat/P1-008a-pointage`** (voir « Ordre des lots » du plan) :
@@ -147,10 +154,9 @@ verts.
 
 ## Critères d'acceptation
 
-- [~] Le coach ouvre la feuille d'un cours, coche une personne, et c'est écrit —
-      sans bouton d'enregistrement. **Mécanisme prouvé** (pgTAP `set_attendance`
-      + écriture immédiate façon `preferences.tsx`) ; l'**ouverture de la feuille
-      sur l'appareil** reste au critère appareil
+- [x] Le coach ouvre la feuille d'un cours, coche une personne, et c'est écrit —
+      sans bouton d'enregistrement. Mécanisme prouvé au harnais, **et joué sur
+      l'iPhone à la passe du 10 septembre 2026** (§ 5 octies)
 - [x] Décocher retire le pointage : c'est un geste réversible, pas un
       enregistrement définitif — pgTAP `set_attendance(false)` remet
       `attended_at` à `null`, et l'écran l'appelle
@@ -164,12 +170,13 @@ verts.
       (Sarah sur Nanterre refusée ; un membre refusé ; la vue cloisonnée des
       deux côtés)
 - [x] **Parité i18n** (493 clés, alignées). Arbre d'accessibilité : chaque case
-      porte **le nom** en libellé (« Léa M. »), pas « case à cocher » — la
-      **lecture VoiceOver** reste à confirmer à la passe
-- [ ] **appareil** — la feuille se tient d'une main, en salle, cours en cours ;
+      porte **le nom** en libellé (« Léa M. »), pas « case à cocher » — **lecture
+      VoiceOver confirmée à la passe du 10 septembre 2026**
+- [x] **appareil** — la feuille se tient d'une main, en salle, cours en cours ;
       l'entrée « Feuille de présence » est **visible d'un coach, invisible d'un
-      membre** ; VoiceOver annonce chaque case par qui elle pointe. Geste écrit :
-      `docs/passe-mobile-iphone.md`, § 5 octies
+      membre** ; VoiceOver annonce chaque case par qui elle pointe. **Passe du
+      10 septembre 2026 OK** (§ 5 octies), geste 8 compris — le membre est bien
+      refusé par l'adresse
 
 ## Estimation
 
