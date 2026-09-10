@@ -189,3 +189,36 @@ mémoire :
   `.claude/rules/ui.md` ;
 - **`tenantScope().select()` ne prend pas de liste de colonnes** —
   `.claude/rules/api.md`.
+
+## Expo Go ne compile rien en natif — tout le natif est non exercé jusqu'au premier build
+
+**Aucun filet du projet ne compile de code natif.** Expo Go charge un binaire
+préfabriqué et n'y injecte que du JavaScript ; le harnais web (`build:web`),
+Vitest et la CI tournent sous Node ou un navigateur. Les modules natifs —
+`react-native-reanimated`, `react-native-worklets`, le côté natif
+d'`expo-notifications` — ne sont **jamais liés ni compilés** avant un
+*development build* EAS. Un pan entier du projet reste donc **hors de tout
+vert**, exactement comme « le code s'abstient sans erreur quand le `projectId`
+manque » (P1-007) : ce qu'aucun contrôle n'exécute, aucun contrôle ne protège.
+
+**Mesuré le 11 septembre 2026, au tout premier build iOS.** Il a échoué sur
+`no member named 'executeSync' in 'worklets::WorkletRuntime'` — un
+mésappariement d'ABI. `react-native-reanimated` et `react-native-worklets` sont
+**deux modules natifs couplés** ; ils arrivaient **transitivement**
+(`expo-router` → `@expo/ui`, `react-native-drawer-layout`) et **aucun des deux
+n'était déclaré** dans `apps/mobile/package.json`. Rien ne pilotant leur version,
+pnpm a résolu vers les plus récentes (4.6.0 / 0.12.1), plus neuves que le couple
+testé pour le SDK 57 (**4.5.1 / 0.10.1**). C'est la **règle des sœurs appliquée
+aux dépendances** : deux paquets couplés, un seul surveillé — ici aucun.
+
+La parade, posée le jour même, et la règle qui en sort :
+
+- les deux paquets sont **déclarés** dans `apps/mobile/package.json` **et**
+  épinglés dans `pnpm.overrides` du `package.json` racine (4.5.1 / 0.10.1) —
+  même mécanisme que la copie unique de React, pour la même raison : une version
+  native qui diverge en silence casse au premier lien natif ;
+- la source de vérité des versions d'un SDK est `node_modules/expo/bundledNativeModules.json`
+  (ce que `expo install` choisirait) — `expo install --check` **ne voit pas** une
+  dépendance non déclarée, donc ne l'aurait pas signalée ;
+- **toute dépendance native ajoutée doit être vérifiée par un build EAS**, pas par
+  le harnais. Le vert local ne dit rien de la compilation native.
