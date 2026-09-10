@@ -71,6 +71,25 @@ export async function updateLocale(
   if (error) throw error;
 }
 
+/**
+ * Écrit le fuseau du membre. Jumeau d'`updateLocale` : `timezone` est dans le
+ * même `grant update (…) on public.users`, la policy `id = auth.uid()` borne la
+ * ligne, aucune fonction SQL n'est nécessaire.
+ *
+ * Écrit **inconditionnellement** par le hook mobile (best-effort, même push
+ * refusé) : le fuseau sert aux quiet hours (spec §5.3), qui se calculent que la
+ * personne reçoive des push ou non. `null` en base = repli sur `tenants.timezone`,
+ * résolu dans `notification_eligibility` — on n'écrit donc que si on a une valeur.
+ */
+export async function updateTimezone(
+  client: RackClient,
+  userId: string,
+  timezone: string,
+): Promise<void> {
+  const { error } = await client.from('users').update({ timezone }).eq('id', userId);
+  if (error) throw error;
+}
+
 /** Repris des types générés : la liste des finalités fait foi en base. */
 export const CONSENT_PURPOSES = Constants.public.Enums.consent_purpose;
 

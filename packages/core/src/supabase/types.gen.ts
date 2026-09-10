@@ -953,6 +953,77 @@ export type Database = {
         };
         Relationships: [];
       };
+      push_outbox: {
+        Row: {
+          attempts: number;
+          category: Database['public']['Enums']['notification_category'];
+          claimed_at: string | null;
+          context: Json;
+          created_at: string;
+          id: string;
+          last_error: string | null;
+          membership_id: string;
+          sent_at: string | null;
+          status: string;
+          tenant_id: string;
+        };
+        Insert: {
+          attempts?: number;
+          category: Database['public']['Enums']['notification_category'];
+          claimed_at?: string | null;
+          context?: Json;
+          created_at?: string;
+          id?: string;
+          last_error?: string | null;
+          membership_id: string;
+          sent_at?: string | null;
+          status?: string;
+          tenant_id: string;
+        };
+        Update: {
+          attempts?: number;
+          category?: Database['public']['Enums']['notification_category'];
+          claimed_at?: string | null;
+          context?: Json;
+          created_at?: string;
+          id?: string;
+          last_error?: string | null;
+          membership_id?: string;
+          sent_at?: string | null;
+          status?: string;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'push_outbox_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'push_outbox_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'memberships';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'push_outbox_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenant_coaches';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'push_outbox_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       rooms: {
         Row: {
           capacity: number;
@@ -1295,6 +1366,18 @@ export type Database = {
       cancel_booking: { Args: { p_booking_id: string }; Returns: string };
       cancel_class_bookings: { Args: { p_class_id: string }; Returns: number };
       claim_invitation: { Args: { p_invitation_id: string }; Returns: string };
+      claim_push_outbox: {
+        Args: { p_limit?: number };
+        Returns: {
+          category: Database['public']['Enums']['notification_category'];
+          context: Json;
+          id: string;
+          locale: string;
+          membership_id: string;
+          push_tokens: string[];
+          tenant_id: string;
+        }[];
+      };
       create_invitation: {
         Args: {
           p_email?: string;
@@ -1315,6 +1398,17 @@ export type Database = {
       current_tenant_role: {
         Args: { p_tenant_id: string };
         Returns: Database['public']['Enums']['membership_role'];
+      };
+      enqueue_class_reminders: { Args: { p_now?: string }; Returns: number };
+      enqueue_push: {
+        Args: {
+          p_category: Database['public']['Enums']['notification_category'];
+          p_context: Json;
+          p_membership_id: string;
+          p_now?: string;
+          p_tenant_id: string;
+        };
+        Returns: boolean;
       };
       expire_stale_invitations: {
         Args: { p_email: string; p_tenant_id: string };
@@ -1359,6 +1453,7 @@ export type Database = {
           slug: string;
         }[];
       };
+      kick_push_emitter: { Args: never; Returns: undefined };
       leave_tenant: { Args: { p_tenant_id: string }; Returns: undefined };
       log_audit: {
         Args: {
@@ -1373,6 +1468,11 @@ export type Database = {
       };
       maintain_class_occurrences: { Args: never; Returns: undefined };
       mark_no_shows: { Args: never; Returns: number };
+      mark_push_failed: {
+        Args: { p_error: string; p_ids: string[] };
+        Returns: number;
+      };
+      mark_push_sent: { Args: { p_ids: string[] }; Returns: number };
       materialize_class_occurrences: {
         Args: { p_from: string; p_schedule_id?: string; p_until: string };
         Returns: number;
@@ -1427,11 +1527,20 @@ export type Database = {
         Args: { p_from: string; p_schedule_id: string; p_until: string };
         Returns: undefined;
       };
+      register_device: {
+        Args: {
+          p_app_version?: string;
+          p_platform: string;
+          p_push_token: string;
+        };
+        Returns: string;
+      };
       remove_member: { Args: { p_membership_id: string }; Returns: undefined };
       restore_booking_entitlement: {
         Args: { p_booking_id: string; p_within_window: boolean };
         Returns: undefined;
       };
+      revoke_device: { Args: { p_push_token: string }; Returns: number };
       set_attendance: {
         Args: { p_booking_id: string; p_present: boolean };
         Returns: string;
