@@ -258,10 +258,10 @@ coche à la main.
 
 **Deux** démarches administratives bloquent encore du code déjà écrit ou déjà
 chiffré — elles étaient quatre jusqu'au 8 septembre 2026 — **et une troisième
-ne bloque rien mais expose, avec une échéance qui n'est plus lointaine.** **Deux
-comptes de développement** s'y ajoutent depuis `P1-007` (Expo/EAS, projet
-Firebase) : d'une autre nature — gratuits, sans vérification d'identité — mais
-hors du code au même titre, et le premier tient la preuve appareil du push.
+ne bloque rien mais expose, avec une échéance qui n'est plus lointaine.** **Un
+compte de développement** reste depuis `P1-007` — le projet **Firebase** (canal
+Android, échéance `P1-016`) ; **Expo/EAS a été lié le 11 septembre** et sort de
+cette liste comme Apple, le `projectId` est dans `app.json`.
 **Aucune ne se rattrape en codant plus vite.** Elles ne vivent nulle part
 ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
 
@@ -269,7 +269,7 @@ ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
 | --- | --- | --- |
 | ~~**Trois `client_id` Google**~~ | ~~P0-005b~~ | **Sort du chemin critique le 8 sept. 2026** — non parce qu'elle est faite, mais parce que `P0-005b` passe **non programmé** : câbler un SSO tiers rend `P2-003` obligatoire (guideline 4.8). Voir ci-dessous |
 | ✅ ~~**Compte développeur Apple**~~ | ~~`P1-007`, `P1-006`, `P1-003b`, `P2-003`~~ | **Actif le 8 septembre 2026**, jusqu'au 8 sept. 2027, renouvellement automatique. App Store Connect ouvert. Il aura été le premier rang pendant deux jours |
-| **Compte Expo/EAS** | la **preuve appareil** du push (`getExpoPushTokenAsync` exige un `projectId`, même en build local) **et** le build TestFlight de `P1-016` | **Nouveau, 11 sept. 2026 (`P1-007`).** L'émetteur, le jeton, le rendu i18n sont livrés et prouvés au harnais ; il manque le `projectId` (`eas init`, écrit dans `app.json`) pour qu'un *development build* iOS reçoive vraiment une notification. Gratuit, pas de carte pour le tier de départ |
+| ✅ ~~**Compte Expo/EAS**~~ | ~~la preuve appareil du push + le build TestFlight de `P1-016`~~ | **Lié le 11 septembre 2026** — projet `@mhdsahli/rack`, `projectId` dans `app.json` (`extra.eas.projectId`). **Sort du chemin critique comme Apple l'a fait.** Reste, côté build : `eas device:create` puis `eas build -p ios --profile development`, piloté sur le compte Apple qui porte l'abonnement — c'est ce build qui prouve les critères appareil de `P1-007` |
 | **Projet Firebase** (+ `google-services.json`, + un appareil Android) | le **canal Android** du push | **Échéance `P1-016`.** Le code est plateforme-agnostique (Expo Push route vers FCM), mais Android exige un projet Firebase **et** un appareil de test — aucun des deux n'existe. Re-daté de `P1-007` à la mise en service, avec l'appareil qui sera à la box |
 | **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société — **donc l'entité juridique, ligne suivante** |
 | **Une entité juridique** | rien — **mais expose, personnellement** | **Cette ligne n'avait qu'une conséquence jusqu'au 9 sept. 2026 : Stripe, sans échéance avant mi-2027. Elle en a deux.** Le jour de `P1-016`, **l'éditeur du service** devient **sous-traitant de la box au sens de l'art. 28** (spec §15.1 : « sans ce document, vous êtes en infraction dès le premier client »). Une personne physique peut l'être — ce n'est pas bloquant — mais jusqu'à la société, c'est **un nom d'état civil** qui signe le DPA et porte le registre. **Échéance : la mise en service, pas le MVP.** Les trois pièces — DPA, registre, politique de confidentialité — sont des prérequis datés de `P1-016` |
@@ -383,6 +383,13 @@ NON PROGRAMMÉS, chacun avec son déclencheur
   D-022   ⟵ le filet qui ouvre un navigateur (dette ④, 1,5). Deux déclencheurs :
             un second défaut « une porte, un rôle », ou l'ouverture de P2-001.
 
+  D-024   ⟵ le compte-rendu d'annulation au back-office (« X prévenus, Y non,
+            notifications coupées »). Trouvé à la passe partielle de P1-007 :
+            l'enfilage marche, mais rien ne le dit au staff — et le doute a coûté
+            vingt minutes à qui connaissait le code. Chiffré 1,5, hors ①.
+            Déclencheur : la mise en service (P1-016), où une annulation réelle
+            rencontre le doute réel.
+
   D-023   ⟵ la RÉDACTION de la politique de confidentialité, qui n'est pas du
             code. Un ticket de code court (0,5) : le lien, la constante, le
             test qui les lie. Bloque P1-016 : aucun import réel avant.
@@ -454,7 +461,7 @@ sait pas lui répondre.
 | P1-005a | Places restantes en temps réel, sur le téléphone  |      3 | ✅ **fait le 6 sept. 2026 — passe harnais à deux clients**, dix critères sur onze. L'isolation du canal est **prouvée** là où pgTAP ne peut pas : sonde sans filtre de box, un seul des deux événements reçu. Un défaut trouvé et corrigé — deux écrans partageaient un nom de canal, et `channel()` rend l'existant. **Un critère `[ ]` : l'arrière-plan**, qu'un onglet caché ne sait pas exercer → prochaine passe iPhone. Découpé de `P1-005` le même jour : `waitlist_length` → `P1-006`, le web → `P1-005b` |
 | P1-005b | Le même canal dans la grille du back-office       |      1 | **non programmé** — écrit, chiffré, hors du total. Au pilote, la valeur du temps réel est sur le téléphone du membre, là où deux personnes se disputent la dernière place ; le manager peut rafraîchir. Sort en une session si la box pilote le réclame |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière `P1-007`** (l'émetteur qui délivre la promotion) ; sa garantie « promotion en moins de 30 s » se prouvera avec la passe iPhone de `P1-007`. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
-| P1-007  | Notifications push (re-fusionné, prouvé sur iPhone) |    6 | **lots 1–3 livrés sur `feat/P1-007-push`** (décision SQL + core/UI · émetteur edge function · mobile) — re-fusionné le 11 sept. 2026 : la découpe `a`/`b` supposait un appareil **Android** qui n'existe pas (règle 10). Harnais vert (pgTAP, `deno test`) ; **passe iPhone en attente** après un _development build_ iOS (compte Expo). La preuve Android devient un prérequis de `P1-016`. Réestimé **4 → 6** sur le périmètre entier |
+| P1-007  | Notifications push (re-fusionné, passe iPhone en attente) |    6 | **lots 1–3 livrés sur `feat/P1-007-push`** (décision SQL + core/UI · émetteur edge function · mobile) — re-fusionné le 11 sept. 2026 : la découpe `a`/`b` supposait un appareil **Android** qui n'existe pas (règle 10). Harnais vert (pgTAP, `deno test`) ; **passe iPhone en attente** après un _development build_ iOS (compte Expo). La preuve Android devient un prérequis de `P1-016`. Réestimé **4 → 6** sur le périmètre entier |
 | P1-015  | La séance du cours, écrite par le coach           |    5,5 | ✅ **clos le 9 sept. 2026 — onze critères verts.** Le **premier ticket venu d'un client réel**, et il est tenu : une séance **par occurrence**, en texte libre, pré-remplissage qui **copie sans lier**, troisième protection contre le rafraîchissement de série. Fusionné incomplet (PR #63), il a fallu **trois passes** pour le clore : `D-021` (la porte du coach + la place du panneau, A14 ✅), puis les **gestes 7 et 8** — NOK à la passe, le **piège 13** (la policy de lecture masquait l'archivé à tout le monde, PostgreSQL 17 refuse alors l'`update` qui archive), sa **sœur** cassant « supprimer une série » **depuis P1-002**, corrigé (`fix/P1-015-gestes-7-et-8`, **5 → 5,5**) et **rejoué OK sur `main`**. Reste hors critère le seul repère qui compte : la semaine chronométrée vs Hustle Up, à `P1-016` |
 | P1-008a | Le coach coche sa feuille, et l'absent est marqué  |    5,5 | ✅ **clos le 10 sept. 2026** (PR #72) — fusionné **et** passe iPhone jouée le jour même (§ 5 octies, geste 8 compris : le membre refusé par l'adresse). Quatre lots : base SQL (présence sur `bookings`, vue coach, `set_attendance()`, job de no-show), core, deux champs web, mode coach mobile. `test:db` vert (498), `rls-auditor` **SAFE**. **Réestimé à l'ouverture 3,75 → 5,5** : +1,25 (l'écran est un mode) + 0,5 (`class_roster` peer-scoped → **vue neuve** + 4e audience RGPD tranchée). La **première surface de l'app réservée à un rôle** |
 | P1-008b | Le check-in QR : le membre scanne lui-même        |      6 | **non programmé** — la box pilote n'en a pas besoin. Mais §10 le classe « attendu par le marché » : **une box de 200 membres avec des coachs qui tournent ne connaît pas ses adhérents par leur prénom**. Déclencheur : la première box qui n'est pas la pilote. Porte tout ce qui scanne, **et la section règle 8** dont les trois trouvailles ont servi à décider de ne pas le lancer |
@@ -676,7 +683,7 @@ SHOULD payé en avance, à ne pas recompter.
 
 ---
 
-## ④ Dette convertie en tickets — 7,25 j·h ouverts
+## ④ Dette convertie en tickets — 8,75 j·h ouverts
 
 `CLAUDE.md` dit « ce qui déborde devient un nouveau ticket ». La dette accumulée
 dans les tickets clos y échappait : un ticket clos ne se relit pas.
@@ -705,9 +712,10 @@ dans les tickets clos y échappait : un ticket clos ne se relit pas.
 | D-021  | La porte du coach, et la place de la séance    | 1,75 | `P1-015`, passe du 9 sept. 2026 — **✅ fait le jour même**, **comptée dans ①**, passe web en attente. Deux constats d'une même passe : le COACH est refusé par `layout.tsx:56`, resté celui de `P1-001a` alors que `P1-015` ouvrait le droit à trois autres niveaux ; et le formulaire de la séance est logé sous le panneau d'annulation. **Un cas de plus de la règle des sœurs, et cette fois la sœur oubliée est une garde d'écran, pas une policy** |
 | D-022  | Un filet qui ouvre un navigateur               | 1,5 | `D-021` et la porte du coach, 9 sept. 2026 — **ouvert, hors totaux**. `CLAUDE.md` annonçait `pnpm e2e:web` sans Playwright ni script : **la ligne a été retirée le jour même**, parce qu'un document qui promet une commande inexistante fait croire au filet. La dette, elle, reste — et **sa justification n'est plus théorique** : la porte fermée aux COACH est exactement ce qu'un test de bout en bout attrape, et il a fallu un humain. **Déclencheur** : un second défaut « une porte, un rôle », ou l'ouverture de `P2-001` |
 | D-023  | Le consentement pointe vers un texte           | 0,5 | `P1-016`, 9 sept. 2026 — **comptée dans ①**, elle bloque le jalon. **S'ouvre quand le texte existe.** Une constante qui conditionne l'accès et qu'aucun texte ne porte : le lien, la date, et le test qui interdit qu'ils divergent |
-|        | **Ouvert, hors totaux**                        | **7,25** | D-002, D-003, D-007, D-008, D-022 — D-004, D-011, D-012, D-013, D-014, D-016, D-017, D-018, D-019, D-020, D-021 et D-023 sont dans ①, D-010 est clos. **Recompté le 9 sept. 2026** : `D-016` figurait ici comme ouverte alors qu'elle est faite, ce qui gonflait cette ligne de 0,25 |
+| D-024  | Le compte-rendu d'annulation au staff          | 1,5 | `P1-007`, passe partielle du 11 sept. 2026 — **ouvert, hors totaux**. L'enfilage marche (deux `CLASS_CANCELLATION` en file, les non-consentants écartés à l'éligibilité), mais **rien ne le dit au back-office** : la file reste `pending` faute d'émetteur servi en local, et le doute a coûté vingt minutes à qui connaissait le code — Marc aura le même sur une vraie annulation. Les raisons existent déjà (`notification_eligibility` : `NO_PUSH_CONSENT`, `CATEGORY_DISABLED`, `QUIET_HOURS`), il reste à les compter et à les afficher — en remplacement de `planning.cancel_push_only`, qui s'excuse au lieu d'informer. **Déclencheur** : la mise en service (`P1-016`) |
+|        | **Ouvert, hors totaux**                        | **8,75** | D-002, D-003, D-007, D-008, D-022, **D-024** — D-004, D-011, D-012, D-013, D-014, D-015, D-016, D-017, D-018, D-019, D-020, D-021 et D-023 sont dans ①, D-010 est clos. **11 sept. 2026** : `D-024` ajoutée (1,5), trouvée à la passe partielle de `P1-007` |
 
-Ces 7,25 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
+Ces 8,75 j·h ne sont dans **aucun** des deux totaux ci-dessus. C'est délibéré :
 une dette qu'on additionne au chemin critique le rend indiscutable, une dette
 qu'on cache le rend faux. Elle se paie quand un ticket la rend bloquante — et
 elle entre alors dans le total, comme D-004 vient de le faire pour P1-003b.

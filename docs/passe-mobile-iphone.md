@@ -8,6 +8,36 @@ Compter 30 minutes la première fois, 3 minutes ensuite.
 
 ---
 
+## Sommaire — et surtout, ce qui est jouable aujourd'hui
+
+**La numérotation est non linéaire** (`bis`, `ter`, … `nonies`) : les sections se
+sont ajoutées au fil des tickets, pas dans l'ordre alphabétique. Ce sommaire est
+l'ordre qui compte. **La dernière colonne est la plus importante** : un geste dont
+le décor n'existe pas se lit comme un défaut par qui l'ignore — c'est ce qui a
+coûté vingt minutes à la passe de `P1-007`, où le code s'abstient sans erreur
+quand il manque un `projectId`, sans que rien ne le signale.
+
+| § | Ce que ça prouve | Ticket | Jouable aujourd'hui ? |
+| --- | --- | --- | --- |
+| 1–4 | Le décor : IP, `.env.local`, base joignable, Metro | — | **Préalable** à tout le reste |
+| 5 | Les écrans de base (langue, planning, réservation) | P0-001/002 | ✅ |
+| 5 bis | Le parcours d'invitation | P0-005a | ✅ |
+| 5 ter | L'annulation (fenêtre, hors fenêtre, cours commencé, refus serveur) | P1-004 | ✅ |
+| 5 quater | Le badge « Réservé » | P1-012 | ✅ |
+| 5 quinquies | Les places restantes en temps réel | P1-005a | ✅ **sauf l'arrière-plan** (demande un vrai appareil) |
+| 5 septies | La séance du cours (WOD) | P1-015 | ⚠️ le décor coach dépendait de `D-021` (porte coach, **corrigé**) — rejouer le décor en COACH |
+| 5 octies | La feuille de présence, la porte par rôle | P1-008a | ✅ (jouée et close le 10 sept. 2026) |
+| 5 nonies | Les notifications push | P1-007 | ⛔ **exige un development build iOS** — Expo Go ne fait plus de push (SDK 53). Le `projectId` EAS est désormais dans `app.json` ; il ne manque que le build. Le harnais SQL prouve la décision, l'appareil le `< 30 s` et le `rack://` |
+| 5 sexies | La passe groupée (quatre dettes) | D-011/016, P1-005a, D-009 | ✅ (historique, jouée le 8 sept. 2026) |
+
+En amont de tout : **Ce qui doit être vrai avant de commencer** (Supabase démarré,
+seed, appareil sur le même réseau). Sections de référence, pas des gestes :
+**Ce qu'Expo Go ne peut pas exercer**, **Sans téléphone** (`web`), **Ce que le
+moteur offre** (débogage d'un plantage à la construction), le **Journal des
+passes**, et **§ 6** (ce qu'on note, ce qu'on ne commite pas).
+
+---
+
 ## Ce qui doit être vrai avant de commencer
 
 - Supabase local démarré (`pnpm exec supabase status` répond).
@@ -607,10 +637,37 @@ repère de `P1-015`.
 > #### ⛔ Ce geste n'est PAS jouable avec Expo Go / Metro
 >
 > Le push exige un **development build iOS** (Expo Go ne fait plus de push depuis
-> le SDK 53) **et** un `projectId` EAS écrit dans `app.json` (`eas init`). Tant que
-> ces deux-là n'existent pas, `useDeviceSync` s'abstient **sans erreur** — l'app
-> tourne, aucune notification ne part, et il n'y a rien à cocher. Ce geste se joue
-> **après** le premier dev build iOS, et il se coordonne avec `P1-016` (même build).
+> le SDK 53). Le `projectId` EAS, l'autre prérequis, **est en place** depuis le
+> 11 septembre (`app.json`, `extra.eas.projectId`) — il ne reste donc que le
+> build. Sans lui, `useDeviceSync` s'abstient **sans erreur** — l'app tourne,
+> aucune notification ne part, rien à cocher. Ce geste se joue **après** le
+> premier dev build iOS, et il se coordonne avec `P1-016` (même build).
+
+### La passe partielle au harnais SQL — et pourquoi `pending` est normal
+
+Avant le dev build, on prouve déjà **la couche décision et l'enfilage** en base,
+sans appareil. Décor : un membre avec consentement PUSH, inscrit à un cours,
+annulé depuis le back-office web par un admin.
+
+Ce qu'on lit alors dans `push_outbox` : **une ligne `CLASS_CANCELLATION` par
+membre consentant, au statut `pending`** — et elle **y reste**. Ce n'est pas une
+file bloquée. **En local, aucun émetteur n'est servi** : `kick_push_emitter` est
+best-effort et sans effet tant qu'`app.settings.push_emitter_url` n'est pas
+configurée, et le balayage `pg_cron` réveille cette même fonction — donc dans le
+vide. Sans émetteur pour appeler `claim_push_outbox`, rien n'est réclamé, rien
+n'est envoyé, **donc jamais de `failed` non plus, seulement `pending`.** Confirmé
+le 11 septembre 2026 — écrit ici pour que la prochaine passe ne prenne pas cet
+état pour une panne (il a coûté vingt minutes à qui connaissait le code).
+
+Ce qui se prouve alors en SQL, **sans cocher aucun critère du ticket** :
+
+- un membre **sans** consentement PUSH n'a **aucune** ligne — écarté à
+  l'éligibilité par `enqueue_push`, avant la file ;
+- couper une catégorie dans l'app fait disparaître ses lignes (même filtre) ;
+- `users.timezone` est écrit seul par le téléphone au démarrage.
+
+**Ce que ça ne prouve pas** : que la notification part, arrive, et ouvre l'écran.
+Ça, c'est l'appareil — le geste ci-dessous, après le dev build.
 
 ### Ce qui ferme quatre critères d'un coup
 
@@ -835,6 +892,7 @@ en entier.
 
 | Date | Appareil | Résultat |
 | --- | --- | --- |
+| **11 sept. 2026** | **hors appareil — harnais SQL sur le PC** ; annulations déclenchées depuis le back-office web en `marc` (OWNER), Léa consentante | **`P1-007`, § 5 nonies. PARTIELLE — aucun critère du ticket coché.** Prouvé sans appareil : `users.timezone = Europe/Paris` écrit seul au démarrage ; l'écran Préférences porte le bloc Notifications (trois interrupteurs, grisés sans le consentement Push, persistants au retour). Annulation avec « Cours annulé » **coupé** : aucune ligne enfilée — le refus se joue **avant** la file. Deux annulations catégorie active : deux `CLASS_CANCELLATION` en file, une par cours, `pending` — **état local normal**, aucun émetteur servi donc ni envoi ni `failed` (voir § 5 nonies). Les autres inscrits, sans consentement PUSH au seed, écartés à l'enfilage. `notification_eligibility` rend `OK` pour Léa. **Les deux critères appareil (iOS < 30 s, le toucher ouvre l'écran via `rack://`) restent `[ ]` — ils attendent le development build.** Trouvaille : le staff ne voit pas ce compte-rendu → `D-024`. **Verdict du décor : `test:db:fresh` vert (576)** |
 | **10 sept. 2026** | iPhone, `sarah@example.com` (COACH) puis `lea@example.com` (membre) | **`P1-008a`, § 5 octies. OK — le ticket est clos.** En coach : l'entrée « Feuille de présence » est là, la feuille montre prénom + initiale, cocher/décocher écrit sans bouton, un cours hors fenêtre refuse le pointage (message « juste avant et juste après »), VoiceOver annonce « Léa M., activé ». Mode sombre et 200 % tiennent. **Geste 8, celui qui décide** : en membre, **aucun** bouton « Feuille de présence », et `/attendance/<id>` tapé à la main rend « Réservé au staff ». La porte est bien une porte. **Verdict du décor : `test:db:fresh` vert (498)** |
 | **9 sept. 2026**, tard | **harnais web sur le PC**, sur `main` après fusion du correctif | **Gestes 7 et 8 rejoués : OK.** Vider le champ et n'y laisser qu'une espace font apparaître la confirmation ; sans la cocher, rien n'est supprimé ; cochée, la séance disparaît et l'écran dit « Séance supprimée », le bouton n'est plus orange. **`P1-015` est clos — onze critères verts.** Un `PGRST303 « JWT issued at future »` (500 du planning après login) rencontré au passage : **du décor**, pas le produit — décalage d'horloge GoTrue↔PostgREST au réveil de la machine, mesuré (l'`auth` était en retard sur l'hôte au moment de la mesure, donc déjà resynchronisé). Note élargie dans `environnement-local.md` : le déclencheur n'est pas que `db:reset`. Se reconnecter le lève |
 | **9 sept. 2026**, soir | **harnais web sur le PC**, `sarah@example.com` (COACH) puis `marc@rueil.example` | **`D-021`, extension A″ de `passe-manuelle-web.md`. A14 ✅ : Sarah entre et écrit sa séance — le critère d'écran de `P1-015` est fermé.** La restriction du coach se voit à trois endroits sans la chercher : navigation réduite à Tableau de bord et Planning, séries sans « Modifier » ni « Nouvelle série », panneau sans annulation. En propriétaire, la disposition est conforme : séance, trait, « Annuler ce cours » en danger, « Enregistrer » seule action primaire. **Provenance** : jouée sur l'arbre de travail de la branche, **avant la fusion du code** — PR #68 n'avait fusionné que la documentation, ce que personne n'a vu avant de relire `origin/main`. **Non consignés** : A9, A11–A12, le badge « Coach ». **Verdict du décor : `test:db:fresh` vert (465)** — les trois fichiers rouges de `test:db` (cinq séances là où le seed en a une, une série coachée par Marc), c'était bien le décor. **Et les gestes 7 et 8 : NOK.** La confirmation apparaît, la confirmer rend « Une erreur est survenue ». **Ce n'est pas le décor, c'est un défaut en base, reproduit en SQL sous l'identité du coach puis du propriétaire** : `update … set deleted_at` refusé par la policy de lecture — piège 13 de `database.md`. Sa sœur `class_schedules_select` avait le même trou depuis P1-002. Corrigés le soir même, **à rejouer sur `main`** |
