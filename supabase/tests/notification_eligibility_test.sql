@@ -5,7 +5,7 @@
 -- **en heure locale du membre**, repli box compris.
 
 begin;
-select plan(16);
+select plan(17);
 
 select has_function(
   'public', 'notification_eligibility',
@@ -69,9 +69,16 @@ select is(
 -- 3. Les quiet hours — en heure locale du membre
 -- ---------------------------------------------------------------------------
 
+-- §3 a besoin d'une catégorie qui **respecte** les quiet hours. `CLASS_REMINDER`
+-- l'a été désactivée en §2 ; on la réactive pour la faire jouer ici. Elle a le
+-- profil de l'ancien `WAITLIST_PROMOTION` (respecte les quiet hours, hors
+-- plafond) — c'est ce que le Lot 4 vient précisément de changer pour la promotion.
+update public.notification_preferences set enabled = true
+where membership_id = 'a3000000-0000-4000-8000-000000000002' and category = 'CLASS_REMINDER';
+
 -- 20h30 UTC = 22h30 à Paris. Léa sans fuseau propre → repli box (Europe/Paris).
 select is(
-  public.notification_eligibility(:lea_ms, 'WAITLIST_PROMOTION', :night_paris),
+  public.notification_eligibility(:lea_ms, 'CLASS_REMINDER', :night_paris),
   'QUIET_HOURS',
   'la nuit (heure de la box, faute de fuseau membre) : silencieux'
 );
@@ -80,6 +87,14 @@ select is(
   'OK',
   'sauf l''annulation d''un cours — elle passe la nuit'
 );
+-- P1-006, Lot 4 : la promotion de liste d'attente passe la nuit elle aussi.
+-- Une offre créée à 22 h expire en 60 min ; la taire jusqu'à 7 h la brûlerait
+-- sans qu'elle soit vue — taire, ici, c'est perdre la place.
+select is(
+  public.notification_eligibility(:lea_ms, 'WAITLIST_PROMOTION', :night_paris),
+  'OK',
+  'et la promotion de liste d''attente aussi — sinon l''offre brûle avant d''être vue'
+);
 
 -- Léa se donne un fuseau où midi-UTC est minuit : la décision suit **son**
 -- fuseau, pas celui de la box.
@@ -87,7 +102,7 @@ update public.users set timezone = 'Pacific/Auckland'
 where id = '33333333-0000-4000-8000-000000000001';
 
 select is(
-  public.notification_eligibility(:lea_ms, 'WAITLIST_PROMOTION', :noon),
+  public.notification_eligibility(:lea_ms, 'CLASS_REMINDER', :noon),
   'QUIET_HOURS',
   'midi UTC = minuit à Auckland : silencieux **en heure du membre**'
 );
@@ -96,7 +111,7 @@ update public.users set timezone = null
 where id = '33333333-0000-4000-8000-000000000001';
 
 select is(
-  public.notification_eligibility(:lea_ms, 'WAITLIST_PROMOTION', :noon),
+  public.notification_eligibility(:lea_ms, 'CLASS_REMINDER', :noon),
   'OK',
   'fuseau membre retiré : le repli box (Paris, 14 h) rend OK — le repli fonctionne'
 );
