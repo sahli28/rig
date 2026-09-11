@@ -195,12 +195,15 @@ Un `p=reject` posé sur un DKIM mal configuré ferait **disparaître silencieuse
 magic links — l'inverse du but. On **assume** donc d'ouvrir la box en `p=none`, puis on
 durcit sur les rapports `rua` du trafic réel.
 
-Calendrier daté contre la mise en service (**~début novembre 2026** au rythme actuel) :
+Calendrier daté contre la mise en service — **~fin octobre / début novembre 2026**
+au rythme actuel (projection de `docs/backlog/README.md`, recomptée le 12 sept. :
+12,25 j·h restants ÷ 2,3/sem. ≈ 5,3 semaines). **Si cette date bouge, ce calendrier
+bouge avec elle** :
 
 | Palier | Record `_dmarc.rack-app.fr` | Quand |
 | --- | --- | --- |
 | 1 — observation | `v=DMARC1; p=none; rua=mailto:postmaster@rack-app.fr; fo=1; adkim=r; aspf=r` | **posé dès maintenant** (sept. 2026), **maintenu à la mise en service** |
-| 2 — quarantaine | `… p=quarantine; pct=100 …` | **~2 semaines après la mise en service** (~mi-fin nov.), si les rapports montrent **0 échec DKIM légitime** |
+| 2 — quarantaine | `… p=quarantine; pct=100 …` | **~2 semaines après la mise en service** (~mi-novembre), si les rapports montrent **0 échec DKIM légitime** |
 | 3 — rejet | `… p=reject …` | **quelques semaines plus tard** (déc.+), rapports toujours propres |
 
 `postmaster@rack-app.fr` (cible `rua`) **doit être une boîte réelle** (vérif. préalable 3).

@@ -23,7 +23,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **19,75 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **12,25 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -44,6 +44,20 @@ qu'elles sont ; les connaître vaut mieux que les découvrir.
 > normal : les 4 jours d'accompagnement n'y sont pas, et **ne doivent pas y
 > être**. Ils se comptent en créneaux chez quelqu'un d'autre, pas en j·h. Elles ont avancé
 d'un mois le 3 septembre 2026 : P1-002 et le lot SQL de P1-003 sont fusionnés.
+
+**Recompté le 12 septembre 2026 — `P1-006` et `P1-017` fusionnés, et la
+projection avec.** Le tableau d'état les disait « à faire » alors que PR #80 et
+#79 sont sur `main` : leurs 6 + 1,5 j·h passent aux faits (détail ligne à ligne
+dans le journal des mouvements ci-dessous), et ① tombe à **12,25 restants**. La
+projection du 9 septembre — « 19,5 ÷ 2,3 ≈ 8,5 semaines, début novembre » —
+reposait sur le chiffre d'alors ; refaite, **12,25 ÷ 2,3 ≈ 5,3 semaines** : le
+code du jalon vers **mi-octobre 2026**, la mise en service — avec les 4 jours
+d'accompagnement, qui ne se compressent pas — vers **fin octobre / début
+novembre** (janvier restant l'annonce prudente d'origine). C'est la même dérive
+que le 5 et le 9 septembre, rouverte : un total qui prend du retard sur les
+fusions. **Conséquence à tenir** : le calendrier de durcissement DMARC de
+`docs/procedures/email-et-domaine.md` est daté contre cette mise en service ; si
+la date bouge, il bouge avec elle.
 
 **Revue de backlog du 5 septembre 2026 (soir).** Le tableau d'état disait
 `P1-014 : à faire` alors que PR #42 est sur `main` : le commit de code n'a pas
@@ -333,7 +347,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 114 j·h, dont **19,75 restants**
+## ① Jalon pilote — 114 j·h, dont **12,25 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -464,7 +478,7 @@ sait pas lui répondre.
 | P1-012  | Le planning dit ce qui est déjà réservé           |      1 | ✅ **fusionné (PR #46) — passe faite le 6 sept. 2026** : tout passe sauf le clignotement au retour (→ `D-018`), et le critère « deux boxes » reste `[~]` faute de `P1-009`. **2 → 1 le 6 sept. 2026** : P1-014 a livré le chemin de données et tranché la décision hors ligne. Reste le détail par cours, le badge, et **le volet `planning.tsx` de `D-016`, absorbé ici** — sans lui le badge serait faux au retour sur la liste |
 | P1-005a | Places restantes en temps réel, sur le téléphone  |      3 | ✅ **fait le 6 sept. 2026 — passe harnais à deux clients**, dix critères sur onze. L'isolation du canal est **prouvée** là où pgTAP ne peut pas : sonde sans filtre de box, un seul des deux événements reçu. Un défaut trouvé et corrigé — deux écrans partageaient un nom de canal, et `channel()` rend l'existant. **Un critère `[ ]` : l'arrière-plan**, qu'un onglet caché ne sait pas exercer → prochaine passe iPhone. Découpé de `P1-005` le même jour : `waitlist_length` → `P1-006`, le web → `P1-005b` |
 | P1-005b | Le même canal dans la grille du back-office       |      1 | **non programmé** — écrit, chiffré, hors du total. Au pilote, la valeur du temps réel est sur le téléphone du membre, là où deux personnes se disputent la dernière place ; le manager peut rafraîchir. Sort en une session si la box pilote le réclame |
-| P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière `P1-007`** (l'émetteur qui délivre la promotion) ; sa garantie « promotion en moins de 30 s » se prouvera avec la passe iPhone de `P1-007`. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
+| P1-006  | Liste d'attente et promotion                      |      6 | ✅ **fusionné le 11 sept. 2026 (PR #80)** — **prouvé en CI** (`waitlist_test.sql`, 37 assertions), pas encore sur appareil. Tranché : **siège tenu par `booked_count`** (sans toucher `book_class`), **rang dérivé** (position immuable), **exemption quiet hours** de la promotion (argumentée contre son alternative). Reste **un `[~]`** : « promotion < 30 s », derrière la passe iPhone de `P1-007`. Un critère reformulé (positions → rang dérivé) et **un défaut ouvert à la clôture → `D-027`**. Porte `waitlist_length` temps réel (repris de P1-005) |
 | P1-007  | Notifications push (re-fusionné, passe iPhone en attente) |    6 | **lots 1–3 livrés sur `feat/P1-007-push`** (décision SQL + core/UI · émetteur edge function · mobile) — re-fusionné le 11 sept. 2026 : la découpe `a`/`b` supposait un appareil **Android** qui n'existe pas (règle 10). Harnais vert (pgTAP, `deno test`). **Dev build iOS fait le 11 sept.**, device-registration prouvée (ligne `ios` en base). **Les deux `[ ]` d'appareil (iOS < 30 s, `rack://`) sont derrière le lot hébergé + émetteur de `P1-017`** — l'émetteur doit être déployé et servi pour que la notification parte (arbitrage tranché : l'hébergé, pas un montage local jetable). Preuve Android → prérequis de `P1-016`. Réestimé **4 → 6** |
 | P1-015  | La séance du cours, écrite par le coach           |    5,5 | ✅ **clos le 9 sept. 2026 — onze critères verts.** Le **premier ticket venu d'un client réel**, et il est tenu : une séance **par occurrence**, en texte libre, pré-remplissage qui **copie sans lier**, troisième protection contre le rafraîchissement de série. Fusionné incomplet (PR #63), il a fallu **trois passes** pour le clore : `D-021` (la porte du coach + la place du panneau, A14 ✅), puis les **gestes 7 et 8** — NOK à la passe, le **piège 13** (la policy de lecture masquait l'archivé à tout le monde, PostgreSQL 17 refuse alors l'`update` qui archive), sa **sœur** cassant « supprimer une série » **depuis P1-002**, corrigé (`fix/P1-015-gestes-7-et-8`, **5 → 5,5**) et **rejoué OK sur `main`**. Reste hors critère le seul repère qui compte : la semaine chronométrée vs Hustle Up, à `P1-016` |
 | P1-008a | Le coach coche sa feuille, et l'absent est marqué  |    5,5 | ✅ **clos le 10 sept. 2026** (PR #72) — fusionné **et** passe iPhone jouée le jour même (§ 5 octies, geste 8 compris : le membre refusé par l'adresse). Quatre lots : base SQL (présence sur `bookings`, vue coach, `set_attendance()`, job de no-show), core, deux champs web, mode coach mobile. `test:db` vert (498), `rls-auditor` **SAFE**. **Réestimé à l'ouverture 3,75 → 5,5** : +1,25 (l'écran est un mode) + 0,5 (`class_roster` peer-scoped → **vue neuve** + 4e audience RGPD tranchée). La **première surface de l'app réservée à un rôle** |
@@ -482,10 +496,10 @@ sait pas lui répondre.
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
 | D-016   | Trois écrans qui ne relisent rien au retour       |   0,25 | ✅ fait le 7 sept. 2026. **Ligne ajoutée le 9 sept. 2026** : son 0,25 était crédité aux faits par le tableau des mouvements sans avoir de ligne ici, donc compté dans un total où il ne figurait pas |
 | D-021   | La porte du coach, et la place de la séance       |   1,75 | ✅ **fait et passé le 9 sept. 2026** — **A14 ✅, le critère d'écran de `P1-015` est fermé.** Attention à la provenance : **PR #68 n'a fusionné que la documentation**, le code de ce ticket est parti dans la PR suivante (`feat/D-021-le-code`), et la passe a été jouée sur l'arbre de travail avant cette fusion. Une décision (`back-office.ts`, neuf droits × quatre rôles), **quinze comparaisons de rôle retirées d'`apps/web`**, dont une sœur que le ticket ne nommait pas (`join-card.tsx`) : la sonde ESLint l'a trouvée en mordant. Le panneau : la séance d'abord, l'annulation derrière un trait et un bouton danger, un seul primaire. **Rien d'observé dans un navigateur** — il n'y en a pas (`D-022`) — donc six critères restent `[ ]` pour la passe |
-| P1-016  | La mise en service chez la box pilote             |   1,75 | à faire, **en dernier** — écrit le 9 sept. 2026, entré dans ① le jour même (PR #64), **puis découpé après PR #65** : le projet hébergé et le déploiement partent dans `P1-017` pour ne pas concentrer l'inconnu la semaine de la box. Reste ici ce qui dépend vraiment du reste — build TestFlight, sauvegarde restaurée — **+ 4 jours d'accompagnement** qui ne sont pas des j·h. **Et le RGPD y est daté** : DPA, registre, politique de confidentialité **avant le premier import** — la sous-traitance art. 28 commence le jour de la mise en service, et `consents.tsx` horodate depuis le 31 août un consentement à une politique **qui n'existe pas** |
-| P1-017  | La première infrastructure de production          |    1,5 | à faire — sorti de `P1-016` le 9 sept. 2026. Projet Supabase hébergé (major **17** lu dans le projet, `pg_cron` **et `pg_net`** à activer, `test:db` distant), **l'émetteur push déployé et servi** (`rack-push-emitter` + `push_emitter_url`) — c'est lui qui rend § 5 nonies de `P1-007` jouable et ferme ses deux `[ ]` d'appareil — et le déploiement `apps/web`. **Le lot hébergé + émetteur ne demande qu'un compte gratuit, pas le domaine** ; seul le SMTP tiers l'attend (le trou trouvé en s'écrivant : le SMTP intégré ne tient pas 80 invitations). **+0,25 le 12 sept.** pour l'émetteur |
+| P1-016  | La mise en service chez la box pilote             |   1,75 | à faire, **en dernier** — écrit le 9 sept. 2026, entré dans ① le jour même (PR #64), **puis découpé après PR #65** : le projet hébergé et le déploiement partent dans `P1-017` pour ne pas concentrer l'inconnu la semaine de la box. Reste ici ce qui dépend vraiment du reste — build TestFlight, sauvegarde restaurée — **+ 4 jours d'accompagnement** qui ne sont pas des j·h. **Et le RGPD y est daté** : DPA, registre, politique de confidentialité **avant le premier import** — la sous-traitance art. 28 commence le jour de la mise en service, et `consents.tsx` horodate depuis le 31 août un consentement à une politique **qui n'existe pas**. **Volet domaine/SMTP câblé le 11 sept. 2026** (Brevo, DNS, runbook `email-et-domaine.md`, registre) — ~0,25 de la moitié « invitations », **dedans** ; le reste de cette moitié est **l'émetteur maison** (liens `D-005` via API Brevo), **non écrit** |
+| P1-017  | La première infrastructure de production          |    1,5 | ✅ **fusionné le 11 sept. 2026 (PR #79)** — projet Supabase hébergé (`eu-west-3`, PG **17.6** lu), `pg_cron`/`pg_net`/`vault` par migration, **émetteur push déployé et servi**, back-office sur Vercel. `test:db` distant vert, parité des droits (`auto_expose_new_tables=false`). **Reste des `[~]`/`[ ]` de preuve** derrière la mise en service : e-mail signé reçu et SMTP tiers — le **volet est câblé** (`P1-016`), la preuve attend. Runbooks : `deploiement-heberge.md`, `email-et-domaine.md` |
 | D-023   | Le consentement pointe vers un texte, et la constante en porte la date | 0,5 | **écrit le 9 sept. 2026, s'ouvre quand le texte existe** — sa rédaction n'est pas du code et n'est pas dans ce ticket. Le lien depuis `consents.tsx`, `current_policy_version()` alignée sur la date réelle, et **un test qui lie les deux** : la règle 10 appliquée à une valeur. **Bloque `P1-016`** : aucun import réel avant, sinon 80 personnes consentent à un texte inexistant et recochent toutes quand la constante change |
-|         | **Total ①**                                       | **114** | dont **94,25 faits**, **19,75 restants** |
+|         | **Total ①**                                       | **114** | dont **101,75 faits**, **12,25 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
 nouvelle.** Un chiffre qui monte se relit comme une dérive s'il ne porte pas sa
@@ -556,6 +570,8 @@ corrigé sans son calcul se re-conteste :
 | `P1-008a` fait et passé le 10 sept. (5,5) | **111,75** | **94,25** | **17,5** |
 | **`P1-007` re-fusionné et réestimé 4 → 6 (+2)** : la frontière `a`/`b` reposait sur un appareil Android qui n'existe pas (règle 10) ; le re-cadrage Android→iOS est un wash | **113,75** | 94,25 | **19,5** |
 | **`P1-017` +0,25** : l'émetteur push déployé sur l'hébergé (`pg_net`, `functions deploy`, `push_emitter_url`) — le lot qui rend § 5 nonies de `P1-007` jouable sur la chaîne réelle, hors de la semaine de la box | **114** | 94,25 | **19,75** |
+| **`P1-017` fusionné (PR #79), 11 sept.** : lots hébergés réalisés (projet, émetteur, web déployé) — les 1,5 passent aux faits. Les `[~]`/`[ ]` de preuve qui restent sont des critères d'appareil, pas des j·h non faits | 114 | 95,75 | 18,25 |
+| **`P1-006` fusionné (PR #80), 11 sept.** : waitlist prouvée en CI (`waitlist_test.sql`, 37 assertions) — les 6 passent aux faits. Reste un `[~]` d'appareil (« < 30 s ») et un défaut ouvert, `D-027` (hors ①) | **114** | **101,75** | **12,25** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
