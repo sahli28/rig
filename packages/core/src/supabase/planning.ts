@@ -168,6 +168,12 @@ export interface DayClass {
   ends_at: string;
   capacity: number;
   booked_count: number;
+  /**
+   * Combien attendent une place (P1-006). Voyage sur la ligne `classes` déjà
+   * publiée — pas de second canal — donc le compteur se met à jour en direct
+   * comme les places restantes. Compte les entrées `WAITING`/`OFFERED`.
+   */
+  waitlist_count: number;
   status: 'SCHEDULED' | 'CANCELLED';
   cancellation_reason: string | null;
   className: string;
@@ -211,6 +217,7 @@ export const DayScheduleSchema = z.object({
       ends_at: z.string(),
       capacity: z.number(),
       booked_count: z.number(),
+      waitlist_count: z.number(),
       status: z.enum(['SCHEDULED', 'CANCELLED']),
       cancellation_reason: z.string().nullable(),
       className: z.string(),
@@ -333,6 +340,7 @@ export async function fetchDaySchedule(
         ends_at: row.ends_at,
         capacity: row.capacity,
         booked_count: row.booked_count,
+        waitlist_count: row.waitlist_count,
         status: row.status,
         cancellation_reason: row.cancellation_reason,
         className: types.get(row.class_type_id)?.label ?? '',

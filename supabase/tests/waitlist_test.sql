@@ -11,7 +11,7 @@
 -- (`booked_count = confirmées + offertes`) y sera martelé.
 
 begin;
-select plan(30);
+select plan(37);
 
 -- ---------------------------------------------------------------------------
 -- Décor : Rueil, une série, quatre cours capacité 1, plafond desserré
@@ -91,6 +91,7 @@ select has_function('public', 'promote_waitlist', array['uuid','uuid','timestamp
 select has_function('public', 'confirm_promotion', array['uuid'], 'confirm_promotion existe');
 select has_function('public', 'leave_waitlist', array['uuid'], 'leave_waitlist existe');
 select has_function('public', 'expire_waitlist_offers', array['timestamptz'], 'expire_waitlist_offers existe');
+select has_function('public', 'my_waitlist_rank', array['uuid'], 'my_waitlist_rank existe');
 select is(
   has_function_privilege('authenticated', 'public.promote_waitlist(uuid,uuid,timestamptz)', 'EXECUTE'),
   false, 'promote_waitlist est interne : authenticated ne l''appelle pas'
@@ -98,6 +99,14 @@ select is(
 select is(
   has_function_privilege('authenticated', 'public.join_waitlist(uuid,uuid,text)', 'EXECUTE'),
   true, 'un membre rejoint la file'
+);
+select is(
+  has_function_privilege('authenticated', 'public.my_waitlist_rank(uuid)', 'EXECUTE'),
+  true, 'un membre lit son propre rang'
+);
+select is(
+  has_function_privilege('anon', 'public.my_waitlist_rank(uuid)', 'EXECUTE'),
+  false, 'anon ne lit aucun rang'
 );
 
 -- ---------------------------------------------------------------------------
@@ -116,6 +125,30 @@ reset role;
 
 select is((select booked_count from public.classes where id = :classX), 1, 'X est plein');
 select is((select waitlist_count from public.classes where id = :classX), 2, 'deux en file sur X');
+
+-- Le rang **dérivé**, lu sous l'identité de chacun. Julie a rejoint avant Hugo,
+-- donc une position d'insertion plus basse : 1re, puis 2e. Léa, réservée, n'a
+-- aucune entrée active — son rang est null, pas 0 (« pas sur la file » ≠ « en
+-- tête »). Le tout la même seconde, avant que Léa n'annule et ne rebatte l'ordre.
+set local role authenticated;
+set local request.jwt.claims = :'julie_jwt';
+select is(public.my_waitlist_rank(:classX), 1, 'Julie est 1re — elle a rejoint la première');
+set local request.jwt.claims = :'hugo_jwt';
+select is(public.my_waitlist_rank(:classX), 2, 'Hugo est 2e');
+set local request.jwt.claims = :'lea_jwt';
+select is(public.my_waitlist_rank(:classX), null, 'Léa, réservée, n''est pas sur la file : rang null');
+-- Isolation inter-tenant, **figée par un test** (règle 10, doublon structurel/
+-- comportemental) : Claire est propriétaire de Nanterre, pas membre de Rueil.
+-- Sur X — un cours de Rueil où deux personnes attendent réellement — son rang
+-- est null, jamais 2. Si un jour la jointure sur `auth.uid()` s'affaiblissait,
+-- le décompte d'une autre box fuirait ici, et cette assertion rougirait.
+set local request.jwt.claims = '{"sub":"22222222-0000-4000-8000-000000000001","role":"authenticated","email":"claire@nanterre.example"}';
+select is(
+  public.my_waitlist_rank(:classX),
+  null,
+  'Claire (Nanterre) sur un cours de Rueil : rang null — le décompte d''une autre box ne fuit pas'
+);
+reset role;
 
 -- Léa annule : la place s'offre à la tête (Julie), et **reste tenue**.
 set local role authenticated;

@@ -24,13 +24,17 @@ import type { DayClass, DaySchedule } from './planning';
  * Les seules colonnes qu'un événement fait bouger, et **la raison de cette
  * liste close.**
  *
- * Realtime envoie l'enregistrement entier ; on n'en prend que trois champs.
+ * Realtime envoie l'enregistrement entier ; on n'en prend que quatre champs.
  * Recopier le reste ferait entrer dans l'état de l'écran des colonnes que la
  * lecture ne projette pas — et cet état part en cache sur l'appareil, hors RLS
  * (contrainte 1 de P1-002b). Une charge utile n'est pas une lecture : elle
  * n'est pas passée par `fetchDaySchedule()`, qui, lui, choisit ses colonnes.
+ *
+ * `waitlist_count` a rejoint la liste en P1-006 : il vit sur la même ligne
+ * `classes`, donc il voyage dans la charge existante sans second canal ni
+ * changement de publication.
  */
-type ChampsVivants = Pick<DayClass, 'capacity' | 'booked_count' | 'status'>;
+type ChampsVivants = Pick<DayClass, 'capacity' | 'booked_count' | 'waitlist_count' | 'status'>;
 
 /** Ce qu'une ligne `classes` porte dans une charge utile Realtime. */
 export interface LigneCoursChangee extends ChampsVivants {
@@ -94,6 +98,7 @@ export function appliqueChangementAuCours(cours: DayClass, ligne: LigneCoursChan
   const inchange =
     cours.capacity === ligne.capacity &&
     cours.booked_count === ligne.booked_count &&
+    cours.waitlist_count === ligne.waitlist_count &&
     cours.status === ligne.status;
   if (inchange) return cours;
 
@@ -101,6 +106,7 @@ export function appliqueChangementAuCours(cours: DayClass, ligne: LigneCoursChan
     ...cours,
     capacity: ligne.capacity,
     booked_count: ligne.booked_count,
+    waitlist_count: ligne.waitlist_count,
     status: ligne.status,
   };
 }
@@ -118,16 +124,21 @@ export function litLigneCours(brut: unknown): LigneCoursChangee | null {
   if (typeof brut !== 'object' || brut === null) return null;
   const ligne = brut as Record<string, unknown>;
 
-  const { id, capacity, booked_count: bookedCount, status } = ligne;
+  const { id, capacity, booked_count: bookedCount, waitlist_count: waitlistCount, status } = ligne;
 
   if (typeof id !== 'string' || id === '') return null;
   if (!Number.isInteger(capacity) || !Number.isInteger(bookedCount)) return null;
+  // `waitlist_count` est `not null default 0` en base : une charge Realtime le
+  // porte toujours. On le valide comme les autres entiers plutôt que de le
+  // supposer — une charge malformée doit être rejetée entière, pas complétée.
+  if (!Number.isInteger(waitlistCount)) return null;
   if (status !== 'SCHEDULED' && status !== 'CANCELLED') return null;
 
   return {
     id,
     capacity: capacity as number,
     booked_count: bookedCount as number,
+    waitlist_count: waitlistCount as number,
     status,
   };
 }

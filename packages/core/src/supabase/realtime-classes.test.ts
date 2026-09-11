@@ -17,12 +17,26 @@ function cours(overrides: Partial<DayClass> = {}): DayClass {
     ends_at: '2026-09-07T09:00:00.000Z',
     capacity: 16,
     booked_count: 15,
+    waitlist_count: 0,
     status: 'SCHEDULED',
     cancellation_reason: null,
     className: 'WOD',
     classColor: '#000000',
     roomName: 'Salle 1',
     coachName: 'Sarah D.',
+    ...overrides,
+  };
+}
+
+/** Une charge utile `classes`, réduite aux champs vivants. Le défaut vaut le
+ *  `cours()` par défaut, pour qu'un `ligne()` nu ne fasse **rien** bouger. */
+function ligne(overrides: Partial<LigneCoursChangee> = {}): LigneCoursChangee {
+  return {
+    id: 'c1',
+    capacity: 16,
+    booked_count: 15,
+    waitlist_count: 0,
+    status: 'SCHEDULED',
     ...overrides,
   };
 }
@@ -35,12 +49,7 @@ describe('appliqueChangementDeCours', () => {
   it('met à jour le compteur du cours visé, et lui seul', () => {
     const avant = journee([cours({ id: 'c1' }), cours({ id: 'c2', booked_count: 3 })]);
 
-    const apres = appliqueChangementDeCours(avant, {
-      id: 'c1',
-      capacity: 16,
-      booked_count: 16,
-      status: 'SCHEDULED',
-    });
+    const apres = appliqueChangementDeCours(avant, ligne({ id: 'c1', booked_count: 16 }));
 
     expect(apres.classes[0]?.booked_count).toBe(16);
     expect(apres.classes[1]?.booked_count).toBe(3);
@@ -54,12 +63,10 @@ describe('appliqueChangementDeCours', () => {
     // changements de tous les cours de sa box et jette ceux qu'il n'affiche pas.
     const avant = journee();
 
-    const apres = appliqueChangementDeCours(avant, {
-      id: 'un-cours-d-un-autre-jour',
-      capacity: 20,
-      booked_count: 20,
-      status: 'SCHEDULED',
-    });
+    const apres = appliqueChangementDeCours(
+      avant,
+      ligne({ id: 'un-cours-d-un-autre-jour', capacity: 20, booked_count: 20 }),
+    );
 
     expect(apres).toBe(avant);
   });
@@ -69,12 +76,7 @@ describe('appliqueChangementDeCours', () => {
     // change rien ferait re-rendre la liste — le défaut que D-018 a coûté.
     const avant = journee();
 
-    const apres = appliqueChangementDeCours(avant, {
-      id: 'c1',
-      capacity: 16,
-      booked_count: 15,
-      status: 'SCHEDULED',
-    });
+    const apres = appliqueChangementDeCours(avant, ligne({ id: 'c1', booked_count: 15 }));
 
     expect(apres).toBe(avant);
   });
@@ -85,41 +87,39 @@ describe('appliqueChangementDeCours', () => {
     // plus fraîche qu'elle ne l'est.
     const avant = journee();
 
-    const apres = appliqueChangementDeCours(avant, {
-      id: 'c1',
-      capacity: 16,
-      booked_count: 16,
-      status: 'SCHEDULED',
-    });
+    const apres = appliqueChangementDeCours(avant, ligne({ id: 'c1', booked_count: 16 }));
 
     expect(apres.fetchedAt).toBe(avant.fetchedAt);
   });
 
   it('porte une annulation de cours, pas seulement un compteur', () => {
-    const apres = appliqueChangementDeCours(journee(), {
-      id: 'c1',
-      capacity: 16,
-      booked_count: 15,
-      status: 'CANCELLED',
-    });
+    const apres = appliqueChangementDeCours(
+      journee(),
+      ligne({ id: 'c1', booked_count: 15, status: 'CANCELLED' }),
+    );
 
     expect(apres.classes[0]?.status).toBe('CANCELLED');
   });
 
-  it('ne recopie que les trois champs vivants', () => {
+  it('porte le compteur de liste d’attente comme les autres champs vivants', () => {
+    // `waitlist_count` voyage sur la même ligne `classes` : une place libérée qui
+    // enfile la file doit se voir en direct, sans second canal.
+    const apres = appliqueChangementDeCours(journee(), ligne({ id: 'c1', waitlist_count: 4 }));
+
+    expect(apres.classes[0]?.waitlist_count).toBe(4);
+  });
+
+  it('ne recopie que les quatre champs vivants', () => {
     // Une charge utile Realtime n'est pas passée par `fetchDaySchedule()`, qui
     // choisit ses colonnes. L'état de l'écran part en cache sur l'appareil,
     // hors RLS : ce qui entre ici doit être une liste close.
     const avant = journee();
-    const ligne = {
-      id: 'c1',
-      capacity: 16,
-      booked_count: 16,
-      status: 'SCHEDULED',
+    const charge = {
+      ...ligne({ id: 'c1', booked_count: 16 }),
       coachName: 'Nom Complet Indésirable',
     } as LigneCoursChangee & { coachName: string };
 
-    const apres = appliqueChangementDeCours(avant, ligne);
+    const apres = appliqueChangementDeCours(avant, charge);
 
     expect(apres.classes[0]?.coachName).toBe('Sarah D.');
   });
@@ -127,14 +127,23 @@ describe('appliqueChangementDeCours', () => {
 
 describe('appliqueChangementAuCours', () => {
   it('met à jour le cours de l’accueil', () => {
-    const apres = appliqueChangementAuCours(cours(), {
-      id: 'c1',
-      capacity: 16,
-      booked_count: 16,
-      status: 'SCHEDULED',
-    });
+    const apres = appliqueChangementAuCours(cours(), ligne({ id: 'c1', booked_count: 16 }));
 
     expect(apres.booked_count).toBe(16);
+  });
+
+  it('recopie `waitlist_count` quand lui seul change', () => {
+    const avant = cours();
+
+    const apres = appliqueChangementAuCours(
+      avant,
+      ligne({ id: 'c1', booked_count: avant.booked_count, waitlist_count: 4 }),
+    );
+
+    expect(apres.waitlist_count).toBe(4);
+    // Un champ vivant qui bouge rend un objet neuf ; sinon la ligne ne se
+    // re-rendrait pas et le compteur resterait figé à l'écran.
+    expect(apres).not.toBe(avant);
   });
 
   it('ignore une ligne qui parle d’un autre cours', () => {
@@ -142,37 +151,32 @@ describe('appliqueChangementAuCours', () => {
     const avant = cours();
 
     expect(
-      appliqueChangementAuCours(avant, {
-        id: 'c2',
-        capacity: 20,
-        booked_count: 20,
-        status: 'SCHEDULED',
-      }),
+      appliqueChangementAuCours(avant, ligne({ id: 'c2', capacity: 20, booked_count: 20 })),
     ).toBe(avant);
   });
 
   it('rend le cours **à l’identique** quand rien n’a bougé', () => {
     const avant = cours();
 
-    expect(
-      appliqueChangementAuCours(avant, {
-        id: 'c1',
-        capacity: 16,
-        booked_count: 15,
-        status: 'SCHEDULED',
-      }),
-    ).toBe(avant);
+    expect(appliqueChangementAuCours(avant, ligne({ id: 'c1', booked_count: 15 }))).toBe(avant);
   });
 });
 
 describe('litLigneCours', () => {
-  const valide = { id: 'c1', capacity: 16, booked_count: 15, status: 'SCHEDULED' };
+  const valide = {
+    id: 'c1',
+    capacity: 16,
+    booked_count: 15,
+    waitlist_count: 2,
+    status: 'SCHEDULED',
+  };
 
   it('accepte une charge utile conforme', () => {
     expect(litLigneCours(valide)).toEqual({
       id: 'c1',
       capacity: 16,
       booked_count: 15,
+      waitlist_count: 2,
       status: 'SCHEDULED',
     });
   });
@@ -184,6 +188,12 @@ describe('litLigneCours', () => {
     ['un compteur absent', { id: 'c1', capacity: 16, status: 'SCHEDULED' }],
     ['un compteur en texte', { ...valide, booked_count: '15' }],
     ['un compteur décimal', { ...valide, booked_count: 15.5 }],
+    [
+      'un compteur de liste absent',
+      { id: 'c1', capacity: 16, booked_count: 15, status: 'SCHEDULED' },
+    ],
+    ['un compteur de liste en texte', { ...valide, waitlist_count: '2' }],
+    ['un compteur de liste décimal', { ...valide, waitlist_count: 2.5 }],
     ['un statut inconnu', { ...valide, status: 'DRAFT' }],
   ])('rejette %s au lieu de le deviner', (_cas, brut) => {
     // Un champ manquant traverserait jusqu'à `seatsLeft()` et afficherait

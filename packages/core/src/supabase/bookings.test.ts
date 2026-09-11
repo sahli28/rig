@@ -6,9 +6,12 @@ import {
   bookingAffordance,
   cancelBooking,
   cancelConsequence,
+  confirmPromotion,
   fetchBookedDays,
   affordanceLabelKey,
   affordanceHint,
+  joinWaitlist,
+  leaveWaitlist,
   type AffordanceInput,
 } from './bookings';
 
@@ -147,6 +150,64 @@ describe('bookingAffordance — la décision, avant l’appel', () => {
       'full',
     );
   });
+
+  it('« sur la liste » quand une entrée WAITING existe — rang et longueur', () => {
+    const a = bookingAffordance(
+      entrée({
+        klass: { ...entrée().klass, booked_count: 16 },
+        myWaitlist: { entryId: 'w1', status: 'WAITING', position: 2, total: 5, expiresAt: null },
+      }),
+    );
+    expect(a).toEqual({ kind: 'on_waitlist', position: 2, total: 5 });
+  });
+
+  it('« place offerte » quand une entrée OFFERED existe — id et échéance', () => {
+    const a = bookingAffordance(
+      entrée({
+        klass: { ...entrée().klass, booked_count: 16 },
+        myWaitlist: {
+          entryId: 'w1',
+          status: 'OFFERED',
+          position: 1,
+          total: 3,
+          expiresAt: '2026-09-05T12:30:00Z',
+        },
+      }),
+    );
+    expect(a).toEqual({
+      kind: 'promotion_offered',
+      entryId: 'w1',
+      expiresAt: '2026-09-05T12:30:00Z',
+    });
+  });
+
+  it('mon état de liste d’attente passe **avant** un refus de fenêtre ou de plafond', () => {
+    // Qui est déjà sur la liste n'est plus dans le flux « réserver » : lui
+    // répondre « fenêtre close » cacherait ce qui le concerne — son rang.
+    const fenetreClose = bookingAffordance(
+      entrée({
+        now: new Date('2026-09-05T11:50:00Z'),
+        klass: { ...entrée().klass, booked_count: 16 },
+        myWaitlist: { entryId: 'w1', status: 'WAITING', position: 1, total: 1, expiresAt: null },
+      }),
+    );
+    expect(fenetreClose.kind).toBe('on_waitlist');
+
+    const plafond = bookingAffordance(
+      entrée({
+        upcomingCount: 3,
+        klass: { ...entrée().klass, booked_count: 16 },
+        myWaitlist: {
+          entryId: 'w1',
+          status: 'OFFERED',
+          position: 1,
+          total: 1,
+          expiresAt: '2026-09-05T12:30:00Z',
+        },
+      }),
+    );
+    expect(plafond.kind).toBe('promotion_offered');
+  });
 });
 
 describe('les mots que porte chaque état', () => {
@@ -160,6 +221,20 @@ describe('les mots que porte chaque état', () => {
       entrée({ now: new Date('2026-09-05T11:50:00Z') }),
       entrée({ now: new Date('2026-08-01T12:00:00Z') }),
       entrée({ upcomingCount: 3 }),
+      entrée({
+        klass: { ...entrée().klass, booked_count: 16 },
+        myWaitlist: { entryId: 'w1', status: 'WAITING', position: 1, total: 2, expiresAt: null },
+      }),
+      entrée({
+        klass: { ...entrée().klass, booked_count: 16 },
+        myWaitlist: {
+          entryId: 'w1',
+          status: 'OFFERED',
+          position: 1,
+          total: 2,
+          expiresAt: '2026-09-05T12:30:00Z',
+        },
+      }),
     ];
     for (const état of états) {
       expect(affordanceLabelKey(bookingAffordance(état))).toMatch(/^(booking|planning)\./);
@@ -181,13 +256,52 @@ describe('les mots que porte chaque état', () => {
     });
   });
 
-  it('un cours complet a une phrase, et elle ne promet rien', () => {
-    // Décision du ticket : une impasse se répare par une porte de sortie, pas
-    // par une promesse. Ni « reviens plus tard » (rien ne se libère avant
-    // P1-004), ni « demande à ta box » (personne ne peut placer personne).
+  it('un cours complet invite à rejoindre la liste (P1-006)', () => {
+    // Complet n'est plus une impasse : la liste d'attente existe, et la phrase
+    // le dit. Le bouton « Rejoindre » vit côté écran ; ici, l'explication.
     expect(
       affordanceHint(bookingAffordance(entrée({ klass: { ...entrée().klass, booked_count: 16 } }))),
     ).toEqual({ key: 'booking.full_hint' });
+  });
+
+  it('« sur la liste » porte le rang et la longueur, pour « 2ᵉ sur 5 »', () => {
+    // Le pluriel se joue sur `total` ; `{position}`/`{total}` s'interpolent tous
+    // deux, d'où le sac `values` en plus du `count`.
+    expect(
+      affordanceHint(
+        bookingAffordance(
+          entrée({
+            klass: { ...entrée().klass, booked_count: 16 },
+            myWaitlist: {
+              entryId: 'w1',
+              status: 'WAITING',
+              position: 2,
+              total: 5,
+              expiresAt: null,
+            },
+          }),
+        ),
+      ),
+    ).toEqual({ key: 'waitlist.position', count: 5, values: { position: 2, total: 5 } });
+  });
+
+  it('« place offerte » explique l’urgence du compte à rebours', () => {
+    expect(
+      affordanceHint(
+        bookingAffordance(
+          entrée({
+            klass: { ...entrée().klass, booked_count: 16 },
+            myWaitlist: {
+              entryId: 'w1',
+              status: 'OFFERED',
+              position: 1,
+              total: 3,
+              expiresAt: '2026-09-05T12:30:00Z',
+            },
+          }),
+        ),
+      ),
+    ).toEqual({ key: 'booking.confirm_spot_hint' });
   });
 
   it('l’état réservable n’a pas de phrase d’excuse', () => {
@@ -650,5 +764,128 @@ describe('fetchBookedDays', () => {
       ['membership_id', 'm1'],
       ['status', 'CONFIRMED'],
     ]);
+  });
+});
+
+describe('joinWaitlist', () => {
+  it('passe les trois arguments sous leurs noms SQL', async () => {
+    const { client, appels } = fakeClient({ data: RÉSERVATION });
+    await joinWaitlist(client, { classId: 'c1', membershipId: 'm1', idempotencyKey: 'k1' });
+    expect(appels).toEqual([
+      {
+        fn: 'join_waitlist',
+        args: { p_class_id: 'c1', p_membership_id: 'm1', p_idempotency_key: 'k1' },
+      },
+    ]);
+  });
+
+  it('rend l’identifiant de l’entrée de liste d’attente', async () => {
+    const { client } = fakeClient({ data: RÉSERVATION });
+    await expect(
+      joinWaitlist(client, { classId: 'c1', membershipId: 'm1', idempotencyKey: 'k1' }),
+    ).resolves.toBe(RÉSERVATION);
+  });
+
+  it('rejoue la même clé et rend la même entrée — règle 4, vue du client', async () => {
+    const { client, appels } = fakeClient({ data: RÉSERVATION });
+    const args = { classId: 'c1', membershipId: 'm1', idempotencyKey: 'k1' };
+    const premier = await joinWaitlist(client, args);
+    const second = await joinWaitlist(client, args);
+    expect(second).toBe(premier);
+    expect(appels[0]?.args).toEqual(appels[1]?.args);
+  });
+
+  describe('les refus de la base deviennent des clés i18n', () => {
+    const CAS = [
+      ['CLASS_NOT_FULL', 'errors.class_not_full'],
+      ['ALREADY_ON_WAITLIST', 'errors.already_on_waitlist'],
+      ['ALREADY_BOOKED', 'errors.already_booked'],
+      ['BOOKING_WINDOW_CLOSED', 'errors.booking_window_closed'],
+      ['MAX_UPCOMING_BOOKINGS_REACHED', 'errors.max_upcoming_bookings_reached'],
+    ] as const;
+
+    for (const [code, clé] of CAS) {
+      it(`${code} → ${clé}`, async () => {
+        const { client } = fakeClient({
+          error: { code: '23514', details: JSON.stringify({ code }), message: 'boom' },
+        });
+        const échec = await joinWaitlist(client, {
+          classId: 'c1',
+          membershipId: 'm1',
+          idempotencyKey: 'k1',
+        }).catch((e: unknown) => e);
+        expect(échec).toBeInstanceOf(BookingFailed);
+        expect((échec as BookingFailed).code).toBe(code);
+        expect((échec as BookingFailed).messageKey).toBe(clé);
+      });
+    }
+  });
+});
+
+describe('confirmPromotion', () => {
+  const ENTRÉE = '0192f4b2-0000-7000-8000-0000000000aa';
+
+  it('passe l’identifiant d’entrée sous son nom SQL', async () => {
+    const { client, appels } = fakeClient({ data: RÉSERVATION });
+    await confirmPromotion(client, ENTRÉE);
+    expect(appels).toEqual([
+      { fn: 'confirm_promotion', args: { p_waitlist_entry_id: ENTRÉE } },
+    ]);
+  });
+
+  it('rend l’identifiant de la réservation créée', async () => {
+    const { client } = fakeClient({ data: RÉSERVATION });
+    await expect(confirmPromotion(client, ENTRÉE)).resolves.toBe(RÉSERVATION);
+  });
+
+  it('rejoue et rend le même booking — idempotent par l’id d’entrée', async () => {
+    const { client } = fakeClient({ data: RÉSERVATION });
+    expect(await confirmPromotion(client, ENTRÉE)).toBe(RÉSERVATION);
+    expect(await confirmPromotion(client, ENTRÉE)).toBe(RÉSERVATION);
+  });
+
+  it('OFFER_EXPIRED → errors.offer_expired', async () => {
+    const { client } = fakeClient({
+      error: { code: '23514', details: JSON.stringify({ code: 'OFFER_EXPIRED' }), message: 'boom' },
+    });
+    await expect(confirmPromotion(client, ENTRÉE)).rejects.toMatchObject({
+      code: 'OFFER_EXPIRED',
+      messageKey: 'errors.offer_expired',
+    });
+  });
+
+  it('une erreur inconnue rend `errors.unknown`, jamais le texte de la base', async () => {
+    const { client } = fakeClient({
+      error: { code: '42P01', message: 'relation "waitlist_entries" does not exist' },
+    });
+    await expect(confirmPromotion(client, ENTRÉE)).rejects.toBeInstanceOf(BookingFailed);
+    const échec = await confirmPromotion(client, ENTRÉE).catch((e: unknown) => e);
+    expect((échec as BookingFailed).messageKey).toBe('errors.unknown');
+  });
+});
+
+describe('leaveWaitlist', () => {
+  const ENTRÉE = '0192f4b2-0000-7000-8000-0000000000bb';
+
+  it('passe l’identifiant d’entrée sous son nom SQL', async () => {
+    const { client, appels } = fakeClient({ data: ENTRÉE });
+    await leaveWaitlist(client, ENTRÉE);
+    expect(appels).toEqual([{ fn: 'leave_waitlist', args: { p_waitlist_entry_id: ENTRÉE } }]);
+  });
+
+  it('rend l’identifiant de l’entrée quittée', async () => {
+    const { client } = fakeClient({ data: ENTRÉE });
+    await expect(leaveWaitlist(client, ENTRÉE)).resolves.toBe(ENTRÉE);
+  });
+
+  it('rejouer sur une entrée terminale est sans effet et rend le même id', async () => {
+    const { client } = fakeClient({ data: ENTRÉE });
+    expect(await leaveWaitlist(client, ENTRÉE)).toBe(ENTRÉE);
+    expect(await leaveWaitlist(client, ENTRÉE)).toBe(ENTRÉE);
+  });
+
+  it('une panne réseau ressort **traduite**, jamais nue', async () => {
+    const { client } = fakeClient({ error: { code: '42P01', message: 'boom' } });
+    await expect(leaveWaitlist(client, ENTRÉE)).rejects.toBeInstanceOf(BookingFailed);
   });
 });
