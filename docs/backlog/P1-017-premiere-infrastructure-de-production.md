@@ -127,12 +127,15 @@ consommé du lot migre vers `P1-016`, comme l'Estimation l'annonce.
 
 ## Critères d'acceptation
 
-- [ ] `select version()` sur le projet hébergé commence par `PostgreSQL 17` —
-      lu, pas déduit du tableau de bord
-- [ ] Toutes les migrations du dépôt sont appliquées, et `pnpm test:db` **contre
-      le projet hébergé** rend le même vert qu'en local. Sans ça, on a copié un
-      schéma, pas prouvé qu'il tourne
-- [ ] `pg_cron` est actif et le job de `P1-002` apparaît dans `cron.job`
+- [x] `select version()` sur le projet hébergé commence par `PostgreSQL 17` —
+      lu, pas déduit : **17.6**
+- [x] Toutes les migrations du dépôt sont appliquées, et `pnpm test:db` **contre
+      le projet hébergé** rend le même vert qu'en local (30 fichiers, 583 tests,
+      via le pooler `--db-url`) — **et il a acheté deux vrais défauts**, verts en
+      local et rouges sur l'hébergé, corrigés dans `20260911100900` (voir Note de
+      réalisation). C'est la preuve « qu'il tourne », pas « qu'on l'a copié »
+- [x] `pg_cron` est actif ; le job de `P1-002` (`rack-maintain-class-occurrences`)
+      et trois autres apparaissent dans `cron.job` (4 jobs actifs)
 - [ ] `pg_net` actif ; `pg_cron` **accepte la planification sous-minute** (le
       balayage `'30 seconds'` exige pg_cron ≥ 1.5, sinon la migration du transport
       échoue à l'application) ; `rack-push-emitter` déployé et **joignable SANS
@@ -204,10 +207,44 @@ Le projet hébergé existe (`llakbulflemibnfagnyh`, `eu-west-3`). Ce qui est
   déployée → `claim` → **exp.host réel** → `mark`, en **441 ms** ; huit `200`
   dans `net._http_response` du balayage.
 
+**Ce que la mise en production anticipée a acheté — deux vrais défauts,** verts
+en local et rouges sur l'hébergé, trouvés par `test:db` contre l'hébergé (30
+fichiers, 583 tests) et corrigés dans `20260911100900` :
+
+1. **Aucun membre ne pouvait modifier son profil sur l'hébergé.**
+   `forbid_email_change()` (gel de l'e-mail) lit `auth.users` en `SECURITY
+   INVOKER` ; `authenticated` n'a pas SELECT sur `auth.users` sur l'hébergé →
+   toute édition (`first_name`, …) échouait en `42501`. **Ce défaut serait tombé
+   le jour 1 de la box pilote, sur les 80 membres à la fois** — c'est l'argument,
+   chiffré, de la découpe qui a sorti `P1-017` de `P1-016`. Fix : `SECURITY DEFINER`.
+2. **Créer une série avec date de fin échouait sur l'hébergé.**
+   `pilot_weekly_rrule_until`, dans un CHECK de `class_schedules` (donc évalué
+   sous l'appelant), n'était pas accordée à `authenticated` — la sœur oubliée de
+   `pilot_weekly_rrule_valid`. Fix : le `grant` manquant.
+
+**Le vrai livrable, c'est pourquoi le local ne les voyait pas.**
+`auto_expose_new_tables` valait `true` en local (défaut) et `false` sur l'hébergé
+(choix de création) : le local auto-accordait des droits que l'hébergé refuse.
+`config.toml` passe à `false` — le local exécute désormais le **même** modèle de
+droits que l'hébergé, et `test:db` mord sur un grant oublié au lieu de le laisser
+filer en production. Vérifié : avec le réglage, `test:db:fresh` confirme le
+correctif, et une sœur non nécessaire (`_days`, definer-only) reste bien refusée
+à `authenticated`. (Le défaut n°1 reste invisible en local — `auth.users` y est
+permissif quel que soit ce réglage ; il est prouvé corrigé **sur l'hébergé**, où
+la re-passe de `test:db` est verte.)
+
+**pgTAP est sur l'hébergé, et ce n'est pas une anomalie** : il vient de
+`20260830143104:17` (`create extension if not exists pgtap`), donc posé par
+`db push`. Mais c'est de l'**outillage de test en production** — à conditionner :
+`D-026`. Ne pas le retirer à la main (une reconstruction le recrée).
+
 Ce qui **reste `[ ]`** (et pourquoi) :
 
-- **`pnpm test:db` contre l'hébergé** — pas encore lancé (le vert local a été
-  obtenu par `test:db:fresh`).
+- **La purge vers schéma seul** — le seed de démo est encore sur l'hébergé (il a
+  servi à la re-passe de `test:db`). `supabase db reset --linked --no-seed` est
+  l'outil propre, mais bloqué par le classifieur de sécurité (opération distante
+  destructrice), et je ne contourne pas les gardes append-only par `TRUNCATE`
+  (piège 5). À lancer par la commanditaire, puis je re-pose `push_emitter_url`.
 - **Le `sent` terminal** — exp.host rend `DeviceNotRegistered` pour tout jeton
   synthétique ; seul un **vrai appareil** le produit, à la passe § 5 nonies.
 - **À vérifier en § 5 nonies** : un `DeviceNotRegistered` réel doit **révoquer**

@@ -78,6 +78,26 @@ planification sous-minute** (`'30 seconds'`, ≥ 1.5). Si un `create extension`
 était un jour refusé, l'activer dans *Database → Extensions* puis relancer
 `db push` (les migrations sont en `if not exists`).
 
+**Deux réglages de droits, appris le 11 septembre :**
+
+- **`auto_expose_new_tables = false`** sur l'hébergé (choix de création) **et**
+  dans `config.toml` (parité). Le schéma s'appuie sur des `grant` **explicites**,
+  pas sur une exposition automatique — c'est ce qui fait que `test:db` en local
+  mord sur un grant oublié comme l'hébergé le ferait. Laissé à `true` en local, il
+  a masqué deux défauts (voir `P1-017`, note de réalisation).
+- **pgTAP est installé par une migration** (`20260830143104:17`), donc présent
+  **aussi sur l'hébergé** — de l'outillage de test en production, à conditionner
+  (`D-026`). **Ne pas le retirer à la main** : `db push` ou toute reconstruction
+  le recrée.
+
+**Purger l'hébergé vers schéma seul** (après un `test:db` distant, avant tout
+décor) : `supabase db reset --linked --no-seed` — il **drop** les tables et
+rejoue les migrations, ce qui contourne proprement les gardes append-only
+(`audit_logs`, `ledger_entries`) et la FK `restrict` de `ledger_entries` qui
+bloquent un `delete` ciblé. **Ne pas** purger par `TRUNCATE` : il échappe au
+trigger append-only (piège 5). Après le reset, re-poser `push_emitter_url` (le
+reset vide `app_runtime_config`).
+
 ## L'émetteur push
 
 ```bash

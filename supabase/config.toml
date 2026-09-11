@@ -20,7 +20,16 @@ max_rows = 1000
 # `postgres` are reachable through the Data API roles (`anon`, `authenticated`, `service_role`)
 # without explicit GRANTs, matching the cloud default. Set to `false` to require explicit GRANTs
 # instead. Left unset, a fresh project falls back to `true`.
-# auto_expose_new_tables = true
+#
+# `false` — **et c'est un livrable, pas un réglage anodin** (11 septembre 2026).
+# Le projet hébergé l'a à `false` (choix de création). Laissé à `true` en local,
+# il accordait par défaut des droits que l'hébergé refuse : deux fonctions sans
+# `grant` explicite passaient en local et échouaient sur l'hébergé (voir
+# `20260911100900`). À `false`, le local exécute le **même** modèle de droits que
+# l'hébergé, et `pnpm test:db` mord sur un `grant` oublié au lieu de le laisser
+# filer jusqu'à la production. « Le filet tourne sur le vrai moteur », appliqué
+# aux droits.
+auto_expose_new_tables = false
 
 [api.tls]
 # Enable HTTPS endpoints locally using a self-signed certificate.
