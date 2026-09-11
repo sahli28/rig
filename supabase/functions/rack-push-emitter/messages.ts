@@ -33,6 +33,15 @@ const TEMPLATES: Record<string, { title: string; body: string; withDate: boolean
     body: 'push.class_cancellation_body',
     withDate: true,
   },
+  // Une seule catégorie, deux corps. `body` porte le défaut (l'offre) ; `render`
+  // bascule sur `push.waitlist_promotion_confirmed_body` quand le contexte dit
+  // `requires_confirmation === false`. Les trois clés sont citées littéralement
+  // ci-dessus et dans `render` pour qu'`i18n:check` les voie employées.
+  WAITLIST_PROMOTION: {
+    title: 'push.waitlist_promotion_title',
+    body: 'push.waitlist_promotion_offer_body',
+    withDate: false,
+  },
 };
 
 const PLACEHOLDER = /\{(\w+)\}/g;
@@ -70,6 +79,10 @@ export interface PushContext {
   class_name_i18n: Record<string, string>;
   starts_at: string;
   timezone: string;
+  /** WAITLIST_PROMOTION seulement. `true` = offre à confirmer (compte à rebours,
+   *  ≥ 12 h), `false` = place déjà réservée (auto-book < 12 h). Le drapeau choisit
+   *  le corps, plutôt qu'une 2ᵉ valeur d'enum (irréversible) — voir `render`. */
+  requires_confirmation?: boolean;
 }
 
 export interface ClaimedRow {
@@ -118,9 +131,16 @@ function render(row: ClaimedRow): { title: string; body: string } {
   if (tpl.withDate) {
     values.date = formatDate(row.context.starts_at, row.context.timezone, locale);
   }
+  // WAITLIST_PROMOTION : deux corps pour une catégorie. `requires_confirmation`
+  // à false = auto-book (< 12 h), la place est déjà réservée ; sinon c'est une
+  // offre à confirmer avant expiration. Le défaut (clé absente) est l'offre.
+  const bodyKey =
+    row.category === 'WAITLIST_PROMOTION' && row.context.requires_confirmation === false
+      ? 'push.waitlist_promotion_confirmed_body'
+      : tpl.body;
   return {
     title: interpolate(bundle[tpl.title], values),
-    body: interpolate(bundle[tpl.body], values),
+    body: interpolate(bundle[bodyKey], values),
   };
 }
 
