@@ -23,7 +23,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **12,25 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **13,25 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -48,12 +48,14 @@ d'un mois le 3 septembre 2026 : P1-002 et le lot SQL de P1-003 sont fusionnés.
 **Recompté le 12 septembre 2026 — `P1-006` et `P1-017` fusionnés, et la
 projection avec.** Le tableau d'état les disait « à faire » alors que PR #80 et
 #79 sont sur `main` : leurs 6 + 1,5 j·h passent aux faits (détail ligne à ligne
-dans le journal des mouvements ci-dessous), et ① tombe à **12,25 restants**. La
-projection du 9 septembre — « 19,5 ÷ 2,3 ≈ 8,5 semaines, début novembre » —
-reposait sur le chiffre d'alors ; refaite, **12,25 ÷ 2,3 ≈ 5,3 semaines** : le
-code du jalon vers **mi-octobre 2026**, la mise en service — avec les 4 jours
-d'accompagnement, qui ne se compressent pas — vers **fin octobre / début
-novembre** (janvier restant l'annonce prudente d'origine). C'est la même dérive
+dans le journal des mouvements ci-dessous), et ① tombe à 12,25 restants — **puis
+remonte à 13,25 le même jour** quand `P1-018` (l'émetteur d'invitations,
+sous-budgété dans `P1-016`) entre dans le total. La projection du 9 septembre —
+« 19,5 ÷ 2,3 ≈ 8,5 semaines, début novembre » — reposait sur le chiffre d'alors ;
+refaite, **13,25 ÷ 2,3 ≈ 5,8 semaines** : le code du jalon vers **fin octobre
+2026**, la mise en service — avec les 4 jours d'accompagnement, qui ne se
+compressent pas — vers **début novembre** (janvier restant l'annonce prudente
+d'origine). C'est la même dérive
 que le 5 et le 9 septembre, rouverte : un total qui prend du retard sur les
 fusions. **Conséquence à tenir** : le calendrier de durcissement DMARC de
 `docs/procedures/email-et-domaine.md` est daté contre cette mise en service ; si
@@ -347,7 +349,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 114 j·h, dont **12,25 restants**
+## ① Jalon pilote — 115 j·h, dont **13,25 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -496,10 +498,11 @@ sait pas lui répondre.
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
 | D-016   | Trois écrans qui ne relisent rien au retour       |   0,25 | ✅ fait le 7 sept. 2026. **Ligne ajoutée le 9 sept. 2026** : son 0,25 était crédité aux faits par le tableau des mouvements sans avoir de ligne ici, donc compté dans un total où il ne figurait pas |
 | D-021   | La porte du coach, et la place de la séance       |   1,75 | ✅ **fait et passé le 9 sept. 2026** — **A14 ✅, le critère d'écran de `P1-015` est fermé.** Attention à la provenance : **PR #68 n'a fusionné que la documentation**, le code de ce ticket est parti dans la PR suivante (`feat/D-021-le-code`), et la passe a été jouée sur l'arbre de travail avant cette fusion. Une décision (`back-office.ts`, neuf droits × quatre rôles), **quinze comparaisons de rôle retirées d'`apps/web`**, dont une sœur que le ticket ne nommait pas (`join-card.tsx`) : la sonde ESLint l'a trouvée en mordant. Le panneau : la séance d'abord, l'annulation derrière un trait et un bouton danger, un seul primaire. **Rien d'observé dans un navigateur** — il n'y en a pas (`D-022`) — donc six critères restent `[ ]` pour la passe |
-| P1-016  | La mise en service chez la box pilote             |   1,75 | à faire, **en dernier** — écrit le 9 sept. 2026, entré dans ① le jour même (PR #64), **puis découpé après PR #65** : le projet hébergé et le déploiement partent dans `P1-017` pour ne pas concentrer l'inconnu la semaine de la box. Reste ici ce qui dépend vraiment du reste — build TestFlight, sauvegarde restaurée — **+ 4 jours d'accompagnement** qui ne sont pas des j·h. **Et le RGPD y est daté** : DPA, registre, politique de confidentialité **avant le premier import** — la sous-traitance art. 28 commence le jour de la mise en service, et `consents.tsx` horodate depuis le 31 août un consentement à une politique **qui n'existe pas**. **Volet domaine/SMTP câblé le 11 sept. 2026** (Brevo, DNS, runbook `email-et-domaine.md`, registre) — ~0,25 de la moitié « invitations », **dedans** ; le reste de cette moitié est **l'émetteur maison** (liens `D-005` via API Brevo), **non écrit** |
+| P1-016  | La mise en service chez la box pilote             |   1,75 | à faire, **en dernier** — écrit le 9 sept. 2026, entré dans ① le jour même (PR #64), **puis découpé après PR #65** : le projet hébergé et le déploiement partent dans `P1-017` pour ne pas concentrer l'inconnu la semaine de la box. Reste ici ce qui dépend vraiment du reste — build TestFlight, sauvegarde restaurée — **+ 4 jours d'accompagnement** qui ne sont pas des j·h. **Et le RGPD y est daté** : DPA, registre, politique de confidentialité **avant le premier import** — la sous-traitance art. 28 commence le jour de la mise en service, et `consents.tsx` horodate depuis le 31 août un consentement à une politique **qui n'existe pas**. **Volet domaine/SMTP câblé le 11 sept. 2026** (Brevo, DNS, runbook `email-et-domaine.md`, registre) — ~0,25 de la moitié « invitations », **dedans** ; le reste — **l'émetteur d'invitations** — est carve-out en **`P1-018`** (12 sept.). Et ce n'est **pas** le flux D-005 : l'effectif importé rejoint par **appariement d'e-mail** (`accept_pending_invitation`), pas par jeton — la note « liens D-005 » du volet est **fausse, à corriger** |
 | P1-017  | La première infrastructure de production          |    1,5 | ✅ **fusionné le 11 sept. 2026 (PR #79)** — projet Supabase hébergé (`eu-west-3`, PG **17.6** lu), `pg_cron`/`pg_net`/`vault` par migration, **émetteur push déployé et servi**, back-office sur Vercel. `test:db` distant vert, parité des droits (`auto_expose_new_tables=false`). **Reste des `[~]`/`[ ]` de preuve** derrière la mise en service : e-mail signé reçu et SMTP tiers — le **volet est câblé** (`P1-016`), la preuve attend. Runbooks : `deploiement-heberge.md`, `email-et-domaine.md` |
+| P1-018  | L'émetteur d'invitations du pilote                |      1 | **à faire** — carve-out de la moitié « invitations » de `P1-016` le 12 sept. 2026. Envoie l'e-mail d'invitation aux `PENDING` de `import_members()` par l'**API Brevo** ; l'effectif rejoint par **appariement d'e-mail** (`accept_pending_invitation`), **pas** par jeton D-005 (règle 8, trouvé en s'écrivant). Idempotent, journal `email_deliveries` minimal, bounces synchrones, vagues. **Émetteur minimal** — `sendEmail` thémé est `P2-015`. Prérequis runtime : la **clé API Brevo** |
 | D-023   | Le consentement pointe vers un texte, et la constante en porte la date | 0,5 | **écrit le 9 sept. 2026, s'ouvre quand le texte existe** — sa rédaction n'est pas du code et n'est pas dans ce ticket. Le lien depuis `consents.tsx`, `current_policy_version()` alignée sur la date réelle, et **un test qui lie les deux** : la règle 10 appliquée à une valeur. **Bloque `P1-016`** : aucun import réel avant, sinon 80 personnes consentent à un texte inexistant et recochent toutes quand la constante change |
-|         | **Total ①**                                       | **114** | dont **101,75 faits**, **12,25 restants** |
+|         | **Total ①**                                       | **115** | dont **101,75 faits**, **13,25 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
 nouvelle.** Un chiffre qui monte se relit comme une dérive s'il ne porte pas sa
@@ -572,6 +575,7 @@ corrigé sans son calcul se re-conteste :
 | **`P1-017` +0,25** : l'émetteur push déployé sur l'hébergé (`pg_net`, `functions deploy`, `push_emitter_url`) — le lot qui rend § 5 nonies de `P1-007` jouable sur la chaîne réelle, hors de la semaine de la box | **114** | 94,25 | **19,75** |
 | **`P1-017` fusionné (PR #79), 11 sept.** : lots hébergés réalisés (projet, émetteur, web déployé) — les 1,5 passent aux faits. Les `[~]`/`[ ]` de preuve qui restent sont des critères d'appareil, pas des j·h non faits | 114 | 95,75 | 18,25 |
 | **`P1-006` fusionné (PR #80), 11 sept.** : waitlist prouvée en CI (`waitlist_test.sql`, 37 assertions) — les 6 passent aux faits. Reste un `[~]` d'appareil (« < 30 s ») et un défaut ouvert, `D-027` (hors ①) | **114** | **101,75** | **12,25** |
+| **`P1-018` entre dans ① (1), 12 sept.** : l'émetteur d'invitations, carve-out de la moitié « invitations » de `P1-016` — il y était **sous-budgété** (les 1,25 étaient le build/TestFlight + le câblage 0,25 ; l'émetteur, presque rien). Pas d'absorption silencieuse — **à ratifier à la fusion** | **115** | 101,75 | **13,25** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.
