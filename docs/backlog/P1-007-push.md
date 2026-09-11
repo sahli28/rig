@@ -1,6 +1,6 @@
 # `P1-007` — Notifications push (re-fusionné, passe iPhone en attente)
 
-**Phase** `P1` · **Estimation** `6` j·h *(4 → 6 ; la frontière a/b reposait sur un appareil Android qui n'existe pas)* · **Dépend de** `P0-005` ✅ · **Spec** §5.3, §12.3 · **État** : lots 1–3 livrés sur `feat/P1-007-push`, **passe iPhone en attente**
+**Phase** `P1` · **Estimation** `6` j·h *(4 → 6 ; la frontière a/b reposait sur un appareil Android qui n'existe pas)* · **Dépend de** `P0-005` ✅ · **Spec** §5.3, §12.3 · **État** : lots 1–3 fusionnés ; dev build iOS fait (11 sept.), device-registration prouvée ; **passe § 5 nonies en attente, derrière le lot hébergé + émetteur de `P1-017`**
 
 ## Objectif
 
@@ -62,8 +62,9 @@ provisioning + l'iPhone entrent ; le code décision/émetteur ne bouge pas.
 | Consentement `PUSH` | `consents`, écran de consentement | ✅ recueilli ; **honoré par ce ticket** |
 | Langue du membre | `users.locale` | ✅ le rendu i18n a sa source |
 | `pg_cron` | activé (`20260902120000`) | ✅ le rappel J-1 et le balayage ont leur précédent |
-| **Compte Expo/EAS + `eas init`** | — | ❌ **à toi** — écrit `extra.eas.projectId` dans `app.json`, requis par `getExpoPushTokenAsync()` même en build local (voir « chemin critique hors code » du README) |
-| **Le premier *development build* iOS** | — | ❌ **l'événement** — `eas device:create`, `eas build -p ios --profile development` ; la clé APNs est auto-gérée par EAS. C'est lui qui prouve les critères appareil |
+| **Compte Expo/EAS + `eas init`** | `app.json`, `extra.eas.projectId` | ✅ **fait le 11 sept.** (`@mhdsahli/rack`) |
+| **Le premier *development build* iOS** | l'iPhone de la commanditaire | ✅ **fait le 11 sept.** — device-registration prouvée (ligne `ios` en base) ; clé APNs auto-gérée par EAS |
+| **L'émetteur déployé et servi** — pour que la notification **parte** | *rien en local* : `supabase start` ne sert aucune fonction | ❌ **→ `P1-017`, lot hébergé + émetteur** (`functions deploy` + `pg_net` + `push_emitter_url`). C'est lui qui rend la passe § 5 nonies jouable, sur la chaîne réelle |
 | Projet Firebase + `google-services.json` + appareil Android | — | ❌ **prérequis de `P1-016`**, pas ici |
 
 ## Les lots (livrés sur `feat/P1-007-push`)
@@ -105,18 +106,21 @@ délibéré : son aval est `promote_waitlist`).
       journal append-only tenant-scopé, `register_device` (téléphone partagé),
       `revoke_device`, `users.timezone` non écrivable hors grant — **pgTAP** ;
       rendu i18n + mapping de la réponse Expo — **`deno test`**
-- [ ] **iOS < 30 s** — **passe iPhone, après ton dev build**
+- [ ] **iOS < 30 s** — **passe § 5 nonies sur l'hébergé** (après le lot émetteur de
+      `P1-017`), pas un montage local. Dev build fait le 11 sept.
 - [ ] **toucher la notif ouvre l'écran via `rack://`** (ferme `D-013` + `P1-003b`)
-      — **passe iPhone**
+      — **même passe hébergée**
 - Android < 30 s → **prérequis de `P1-016`**, pas coché ici
 
-## Ce dont j'ai besoin de toi (une seule fois)
+## Ce dont j'ai besoin de toi
 
-1. **Compte Expo/EAS** + `eas init` dans `apps/mobile` (écrit `extra.eas.projectId`
-   dans `app.json`, ou donne-moi le projectId).
-2. **Le *development build* iOS** : `eas device:create` (enregistre ton iPhone),
-   `eas build -p ios --profile development`, installer. C'est ce build qui prouve
-   les critères appareil.
+- **Fait** : compte Expo/EAS + `projectId` (11 sept.) ; dev build iOS installé,
+  device-registration prouvée (11 sept.).
+- **Maintenant** : un **compte Supabase (région UE) et un compte Vercel**, pour
+  ouvrir `P1-017`. Son lot hébergé + émetteur déploie l'émetteur et rend la passe
+  § 5 nonies jouable — **sans attendre le domaine** (seul le SMTP l'attend). Puis
+  le décor hébergé : pointer l'app sur l'hébergé, un décor, et le consentement
+  PUSH **côté hébergé** — les cinq prérequis sont dans § 5 nonies de la passe.
 
 Rien de secret pour l'émetteur : l'API Expo Push est sans clé, la `service_role`
 est injectée dans l'edge runtime.
