@@ -645,14 +645,14 @@ repère de `P1-015`.
 >    push depuis le SDK 53). La **moitié « téléphone » tient** : l'app
 >    s'enregistre, une ligne `ios` est en base (`devices`).
 > 2. **`projectId` EAS** dans `app.json` (`extra.eas.projectId`) — ✅ en place.
-> 3. **L'émetteur servi** — ✗ **le blocage réel aujourd'hui.** `supabase start`
->    ne sert **aucune** fonction : sans `functions serve` **et** le réglage
->    `app.settings.push_emitter_url`, la ligne s'enfile, reste `pending`, et le
->    téléphone ne sonne jamais. `useDeviceSync` comme `kick_push_emitter`
->    s'abstiennent **sans erreur** : rien ne signale le manque. La marche à suivre
->    — acrobatique, quatre pièges dont un réglage superutilisateur et l'URL du
->    réseau Docker — est dans `environnement-local.md`, § « Servir l'émetteur push
->    en local ».
+> 3. **L'émetteur servi** — ✅ **fait sur l'hébergé le 11 septembre** (`P1-017`).
+>    Déployé, `verify_jwt = false` honoré (`curl` sans apikey → `200`), l'URL posée
+>    dans `app_runtime_config`, et la chaîne prouvée de bout en bout : balayage →
+>    fonction → **exp.host réel** → `mark`, en **441 ms**, huit `200` dans
+>    `net._http_response`. Ce qui manque pour un **`sent`** n'est plus l'émetteur —
+>    c'est un **vrai appareil** enregistré (prérequis B), le seul jeton que
+>    exp.host accepte. *(Montage local équivalent, désormais par un `insert` dans
+>    `app_runtime_config` et non un GUC superutilisateur : `environnement-local.md`.)*
 >
 > **Arbitrage tranché : la passe se joue sur le projet hébergé (`P1-017`), pas sur
 > le montage local.** L'échafaudage local prouverait la même chose sur une base
@@ -662,16 +662,18 @@ repère de `P1-015`.
 **Deux familles de prérequis pour la passe hébergée — les deux doivent être
 vraies, et l'app doit pointer la BONNE base.**
 
-**A. `P1-017` a livré son lot hébergé + émetteur — et l'émetteur est JOIGNABLE.**
-Projet hébergé, migrations appliquées, `pg_cron` **et** `pg_net` activés au
-tableau de bord, `rack-push-emitter` **déployé**, `app.settings.push_emitter_url`
-sur l'URL hébergée complète. Et le piège **sans `failed`** : le coup de sonnette
-comme le balayage font un `net.http_post` **sans `apikey` ni `Bearer`**, et il
-n'y a **aucun repli SQL**. Si `verify_jwt = false` n'est pas honoré au
-déploiement, Kong renvoie 401, `kick_push_emitter` **avale l'exception**, et la
-ligne reste `pending` **pour toujours** — indistinguable de « émetteur absent ».
-**Vérifier** (critère de `P1-017`) : `curl -i <url>` **sans `apikey` rend 200**,
-et un enfilage de test passe `pending` → `sent`.
+**A. `P1-017` a livré son lot hébergé + émetteur — ✅ fait et vérifié le 11
+septembre.** Projet hébergé (PostgreSQL 17.6), migrations appliquées, `pg_cron`
+et `pg_net` activés (par `create extension`, pas de tableau de bord),
+`rack-push-emitter` **déployé**, et l'URL posée dans la **table
+`app_runtime_config`** (pas un GUC : l'hébergé le refuse à `postgres`). Le piège
+**sans `failed`** est **écarté par la vérification**, pas supposé : `curl -i <url>`
+**sans `apikey` rend `200`** (donc `verify_jwt = false` honoré ; sinon 401,
+`kick_push_emitter` avale l'exception, `pending` pour toujours), le balayage
+frappe la fonction (huit `200` dans `net._http_response`), et un enfilage réel est
+claimé, envoyé à **exp.host** et marqué en **441 ms**. **Aucun repli SQL** — ce
+chemin est l'unique drain, et il vit. Reste que le **`sent` terminal** exige B :
+exp.host renvoie `DeviceNotRegistered` à tout jeton synthétique.
 
 **B. Le décor est monté SUR L'HÉBERGÉ, et l'app y pointe.** L'émetteur lit les
 jetons de la base **hébergée** ; l'app pointe par défaut sur la base **locale**
@@ -701,6 +703,14 @@ passe — personne à qui envoyer, ligne `pending`, « cassé » une fois de plu
    l'exige : jeton enregistré **sans** consentement, et `enqueue_push` écarte
    (`NO_PUSH_CONSENT`), aucune ligne — la même confusion que « vide ». Accepter
    aussi l'invite système de notifications.
+6. **Vérifier la révocation, ici et pas ailleurs.** Un jeton devenu invalide doit
+   être **supprimé** de `devices` au premier échec (`revoke_device`) — critère de
+   `P1-007`. Un enfilage hébergé du 11 sept. avec **jeton synthétique** a rendu
+   `revoked:0` là où `interpretExpoResponse` devrait révoquer sur
+   `DeviceNotRegistered` : soit un repli « no ticket » transitoire d'Expo, soit un
+   vrai trou. **C'est la seule passe où un vrai jeton existe** — désinstaller
+   l'app (ou révoquer côté OS) puis relancer un envoi, et confirmer que la ligne
+   `devices` disparaît.
 
 **Le compte de prérequis a encore monté — et c'est la règle qui parle.** On
 annonçait « cinq » ; une revue adversariale en a trouvé **trois de plus**
@@ -718,8 +728,8 @@ inscrit à un cours, annulé depuis le back-office web par un admin.
 Ce qu'on lit alors dans `push_outbox` : **une ligne `CLASS_CANCELLATION` par
 membre consentant, au statut `pending`** — et elle **y reste**. Ce n'est pas une
 file bloquée. **En local, aucun émetteur n'est servi** : `kick_push_emitter` est
-best-effort et sans effet tant qu'`app.settings.push_emitter_url` n'est pas
-configurée, et le balayage `pg_cron` réveille cette même fonction — donc dans le
+best-effort et sans effet tant que `app_runtime_config` (clé `push_emitter_url`)
+n'est pas renseignée, et le balayage `pg_cron` réveille cette même fonction — donc dans le
 vide. Sans émetteur pour appeler `claim_push_outbox`, rien n'est réclamé, rien
 n'est envoyé, **donc jamais de `failed` non plus, seulement `pending`.** Confirmé
 le 11 septembre 2026 — écrit ici pour que la prochaine passe ne prenne pas cet

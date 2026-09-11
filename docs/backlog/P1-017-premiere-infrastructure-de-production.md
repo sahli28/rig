@@ -56,11 +56,13 @@ d'accompagnement.
 - **Le projet Supabase hébergé** : région UE, migrations appliquées depuis le
   dépôt, `pg_cron` vérifié, **major 17 lu dans le projet et non supposé**.
 - **L'émetteur push, déployé et servi** sur le projet hébergé :
-  `supabase functions deploy rack-push-emitter`, **`pg_net` activé** (comme
-  `pg_cron`, dans le tableau de bord), et **`app.settings.push_emitter_url` posé**
-  sur l'URL de la fonction hébergée. C'est ce qui **sert l'émetteur pour de vrai**,
-  et rend la passe § 5 nonies de `P1-007` jouable — donc ferme ses deux `[ ]`
-  d'appareil, sur la chaîne réelle et non un montage local.
+  `supabase functions deploy rack-push-emitter`, **`pg_net` et `pg_cron` activés**
+  (par `create extension` dans les migrations — pas de réglage de tableau de
+  bord, vérifié), et **l'URL posée dans la table `app_runtime_config`** — **pas un
+  GUC** : l'hébergé refuse `ALTER DATABASE|ROLE SET` à `postgres`, voir la Note de
+  réalisation et la migration `20260911100800`. C'est ce qui **sert l'émetteur
+  pour de vrai**, et rend la passe § 5 nonies de `P1-007` jouable — donc ferme ses
+  deux `[ ]` d'appareil, sur la chaîne réelle et non un montage local.
 - **Le déploiement de `apps/web`** sur Vercel, variables posées, une adresse qui
   répond.
 - **Le SMTP tiers**, ou l'arbitrage écrit qui explique pourquoi il attend — mais
@@ -138,10 +140,15 @@ consommé du lot migre vers `P1-016`, comme l'Estimation l'annonce.
       `verify_jwt = false` est honoré au déploiement. Sinon Kong exige un JWT, le
       `net.http_post` sans en-tête prend 401, `kick_push_emitter` **avale
       l'exception**, et la ligne reste `pending` **pour toujours** (jamais
-      `failed`) — le piège « conclu cassé ». `app.settings.push_emitter_url`
-      pointe l'URL complète `…/functions/v1/rack-push-emitter`, et **un enfilage
-      de test passe `pending` → `sent` par le vrai coup de sonnette** : c'est
-      l'unique chemin de drain, **il n'y a pas de repli SQL**
+      `failed`) — le piège « conclu cassé ». La table `app_runtime_config`
+      (clé `push_emitter_url`) pointe l'URL complète
+      `…/functions/v1/rack-push-emitter`, et le drain fonctionne de bout en bout —
+      c'est l'unique chemin, **il n'y a pas de repli SQL**. **Vérifié le 11 sept.
+      2026** : `curl` sans apikey → `200` ✅ ; le balayage `pg_cron` frappe la
+      fonction (huit `200` dans `net._http_response`) ✅ ; un enfilage réel est
+      **claimé, envoyé à exp.host et marqué en 441 ms** ✅. Le **`sent` terminal**
+      lui-même reste `[ ]` : exp.host renvoie `DeviceNotRegistered` pour tout
+      jeton synthétique — seul un **vrai appareil** (§ 5 nonies) le produit
 - [ ] Le back-office répond sur son adresse publique, la connexion par lien
       fonctionne **avec un vrai e-mail reçu** — pas Mailpit
 - [x] Le SMTP tiers est en place, ou l'arbitrage écrit dit pourquoi pas encore
@@ -166,6 +173,47 @@ c'est le lot qui prouve la chaîne de notification hors de la semaine de la box,
 exactement la raison pour laquelle ces lots sont sortis de `P1-016`. **① : 113,75
 → 114.** Le SMTP tiers est compté dans le premier lot ; s'il attend le domaine, le
 lot se ferme avec l'arbitrage écrit et le temps non consommé reste dans `P1-016`.
+
+## Note de réalisation — 11 septembre 2026
+
+Le projet hébergé existe (`llakbulflemibnfagnyh`, `eu-west-3`). Ce qui est
+**fait et vérifié en base, pas déduit** :
+
+- `select version()` → **PostgreSQL 17.6** ; 39 migrations appliquées ; 26 tables.
+- `pg_cron 1.6.4`, `pg_net 0.20.4`, `supabase_vault 0.3.1` **activés par
+  `create extension` dans les migrations** — aucun réglage de tableau de bord.
+  Le prérequis « pg_cron à activer au tableau de bord » était une prudence
+  inutile.
+- Les quatre jobs `cron.job` sont présents et actifs ; le balayage
+  **`'30 seconds'` a été accepté** (pg_cron ≥ 1.5, confirmé).
+- Émetteur déployé ; **`curl -i` sans apikey → `200`** : `verify_jwt = false`
+  honoré au premier déploiement, sans `--no-verify-jwt`. *(Piège de redéploiement
+  à retenir, documenté dans `docs/procedures/` : un bug connu du CLI peut ne pas
+  ré-appliquer `verify_jwt = false` sur une mise à jour ; re-vérifier le bouton,
+  ou passer `--no-verify-jwt`, à chaque redéploiement de l'émetteur.)*
+- **Le GUC est mort sur l'hébergé, et c'est la trouvaille de ce lot.** `postgres`
+  n'y est pas superutilisateur et `supautils` lui refuse tout `ALTER
+  DATABASE|ROLE SET` de paramètre personnalisé (préfixe réservé `app.settings.*`
+  **comme** libre `rack.*`). Le réglage `push_emitter_url` passe donc par une
+  **table de configuration** (`app_runtime_config`, migration `20260911100800`,
+  `rls-auditor` : SAFE) — arbitré contre Vault (l'URL n'est pas un secret ;
+  ADR 0001 réversibilité ; parité local/hébergé). Détail dans la migration.
+- **Chaîne prouvée de bout en bout** : URL en table → `net.http_post` → fonction
+  déployée → `claim` → **exp.host réel** → `mark`, en **441 ms** ; huit `200`
+  dans `net._http_response` du balayage.
+
+Ce qui **reste `[ ]`** (et pourquoi) :
+
+- **`pnpm test:db` contre l'hébergé** — pas encore lancé (le vert local a été
+  obtenu par `test:db:fresh`).
+- **Le `sent` terminal** — exp.host rend `DeviceNotRegistered` pour tout jeton
+  synthétique ; seul un **vrai appareil** le produit, à la passe § 5 nonies.
+- **À vérifier en § 5 nonies** : un `DeviceNotRegistered` réel doit **révoquer**
+  le jeton (`revoke_device`) ; un enfilage de test avec jeton synthétique a rendu
+  `revoked:0` là où `interpretExpoResponse` devrait révoquer — soit un artefact
+  transitoire d'Expo (repli « no ticket »), soit un vrai trou à confirmer avec un
+  jeton réel.
+- **Le déploiement web** (Vercel) et **`docs/procedures/`** — le lot en cours.
 
 ## Notes
 
