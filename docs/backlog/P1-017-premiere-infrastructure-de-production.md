@@ -149,8 +149,10 @@ consommé du lot migre vers `P1-016`, comme l'Estimation l'annonce.
       **claimé, envoyé à exp.host et marqué en 441 ms** ✅. Le **`sent` terminal**
       lui-même reste `[ ]` : exp.host renvoie `DeviceNotRegistered` pour tout
       jeton synthétique — seul un **vrai appareil** (§ 5 nonies) le produit
-- [ ] Le back-office répond sur son adresse publique, la connexion par lien
-      fonctionne **avec un vrai e-mail reçu** — pas Mailpit
+- [~] Le back-office répond sur son adresse publique — ✅ `rack-web-rack8.vercel.app`
+      en `200`, la page rend (protection de déploiement Vercel désactivée). La
+      connexion par lien **avec un vrai e-mail reçu** (pas Mailpit) reste `[ ]` :
+      elle attend le SMTP tiers, donc le domaine (voir « Le SMTP tiers »)
 - [x] Le SMTP tiers est en place, ou l'arbitrage écrit dit pourquoi pas encore
       et jusqu'à quand — **arbitrage écrit**, voir « Le SMTP tiers : pourquoi il
       attend, et jusqu'à quand » ci-dessus ; le SMTP tiers lui-même reste `[ ]`,
@@ -213,7 +215,18 @@ Ce qui **reste `[ ]`** (et pourquoi) :
   `revoked:0` là où `interpretExpoResponse` devrait révoquer — soit un artefact
   transitoire d'Expo (repli « no ticket »), soit un vrai trou à confirmer avec un
   jeton réel.
-- **Le déploiement web** (Vercel) et **`docs/procedures/`** — le lot en cours.
+- **Le déploiement web** — ✅ **fait** : `rack8/rack-web` (Next.js), déployé
+  **depuis la racine** du dépôt (rootDirectory `apps/web` posé par l'API — le
+  `link` non interactif le laisse `null`), protection de déploiement Vercel
+  **désactivée** (sinon SSO d'équipe = back-office injoignable pour la box ; il a
+  sa propre auth), adresses publiques `rack-web-rack8.vercel.app` /
+  `rack-web-eight.vercel.app` en **`200`**, la page rend (i18n FR/EN).
+  `docs/procedures/deploiement-heberge.md` renseigné (build hébergé, prebuilt
+  inutilisable sous Windows — `EPERM` symlink, pose de la valeur des deux côtés,
+  décommissionnement du montage temporaire).
+- **Défaut relevé, hors périmètre infra** : erreur React #418 (décalage
+  d'hydratation) sur l'accueil web — la page se rétablit côté client ; à traiter
+  séparément (accueil `apps/web`, probablement langue/thème SSR ≠ client).
 
 ## Notes
 
