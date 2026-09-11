@@ -201,12 +201,23 @@ FR/EN). *Défaut relevé, hors périmètre infra : une erreur React #418 (décal
 d'hydratation) sur l'accueil — la page se rétablit côté client ; à traiter
 séparément (accueil `apps/web`, probablement langue/thème SSR ≠ client).*
 
+**Région des fonctions — à forcer en UE (RGPD).** Par défaut Vercel exécute les
+fonctions en `iad1` (US) ; les données membres qui transitent par le SSR doivent
+rester en UE (`.claude/rules/privacy.md`, registre `docs/rgpd/sous-traitants.md`).
+Vercel est un sous-traitant **US** (plan de contrôle et comptes aux US, transfert
+sous Data Privacy Framework), mais l'exécution est **forçable** en région UE.
+
+- [ ] Forcer la région des fonctions en **UE** (`cdg1` Paris ou `fra1` Francfort) —
+      `functions.<glob>.region` dans `vercel.json`, ou *Project Settings → Functions →
+      Region* — et le consigner dans le registre des sous-traitants.
+
 ## Le SMTP tiers
 
-**En attente du domaine** (SPF/DKIM/DMARC). Arbitrage écrit dans `P1-017`, §
-« Le SMTP tiers : pourquoi il attend, et jusqu'à quand » — il ne bloque ni le
-push ni l'accès back-office (lien de connexion). Requis avant les 80 invitations
-de `P1-016`.
+**Brevo, sur `rack-app.fr`.** Requis avant les 80 invitations de `P1-016` ; ne
+bloque ni le push ni l'accès back-office (lien de connexion). Le câblage complet —
+compte Brevo, clé SMTP, enregistrements DNS OVH (SPF/DKIM/DMARC), champs SMTP du
+dashboard Supabase, durcissement DMARC — vit dans son propre runbook :
+**`email-et-domaine.md`**.
 
 ## Ce qui vit hors du dépôt
 

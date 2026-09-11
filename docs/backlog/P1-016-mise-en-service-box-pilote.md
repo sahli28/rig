@@ -142,6 +142,20 @@ inchangé à 109. **4 jours d'accompagnement**, qui ne sont pas des jours-homme 
 développement et n'y entrent pas : les mélanger rendrait les deux chiffres
 inutilisables.
 
+> ### Où vit le volet domaine/SMTP (câblage) — règle 8
+>
+> Le câblage e-mail — parité `supabase/config.toml`, runbook
+> `docs/procedures/email-et-domaine.md`, registre `docs/rgpd/sous-traitants.md` — est
+> **dedans, pas en plus** : il occupe **~0,25 j·h du lot « build iOS, TestFlight, et les
+> 80 invitations » (1,25)**, sa moitié « invitations », et il est **avancé** maintenant
+> parce que le domaine est sur le chemin critique. `P1-017` l'avait déjà prévu (« le temps
+> non consommé du SMTP tiers reste dans `P1-016` »). **Total ① inchangé.**
+>
+> **Le reste de cette moitié « invitations » est l'émetteur maison** qui poste les 80
+> liens `D-005` via l'**API Brevo** (canal tranché dans le runbook — il faut une **clé API**
+> en plus de la clé SMTP). Il n'est **pas** encore écrit ; s'il déborde le budget restant
+> du lot, c'est une **ré-estimation à son ouverture**, pas une absorption silencieuse.
+
 > ### La partie technique est du développement, et c'est tranché : elle vit ici
 >
 > Les quatre lots techniques ci-dessus — les deux qui restent ici et les deux

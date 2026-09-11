@@ -215,6 +215,10 @@ password_requirements = ""
 
 [auth.rate_limit]
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
+# **Ce plafond gouverne le LOCAL uniquement.** Sur l'hébergé, activer un SMTP tiers
+# relève d'office le plafond de 2 à 30/h ; pour absorber les 80 invitations du pilote
+# (P1-016), il faut le **monter dans le dashboard** (Authentication → Rate Limits,
+# ~100/h) — pas ici. Détail : `docs/procedures/email-et-domaine.md`.
 email_sent = 2
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
 sms_sent = 30
@@ -252,15 +256,28 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
+# SMTP tiers — Brevo (P1-016). Le SMTP intégré d'un projet Supabase hébergé ne
+# tient que quelques envois/heure ; les 80 invitations du pilote exigent un relais
+# tiers. Choix arbitré : **Brevo** (français, hébergé UE — argument RGPD face aux
+# boxes). Runbook complet (compte, clé SMTP, DNS OVH, champs dashboard, durcissement
+# DMARC) : `docs/procedures/email-et-domaine.md`.
+#
+# **Ce bloc reste commenté volontairement.** En local, l'e-mail va dans Mailpit
+# (`[local_smtp]` ci-dessus, port 55324) : on ne brûle pas le quota Brevo depuis une
+# machine de dev, et « en local, Mailpit reçoit tout » (P1-016). Il est versionné ici
+# pour la **parité** — la forme exacte du SMTP hébergé, en une seule source de vérité,
+# secrets en `env()` jamais en clair. Pour exercer un envoi réel en local : poser
+# `BREVO_SMTP_USER` / `BREVO_SMTP_KEY` dans un `.env` git-ignoré, puis décommenter.
+# Le câblage **hébergé** ne passe pas par ce fichier mais par le dashboard
+# (Authentication → Emails → SMTP Settings) — voir le runbook.
 # [auth.email.smtp]
 # enabled = true
-# host = "smtp.sendgrid.net"
+# host = "smtp-relay.brevo.com"
 # port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# user = "env(BREVO_SMTP_USER)"   # « login SMTP » Brevo (dashboard → SMTP & API → SMTP)
+# pass = "env(BREVO_SMTP_KEY)"     # clé SMTP Brevo — jamais la clé API, jamais le mot de passe du compte
+# admin_email = "bonjour@rack-app.fr"
+# sender_name = "Rack"
 
 # Gabarits maison : le mobile se connecte au **code à six chiffres**, que les
 # gabarits par défaut de Supabase ne portent pas (ils n'ont que le lien).

@@ -125,6 +125,14 @@ suspendu au domaine, et `P1-016` le porte déjà dans ses prérequis. Côté SMT
 ticket se ferme sur **cet arbitrage** (son critère le prévoit), et le temps non
 consommé du lot migre vers `P1-016`, comme l'Estimation l'annonce.
 
+> **Mise à jour — 11 septembre 2026.** La prémisse « sans domaine, pas d'objet » est
+> **caduque** : `rack-app.fr` est acheté et actif sur OVH. Le SMTP tiers **n'attend
+> plus l'acquisition du domaine** — il attend la pose des enregistrements DNS
+> (SPF/DKIM/DMARC), le câblage du dashboard Supabase et la preuve d'un e-mail signé
+> reçu, désormais écrits pas-à-pas dans `docs/procedures/email-et-domaine.md` (volet de
+> `P1-016`). L'arbitrage de ce ticket reste vrai — le lot n'était pas joué **ici** — mais
+> son objet existe maintenant, et le travail a bien migré dans `P1-016`.
+
 ## Critères d'acceptation
 
 - [x] `select version()` sur le projet hébergé commence par `PostgreSQL 17` —
@@ -155,11 +163,15 @@ consommé du lot migre vers `P1-016`, comme l'Estimation l'annonce.
 - [~] Le back-office répond sur son adresse publique — ✅ `rack-web-rack8.vercel.app`
       en `200`, la page rend (protection de déploiement Vercel désactivée). La
       connexion par lien **avec un vrai e-mail reçu** (pas Mailpit) reste `[ ]` :
-      elle attend le SMTP tiers, donc le domaine (voir « Le SMTP tiers »)
+      le domaine existe désormais et le SMTP est câblé côté dépôt
+      (`docs/procedures/email-et-domaine.md`, volet `P1-016`) ; ce `[ ]` **bascule
+      quand la preuve tombe** — un magic link signé reçu, `SPF/DKIM/DMARC = pass`
 - [x] Le SMTP tiers est en place, ou l'arbitrage écrit dit pourquoi pas encore
       et jusqu'à quand — **arbitrage écrit**, voir « Le SMTP tiers : pourquoi il
       attend, et jusqu'à quand » ci-dessus ; le SMTP tiers lui-même reste `[ ]`,
-      derrière le domaine
+      **non plus derrière le domaine** (acheté, actif sur OVH) mais derrière la pose
+      des DNS + le câblage du dashboard + la preuve — tout écrit dans le runbook du
+      volet `P1-016`
 - [ ] `docs/procedures/` porte la liste de ce qui vit hors du dépôt
 - [ ] Aucun secret dans un commit — vérifié par `git log -p` sur la branche,
       pas supposé
