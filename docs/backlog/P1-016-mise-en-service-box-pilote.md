@@ -95,6 +95,34 @@ une phrase), et **`current_policy_version()` retourne la date du texte publié
 avant que le premier membre réel ne coche**. Le reste de §18.4 — CGU, CGV,
 juriste, AIPD — reste au MVP.
 
+### Les formules gratuites ne tiennent pas le pilote
+
+**`P1-017` crée le projet hébergé et le déploiement web sur les formules
+gratuites — c'est le bon choix pour *prouver* la chaîne des semaines à l'avance.
+Ce n'est pas le bon choix pour *servir* 80 personnes réelles**, et la bascule a
+une échéance : **avant la mise en service**, pas le lundi matin.
+
+Deux raisons, chacune dirimante :
+
+- **Un projet Supabase _Free_ est mis en pause après une semaine d'inactivité.**
+  Une base en pause, c'est une box à l'arrêt : personne ne réserve, personne ne
+  se connecte, jusqu'à ce que quelqu'un rouvre le projet à la main. Les formules
+  payantes ne sont jamais mises en pause.
+  ([Supabase — Free project pausing](https://supabase.com/docs/guides/platform/free-project-pausing))
+- **Le plan _Hobby_ de Vercel est réservé à l'usage non commercial.** Un SaaS de
+  réservation qu'une box paie — même hors app au pilote — est un usage
+  commercial au sens des conditions de Vercel. Rester en Hobby serait une
+  violation des CGU, pas une économie.
+  ([Vercel — plan Hobby](https://vercel.com/docs/plans/hobby))
+
+**Le coût, pour qu'il ne soit pas une surprise le jour J :** Supabase Pro
+(~25 $/mois) + Vercel Pro (~20 $/mois) ≈ **45 $/mois**, hors dépassements
+d'usage. C'est une charge récurrente, pas un jour-homme : elle **n'entre pas dans
+le total ①**, et c'est justement pour ça qu'elle est écrite ici — un coût qui ne
+figure dans aucun chiffre finit par se découvrir au pire moment. `P1-017` peut
+rester en gratuit tant qu'il ne fait que prouver la chaîne ; la bascule Pro est
+un prérequis **de ce ticket-ci**.
+
 ## Ce que ce ticket demande de vous
 
 | Lot | Nature | Coût |
@@ -184,6 +212,10 @@ bloquer une date :**
       adresse qu'elle peut mettre en favori
 - [ ] `P1-017` est fait **avant**, pas la même semaine que la box : projet
       hébergé, back-office déployé, e-mails qui partent pour de vrai
+- [ ] **Avant la mise en service** : le projet Supabase est passé en **Pro** et
+      Vercel en **Pro** — une base _Free_ se met en pause au bout d'une semaine
+      (box à l'arrêt) et _Hobby_ interdit l'usage commercial. ~45 $/mois, une
+      charge récurrente qui n'entre pas dans ①
 - [ ] Les trois pièces RGPD existent **avant le premier import**
 - [ ] **Avant le premier import aussi** : `current_policy_version()` retourne la
       date du texte publié, et `consents.tsx` mène à ce texte par un lien. **Le

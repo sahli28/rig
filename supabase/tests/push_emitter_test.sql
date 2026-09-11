@@ -8,7 +8,7 @@
 -- en `deno test` (le vrai moteur de l'émetteur).
 
 begin;
-select plan(40);
+select plan(47);
 
 -- ---------------------------------------------------------------------------
 -- Existence et forme
@@ -256,6 +256,40 @@ select is(
   (select count(*)::int from public.push_outbox
    where category = 'CLASS_CANCELLATION' and membership_id = :lea_ms),
   1, 'et un CLASS_CANCELLATION est enfilé pour le membre inscrit'
+);
+
+-- ---------------------------------------------------------------------------
+-- app_runtime_config — d'où kick_push_emitter tire l'URL (table, plus GUC)
+-- ---------------------------------------------------------------------------
+-- Table d'infrastructure au niveau du déploiement : RLS forcée, aucune policy,
+-- aucun droit client. Seule kick_push_emitter (security definer, propriétaire
+-- bypassrls) la lit. Le GUC est mort (l'hébergé le refuse à postgres) — le
+-- transport passe par cette table, identique en local et sur l'hébergé.
+select has_table('public', 'app_runtime_config', 'la config runtime de déploiement existe');
+select is(
+  (select relrowsecurity and relforcerowsecurity
+     from pg_class where oid = 'public.app_runtime_config'::regclass),
+  true, 'app_runtime_config : RLS activée ET forcée'
+);
+select is(
+  has_table_privilege('authenticated', 'public.app_runtime_config', 'SELECT'),
+  false, 'un membre ne lit pas la config de déploiement'
+);
+select is(
+  has_table_privilege('authenticated', 'public.app_runtime_config', 'INSERT'),
+  false, 'un membre n''écrit pas la config de déploiement'
+);
+select has_function('public', 'kick_push_emitter', 'kick_push_emitter existe');
+select is(
+  (select prosecdef from pg_proc where oid = 'public.kick_push_emitter()'::regprocedure),
+  true, 'kick_push_emitter est security definer (lit la table malgré la FORCE)'
+);
+-- Valeur absente = no-op silencieux, jamais d'erreur : le contrat qui protège
+-- le producteur appelant. La table est vide par défaut (le seed n'y touche pas).
+delete from public.app_runtime_config;
+select lives_ok(
+  'select public.kick_push_emitter()',
+  'kick_push_emitter : no-op silencieux quand push_emitter_url est absent'
 );
 
 select * from finish();

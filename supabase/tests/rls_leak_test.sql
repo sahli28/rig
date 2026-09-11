@@ -17,13 +17,15 @@ insert into tenant_id_exempt values
   ('tenants',                  'elle EST le tenant : le filtre porte sur id'),
   ('users',                    'la personne est globale, une identité pour N boxes'),
   ('devices',                  'un appareil appartient à la personne, pas à la box'),
-  ('processed_webhook_events', 'déduplication Stripe globale, table d''infrastructure');
+  ('processed_webhook_events', 'déduplication Stripe globale, table d''infrastructure'),
+  ('app_runtime_config',       'config au niveau du déploiement (URL de l''émetteur), table d''infrastructure sans box');
 
 -- Tables sans policy, et pourquoi.
 create temporary table policy_exempt (table_name text primary key, reason text);
 insert into policy_exempt values
   ('processed_webhook_events', 'RLS forcée sans policy = invisible à authenticated, voulu'),
-  ('push_outbox',              'file d''envoi interne : RLS forcée sans policy, écrite/lue en service_role, jamais par un client (P1-007)');
+  ('push_outbox',              'file d''envoi interne : RLS forcée sans policy, écrite/lue en service_role, jamais par un client (P1-007)'),
+  ('app_runtime_config',       'config de déploiement : RLS forcée sans policy, lue seulement par kick_push_emitter (security definer, bypassrls)');
 
 create temporary table business_tables as
 select c.relname::text as table_name

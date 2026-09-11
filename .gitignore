@@ -27,3 +27,8 @@ AGENTS.md
 
 # Permissions locales de Claude Code : propres à la machine, jamais partagées.
 .claude/settings.local.json
+
+# Vercel
+.vercel
+supabase/snippets/
+apps/web/.gitignore

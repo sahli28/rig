@@ -223,7 +223,7 @@ La parade, posée le jour même, et la règle qui en sort :
 - **toute dépendance native ajoutée doit être vérifiée par un build EAS**, pas par
   le harnais. Le vert local ne dit rien de la compilation native.
 
-## Servir l'émetteur push en local — quatre pièges, et un arbitrage
+## Servir l'émetteur push en local — trois pièges, et le réglage par table
 
 `supabase start` ne sert **aucune** edge function. Vérifié le 11 septembre 2026 :
 les conteneurs levés sont `db`, `kong`, `auth`, `rest`, `realtime`, `storage`,
@@ -233,8 +233,10 @@ existe dans `supabase/functions/`, mais **rien ne le sert** : une notification
 s'enfile, reste `pending`, et le téléphone ne sonne jamais. `kick_push_emitter`
 et le balayage `pg_cron` réveillent un émetteur absent, dans le vide.
 
-Le servir en local demande quatre gestes, et **chacun est un piège** (tous
-vérifiés en base, pas supposés) :
+Le servir en local demande quatre gestes (tous vérifiés en base, pas supposés).
+**Trois restent des pièges** ; poser l'URL **n'en est plus un** depuis qu'elle
+vient d'une table et non d'un GUC (`20260911100800`) — un simple `insert`, le
+**même** qu'en hébergé :
 
 1. **Un serveur de fonctions qui tourne en continu**, dans un terminal à part —
    il lève le conteneur `supabase_edge_runtime_imys` que Kong attend :
@@ -255,19 +257,22 @@ vérifiés en base, pas supposés) :
    http://kong:8000/functions/v1/rack-push-emitter
    ```
 
-3. **Poser le réglage — et seul le superutilisateur le peut.** Le rôle `postgres`
-   n'est **pas** superutilisateur en local (`is_superuser = off`) : un
-   `alter database … set app.settings.push_emitter_url` s'y solde par
-   « permission denied to set parameter ». Il faut `supabase_admin` :
+3. **Poser l'URL — un `insert`, plus un GUC ni un superutilisateur.** Depuis
+   `20260911100800`, `kick_push_emitter` lit l'URL dans la table
+   `app_runtime_config`, pas dans un GUC. Fini l'`alter database` réservé à
+   `supabase_admin` (l'hébergé le refuse de toute façon à `postgres` — c'est
+   **pourquoi** la table existe) : un `insert`, sous `postgres`, qui a
+   `bypassrls` et écrit donc malgré la RLS forcée :
 
    ```bash
-   docker exec supabase_db_imys psql -U supabase_admin -d postgres -c \
-     "alter database postgres set app.settings.push_emitter_url = 'http://kong:8000/functions/v1/rack-push-emitter';"
+   docker exec supabase_db_imys psql -U postgres -d postgres -c \
+     "insert into public.app_runtime_config (key, value) values ('push_emitter_url', 'http://kong:8000/functions/v1/rack-push-emitter') on conflict (key) do update set value = excluded.value, updated_at = now();"
    ```
 
-   Un `SET` de **session** ne suffit pas : `pg_cron` et l'app ouvrent d'autres
-   connexions. `alter database` est le bon niveau (les nouvelles connexions en
-   héritent — vérifié) ; reconnecter, ou attendre le prochain passage du cron.
+   `pg_cron` et l'app ouvrent leurs propres connexions ; elles lisent la table à
+   chaque passage, rien à recharger. **C'est exactement le geste de l'hébergé** —
+   même table, même `insert`, seule l'URL change — donc l'écart local/hébergé qui
+   a coûté une soirée a disparu.
 
 4. **`pg_net` doit traverser le réseau Docker.** C'est la ride connue (`D-010`) :
    la joignabilité db→Kong pour le coup de sonnette n'est couverte par aucun test.
