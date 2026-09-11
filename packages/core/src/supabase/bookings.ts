@@ -845,7 +845,8 @@ export async function joinWaitlist(client: RackClient, input: JoinWaitlistInput)
  * **Pas de clé d'idempotence**, comme `cancelBooking()` : l'identifiant de
  * l'entrée suffit. Rejouer l'appel sur une entrée déjà `ACCEPTED` rend le **même**
  * `booking_id` sans créer de seconde réservation — la base le garantit sous son
- * verrou. Une offre expirée remonte `OFFER_EXPIRED`, traduit.
+ * verrou. Une offre expirée remonte `OFFER_EXPIRED` ; un cours annulé par la box
+ * pendant l'offre remonte `CLASS_CANCELLED` (D-027) — les deux traduits.
  *
  * Rend l'identifiant de la réservation créée (ou déjà créée).
  */

@@ -41,6 +41,7 @@ export const APP_ERROR_CODES = [
   'AUTH_REQUIRED',
   'BOOKING_WINDOW_CLOSED',
   'CLASS_ALREADY_STARTED',
+  'CLASS_CANCELLED',
   'CLASS_FULL',
   'CLASS_NOT_FULL',
   'CURRENCY_LOCKED',
@@ -166,6 +167,8 @@ export const ERROR_MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   CLASS_NOT_FULL: 'errors.class_not_full',
   ALREADY_ON_WAITLIST: 'errors.already_on_waitlist',
   OFFER_EXPIRED: 'errors.offer_expired',
+  // Confirmer une offre sur un cours que la box a annulé (D-027).
+  CLASS_CANCELLED: 'errors.class_cancelled',
 
   // Garde-fous techniques
   APPEND_ONLY: 'errors.append_only',

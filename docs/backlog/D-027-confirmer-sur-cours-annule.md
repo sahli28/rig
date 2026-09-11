@@ -55,10 +55,11 @@ l'ouverture : le bon message d'erreur suffit-il, ou faut-il **aussi** le préven
 
 - **Une branche avant la garde générique** dans `confirm_promotion` : entrée
   `CLASS_CANCELLED` → lever `CLASS_CANCELLED` (« Ce cours a été annulé. »), pas
-  `OFFER_EXPIRED`. Règle 13 : la migration s'édite **en place** tant qu'aucune
-  base de prod n'existe — `P1-017` a créé une base hébergée **sans données**,
-  vérifier la constante `UNE_BASE_DE_PRODUCTION_EXISTE` (`pnpm migrations:immuables`
-  avertit, le hook `guard-migrations.mjs` bloque l'Edit).
+  `OFFER_EXPIRED`. `20260911101100` est **fusionnée sur `main`**, donc immuable :
+  on **ajoute une migration** qui `create or replace` la fonction entière (même
+  geste que `20260911101200_waitlist_quiet_hours_exemption`), jamais d'édition en
+  place — le hook `guard-migrations.mjs` la bloquerait, et règle 13 l'impose une
+  fois la migration partie sur `main`. *(Réalisé : `20260911101400`.)*
 - **La sœur** : `leave_waitlist` traite déjà `CLASS_CANCELLED` comme terminal et
   idempotent (l. 351) — à **vérifier**, pas à supposer.
 - **Un test pgTAP** dans `waitlist_test.sql` : offre en cours → la box annule →
