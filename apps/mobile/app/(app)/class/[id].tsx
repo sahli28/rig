@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useNetworkState } from 'expo-network';
@@ -27,9 +27,12 @@ import {
   cancelConsequence,
   bookingAffordance,
   coachDisplayName,
+  confirmPromotion,
   fetchClassDetail,
   fetchClassRoster,
   fetchUpcomingBookings,
+  joinWaitlist,
+  leaveWaitlist,
   workoutTitle,
   type BookingAffordance,
   type ClassDetail,
@@ -69,6 +72,19 @@ interface VueCours {
   inscrits: RosterPeer[];
 }
 
+/**
+ * Le temps restant d'une offre, en `M:SS`. Des chiffres et un deux-points, pas
+ * de la prose : aucune chaîne visible à traduire ici (la phrase qui l'entoure,
+ * elle, passe par i18n). `Intl` n'entre pas — l'arithmétique suffit, et il est
+ * de toute façon interdit hors de sa façade.
+ */
+function formatReste(ms: number): string {
+  const secondes = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(secondes / 60);
+  const reste = secondes % 60;
+  return `${String(minutes)}:${String(reste).padStart(2, '0')}`;
+}
+
 export default function ClassDetailScreen() {
   const theme = useTheme();
   const { t, locale, formatDate, formatTime } = useI18n();
@@ -100,6 +116,13 @@ export default function ClassDetailScreen() {
     tone: 'success' | 'danger';
     announcement?: string;
   } | null>(null);
+
+  /**
+   * L'horloge du compte à rebours d'une offre de promotion. Ne tourne que
+   * pendant qu'une offre est affichée (voir l'effet plus bas) : pas de tick pour
+   * rien, et pas de `new Date()` recalculé à chaque rendu.
+   */
+  const [maintenant, setMaintenant] = useState(() => Date.now());
 
   /**
    * La clé d'idempotence de la tentative en cours. Une `ref` et non un état :
@@ -189,6 +212,7 @@ export default function ClassDetailScreen() {
       rules: tenant.booking_rules,
       now: new Date(),
       alreadyBooked: vue.cours.myBookingId !== null,
+      myWaitlist: vue.cours.myWaitlist,
       upcomingCount: vue.aVenir,
       online: enLigne,
       origin: 'network',
@@ -314,9 +338,120 @@ export default function ClassDetailScreen() {
     }
   }, [vue.cours, membership, t, formatTime, charger]);
 
+  /**
+   * Rejoindre la liste d'attente d'un cours complet. Miroir de `reserver` : une
+   * clé d'idempotence naît au tap et vit jusqu'à la réponse (règle 4), parce que
+   * rejoindre *crée* une entrée. Pas de mise à jour optimiste — la file ne prend
+   * pas de place visible ; le rechargement (et le temps réel) suffisent.
+   */
+  const rejoindre = useCallback(async () => {
+    if (vue.cours === null || membership === null) return;
+    cle.current ??= uuidV7();
+    const cours = vue.cours;
+
+    setEnvoi(true);
+    try {
+      await joinWaitlist(supabase, {
+        classId: cours.id,
+        membershipId: membership.id,
+        idempotencyKey: cle.current,
+      });
+      cle.current = null;
+      setToast({
+        message: t('booking.joined_waitlist_ok'),
+        tone: 'success',
+        announcement: t('booking.joined_waitlist_announce', {
+          class: cours.className,
+          time: formatTime(cours.starts_at),
+        }),
+      });
+      await charger();
+    } catch (error) {
+      const cléI18n = error instanceof BookingFailed ? error.messageKey : 'errors.unknown';
+      setToast({ message: t(cléI18n), tone: 'danger' });
+      await charger();
+    } finally {
+      setEnvoi(false);
+    }
+  }, [vue.cours, membership, t, formatTime, charger]);
+
+  /**
+   * Quitter la liste — en attente, ou en refusant une offre. Pas de clé
+   * d'idempotence : l'identifiant de l'entrée suffit, comme pour `annuler`. En
+   * refus d'offre, la base cascade le siège tenu vers le suivant.
+   */
+  const quitter = useCallback(async () => {
+    const cours = vue.cours;
+    if (cours === null || cours.myWaitlist === null) return;
+    const entryId = cours.myWaitlist.entryId;
+
+    setEnvoi(true);
+    try {
+      await leaveWaitlist(supabase, entryId);
+      setToast({
+        message: t('booking.left_waitlist_ok'),
+        tone: 'success',
+        announcement: t('booking.left_waitlist_announce', {
+          class: cours.className,
+          time: formatTime(cours.starts_at),
+        }),
+      });
+      await charger();
+    } catch (error) {
+      const cléI18n = error instanceof BookingFailed ? error.messageKey : 'errors.unknown';
+      setToast({ message: t(cléI18n), tone: 'danger' });
+      await charger();
+    } finally {
+      setEnvoi(false);
+    }
+  }, [vue.cours, t, formatTime, charger]);
+
+  /**
+   * Confirmer une place offerte : la promotion devient réservation. Rejeu
+   * idempotent côté base (l'id d'entrée fait foi). Une offre expirée remonte
+   * `OFFER_EXPIRED`, traduit — la base reste juge, l'écran n'anticipe pas.
+   */
+  const confirmer = useCallback(async () => {
+    const cours = vue.cours;
+    if (cours === null || cours.myWaitlist === null) return;
+    const entryId = cours.myWaitlist.entryId;
+
+    setEnvoi(true);
+    try {
+      await confirmPromotion(supabase, entryId);
+      setToast({
+        message: t('booking.confirmed'),
+        tone: 'success',
+        announcement: t('booking.confirmed_announce', {
+          class: cours.className,
+          time: formatTime(cours.starts_at),
+        }),
+      });
+      await charger();
+    } catch (error) {
+      const cléI18n = error instanceof BookingFailed ? error.messageKey : 'errors.unknown';
+      setToast({ message: t(cléI18n), tone: 'danger' });
+      await charger();
+    } finally {
+      setEnvoi(false);
+    }
+  }, [vue.cours, t, formatTime, charger]);
+
   const cours = vue.cours;
   const indice = affordance === null ? null : affordanceHint(affordance);
   const inscrits = vue.inscrits;
+
+  // Le compte à rebours d'une offre : une horloge à la seconde, branchée
+  // **seulement** quand une place est offerte. `offreExpireLe` en dépendance —
+  // l'effet ne se relance pas à chaque tick, seulement quand l'offre change.
+  const offreExpireLe = affordance?.kind === 'promotion_offered' ? affordance.expiresAt : null;
+  useEffect(() => {
+    if (offreExpireLe === null) return undefined;
+    const horloge = setInterval(() => setMaintenant(Date.now()), 1000);
+    return () => clearInterval(horloge);
+  }, [offreExpireLe]);
+  const resteOffre =
+    offreExpireLe === null ? null : Math.max(0, new Date(offreExpireLe).getTime() - maintenant);
 
   /**
    * **Se déduit, ne se demande pas.** Si on a sa place et qu'on ne figure pas
@@ -520,23 +655,93 @@ export default function ClassDetailScreen() {
                     fontFamily: theme.fontFamily,
                   }}
                 >
-                  {indice.count === undefined
-                    ? t(indice.key)
-                    : t(indice.key, { count: indice.count })}
+                  {/* `count` pilote le pluriel ; `values` porte le reste
+                      (`{position}`/`{total}` de « 2ᵉ sur 5 »). */}
+                  {t(indice.key, {
+                    ...(indice.count === undefined ? {} : { count: indice.count }),
+                    ...(indice.values ?? {}),
+                  })}
                 </Text>
               )}
 
-              {/* **Une impasse se répare par une porte de sortie, pas par une
-                  promesse.** Rien ne se libérera avant P1-004, et personne ne
-                  peut placer un membre à la main : le seul geste vrai est de
-                  regarder les autres créneaux. */}
+              {/* **Complet n'est plus une impasse** (P1-006) : on rejoint la
+                  liste. La clé d'idempotence naît au tap, comme à la réservation
+                  — un double tap sur réseau lent ne crée pas deux entrées. */}
               {affordance.kind === 'full' ? (
                 <Button
-                  label={t('booking.see_other_slots')}
-                  onPress={() => router.back()}
+                  label={t('booking.join_waitlist')}
+                  accessibilityLabel={t('booking.join_waitlist_a11y', {
+                    class: cours.className,
+                    time: formatTime(cours.starts_at),
+                  })}
+                  onPress={() => void rejoindre()}
+                  loading={envoi}
+                  disabled={envoi}
+                  fullWidth
+                />
+              ) : null}
+
+              {/* **Déjà sur la liste** : le seul geste est de la quitter. Le rang
+                  et la longueur sont dans la phrase ci-dessus. */}
+              {affordance.kind === 'on_waitlist' ? (
+                <Button
+                  label={t('booking.leave_waitlist')}
+                  accessibilityLabel={t('booking.leave_waitlist_a11y', {
+                    class: cours.className,
+                    time: formatTime(cours.starts_at),
+                  })}
+                  onPress={() => void quitter()}
+                  loading={envoi}
+                  disabled={envoi}
                   variant="secondary"
                   fullWidth
                 />
+              ) : null}
+
+              {/* **Une place est offerte** : le compte à rebours, puis confirmer
+                  (geste premier) ou refuser (secondaire, qui cascade le siège au
+                  suivant). Le rebours n'est pas annoncé à la seconde — il
+                  défilerait sans fin dans le flux d'un lecteur d'écran ; la
+                  phrase dit l'urgence, le libellé du bouton nomme l'action. */}
+              {affordance.kind === 'promotion_offered' ? (
+                <>
+                  {resteOffre === null ? null : (
+                    <Text
+                      style={{
+                        color: theme.colors.text,
+                        fontSize: theme.typography.title,
+                        fontFamily: theme.fontFamily,
+                        fontWeight: '600',
+                      }}
+                    >
+                      {t('booking.confirm_spot_remaining', {
+                        countdown: formatReste(resteOffre),
+                      })}
+                    </Text>
+                  )}
+                  <Button
+                    label={t('booking.confirm_spot')}
+                    accessibilityLabel={t('booking.confirm_spot_a11y', {
+                      class: cours.className,
+                      time: formatTime(cours.starts_at),
+                    })}
+                    onPress={() => void confirmer()}
+                    loading={envoi}
+                    disabled={envoi}
+                    fullWidth
+                  />
+                  <Button
+                    label={t('booking.leave_waitlist')}
+                    accessibilityLabel={t('booking.leave_waitlist_a11y', {
+                      class: cours.className,
+                      time: formatTime(cours.starts_at),
+                    })}
+                    onPress={() => void quitter()}
+                    disabled={envoi}
+                    variant="secondary"
+                    fullWidth
+                  />
+                </>
               ) : null}
             </View>
           )}

@@ -29,7 +29,7 @@
 import { z } from 'zod';
 import { UNKNOWN_ERROR_MESSAGE_KEY, appErrorCodeOf, errorMessageKey } from '../errors';
 import type { AppErrorCode } from '../errors';
-import type { PluralKey, TranslationKey } from '../i18n/types';
+import type { PluralKey, TranslationKey, TranslationValues } from '../i18n/types';
 import { tenantScope } from './active-tenant';
 import { fetchClassWorkout } from './workouts';
 import type { RackClient } from './client';
@@ -56,12 +56,37 @@ export interface AffordanceRules {
   max_upcoming_bookings: number;
 }
 
+/**
+ * L'entrée de liste d'attente **active** de la personne sur ce cours, ou `null`.
+ *
+ * Une seule peut être active à la fois (unique partiel `WAITING`/`OFFERED`).
+ * `position` est le **rang dérivé** rendu par `my_waitlist_rank` — pas la clé
+ * d'insertion `position` de la table, qui n'est pas un rang. `total` est
+ * `classes.waitlist_count`.
+ */
+export interface MyWaitlistEntry {
+  entryId: string;
+  status: 'WAITING' | 'OFFERED';
+  position: number;
+  total: number;
+  /** Fin de l'offre — non-null seulement quand `status === 'OFFERED'`. */
+  expiresAt: string | null;
+}
+
 export interface AffordanceInput {
   klass: AffordanceClass;
   rules: AffordanceRules;
   /** Injecté : un écran qui lit l'heure lui-même n'est pas testable aux bornes. */
   now: Date;
   alreadyBooked: boolean;
+  /**
+   * L'entrée de liste d'attente active de la personne, si elle en a une.
+   * Optionnel : c'est une lecture **en plus** (mon entrée + mon rang) que tout
+   * appelant n'a pas — absent ou `null` vaut « pas sur la liste », le défaut sûr.
+   * L'union force malgré tout `affordanceLabelKey`/`affordanceHint` à traiter les
+   * deux états, et les tests les exercent explicitement.
+   */
+  myWaitlist?: MyWaitlistEntry | null;
   /** Réservations à venir de la personne, tous cours confondus. */
   upcomingCount: number;
   online: boolean;
@@ -82,7 +107,13 @@ export type BookingAffordance =
   | { kind: 'window_closed'; minutes: number }
   | { kind: 'window_not_open'; days: number }
   | { kind: 'cap_reached'; upcoming: number }
-  | { kind: 'full' };
+  // `full` n'est plus une impasse : le cours est complet **et rejoignable**.
+  | { kind: 'full' }
+  // Sur la liste, en attente : rang dérivé et longueur, pour « 2ᵉ sur 5 ».
+  | { kind: 'on_waitlist'; position: number; total: number }
+  // Une place est offerte à la personne : elle a `entryId` pour la confirmer et
+  // `expiresAt` pour le compte à rebours.
+  | { kind: 'promotion_offered'; entryId: string; expiresAt: string | null };
 
 const MINUTE_MS = 60_000;
 const JOUR_MS = 86_400_000;
@@ -110,11 +141,28 @@ const JOUR_MS = 86_400_000;
  *   (une suspension peut tomber entre l'affichage et le tap), pas anticipé.
  */
 export function bookingAffordance(input: AffordanceInput): BookingAffordance {
-  const { klass, rules, now, alreadyBooked, upcomingCount, online, origin } = input;
+  const { klass, rules, now, alreadyBooked, myWaitlist, upcomingCount, online, origin } = input;
 
   if (!online || origin === 'cache') return { kind: 'offline' };
   if (klass.status !== 'SCHEDULED') return { kind: 'cancelled' };
   if (alreadyBooked) return { kind: 'already_booked' };
+
+  // **Ma liste d'attente passe avant les refus de fenêtre et de plafond.** Qui a
+  // déjà une entrée active n'est plus dans le flux « réserver » : lui répondre
+  // « fenêtre close » ou « plafond atteint » cacherait ce qui le concerne — sa
+  // place offerte ou son rang. L'offre en premier : elle a un compte à rebours.
+  // Les deux sont exclusives d'`already_booked` (une entrée active suppose
+  // qu'on n'a pas de réservation confirmée sur ce cours).
+  if (myWaitlist?.status === 'OFFERED') {
+    return {
+      kind: 'promotion_offered',
+      entryId: myWaitlist.entryId,
+      expiresAt: myWaitlist.expiresAt,
+    };
+  }
+  if (myWaitlist?.status === 'WAITING') {
+    return { kind: 'on_waitlist', position: myWaitlist.position, total: myWaitlist.total };
+  }
 
   const départ = new Date(klass.starts_at).getTime() - now.getTime();
 
@@ -159,13 +207,17 @@ export function affordanceLabelKey(affordance: BookingAffordance): TranslationKe
       return 'booking.cap_reached';
     case 'full':
       return 'booking.full_title';
+    case 'on_waitlist':
+      return 'booking.on_waitlist_title';
+    case 'promotion_offered':
+      return 'booking.promotion_offered_title';
   }
 }
 
 /** La phrase sous le bouton, et le nombre qu'elle contient. `null` si tout va bien. */
 export function affordanceHint(
   affordance: BookingAffordance,
-): { key: TranslationKey | PluralKey; count?: number } | null {
+): { key: TranslationKey | PluralKey; count?: number; values?: TranslationValues } | null {
   switch (affordance.kind) {
     case 'bookable':
       return null;
@@ -184,11 +236,23 @@ export function affordanceHint(
       return { key: 'booking.window_not_open_hint', count: affordance.days };
     case 'cap_reached':
       return { key: 'booking.cap_reached_hint', count: affordance.upcoming };
-    // Pas de promesse : ni « reviens plus tard » — rien ne se libère avant
-    // P1-004 — ni « demande à ta box », qui ne peut placer personne. Une porte
-    // de sortie à la place, et l'écran la fournit.
+    // Complet, mais plus une impasse : on invite à rejoindre la liste. Le
+    // libellé du bouton et l'annonce vivent côté écran ; ici, la phrase qui
+    // explique ce qu'est cette liste (« on te prévient… »).
     case 'full':
       return { key: 'booking.full_hint' };
+    // « 2ᵉ sur 5 ». Le pluriel se joue sur `total` (seul, la phrase change), et
+    // `{position}`/`{total}` s'interpolent tous deux — d'où le sac `values`.
+    case 'on_waitlist':
+      return {
+        key: 'waitlist.position',
+        count: affordance.total,
+        values: { position: affordance.position, total: affordance.total },
+      };
+    // Le compte à rebours et le bouton « Confirmer » sont côté écran ; ici, ce
+    // qui explique l'urgence.
+    case 'promotion_offered':
+      return { key: 'booking.confirm_spot_hint' };
   }
 }
 
@@ -291,8 +355,16 @@ export interface ClassDetail {
   classColor: string;
   roomName: string;
   coachName: string;
+  /** Combien attendent une place (P1-006). Sert de `total` à l'affichage du rang. */
+  waitlistCount: number;
   /** La réservation de la personne sur ce cours, si elle existe. */
   myBookingId: string | null;
+  /**
+   * L'entrée de liste d'attente **active** de la personne sur ce cours (P1-006),
+   * rang dérivé compris, ou `null`. C'est ce que `bookingAffordance` consomme
+   * pour proposer « quitter la liste » ou « confirmer ma place ».
+   */
+  myWaitlist: MyWaitlistEntry | null;
   /**
    * La séance écrite par le coach (P1-015), **publiée seulement**.
    *
@@ -326,7 +398,7 @@ export async function fetchClassDetail(
 ): Promise<ClassDetail | null> {
   const scope = tenantScope(client, tenantId);
 
-  const [classes, types, rooms, coaches, bookings, seance] = await Promise.all([
+  const [classes, types, rooms, coaches, bookings, waitlist, rang, seance] = await Promise.all([
     scope.select('classes').eq('id', classId).is('deleted_at', null),
     scope.select('class_types').is('deleted_at', null),
     scope.select('rooms').is('deleted_at', null),
@@ -337,6 +409,16 @@ export async function fetchClassDetail(
       .eq('membership_id', membershipId)
       .eq('status', 'CONFIRMED')
       .maybeSingle(),
+    // Mon entrée **active** de liste d'attente (au plus une, unique partiel).
+    // La RLS `waitlist_own_select` la borne à moi ; le rang, lui, ne se lit pas
+    // ainsi (je ne vois pas les lignes des autres) — d'où l'appel séparé.
+    scope
+      .select('waitlist_entries')
+      .eq('class_id', classId)
+      .eq('membership_id', membershipId)
+      .in('status', ['WAITING', 'OFFERED'])
+      .maybeSingle(),
+    client.rpc('my_waitlist_rank', { p_class_id: classId }),
     fetchClassWorkout(client, { tenantId, classId }),
   ]);
 
@@ -351,6 +433,23 @@ export async function fetchClassDetail(
     .parse(coaches.data ?? [])
     .find((c) => c.membership_id === row.coach_membership_id);
 
+  // Mon état de liste d'attente. `waitlist.data` est null si je n'y suis pas ;
+  // `rang.data` est le rang dérivé (`my_waitlist_rank`). Si l'un des deux échoue
+  // (réseau, course), on retombe sur « pas sur la liste » ou un rang de secours
+  // plutôt que de masquer le cours entier — le temps réel corrige ensuite. Le
+  // filtre `.in` garantit un statut actif : on le rétrécit sans cast risqué.
+  const entree = waitlist.data;
+  const myWaitlist: MyWaitlistEntry | null =
+    entree == null
+      ? null
+      : {
+          entryId: entree.id,
+          status: entree.status === 'OFFERED' ? 'OFFERED' : 'WAITING',
+          position: typeof rang.data === 'number' ? rang.data : 1,
+          total: row.waitlist_count,
+          expiresAt: entree.expires_at,
+        };
+
   return {
     id: row.id,
     starts_at: row.starts_at,
@@ -363,7 +462,9 @@ export async function fetchClassDetail(
     classColor: type?.color ?? '',
     roomName: room?.name ?? '',
     coachName: coach === undefined ? '' : coachDisplayName(coach),
+    waitlistCount: row.waitlist_count,
     myBookingId: bookings.data?.id ?? null,
+    myWaitlist,
     // **La séance, si elle est publiée** (P1-015). La RLS décide : un brouillon
     // n'arrive tout simplement pas ici, il n'y a rien à filtrer côté écran.
     workoutTitle: seance === null ? null : seance.title?.trim() || null,
@@ -681,6 +782,121 @@ export async function cancelBooking(client: RackClient, bookingId: string): Prom
     if (!parsed.success) {
       // Même raisonnement que `bookClass()` : un `null` sans erreur afficherait
       // « c'est annulé » sur une place toujours prise.
+      throw new BookingFailed(null, UNKNOWN_ERROR_MESSAGE_KEY, data);
+    }
+
+    return parsed.data;
+  } catch (cause) {
+    if (cause instanceof BookingFailed) throw cause;
+    throw new BookingFailed(null, UNKNOWN_ERROR_MESSAGE_KEY, cause);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Liste d'attente — P1-006
+// ---------------------------------------------------------------------------
+
+export interface JoinWaitlistInput {
+  classId: string;
+  membershipId: string;
+  /** Générée **au tap** par `uuidV7()`, conservée jusqu'à la réponse (règle 4). */
+  idempotencyKey: string;
+}
+
+/**
+ * Rejoint la liste d'attente d'un cours complet.
+ *
+ * **Clé d'idempotence, comme `bookClass()`** : rejoindre *crée* une ligne, donc
+ * un double tap sur un réseau lent ne doit pas produire deux entrées. La base la
+ * fait respecter sous son verrou ; l'écran la génère au tap et la garde jusqu'à
+ * la réponse. Les refus (`CLASS_NOT_FULL`, `ALREADY_ON_WAITLIST`,
+ * `ALREADY_BOOKED`, `BOOKING_WINDOW_CLOSED`, plafond) remontent traduits.
+ *
+ * Rend l'identifiant de l'entrée de liste d'attente.
+ */
+export async function joinWaitlist(client: RackClient, input: JoinWaitlistInput): Promise<string> {
+  try {
+    const { data, error } = await client.rpc('join_waitlist', {
+      p_class_id: input.classId,
+      p_membership_id: input.membershipId,
+      p_idempotency_key: input.idempotencyKey,
+    });
+
+    if (error !== null) {
+      const code = appErrorCodeOf(error);
+      throw new BookingFailed(code, errorMessageKey(code), error);
+    }
+
+    const parsed = IdentifiantRéservation.safeParse(data);
+    if (!parsed.success) {
+      throw new BookingFailed(null, UNKNOWN_ERROR_MESSAGE_KEY, data);
+    }
+
+    return parsed.data;
+  } catch (cause) {
+    if (cause instanceof BookingFailed) throw cause;
+    throw new BookingFailed(null, UNKNOWN_ERROR_MESSAGE_KEY, cause);
+  }
+}
+
+/**
+ * Confirme une place offerte par la promotion.
+ *
+ * **Pas de clé d'idempotence**, comme `cancelBooking()` : l'identifiant de
+ * l'entrée suffit. Rejouer l'appel sur une entrée déjà `ACCEPTED` rend le **même**
+ * `booking_id` sans créer de seconde réservation — la base le garantit sous son
+ * verrou. Une offre expirée remonte `OFFER_EXPIRED`, traduit.
+ *
+ * Rend l'identifiant de la réservation créée (ou déjà créée).
+ */
+export async function confirmPromotion(
+  client: RackClient,
+  waitlistEntryId: string,
+): Promise<string> {
+  try {
+    const { data, error } = await client.rpc('confirm_promotion', {
+      p_waitlist_entry_id: waitlistEntryId,
+    });
+
+    if (error !== null) {
+      const code = appErrorCodeOf(error);
+      throw new BookingFailed(code, errorMessageKey(code), error);
+    }
+
+    const parsed = IdentifiantRéservation.safeParse(data);
+    if (!parsed.success) {
+      throw new BookingFailed(null, UNKNOWN_ERROR_MESSAGE_KEY, data);
+    }
+
+    return parsed.data;
+  } catch (cause) {
+    if (cause instanceof BookingFailed) throw cause;
+    throw new BookingFailed(null, UNKNOWN_ERROR_MESSAGE_KEY, cause);
+  }
+}
+
+/**
+ * Quitte la liste d'attente — en attente (`WAITING`) ou en refusant une offre
+ * (`OFFERED`), auquel cas le siège tenu cascade vers le suivant, côté base.
+ *
+ * **Pas de clé d'idempotence** : transition d'une ligne existante, comme
+ * `cancelBooking()`. Rejouer sur une entrée déjà terminale est sans effet.
+ *
+ * Rend l'identifiant de l'entrée quittée.
+ */
+export async function leaveWaitlist(client: RackClient, waitlistEntryId: string): Promise<string> {
+  try {
+    const { data, error } = await client.rpc('leave_waitlist', {
+      p_waitlist_entry_id: waitlistEntryId,
+    });
+
+    if (error !== null) {
+      const code = appErrorCodeOf(error);
+      throw new BookingFailed(code, errorMessageKey(code), error);
+    }
+
+    const parsed = IdentifiantRéservation.safeParse(data);
+    if (!parsed.success) {
       throw new BookingFailed(null, UNKNOWN_ERROR_MESSAGE_KEY, data);
     }
 

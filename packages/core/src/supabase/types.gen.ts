@@ -28,6 +28,24 @@ export type Database = {
   };
   public: {
     Tables: {
+      app_runtime_config: {
+        Row: {
+          key: string;
+          updated_at: string;
+          value: string;
+        };
+        Insert: {
+          key: string;
+          updated_at?: string;
+          value: string;
+        };
+        Update: {
+          key?: string;
+          updated_at?: string;
+          value?: string;
+        };
+        Relationships: [];
+      };
       audit_logs: {
         Row: {
           action: string;
@@ -360,6 +378,7 @@ export type Database = {
           status: Database['public']['Enums']['class_status'];
           tenant_id: string;
           updated_at: string;
+          waitlist_count: number;
         };
         Insert: {
           booked_count?: number;
@@ -378,6 +397,7 @@ export type Database = {
           status?: Database['public']['Enums']['class_status'];
           tenant_id: string;
           updated_at?: string;
+          waitlist_count?: number;
         };
         Update: {
           booked_count?: number;
@@ -396,6 +416,7 @@ export type Database = {
           status?: Database['public']['Enums']['class_status'];
           tenant_id?: string;
           updated_at?: string;
+          waitlist_count?: number;
         };
         Relationships: [
           {
@@ -1247,6 +1268,93 @@ export type Database = {
         };
         Relationships: [];
       };
+      waitlist_entries: {
+        Row: {
+          booking_id: string | null;
+          class_id: string;
+          created_at: string;
+          deleted_at: string | null;
+          expires_at: string | null;
+          id: string;
+          idempotency_key: string;
+          membership_id: string;
+          offered_at: string | null;
+          position: number;
+          promoted_at: string | null;
+          status: Database['public']['Enums']['waitlist_status'];
+          tenant_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          booking_id?: string | null;
+          class_id: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          idempotency_key: string;
+          membership_id: string;
+          offered_at?: string | null;
+          position: number;
+          promoted_at?: string | null;
+          status?: Database['public']['Enums']['waitlist_status'];
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          booking_id?: string | null;
+          class_id?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          idempotency_key?: string;
+          membership_id?: string;
+          offered_at?: string | null;
+          position?: number;
+          promoted_at?: string | null;
+          status?: Database['public']['Enums']['waitlist_status'];
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'waitlist_class_same_tenant';
+            columns: ['class_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'classes';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'waitlist_entries_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'waitlist_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'waitlist_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'memberships';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'waitlist_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenant_coaches';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+        ];
+      };
     };
     Views: {
       class_attendance_sheet: {
@@ -1378,6 +1486,10 @@ export type Database = {
           tenant_id: string;
         }[];
       };
+      confirm_promotion: {
+        Args: { p_waitlist_entry_id: string };
+        Returns: string;
+      };
       create_invitation: {
         Args: {
           p_email?: string;
@@ -1414,6 +1526,7 @@ export type Database = {
         Args: { p_email: string; p_tenant_id: string };
         Returns: undefined;
       };
+      expire_waitlist_offers: { Args: { p_now?: string }; Returns: number };
       get_roster_visibility: { Args: { p_tenant_id: string }; Returns: boolean };
       import_members: {
         Args: { p_expires_in?: string; p_rows: Json; p_tenant_id: string };
@@ -1453,8 +1566,17 @@ export type Database = {
           slug: string;
         }[];
       };
+      join_waitlist: {
+        Args: {
+          p_class_id: string;
+          p_idempotency_key: string;
+          p_membership_id: string;
+        };
+        Returns: string;
+      };
       kick_push_emitter: { Args: never; Returns: undefined };
       leave_tenant: { Args: { p_tenant_id: string }; Returns: undefined };
+      leave_waitlist: { Args: { p_waitlist_entry_id: string }; Returns: string };
       log_audit: {
         Args: {
           p_action: string;
@@ -1482,6 +1604,7 @@ export type Database = {
         Args: { p_class_starts_at: string; p_membership_id: string };
         Returns: boolean;
       };
+      my_waitlist_rank: { Args: { p_class_id: string }; Returns: number };
       notification_counts_toward_cap: {
         Args: {
           p_category: Database['public']['Enums']['notification_category'];
@@ -1523,6 +1646,10 @@ export type Database = {
       };
       pilot_weekly_rrule_until: { Args: { p_rrule: string }; Returns: string };
       pilot_weekly_rrule_valid: { Args: { p_rrule: string }; Returns: boolean };
+      promote_waitlist: {
+        Args: { p_class_id: string; p_now?: string; p_tenant_id: string };
+        Returns: string;
+      };
       refresh_class_schedule: {
         Args: { p_from: string; p_schedule_id: string; p_until: string };
         Returns: undefined;
@@ -1588,6 +1715,7 @@ export type Database = {
       notification_category:
         'CLASS_REMINDER' | 'WAITLIST_PROMOTION' | 'CLASS_CANCELLATION' | 'MARKETING';
       tenant_status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
+      waitlist_status: 'WAITING' | 'OFFERED' | 'ACCEPTED' | 'EXPIRED' | 'LEFT' | 'CLASS_CANCELLED';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1734,6 +1862,7 @@ export const Constants = {
         'MARKETING',
       ],
       tenant_status: ['ACTIVE', 'SUSPENDED', 'CLOSED'],
+      waitlist_status: ['WAITING', 'OFFERED', 'ACCEPTED', 'EXPIRED', 'LEFT', 'CLASS_CANCELLED'],
     },
   },
 } as const;

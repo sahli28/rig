@@ -87,16 +87,24 @@ const N = Number(process.argv.find((a) => /^\d+$/.test(a)) ?? 200);
  *   dériver le compteur vers le haut, et le cours reste complet pour toujours
  *   alors qu'il a des places — silencieux, et la box perd des inscriptions sans
  *   jamais savoir pourquoi.
+ * - `waitlist` (P1-006) — **le siège tenu.** Un cours à une place, tenu par H ;
+ *   W attend. Au top, H annule (ce qui promeut W en OFFERED, siège tenu), W
+ *   confirme (et son jumeau, deux onglets), pendant que les autres martèlent
+ *   `book_class` sur ce siège tenu. L'invariant est `booked_count = confirmées
+ *   + offertes`, et il vaut 1 tout du long : le siège est **transféré**, jamais
+ *   libéré puis repris. Le défaut qu'il attrape : une fenêtre où `booked_count`
+ *   retomberait sous la capacité pendant le transfert laisserait un réservant
+ *   rafler la place — exactement ce que le modèle « siège tenu » ferme.
  *
- * Les deux partagent le top commun, l'échantillonneur de pic et le refus des
+ * Les trois partagent le top commun, l'échantillonneur de pic et le refus des
  * faux verts. Un second script les aurait dupliqués, puis laissé diverger.
  */
 const SCENARIO = process.argv.includes('--scenario')
   ? process.argv[process.argv.indexOf('--scenario') + 1]
   : 'book';
 
-if (!['book', 'cancel'].includes(SCENARIO)) {
-  throw new Error(`Scénario inconnu : ${SCENARIO}. Attendu : book | cancel.`);
+if (!['book', 'cancel', 'waitlist'].includes(SCENARIO)) {
+  throw new Error(`Scénario inconnu : ${SCENARIO}. Attendu : book | cancel | waitlist.`);
 }
 
 /**
@@ -113,6 +121,19 @@ const COUNTDOWN_SECONDS = Math.max(4, Math.ceil(N / 40));
 
 const TENANT = 'dddddddd-0000-4000-8000-000000000001';
 const CLASS = 'dd000000-0000-4000-8000-000000000001';
+
+/**
+ * Scénario `waitlist` : deux membres nommés. H (membre 1) tient l'unique place
+ * puis l'annule au top ; W (membre 2) attend, est promu, et confirme. Les
+ * autres (≥ 4) réservent. Un troisième index (3) est le **jumeau** de W —
+ * deux onglets, même entrée — pour prouver que confirmer deux fois reste
+ * idempotent sous contention.
+ */
+const HOLDER = 1;
+const WAITER = 2;
+const membershipId = (n) => `dd500000-${String(n).padStart(4, '0')}-4000-8000-000000000001`;
+const userClaims = (n) =>
+  `{"sub":"dd1${String(n).padStart(5, '0')}-0000-4000-8000-000000000001","role":"authenticated","email":"charge${n}@example.test"}`;
 
 /** Les sessions de la ruée, et l'échantillonneur qui les compte. */
 const STAMPEDE_APP = 'rack-stampede';
@@ -185,6 +206,7 @@ function setUp() {
   log(`Décor : 1 cours à 1 place, ${N} membres, box ${TENANT.slice(0, 8)}…`);
   psql(`
     begin;
+    delete from public.waitlist_entries where tenant_id = '${TENANT}';
     delete from public.bookings where tenant_id = '${TENANT}';
     delete from public.classes where tenant_id = '${TENANT}';
     delete from public.class_schedules where tenant_id = '${TENANT}';
@@ -263,11 +285,33 @@ function setUp() {
     }
     log(`  ${HOLDERS} place(s) prise(s) avant la ruée — le cours part plein`);
   }
+
+  if (SCENARIO === 'waitlist') {
+    // H tient l'unique place, W rejoint la file. Par le vrai chemin, séquentiel,
+    // avant le top — ce n'est pas la partie qu'on mesure. Le cours est à +2 j
+    // (≥ 12 h), donc l'annulation **offrira** le siège (pas d'auto-book).
+    psql(`
+      begin;
+      set local role authenticated;
+      set local request.jwt.claims = '${userClaims(HOLDER)}';
+      select public.book_class('${CLASS}', '${membershipId(HOLDER)}', 'hold-${HOLDER}');
+      commit;
+    `);
+    psql(`
+      begin;
+      set local role authenticated;
+      set local request.jwt.claims = '${userClaims(WAITER)}';
+      select public.join_waitlist('${CLASS}', '${membershipId(WAITER)}', 'wl-${WAITER}');
+      commit;
+    `);
+    log('  1 place tenue par H, 1 personne (W) en file — le siège va être transféré');
+  }
 }
 
 function tearDown() {
   psql(`
     begin;
+    delete from public.waitlist_entries where tenant_id = '${TENANT}';
     delete from public.bookings where tenant_id = '${TENANT}';
     delete from public.classes where tenant_id = '${TENANT}';
     delete from public.class_schedules where tenant_id = '${TENANT}';
@@ -383,28 +427,66 @@ async function stampede(first, count) {
     // Ce qu'il fallait, c'est deux **sessions** sur la même ligne : elles
     // franchissent toutes les deux le contrôle avant le verrou, se sérialisent
     // dessus, et la seconde décrémentait une seconde fois.
-    const jumeau = SCENARIO === 'cancel' && i > HOLDERS && i <= HOLDERS * 2;
-    const acteur = jumeau ? i - HOLDERS : i;
-    const annule = SCENARIO === 'cancel' && i <= HOLDERS * 2;
-
-    const membership = `dd500000-${String(acteur).padStart(4, '0')}-4000-8000-000000000001`;
-    const user = `dd1${String(acteur).padStart(5, '0')}-0000-4000-8000-000000000001`;
+    // **`waitlist` (P1-006) — le siège tenu.** Trois rôles :
+    //
+    //   i == HOLDER (1)   H annule sa place → promote_waitlist offre à W ;
+    //   i == WAITER (2)   W confirme sa promotion ;
+    //   i == 3            le **jumeau** de W — deux onglets, même entrée : la
+    //                     seconde confirmation doit rendre le même booking sans
+    //                     en créer un second (idempotence sous contention) ;
+    //   au-delà           les autres martèlent `book_class` sur le siège tenu ;
+    //                     ils doivent **tous** voir « cours complet ».
+    //
+    // Le siège vaut 1 tout du long — H l'annule, mais promote le transfère à W
+    // dans la même transaction, donc `booked_count` ne retombe jamais sous la
+    // capacité. Le défaut qu'on cherche est justement une fenêtre où il le
+    // ferait : un réservant raflerait alors la place.
+    let acteur;
+    let action;
+    if (SCENARIO === 'waitlist') {
+      if (i === HOLDER) {
+        acteur = HOLDER;
+        action = `select public.cancel_booking(
+          (select b.id from public.bookings b where b.idempotency_key = 'hold-${HOLDER}')
+        );`;
+      } else if (i === WAITER || i === 3) {
+        acteur = WAITER;
+        action = `select public.confirm_promotion(
+          (select w.id from public.waitlist_entries w
+           where w.class_id = '${CLASS}' and w.membership_id = '${membershipId(WAITER)}'
+           order by w.created_at desc limit 1)
+        );`;
+      } else {
+        acteur = i;
+        action = `select public.book_class('${CLASS}', '${membershipId(i)}', 'charge-${i}');`;
+      }
+    } else {
+      // `cancel` (P1-004) : trois tiers — détenteurs, jumeaux, réservants. Le
+      // tiers du milieu est celui qui manquait, et son absence a coûté un
+      // défaut : deux annulations dans la **même** session sont séquentielles,
+      // donc le second appel sortait au contrôle pré-verrou et ne prouvait
+      // rien. Deux **sessions** sur la même ligne se sérialisent sur le verrou,
+      // et la seconde décrémentait une seconde fois. (`book` : tout le monde
+      // réserve la place unique.)
+      const jumeau = SCENARIO === 'cancel' && i > HOLDERS && i <= HOLDERS * 2;
+      acteur = jumeau ? i - HOLDERS : i;
+      const annule = SCENARIO === 'cancel' && i <= HOLDERS * 2;
+      action = annule
+        ? `select public.cancel_booking(
+             (select b.id from public.bookings b where b.idempotency_key = 'hold-${acteur}')
+           );`
+        : `select public.book_class('${CLASS}', '${membershipId(acteur)}', 'charge-${i}');`;
+    }
 
     // `set local role` + claims : la fonction voit un vrai `auth.uid()`, comme
     // en production. Un appel en `postgres` prouverait la sérialisation mais
-    // sauterait la garde « on n'annule que pour soi ».
+    // sauterait les gardes « on n'agit que pour soi ».
     const sql = `
       select pg_sleep(greatest(0, extract(epoch from (timestamptz '${startAt}' - clock_timestamp()))));
       begin;
       set local role authenticated;
-      set local request.jwt.claims = '{"sub":"${user}","role":"authenticated","email":"charge${acteur}@example.test"}';
-      ${
-        annule
-          ? `select public.cancel_booking(
-               (select b.id from public.bookings b where b.idempotency_key = 'hold-${acteur}')
-             );`
-          : `select public.book_class('${CLASS}', '${membership}', 'charge-${i}');`
-      }
+      set local request.jwt.claims = '${userClaims(acteur)}';
+      ${action}
       commit;
     `;
 
@@ -510,8 +592,83 @@ function verdictCancel(results, peak) {
   return checks.every(([, ok]) => ok);
 }
 
+/**
+ * L'invariant de `waitlist` : **`booked_count = confirmées + offertes`**, et il
+ * vaut 1 — le siège tenu est transféré, jamais libéré puis repris.
+ *
+ * Ce qui tient quel que soit l'entrelacement : le compteur égale la somme des
+ * réservations confirmées et des offres en cours ; cette somme vaut exactement
+ * 1 (une seule allocation du siège) ; et **aucun réservant ne rafle le siège
+ * tenu** — tous voient « cours complet ». Que W confirme avant ou après
+ * l'annulation de H change l'état final (une offre en cours, ou une réservation
+ * confirmée), jamais l'invariant. Un décrément non transféré ouvrirait une
+ * fenêtre où `booked_count` tombe à 0 : un réservant raflerait la place, et
+ * `booked_count` finirait à 2 — les deux premiers contrôles rougiraient.
+ */
+function verdictWaitlist(results, peak) {
+  const counter = Number(psql(`select booked_count from public.classes where id = '${CLASS}'`));
+  const confirmed = Number(
+    psql(`select count(*) from public.bookings
+          where class_id = '${CLASS}' and status = 'CONFIRMED'`),
+  );
+  const offered = Number(
+    psql(`select count(*) from public.waitlist_entries
+          where class_id = '${CLASS}' and status = 'OFFERED'`),
+  );
+  const capacity = Number(psql(`select capacity from public.classes where id = '${CLASS}'`));
+
+  // Réservants = tout le monde sauf H (1), W (2) et le jumeau (3).
+  const reservants = results.filter((r) => r.i >= 4);
+  const rafles = reservants.filter((r) => r.code === 0);
+  const refusHorsMetier = reservants.filter(
+    (r) => r.code !== 0 && !/CLASS_FULL|complet/i.test(r.err),
+  );
+
+  const checks = [
+    // **L'invariant.** Tout le reste n'est que contexte.
+    [
+      'booked_count = confirmées + offertes (siège tenu)',
+      counter === confirmed + offered,
+      `${counter} vs ${confirmed}+${offered}`,
+    ],
+    [
+      'le siège tenu est alloué une seule fois',
+      confirmed + offered === 1,
+      `${confirmed} confirmée(s) + ${offered} offerte(s)`,
+    ],
+    [
+      'le compteur reste dans ses bornes',
+      counter >= 0 && counter <= capacity,
+      `${counter} / ${capacity}`,
+    ],
+    ['aucun réservant ne rafle le siège tenu', rafles.length === 0, `${rafles.length} raflé(s)`],
+    [
+      'les refus de réservation sont tous « cours complet »',
+      refusHorsMetier.length === 0,
+      `${refusHorsMetier.length} refus d'une autre nature`,
+    ],
+    ['contention réelle sur le siège tenu', peak >= 2, `${peak} sessions en même temps`],
+  ];
+
+  log('');
+  for (const [label, ok, detail] of checks) {
+    log(`  ${ok ? '✓' : '✗'} ${label.padEnd(52)} ${detail}`);
+  }
+  if (rafles.length > 0) {
+    log('\nRéservations qui ont raflé le siège tenu (extrait) :');
+    for (const r of rafles.slice(0, 3)) log(`    #${r.i}`);
+  }
+  if (refusHorsMetier.length > 0) {
+    log('\nRefus d’une autre nature (extrait) :');
+    for (const r of refusHorsMetier.slice(0, 3)) log(`    #${r.i} — ${r.err.split('\n')[0]}`);
+  }
+
+  return checks.every(([, ok]) => ok);
+}
+
 function verdict(results, peak) {
   if (SCENARIO === 'cancel') return verdictCancel(results, peak);
+  if (SCENARIO === 'waitlist') return verdictWaitlist(results, peak);
 
   const confirmed = Number(
     psql(`select count(*) from public.bookings
@@ -567,7 +724,9 @@ function verdict(results, peak) {
 const TITRE =
   SCENARIO === 'cancel'
     ? `P1-004 — ${HOLDERS} annulations et ${N - HOLDERS} réservations, au même instant`
-    : `P1-003 · T1 — ${N} tentatives de réservation sur une place`;
+    : SCENARIO === 'waitlist'
+      ? `P1-006 — le siège tenu : annuler, confirmer et ${Math.max(0, N - 3)} réservations au même instant`
+      : `P1-003 · T1 — ${N} tentatives de réservation sur une place`;
 
 log(`\n${TITRE}\n`);
 
@@ -610,7 +769,9 @@ try {
 const VERDICT =
   SCENARIO === 'cancel'
     ? 'le compteur dit la vérité — aucun décrément perdu'
-    : 'aucune double réservation';
+    : SCENARIO === 'waitlist'
+      ? 'le siège tenu est allé à une seule personne, aucun réservant ne l’a raflé'
+      : 'aucune double réservation';
 
 log(ok ? `\nPASS — ${VERDICT}.\n` : `\nFAIL — ${TITRE}.\n`);
 process.exit(ok ? 0 : 1);

@@ -67,6 +67,39 @@ Deno.test('buildExpoMessages — annulation porte la date et le bon gabarit', ()
   assert(!entry.message.body.includes('{'), 'les placeholders {date} et {time} sont résolus');
 });
 
+Deno.test('buildExpoMessages — promotion : offre à confirmer vs place réservée (drapeau)', () => {
+  const base = reminderRow({ id: 'o3', category: 'WAITLIST_PROMOTION' });
+  const [offer] = buildExpoMessages([
+    { ...base, context: { ...base.context, requires_confirmation: true } },
+  ]);
+  const [confirmed] = buildExpoMessages([
+    { ...base, context: { ...base.context, requires_confirmation: false } },
+  ]);
+
+  // Une seule catégorie, un seul titre ; le drapeau `requires_confirmation`
+  // choisit lequel des deux corps est rendu.
+  assertEquals(offer.message.title, "Une place s'est libérée");
+  assertEquals(confirmed.message.title, "Une place s'est libérée");
+  assert(offer.message.body !== confirmed.message.body, 'le drapeau change le corps');
+  assert(offer.message.body.includes('confirme'), "l'offre invite à confirmer");
+  assert(!confirmed.message.body.includes('confirme'), "la place réservée n'y invite pas");
+  for (const e of [offer, confirmed]) {
+    assert(e.message.body.includes('CrossFit'), 'le nom du cours est présent');
+    assert(!e.message.body.includes('{'), 'aucun placeholder non résolu');
+    assertEquals(e.message.data.url, 'rack:///class/c1');
+  }
+});
+
+Deno.test(
+  "buildExpoMessages — promotion sans drapeau : défaut = l'offre, jamais un corps vide",
+  () => {
+    const [entry] = buildExpoMessages([reminderRow({ id: 'o4', category: 'WAITLIST_PROMOTION' })]);
+    assertEquals(entry.message.title, "Une place s'est libérée");
+    assert(entry.message.body.includes('confirme'), "défaut = corps de l'offre");
+    assert(!entry.message.body.includes('{'));
+  },
+);
+
 Deno.test('buildExpoMessages — une ligne sans jeton ne produit aucun message', () => {
   const entries = buildExpoMessages([reminderRow({ push_tokens: [] })]);
   assertEquals(entries.length, 0);
