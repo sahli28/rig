@@ -11,7 +11,7 @@
 -- (`booked_count = confirmées + offertes`) y sera martelé.
 
 begin;
-select plan(37);
+select plan(40);
 
 -- ---------------------------------------------------------------------------
 -- Décor : Rueil, une série, quatre cours capacité 1, plafond desserré
@@ -43,6 +43,7 @@ insert into public.class_schedules (
 
 -- X, Z : ≥ 12 h (offre + fenêtre de confirmation). Y : < 12 h (auto-book).
 -- W : capacité 2, restera avec une place libre (garde CLASS_NOT_FULL).
+-- V : ≥ 12 h, annulé par la box pendant qu'une offre court (D-027).
 insert into public.classes (
   id, tenant_id, schedule_id, class_type_id, room_id, coach_membership_id,
   starts_at, ends_at, capacity
@@ -62,12 +63,17 @@ insert into public.classes (
   ('f2000000-0000-4000-8000-000000000004', 'aaaaaaaa-0000-4000-8000-000000000001',
    'f1000000-0000-4000-8000-000000000001', 'a4000000-0000-4000-8000-000000000001',
    'a2000000-0000-4000-8000-000000000001', 'a3000000-0000-4000-8000-000000000003',
-   now() + interval '4 days', now() + interval '4 days' + interval '1 hour', 2);
+   now() + interval '4 days', now() + interval '4 days' + interval '1 hour', 2),
+  ('f2000000-0000-4000-8000-000000000005', 'aaaaaaaa-0000-4000-8000-000000000001',
+   'f1000000-0000-4000-8000-000000000001', 'a4000000-0000-4000-8000-000000000001',
+   'a2000000-0000-4000-8000-000000000001', 'a3000000-0000-4000-8000-000000000003',
+   now() + interval '5 days', now() + interval '5 days' + interval '1 hour', 1);
 
 \set classX '\'f2000000-0000-4000-8000-000000000001\''
 \set classY '\'f2000000-0000-4000-8000-000000000002\''
 \set classZ '\'f2000000-0000-4000-8000-000000000003\''
 \set classW '\'f2000000-0000-4000-8000-000000000004\''
+\set classV '\'f2000000-0000-4000-8000-000000000005\''
 
 -- Un helper pour lire le code applicatif d'une erreur (SQLSTATE partagés).
 -- Il exécute le SQL dans son propre bloc : `get stacked diagnostics` ne vaut
@@ -289,6 +295,47 @@ select throws_ok(
 select is(
   pg_temp.code_of(format('select public.join_waitlist(%L, %L, %L)', :classW, :julie_ms, 'jw-w-2')),
   'ALREADY_ON_WAITLIST', 'et le code applicatif le dit'
+);
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- 6. Confirmer sur un cours annulé par la box (D-027)
+-- ---------------------------------------------------------------------------
+-- Léa remplit V (cap 1), Julie rejoint et se fait offrir la place (≥ 12 h → offre).
+-- Puis la box annule le cours : l'écran de staff pose `status = 'CANCELLED'` et
+-- `cancel_class_bookings` passe les entrées actives à `CLASS_CANCELLED`. Fait à la
+-- main ici pour rester borné à `confirm_promotion` (l'annulation par la box a ses
+-- propres tests). Confirmer doit alors dire « cours annulé », pas « offre expirée » :
+-- le siège n'est passé à personne, il n'y a plus de cours.
+set local role authenticated;
+set local request.jwt.claims = :'lea_jwt';
+select public.book_class(:classV, :lea_ms, 'lea-v');
+set local request.jwt.claims = :'julie_jwt';
+select public.join_waitlist(:classV, :julie_ms, 'jw-julie-v');
+set local request.jwt.claims = :'lea_jwt';
+select public.cancel_booking((select id from public.bookings where class_id = :classV and membership_id = :lea_ms));
+reset role;
+
+select is(
+  (select status::text from public.waitlist_entries where class_id = :classV and membership_id = :julie_ms),
+  'OFFERED', 'Julie a une offre en cours sur V'
+);
+
+update public.classes set status = 'CANCELLED' where id = :classV;
+update public.waitlist_entries set status = 'CLASS_CANCELLED'
+where class_id = :classV and membership_id = :julie_ms;
+
+set local role authenticated;
+set local request.jwt.claims = :'julie_jwt';
+select throws_ok(
+  format('select public.confirm_promotion(%L)',
+    (select id from public.waitlist_entries where class_id = :classV and membership_id = :julie_ms)),
+  '23514', null, 'confirmer sur un cours annulé lève une erreur métier'
+);
+select is(
+  pg_temp.code_of(format('select public.confirm_promotion(%L)',
+    (select id from public.waitlist_entries where class_id = :classV and membership_id = :julie_ms))),
+  'CLASS_CANCELLED', 'et le code dit « cours annulé », pas OFFER_EXPIRED'
 );
 reset role;
 

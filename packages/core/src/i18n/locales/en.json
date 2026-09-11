@@ -132,6 +132,7 @@
   "errors.booking_window_closed": "Bookings are not open yet for this class.",
   "errors.cancel_window_passed": "The cancellation window has passed.",
   "errors.class_already_started": "This class has already taken place: it can no longer be cancelled. Contact your box if this is a mistake.",
+  "errors.class_cancelled": "This class has been cancelled.",
   "errors.class_full": "This class is full.",
   "errors.class_not_full": "This class isn't full — you can book it directly.",
   "errors.currency_locked": "The currency can no longer be changed: accounting entries already exist.",

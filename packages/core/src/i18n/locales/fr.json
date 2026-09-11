@@ -132,6 +132,7 @@
   "errors.booking_window_closed": "Les réservations ne sont pas encore ouvertes pour ce cours.",
   "errors.cancel_window_passed": "Le délai d'annulation est dépassé.",
   "errors.class_already_started": "Ce cours a déjà eu lieu : il ne s'annule plus. Contacte ta box si c'est une erreur.",
+  "errors.class_cancelled": "Ce cours a été annulé.",
   "errors.class_full": "Ce cours est complet.",
   "errors.class_not_full": "Ce cours n'est pas complet : tu peux le réserver directement.",
   "errors.currency_locked": "La devise ne peut plus changer : des écritures comptables existent déjà.",
