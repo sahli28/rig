@@ -23,7 +23,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **19,5 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **19,75 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -333,7 +333,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 113,75 j·h, dont **19,5 restants**
+## ① Jalon pilote — 114 j·h, dont **19,75 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -367,13 +367,14 @@ CE QUI RESTE, ET CE QUI LE RETIENT
             côté technique, mais il crée des comptes hébergés (Supabase, Vercel)
             que seule la commanditaire ouvre : c'est une procédure à jouer, pas
             du code à écrire ici
-  P1-007  ⟵ rien de bloquant. **Lots 1–3 livrés sur feat/P1-007-push** (décision
-            SQL, émetteur edge function, mobile) ; re-fusionné (la découpe a/b
-            reposait sur un appareil Android qui n'existe pas — règle 10). Reste
-            la passe iPhone, après un development build iOS (ton compte Expo).
-            La preuve Android est re-datée en prérequis de P1-016
+  P1-007  ⟵ **Lots 1–3 fusionnés** (décision SQL, émetteur edge function, mobile) ;
+            re-fusionné (la découpe a/b reposait sur un appareil Android qui
+            n'existe pas — règle 10). Dev build iOS fait le 11 sept.,
+            device-registration prouvée. **Les deux [ ] d'appareil (iOS < 30 s,
+            rack://) sont derrière le lot hébergé + émetteur de P1-017** — jouer
+            § 5 nonies sur l'hébergé, pas un montage local. Preuve Android → P1-016
   P1-006  ⟵ P1-007 (l'émetteur) pour la promotion de liste d'attente ; sa
-            garantie « 30 s » se prouvera avec la passe iPhone de P1-007
+            garantie « 30 s » se prouvera à la passe § 5 nonies (hébergée) de P1-007
   P1-009 → P1-001f  ⟵ rien. Après la démo
   D-008   ⟵ le nom de domaine, seul blocage de sa ligne
 
@@ -401,23 +402,26 @@ NON PROGRAMMÉS, chacun avec son déclencheur
   ═══ JALON : mise en production chez la box pilote ═══
 ```
 
-**`P1-007` est livré (lots 1–3), re-fusionné, et attend la passe iPhone.** La
-découpe `a`/`b` du 10 septembre est révolue : sa frontière supposait qu'on
-prouverait l'émetteur sur un appareil **Android**, or il n'en existe aucun — et
-un critère qu'on ne peut pas jouer n'est pas un critère (règle 10). Le compte
-Apple étant actif depuis le 8 septembre, la preuve se fait sur **un seul
-*development build* iOS**. Le canal Android est **re-daté en prérequis de
-`P1-016`**, pas annulé : le code livré route déjà vers APNs ou FCM. Estimation
-recomptée sur le périmètre entier, `a` et `b` réunis : **4 → 6 j·h** (détail dans
-`P1-007-push.md`). La première brique serveur est bien l'émetteur — une edge
-function — pas la couche API qu'ADR 0004 annonçait pour `P1-003` (amendé).
+**`P1-007` est livré (lots 1–3), re-fusionné ; le dev build iOS est fait (11 sept.),
+et la preuve d'émission attend le lot hébergé + émetteur de `P1-017`.** La découpe
+`a`/`b` du 10 septembre est révolue : sa frontière supposait qu'on prouverait
+l'émetteur sur un appareil **Android**, or il n'en existe aucun — et un critère
+qu'on ne peut pas jouer n'est pas un critère (règle 10). Le canal Android est
+**re-daté en prérequis de `P1-016`**, pas annulé : le code livré route déjà vers
+APNs ou FCM. Estimation recomptée sur le périmètre entier, `a` et `b` réunis :
+**4 → 6 j·h** (détail dans `P1-007-push.md`). La première brique serveur est bien
+l'émetteur — une edge function — pas la couche API qu'ADR 0004 annonçait pour
+`P1-003` (amendé).
 
-**Et le premier development build se prépare comme un événement.** Il ferme des
-critères de **quatre** tickets — `P1-003b` (le schéma `rack://`), `D-013` (son
-reliquat), `P1-007` (le push iOS), et `D-008` dès que le domaine existe. Même
-économie que la passe groupée, appliquée aux builds : on rassemble la liste de ce
-qu'il ferme **avant** de le lancer, au lieu de le subir comme un effet de bord de
-`P1-007`.
+**Le development build a eu lieu le 11 septembre — et il a fermé la moitié
+téléphone, pas l'émission.** L'app s'installe et enregistre son jeton ; mais
+`supabase start` ne sert pas l'émetteur et l'app pointe la base locale, donc rien
+ne part. **Les deux `[ ]` (iOS < 30 s, `rack://`) se prouvent sur l'hébergé, avec
+le lot émetteur de `P1-017`** — arbitrage tranché contre un montage local jetable.
+La même passe ferme du même coup le reliquat `rack://` de `D-013` et le `[~]` de
+`P1-003b`. Ce que l'arbitrage sert exactement : l'inconnu de la chaîne de
+notification se lève **pendant `P1-017`**, pas la semaine de la box — la raison
+même pour laquelle `P1-017` est sorti de `P1-016`.
 
 **D-009 ouvre la chaîne mobile, comme D-004 l'a ouverte avant elle.** La règle
 est la même à chaque fois : ce qui empire avec le nombre d'écrans se corrige
@@ -461,7 +465,7 @@ sait pas lui répondre.
 | P1-005a | Places restantes en temps réel, sur le téléphone  |      3 | ✅ **fait le 6 sept. 2026 — passe harnais à deux clients**, dix critères sur onze. L'isolation du canal est **prouvée** là où pgTAP ne peut pas : sonde sans filtre de box, un seul des deux événements reçu. Un défaut trouvé et corrigé — deux écrans partageaient un nom de canal, et `channel()` rend l'existant. **Un critère `[ ]` : l'arrière-plan**, qu'un onglet caché ne sait pas exercer → prochaine passe iPhone. Découpé de `P1-005` le même jour : `waitlist_length` → `P1-006`, le web → `P1-005b` |
 | P1-005b | Le même canal dans la grille du back-office       |      1 | **non programmé** — écrit, chiffré, hors du total. Au pilote, la valeur du temps réel est sur le téléphone du membre, là où deux personnes se disputent la dernière place ; le manager peut rafraîchir. Sort en une session si la box pilote le réclame |
 | P1-006  | Liste d'attente et promotion                      |      6 | à faire — **derrière `P1-007`** (l'émetteur qui délivre la promotion) ; sa garantie « promotion en moins de 30 s » se prouvera avec la passe iPhone de `P1-007`. Porte aussi `waitlist_length` en temps réel, repris de P1-005 le 6 sept. 2026 |
-| P1-007  | Notifications push (re-fusionné, passe iPhone en attente) |    6 | **lots 1–3 livrés sur `feat/P1-007-push`** (décision SQL + core/UI · émetteur edge function · mobile) — re-fusionné le 11 sept. 2026 : la découpe `a`/`b` supposait un appareil **Android** qui n'existe pas (règle 10). Harnais vert (pgTAP, `deno test`) ; **passe iPhone en attente** après un _development build_ iOS (compte Expo). La preuve Android devient un prérequis de `P1-016`. Réestimé **4 → 6** sur le périmètre entier |
+| P1-007  | Notifications push (re-fusionné, passe iPhone en attente) |    6 | **lots 1–3 livrés sur `feat/P1-007-push`** (décision SQL + core/UI · émetteur edge function · mobile) — re-fusionné le 11 sept. 2026 : la découpe `a`/`b` supposait un appareil **Android** qui n'existe pas (règle 10). Harnais vert (pgTAP, `deno test`). **Dev build iOS fait le 11 sept.**, device-registration prouvée (ligne `ios` en base). **Les deux `[ ]` d'appareil (iOS < 30 s, `rack://`) sont derrière le lot hébergé + émetteur de `P1-017`** — l'émetteur doit être déployé et servi pour que la notification parte (arbitrage tranché : l'hébergé, pas un montage local jetable). Preuve Android → prérequis de `P1-016`. Réestimé **4 → 6** |
 | P1-015  | La séance du cours, écrite par le coach           |    5,5 | ✅ **clos le 9 sept. 2026 — onze critères verts.** Le **premier ticket venu d'un client réel**, et il est tenu : une séance **par occurrence**, en texte libre, pré-remplissage qui **copie sans lier**, troisième protection contre le rafraîchissement de série. Fusionné incomplet (PR #63), il a fallu **trois passes** pour le clore : `D-021` (la porte du coach + la place du panneau, A14 ✅), puis les **gestes 7 et 8** — NOK à la passe, le **piège 13** (la policy de lecture masquait l'archivé à tout le monde, PostgreSQL 17 refuse alors l'`update` qui archive), sa **sœur** cassant « supprimer une série » **depuis P1-002**, corrigé (`fix/P1-015-gestes-7-et-8`, **5 → 5,5**) et **rejoué OK sur `main`**. Reste hors critère le seul repère qui compte : la semaine chronométrée vs Hustle Up, à `P1-016` |
 | P1-008a | Le coach coche sa feuille, et l'absent est marqué  |    5,5 | ✅ **clos le 10 sept. 2026** (PR #72) — fusionné **et** passe iPhone jouée le jour même (§ 5 octies, geste 8 compris : le membre refusé par l'adresse). Quatre lots : base SQL (présence sur `bookings`, vue coach, `set_attendance()`, job de no-show), core, deux champs web, mode coach mobile. `test:db` vert (498), `rls-auditor` **SAFE**. **Réestimé à l'ouverture 3,75 → 5,5** : +1,25 (l'écran est un mode) + 0,5 (`class_roster` peer-scoped → **vue neuve** + 4e audience RGPD tranchée). La **première surface de l'app réservée à un rôle** |
 | P1-008b | Le check-in QR : le membre scanne lui-même        |      6 | **non programmé** — la box pilote n'en a pas besoin. Mais §10 le classe « attendu par le marché » : **une box de 200 membres avec des coachs qui tournent ne connaît pas ses adhérents par leur prénom**. Déclencheur : la première box qui n'est pas la pilote. Porte tout ce qui scanne, **et la section règle 8** dont les trois trouvailles ont servi à décider de ne pas le lancer |
@@ -479,9 +483,9 @@ sait pas lui répondre.
 | D-016   | Trois écrans qui ne relisent rien au retour       |   0,25 | ✅ fait le 7 sept. 2026. **Ligne ajoutée le 9 sept. 2026** : son 0,25 était crédité aux faits par le tableau des mouvements sans avoir de ligne ici, donc compté dans un total où il ne figurait pas |
 | D-021   | La porte du coach, et la place de la séance       |   1,75 | ✅ **fait et passé le 9 sept. 2026** — **A14 ✅, le critère d'écran de `P1-015` est fermé.** Attention à la provenance : **PR #68 n'a fusionné que la documentation**, le code de ce ticket est parti dans la PR suivante (`feat/D-021-le-code`), et la passe a été jouée sur l'arbre de travail avant cette fusion. Une décision (`back-office.ts`, neuf droits × quatre rôles), **quinze comparaisons de rôle retirées d'`apps/web`**, dont une sœur que le ticket ne nommait pas (`join-card.tsx`) : la sonde ESLint l'a trouvée en mordant. Le panneau : la séance d'abord, l'annulation derrière un trait et un bouton danger, un seul primaire. **Rien d'observé dans un navigateur** — il n'y en a pas (`D-022`) — donc six critères restent `[ ]` pour la passe |
 | P1-016  | La mise en service chez la box pilote             |   1,75 | à faire, **en dernier** — écrit le 9 sept. 2026, entré dans ① le jour même (PR #64), **puis découpé après PR #65** : le projet hébergé et le déploiement partent dans `P1-017` pour ne pas concentrer l'inconnu la semaine de la box. Reste ici ce qui dépend vraiment du reste — build TestFlight, sauvegarde restaurée — **+ 4 jours d'accompagnement** qui ne sont pas des j·h. **Et le RGPD y est daté** : DPA, registre, politique de confidentialité **avant le premier import** — la sous-traitance art. 28 commence le jour de la mise en service, et `consents.tsx` horodate depuis le 31 août un consentement à une politique **qui n'existe pas** |
-| P1-017  | La première infrastructure de production          |   1,25 | à faire, **pendant `P1-008a`** — sorti de `P1-016` le 9 sept. 2026. Projet Supabase hébergé (major **17** lu dans le projet, `pg_cron` à réactiver, `test:db` contre la base distante) et déploiement de `apps/web`. **A trouvé un trou en s'écrivant** : le SMTP intégré d'un projet hébergé ne tient pas 80 invitations, donc un SMTP tiers, donc le domaine — quatrième élément bloqué par cette démarche |
+| P1-017  | La première infrastructure de production          |    1,5 | à faire — sorti de `P1-016` le 9 sept. 2026. Projet Supabase hébergé (major **17** lu dans le projet, `pg_cron` **et `pg_net`** à activer, `test:db` distant), **l'émetteur push déployé et servi** (`rack-push-emitter` + `push_emitter_url`) — c'est lui qui rend § 5 nonies de `P1-007` jouable et ferme ses deux `[ ]` d'appareil — et le déploiement `apps/web`. **Le lot hébergé + émetteur ne demande qu'un compte gratuit, pas le domaine** ; seul le SMTP tiers l'attend (le trou trouvé en s'écrivant : le SMTP intégré ne tient pas 80 invitations). **+0,25 le 12 sept.** pour l'émetteur |
 | D-023   | Le consentement pointe vers un texte, et la constante en porte la date | 0,5 | **écrit le 9 sept. 2026, s'ouvre quand le texte existe** — sa rédaction n'est pas du code et n'est pas dans ce ticket. Le lien depuis `consents.tsx`, `current_policy_version()` alignée sur la date réelle, et **un test qui lie les deux** : la règle 10 appliquée à une valeur. **Bloque `P1-016`** : aucun import réel avant, sinon 80 personnes consentent à un texte inexistant et recochent toutes quand la constante change |
-|         | **Total ①**                                       | **113,75** | dont **94,25 faits**, **19,5 restants** |
+|         | **Total ①**                                       | **114** | dont **94,25 faits**, **19,75 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
 nouvelle.** Un chiffre qui monte se relit comme une dérive s'il ne porte pas sa
@@ -551,6 +555,7 @@ corrigé sans son calcul se re-conteste :
 | `P1-008a` réestimé à l'ouverture 3,75 → 5,5 (+1,75) : l'écran est un mode, et la vue coach était à créer | 111,75 | 88,75 | 23 |
 | `P1-008a` fait et passé le 10 sept. (5,5) | **111,75** | **94,25** | **17,5** |
 | **`P1-007` re-fusionné et réestimé 4 → 6 (+2)** : la frontière `a`/`b` reposait sur un appareil Android qui n'existe pas (règle 10) ; le re-cadrage Android→iOS est un wash | **113,75** | 94,25 | **19,5** |
+| **`P1-017` +0,25** : l'émetteur push déployé sur l'hébergé (`pg_net`, `functions deploy`, `push_emitter_url`) — le lot qui rend § 5 nonies de `P1-007` jouable sur la chaîne réelle, hors de la semaine de la box | **114** | 94,25 | **19,75** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.

@@ -32,7 +32,7 @@ incomplet.
 | 5 quinquies | Les places restantes en temps réel | P1-005a | ✅ **sauf l'arrière-plan** (demande un vrai appareil) |
 | 5 septies | La séance du cours (WOD) | P1-015 | ⚠️ le décor coach dépendait de `D-021` (porte coach, **corrigé**) — rejouer le décor en COACH |
 | 5 octies | La feuille de présence, la porte par rôle | P1-008a | ✅ (jouée et close le 10 sept. 2026) |
-| 5 nonies | Les notifications push | P1-007 | ⛔ **pas jouable en local tel quel — TROIS prérequis, pas un** : (1) development build iOS ✅ ; (2) `projectId` EAS dans `app.json` ✅ ; (3) **l'émetteur servi** ✗ — `supabase start` ne le sert pas ; il faut `functions serve` + un réglage superutilisateur (env. local, § « Servir l'émetteur push en local »). Sans (3), la ligne reste `pending`, le téléphone ne sonne pas. **Le vrai chemin est hébergé (`P1-017`)** ; le local est un montage jetable. Device-registration déjà prouvée (build du 11 sept.) |
+| 5 nonies | Les notifications push | P1-007 | ⛔ **se joue sur l'hébergé (`P1-017`), pas en local.** Device-registration prouvée (build 11 sept.) ; l'émission + `rack://` sont derrière le lot hébergé + émetteur de `P1-017` **et une liste de prérequis qui a grandi trois fois** (émetteur joignable sans auth, app pointée sur l'hébergé, onboarding purgé, Léa inscrite, consentement PUSH côté hébergé). **Liste complète A + B dans la section** — pas un nombre qui périme |
 | 5 sexies | La passe groupée (quatre dettes) | D-011/016, P1-005a, D-009 | ✅ (historique, jouée le 8 sept. 2026) |
 
 En amont de tout : **Ce qui doit être vrai avant de commencer** (Supabase démarré,
@@ -654,11 +654,60 @@ repère de `P1-015`.
 >    réseau Docker — est dans `environnement-local.md`, § « Servir l'émetteur push
 >    en local ».
 >
-> **L'arbitrage, à trancher avant de jouer.** Le montage local **peut** fermer les
-> deux critères d'appareil (l'émission vers `exp.host` → APNs est réelle), mais il
-> est jetable et sa latence est approximative. Le vrai chemin est **`P1-017`**
-> (projet hébergé, fonction déployée, réglage posé par la plateforme) : il prouve
-> la chaîne qui part chez la box. Coûts comparés en env. local.
+> **Arbitrage tranché : la passe se joue sur le projet hébergé (`P1-017`), pas sur
+> le montage local.** L'échafaudage local prouverait la même chose sur une base
+> jetable ; le seul gain serait de cocher deux cases plus tôt. Le montage local
+> reste documenté en env. local si le besoin change.
+
+**Deux familles de prérequis pour la passe hébergée — les deux doivent être
+vraies, et l'app doit pointer la BONNE base.**
+
+**A. `P1-017` a livré son lot hébergé + émetteur — et l'émetteur est JOIGNABLE.**
+Projet hébergé, migrations appliquées, `pg_cron` **et** `pg_net` activés au
+tableau de bord, `rack-push-emitter` **déployé**, `app.settings.push_emitter_url`
+sur l'URL hébergée complète. Et le piège **sans `failed`** : le coup de sonnette
+comme le balayage font un `net.http_post` **sans `apikey` ni `Bearer`**, et il
+n'y a **aucun repli SQL**. Si `verify_jwt = false` n'est pas honoré au
+déploiement, Kong renvoie 401, `kick_push_emitter` **avale l'exception**, et la
+ligne reste `pending` **pour toujours** — indistinguable de « émetteur absent ».
+**Vérifier** (critère de `P1-017`) : `curl -i <url>` **sans `apikey` rend 200**,
+et un enfilage de test passe `pending` → `sent`.
+
+**B. Le décor est monté SUR L'HÉBERGÉ, et l'app y pointe.** L'émetteur lit les
+jetons de la base **hébergée** ; l'app pointe par défaut sur la base **locale**
+(`.env.local`), donc la table `devices` hébergée est **vide** au moment de la
+passe — personne à qui envoyer, ligne `pending`, « cassé » une fois de plus.
+
+1. **Pointer l'app sur l'hébergé** : `EXPO_PUBLIC_SUPABASE_URL` +
+   `EXPO_PUBLIC_SUPABASE_ANON_KEY` du projet hébergé dans `.env.local`,
+   **redémarrer Metro**, recharger l'app (le dev build lit le bundle de Metro —
+   pas de rebuild).
+2. **Purger l'aiguillage de consentement AVANT le geste.** Le seed laisse Léa sur
+   `ACCEPT_CONSENTS` (elle a `TERMS` + `BOX_TERMS`, **pas `PRIVACY`**) : au premier
+   login sur l'hébergé, `useAuthRedirect` force `/consents`. Terminer l'onboarding
+   (accorder `PRIVACY`) d'abord — sinon **un toucher de notif retombe sur
+   `/consents`, pas sur `/class/[id]`** (l'aiguillage se rejoue à chaque
+   changement d'état), et c'est un faux rouge sur le second critère.
+3. **Inscrire Léa à un cours du jour.** Le seed ne réserve **que Hugo** (au cours
+   complet), pas Léa — et un cours réservable **aujourd'hui** n'est pas garanti
+   (Rueil n'a pas de série le dimanche ; `book_class` refuse un cours commencé
+   depuis plus de 15 min). Vérifier qu'un cours futur du jour existe (sinon en
+   décaler un — geste B0 des autres passes), puis **réserver Léa** : c'est ce que
+   l'annulation annulera.
+4. **Se reconnecter dans l'app** (contre l'hébergé, **box active Rueil** pour que
+   le push porte le bon `tenant_id`) : session puis jeton s'enregistrent **côté
+   hébergé** (`devices`).
+5. **Accorder le consentement PUSH dans l'app.** `notification_eligibility`
+   l'exige : jeton enregistré **sans** consentement, et `enqueue_push` écarte
+   (`NO_PUSH_CONSENT`), aucune ligne — la même confusion que « vide ». Accepter
+   aussi l'invite système de notifications.
+
+**Le compte de prérequis a encore monté — et c'est la règle qui parle.** On
+annonçait « cinq » ; une revue adversariale en a trouvé **trois de plus**
+(l'émetteur joignable sans auth, la purge de l'onboarding, la réservation de
+Léa). La question « qu'est-ce qui doit être vrai » **se repose à chaque passe** —
+c'est pour ça que la colonne du sommaire renvoie ici plutôt que d'afficher un
+nombre qui périme.
 
 ### La passe partielle au harnais SQL — et pourquoi `pending` est normal
 
@@ -688,11 +737,11 @@ Ce qui se prouve alors en SQL, **sans cocher aucun critère du ticket** :
 
 ### Ce qui ferme quatre critères d'un coup
 
-**Une fois l'émetteur servi** (montage local ou `P1-017`), la passe sur le dev
-build ferme quatre critères de quatre tickets : **iOS < 30 s** et **le toucher
-ouvre l'écran via `rack://`** (`P1-007`), et du même coup le reliquat `rack://`
-de `D-013` et le `[~]` resté ouvert de `P1-003b`. Le build seul ne suffit pas —
-il porte le téléphone, pas l'émission.
+**Une fois le lot hébergé + émetteur de `P1-017` livré** (prérequis A ci-dessus),
+la passe sur le dev build ferme quatre critères de quatre tickets : **iOS < 30 s**
+et **le toucher ouvre l'écran via `rack://`** (`P1-007`), et du même coup le
+reliquat `rack://` de `D-013` et le `[~]` resté ouvert de `P1-003b`. Le build seul
+ne suffit pas — il porte le téléphone, pas l'émission.
 
 ### Le décor
 
