@@ -176,3 +176,15 @@ jobs:
       - name: P1-004 · le compteur survit à annuler et réserver ensemble
         if: steps.detect.outputs.found == 'true'
         run: pnpm test:db:concurrency 60 --scenario cancel
+
+      # P1-006 — le siège tenu. Un cours à une place, tenu par H ; W attend. Au
+      # même instant : H annule (ce qui **offre** le siège à W, sans le libérer),
+      # W confirme (et son jumeau, deux onglets), et les autres martèlent
+      # `book_class` sur ce siège tenu. L'invariant est `booked_count = confirmées
+      # + offertes`, et il vaut 1 tout du long : le siège est transféré, jamais
+      # libéré puis repris. Le défaut cherché est une fenêtre où le compteur
+      # retomberait sous la capacité pendant le transfert — un réservant raflerait
+      # alors la place que la file tenait.
+      - name: P1-006 · le siège tenu ne se rafle pas sous contention
+        if: steps.detect.outputs.found == 'true'
+        run: pnpm test:db:concurrency 60 --scenario waitlist
