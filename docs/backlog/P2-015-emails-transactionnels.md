@@ -29,7 +29,7 @@ par trois tickets, que chacun croyait déjà là.
 | Locale de la personne | `users.locale` (P0-005a), `tenants.default_locale` (P1-001b) | ✅ existent — la règle de repli est à écrire : personne, puis box, puis `fr` |
 | Thème du tenant (marque dans l'e-mail) | `themes` + `buildTheme()` (P0-002, P1-001e) | ✅ existe — un e-mail de box porte **ses** couleurs, comme la page d'invitation |
 | **Un domaine à nous, avec SPF, DKIM et DMARC** | — | ❌ **n'existe pas.** Prérequis administratif : sans authentification de domaine, tout part en spam. D-008 attend déjà un domaine ; c'est le **second** ticket bloqué par la même absence |
-| Compte Resend (ou équivalent) | §8 le recommande, §17.3 le budgète à 20 $/mois | ❌ à ouvrir |
+| **Compte Brevo** (prestataire arbitré en `P1-016`, pas Resend) | §8 l'admet en alternative UE ; **gratuit à ce volume** (~300/j), pas les ~20 $/mois que §17.3 budgétait pour Resend | ⚠️ **compte + SMTP câblés en `P1-016`** — voir `docs/procedures/email-et-domaine.md` ; ce ticket réutilise ce compte (reste sa **clé API** et les **gabarits thémés FR/EN**) |
 | Un moyen de lire les e-mails en local | Mailpit, port **55324** (`docs/environnement-local.md`) | ✅ existe |
 | Gabarits d'auth Supabase | `supabase/templates/*.html` | ⚠️ existent, **bilingues dans une seule chaîne**. À refaire proprement ici |
 
