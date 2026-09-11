@@ -88,6 +88,41 @@ pas derrière un achat de domaine qui a déjà glissé trois fois.
 - **Toute donnée réelle.** Le projet hébergé reçoit le seed ou rien ; les
   membres de la box arrivent avec `P1-016`, et avec le RGPD qui va avec.
 
+## Le SMTP tiers : pourquoi il attend, et jusqu'à quand
+
+**L'arbitrage écrit que le critère réclame — parce que le silence serait pire que
+l'attente.** Le SMTP tiers est le seul lot de ce ticket qui n'est **pas** joué
+maintenant. Il attend le domaine, et lui seul.
+
+**Pourquoi le domaine.** Faire _arriver_ un e-mail dans 80 boîtes de réception,
+ce n'est pas l'envoyer : c'est prouver au récepteur qu'on écrit légitimement au
+nom d'un domaine — SPF, DKIM, DMARC, trois enregistrements DNS sur un domaine
+qu'on possède. Sans domaine, rien où les poser, donc pas de SMTP tiers à
+configurer : le lot n'a pas d'objet aujourd'hui. Le SMTP **intégré** du projet
+hébergé ne comble pas le trou — plafonné à quelques envois par heure, prévu pour
+le développement, pas pour un envoi de masse.
+
+**Jusqu'à quand.** Jusqu'à `P1-016`, pas avant : c'est là que tombe le premier
+envoi qui _exige_ le domaine, les **80 invitations** de la mise en service. Le
+domaine est déjà sur le chemin critique hors code ; ce ticket ne le déplace pas,
+il **nomme la dépendance** au lieu de la laisser en blanc.
+
+**Ce que l'attente ne bloque pas — et c'est tout l'enjeu.** Les quatre lots joués
+maintenant (projet hébergé, émetteur, réglage, web déployé) ne touchent pas
+l'e-mail : le push part par Expo, pas par SMTP, et l'accès au back-office pendant
+la configuration se fait par **lien de connexion** — quelques magic links pour
+l'équipe de la box et nous, très en-deçà du plafond du SMTP intégré. Les deux
+`[ ]` d'appareil de `P1-007` sont derrière l'émetteur, jamais derrière l'e-mail.
+**L'attente du domaine ne retarde donc ni les quatre lots ni la passe § 5
+nonies.**
+
+**Le bord honnête.** Le jour où l'on enverra 80 invitations d'un coup avec le
+seul SMTP intégré, elles seront étranglées ou refusées — ce n'est pas une
+hypothèse à vérifier, c'est la raison d'être du lot. Il est donc **vraiment**
+suspendu au domaine, et `P1-016` le porte déjà dans ses prérequis. Côté SMTP, ce
+ticket se ferme sur **cet arbitrage** (son critère le prévoit), et le temps non
+consommé du lot migre vers `P1-016`, comme l'Estimation l'annonce.
+
 ## Critères d'acceptation
 
 - [ ] `select version()` sur le projet hébergé commence par `PostgreSQL 17` —
@@ -109,8 +144,10 @@ pas derrière un achat de domaine qui a déjà glissé trois fois.
       l'unique chemin de drain, **il n'y a pas de repli SQL**
 - [ ] Le back-office répond sur son adresse publique, la connexion par lien
       fonctionne **avec un vrai e-mail reçu** — pas Mailpit
-- [ ] Le SMTP tiers est en place, ou l'arbitrage écrit dit pourquoi pas encore
-      et jusqu'à quand
+- [x] Le SMTP tiers est en place, ou l'arbitrage écrit dit pourquoi pas encore
+      et jusqu'à quand — **arbitrage écrit**, voir « Le SMTP tiers : pourquoi il
+      attend, et jusqu'à quand » ci-dessus ; le SMTP tiers lui-même reste `[ ]`,
+      derrière le domaine
 - [ ] `docs/procedures/` porte la liste de ce qui vit hors du dépôt
 - [ ] Aucun secret dans un commit — vérifié par `git log -p` sur la branche,
       pas supposé
