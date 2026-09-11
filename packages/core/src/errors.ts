@@ -35,12 +35,14 @@ import type { TranslationKey } from './i18n/types';
 export const APP_ERROR_CODES = [
   'ALREADY_BOOKED',
   'ALREADY_MEMBER',
+  'ALREADY_ON_WAITLIST',
   'APPEND_ONLY',
   'ATTENDANCE_WINDOW_CLOSED',
   'AUTH_REQUIRED',
   'BOOKING_WINDOW_CLOSED',
   'CLASS_ALREADY_STARTED',
   'CLASS_FULL',
+  'CLASS_NOT_FULL',
   'CURRENCY_LOCKED',
   'EMAIL_ALREADY_REGISTERED',
   'EMAIL_IMMUTABLE',
@@ -63,6 +65,7 @@ export const APP_ERROR_CODES = [
   'MEMBERSHIP_SUSPENDED',
   'NOT_TENANT_MEMBER',
   'NO_VALID_ENTITLEMENT',
+  'OFFER_EXPIRED',
   'PROFILE_NOT_FOUND',
   'TENANT_CLOSED',
   'TENANT_NAME_REQUIRED',
@@ -158,6 +161,11 @@ export const ERROR_MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   NO_VALID_ENTITLEMENT: 'errors.no_valid_entitlement',
   MAX_UPCOMING_BOOKINGS_REACHED: 'errors.max_upcoming_bookings_reached',
   QUOTA_EXCEEDED: 'errors.quota_exceeded',
+
+  // Liste d'attente (P1-006)
+  CLASS_NOT_FULL: 'errors.class_not_full',
+  ALREADY_ON_WAITLIST: 'errors.already_on_waitlist',
+  OFFER_EXPIRED: 'errors.offer_expired',
 
   // Garde-fous techniques
   APPEND_ONLY: 'errors.append_only',
