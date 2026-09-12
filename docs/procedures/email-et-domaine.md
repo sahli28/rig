@@ -353,14 +353,19 @@ fonctionne avec **n'importe quelle URL** (même celle du back-office) — elle p
 **l'envoi et l'idempotence**, pas le parcours du membre.
 
 **Valeur posée le 12 sept. 2026 (provisoire).** `RACK_INVITE_URL` = `https://rack-web-rack8.vercel.app/login`
-en attendant le lien TestFlight. **Deux réserves** à lever avant les 80 :
-- c'est l'**espace admin**, pas la porte d'un membre — provisoire pour la preuve, **à
-  remplacer** par le lien TestFlight (voir `P1-020`/`P1-022` : après connexion, l'accueil
-  doit mener quelque part) ;
-- le déploiement du 12 sept. n'a aliasé que **`rack-web-eight.vercel.app`** ; **vérifier si
-  `rack-web-rack8.vercel.app` sert encore le build du 11 sept.** et, si oui, pointer
-  `RACK_INVITE_URL` vers `rack-web-eight` (ou le domaine, une fois posé) — sinon l'e-mail
-  mène à un build périmé.
+en attendant le lien TestFlight. **Les deux réserves écrites ici se sont vérifiées le soir
+même, par le test de bout en bout** :
+- c'est l'**espace admin**, pas la porte d'un membre : le membre invité y a saisi son
+  adresse comme l'e-mail le lui demandait → « Une erreur est survenue » (`/login` est une
+  porte de **reconnexion**, `shouldCreateUser: false`). Son parcours est le **mobile** —
+  le chaînon d'acceptation côté app est **`P1-024`** ;
+- **`rack-web-rack8.vercel.app` sert bien un build périmé** — nos déploiements n'aliasent
+  que `rack-web-eight`.
+
+**Conséquence, et elle est un garde-fou de `P1-016` : aucune invitation réelle vers une
+vraie box tant que `RACK_INVITE_URL` n'est pas le lien TestFlight valide** (ordre exact
+dans la checklist de `deploiement-heberge.md`). Un envoi anticipé met un lien mort dans
+80 poches, sans rattrapage.
 
 ## Le déploiement web n'est **pas** automatique
 
@@ -389,4 +394,4 @@ geste, pas un automatisme.)*
 | **`RACK_INVITE_URL`** | variable Vercel serveur, **plaintext**, prod **et** preview | **non secret** ; au pilote iOS = **lien TestFlight public** (à créer, voir plus haut) |
 | Enregistrements DNS | zone OVH de `rack-app.fr` | non secrets ; DKIM/Brevo-code propres au compte ; **point final obligatoire sur les CNAME** |
 | Boîte Zimbra `bonjour@` / redirection `postmaster@` | email OVH (Zimbra Starter) | réponses membres + rapports DMARC ; **assistant Zimbra : SPF décoché** |
-| Gabarits d'e-mail hébergés | dashboard Supabase (Magic Link, Confirm sign up) | **non versionnés** — recopier à la main toute modif de `supabase/templates/*.html` |
+| Gabarits d'e-mail hébergés | dashboard Supabase (Magic Link, Confirm sign up) | **non versionnés** — recopier à la main toute modif de `supabase/templates/*.html`. **Trois dérives en dix jours** (la 3ᵉ le 12 sept. : première connexion propriétaire cassée jusqu'à la recopie) : le filet `pnpm gabarits:derive` est **`D-029`** |

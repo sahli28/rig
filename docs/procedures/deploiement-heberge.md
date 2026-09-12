@@ -264,9 +264,11 @@ ne se signale ; on les découvre en butant dessus.
 | `BREVO_API_KEY` | **Sensitive** | Production | la clé API Brevo (jamais ici) |
 | `RACK_INVITE_URL` | Config | Production **+** Preview | **provisoire** `https://rack-web-rack8.vercel.app/login` — à remplacer par le lien TestFlight |
 
-> **À vérifier** : le déploiement du 12 sept. n'a aliasé que `rack-web-eight.vercel.app`.
-> Si `rack-web-rack8.vercel.app` sert encore le build du 11 sept., `RACK_INVITE_URL`
-> pointe un build périmé — le corriger vers `rack-web-eight` (ou le domaine).
+> **Vérifié le 12 sept. au soir, en se cognant dessus** : `rack-web-rack8.vercel.app`
+> sert bien un **build périmé** — nos déploiements n'aliasent que `rack-web-eight`.
+> Pas de réalias à faire pour les membres : la valeur définitive est le **lien
+> TestFlight** (garde-fou de `P1-016` — **aucune invitation réelle avant la bascule**).
+> Si une preuve technique a besoin d'une URL web d'ici là, prendre `rack-web-eight`.
 
 ### La CI n'est pas une barrière de fusion — à poser
 
@@ -307,6 +309,14 @@ Aucune n'est couverte par une CI verte ou une fusion. Dans l'ordre :
       réelle (pas localhost), Redirect URLs à jour.
 - [ ] Variables Vercel posées **avant** le déploiement, prod **et** preview au besoin.
 - [ ] Gabarits d'e-mail hébergés recopiés (voir `email-et-domaine.md`), OTP = 6.
+      **Troisième dérive le 12 sept. — le filet `pnpm gabarits:derive` est `D-029` ;
+      tant qu'il n'existe pas, cette case est la seule protection.**
+- [ ] **Avant tout envoi d'invitations réelles** (garde-fou `P1-016`), dans l'ordre :
+      build TestFlight soumis et lien public créé → `RACK_INVITE_URL` basculée
+      (prod **et** preview) → redéploiement explicite → un e-mail de test à soi
+      dont le lien ouvre bien TestFlight. **Aucune invitation réelle avant** —
+      aujourd'hui l'URL provisoire met un lien mort (et périmé) dans la poche du
+      membre.
 - [ ] Passage Supabase **Pro** et Vercel **Pro** (voir `P1-016`).
 - [ ] Protection de branche GitHub exigeant la CI verte (ci-dessus).
 

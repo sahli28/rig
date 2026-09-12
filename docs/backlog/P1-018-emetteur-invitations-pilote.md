@@ -198,42 +198,52 @@ au moment de la fusion** (proposition : `P1-018` entre à 1 j·h, `P1-016` reste
 ligne, pas ce ticket.
 
 ## Critères d'acceptation
-- [~] Depuis l'écran d'effectif d'une box, un envoi expédie un e-mail à chaque
+- [x] Depuis l'écran d'effectif d'une box, un envoi expédie un e-mail à chaque
       invitation `PENDING`, en FR ou EN selon la locale, contenant l'instruction de
-      connexion **avec l'adresse invitée** — aucun jeton dans l'URL. *(Rendu et
-      classement testés ; l'envoi de bout en bout attend la mise en service, voir
-      « État de la preuve ».)*
+      connexion **avec l'adresse invitée** — aucun jeton dans l'URL. **Prouvé le
+      12 septembre 2026 (soir), sur l'hébergé, par le parcours réel** : import de
+      3 adresses (3 créées, 0 doublon), envoi → 3 expédiées, reçues en quelques
+      secondes
 - [x] Relancer n'envoie qu'aux **encore `PENDING`** (ni acceptées, ni expirées) —
       logique de `claim` prouvée en pgTAP
 - [x] Un envoi rejoué après coupure **ne renvoie pas** ce qui est déjà parti dans
       la vague (idempotence prouvée) — pgTAP, y compris la reprise des réservations
-      mortes
+      mortes. **Et prouvé par le parcours réel le 12 septembre 2026 (soir)** :
+      reclic immédiat après l'envoi des 3 → **0 envoyée**. C'était le critère
+      central du ticket, et il est fait par le vrai chemin, pas par un test
 - [x] `email_deliveries` porte l'envoi (adresse, réf., date, statut, id Brevo),
       **sans corps ni donnée de santé** ; `tenant_id`, RLS forcée, policies, grants,
       cas dans `rls_leak_test.sql` — `rls-auditor` SAFE
 - [~] Un échec synchrone (adresse morte) est `FAILED` et **visible** par la box —
-      mécanisme fait (`failed`/`failed_permanent`) ; l'observation à l'écran attend
-      la mise en service
+      mécanisme fait (`failed`/`failed_permanent`), **non exercé par le test du
+      12 septembre** : les 3 adresses ont toutes abouti, aucune morte dans le lot.
+      **Part à la passe de mise en service de `P1-016`**, où le fichier réel en
+      contiendra
 - [x] L'envoi se fait **par lot borné** (vagues possibles) — `limit` 20
 - [x] `pnpm i18n:check` couvre les clés de l'e-mail et échoue si une manque
-- [ ] **appareil / mise en service** : « 80 invitations qui partent pour de vrai »
-      se prouve à la mise en service, la clé API Brevo posée — pas sur une PR verte
+- [~] **appareil / mise en service** : « 80 invitations qui partent pour de vrai »
+      se prouve le jour J — **transféré à `P1-016`**, qui porte déjà son bloquant
+      (le build TestFlight vers lequel `RACK_INVITE_URL` doit pointer) et, depuis
+      le 13 septembre, le garde-fou « aucune invitation réelle avant que
+      `RACK_INVITE_URL` soit le lien TestFlight valide »
 
-## État de la preuve — 12 septembre 2026 : **non faite**
+## État de la preuve — **faite le 12 septembre 2026 (soir), le ticket est clos**
 
-Répétition de mise en service sur l'hébergé. **Prouvé** : la chaîne Supabase Auth →
-Brevo (`SPF/DKIM/DMARC = pass`), les migrations poussées sur l'hébergé, le
-redéploiement web avec les variables, la configuration d'URL Supabase, et l'accès
-OWNER à une box de test.
+La répétition du matin s'était arrêtée avant l'import : le parcours demandait
+trois contournements SQL, et un test qui contourne prouve le contournement.
+`P1-020`, `P1-021` et `P1-022` fusionnés le jour même, le test du **soir** a
+refait tout le chemin **sur l'hébergé, par le vrai parcours, sans une ligne de
+SQL** : première connexion propriétaire (gabarits recopiés dans le dashboard —
+3ᵉ dérive, → `D-029`), création de la box à l'écran, import de 3 adresses
+(3 créées, 0 doublon), envoi → 3 reçues en quelques secondes, **reclic immédiat
+→ 0 envoyée**. L'idempotence — le critère central — est prouvée par le parcours
+réel.
 
-**Pas prouvé : l'envoi des invitations lui-même.** Le test s'est arrêté **avant**
-l'import CSV — le parcours pour y arriver demandait **trois contournements SQL**
-(forger un jeton pour `create_tenant`, `email_confirmed_at` à la main, la config
-d'URL), au point que le test aurait prouvé le contournement, pas le produit. Les
-**critères d'appareil restent ouverts**, et la preuve se refera **quand `P1-020`
-(créer la box) et `P1-021` (première connexion web) seront traités** : elle sera
-alors exercée par le **vrai parcours**, pas par du SQL. C'est la bonne raison de ne
-pas la cocher aujourd'hui.
+**Ce que ce test a aussi montré, et qui n'est pas ce ticket** : le membre invité
+qui clique « Ouvrir Rack » atterrit dans le vide — `RACK_INVITE_URL` provisoire
+pointe sur le web, et le chaînon mobile d'acceptation manquait. C'est **`P1-024`**
+(le chaînon) et **`P1-016`** (TestFlight + bascule de l'URL + garde-fou « aucune
+invitation réelle avant »). Les deux `[~]` ci-dessus disent ce qui reste et où.
 
 ## Notes
 Ne pas gonfler (garde-fou du lot) : **un émetteur, pas un framework**. Si

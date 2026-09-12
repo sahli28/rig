@@ -4,7 +4,7 @@ import { useNetworkState } from 'expo-network';
 import { ScrollView, Text, View } from 'react-native';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
-import { Badge, Banner, Button, Card, EmptyState, ListRow, Skeleton } from '@rack/ui/native';
+import { Badge, Banner, Button, Card, ListRow, Skeleton } from '@rack/ui/native';
 import {
   appliqueChangementAuCours,
   fetchDaySchedule,
@@ -15,6 +15,7 @@ import {
 import type { DayClass, LigneCoursChangee } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
+import { InvitationsEnAttente } from '../../components/pending-invitations';
 import { useCoursEnDirect } from '../../lib/use-realtime-classes';
 import { useRelireAuRetour } from '../../lib/use-relire-au-retour';
 
@@ -233,7 +234,10 @@ export default function HomeScreen() {
       {errorKey === null ? null : <Banner title={t(errorKey)} tone="danger" />}
 
       {memberships.length === 0 ? (
-        <EmptyState title={t('home.no_box_title')} description={t('home.no_box_description')} />
+        // Le chaînon manquant du parcours des 80 (P1-024) : une invitation
+        // importée attend peut-être cette adresse. Le composant liste et fait
+        // rejoindre ; sans invitation, il rend l'état vide d'avant.
+        <InvitationsEnAttente />
       ) : activeTenantId === null ? (
         // Plusieurs boxes et aucune préférence : `me()` refuse de trancher, et
         // ce n'est pas au client de deviner non plus. On demande.
