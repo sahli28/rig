@@ -228,6 +228,7 @@ Une fois DNS + SMTP en place :
 | Élément | Où | Note |
 | --- | --- | --- |
 | Login + clé SMTP Brevo | dashboard Brevo ; dashboard Supabase (SMTP Settings) ; `.env` git-ignoré si envoi local | jamais commité |
-| **Clé API Brevo** (invitations) | dashboard Brevo ; réglages de l'émetteur maison — **créée avec le lot invitations** | jamais commitée |
+| **Clé API Brevo** (`BREVO_API_KEY`, invitations `P1-018`) | **variable d'env serveur Vercel** (jamais dans le bundle client) ; `.env.local` en dev | jamais commitée — c'est l'action `sendInvitations` (`apps/web/.../membres`) qui la lit |
+| **URL d'entrée de l'app** (`RACK_INVITE_URL`) | variable d'env serveur Vercel ; `.env.local` en dev | **non secret** ; le lien « Ouvrir Rack » de l'e-mail (TestFlight/App Store au pilote) |
 | Enregistrements DNS | zone OVH de `rack-app.fr` | non secrets ; DKIM/Brevo-code propres au compte |
 | Boîtes `bonjour@` / `postmaster@` | email OVH (ou redirection) | à créer ; réponses membres + rapports DMARC |

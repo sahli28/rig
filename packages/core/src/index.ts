@@ -46,3 +46,9 @@ export {
   uuidV7,
   type RandomBytesSource,
 } from './crypto';
+
+export {
+  renderInvitationEmail,
+  type InvitationEmailInput,
+  type RenderedEmail,
+} from './email/invitation-email';
