@@ -23,7 +23,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **14,75 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **12,25 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -99,6 +99,22 @@ code **et** service, chacune avec son calcul.)* Le chiffre glisse parce qu'il
 lundi matin — un chiffre vrai qui glisse vaut mieux qu'un chiffre confortable qui
 ment. La preuve d'envoi de `P1-018` **n'est pas faite** et attend `P1-020`/`P1-021`
 (le vrai parcours, pas du SQL).
+
+**Recompté le 12 septembre 2026, dernier tour — les cinq manques sont fermés le
+jour où ils ont été trouvés.** `P1-021` → `P1-020` → `P1-022` → `P1-023` bâtis,
+prouvés en local, fusionnés (PR #88 à #90), chaque estimation **tenue** ; `D-028`
+écrit rétroactif (0,25, le correctif #418 — même geste que `D-012`/`D-017`).
+**① : 118,25, dont 106 faits et 12,25 restants.** Projection, en deux dates comme
+la règle du jour l'exige : **12,25 ÷ 2,3 ≈ 5,3 semaines → code vers le ~20 octobre
+2026 ; mise en service fin octobre – début novembre** (la marge = les 4 jours
+d'accompagnement). Le bilan du jour qui explique le raccourci : **sept lots de
+code fusionnés en un jour** — l'émetteur, sa reprise, l'hydratation, la CI, et les
+trois verrous du parcours — parce qu'une répétition de mise en service a montré où
+frapper. Ce qui reste devant le jalon n'est plus du code de parcours : la preuve
+hébergée de `P1-018` (recopie dashboard + redéploiement, actions commanditaire),
+`D-023` (la politique), le build TestFlight, la sauvegarde restaurée. *(Troisième
+branche `docs/` du 12 : commandée explicitement, et c'est de la tenue de grand
+livre, pas de l'inflation de tickets — l'intention du quota, pas sa lettre.)*
 
 **Revue de backlog du 5 septembre 2026 (soir).** Le tableau d'état disait
 `P1-014 : à faire` alors que PR #42 est sur `main` : le commit de code n'a pas
@@ -388,7 +404,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 118 j·h, dont **14,75 restants**
+## ① Jalon pilote — 118,25 j·h, dont **12,25 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -447,16 +463,14 @@ NON PROGRAMMÉS, chacun avec son déclencheur
             rencontre le doute réel.
 
   LES MANQUES DE MISE EN SERVICE (trouvés le 12 sept. en répétant l'envoi de
-  bout en bout — il a fallu trois contournements SQL)
-  P1-021  ⟵ rien. La première connexion web aboutit (gabarit + code/lien).
-            Bloquant : sans elle, l'OWNER n'entre pas dans le back-office
-  P1-020  ⟵ P1-021. Créer la box pilote (appelant minimal de create_tenant,
-            règle 7). Bloquant : sinon la box naît en SQL de prod le lundi matin
-  P1-022  ⟵ P1-021. L'accueil web mène à sa box. Semi-bloquant
-  P1-023  ⟵ rien. Un signal quand l'hébergé décroche. Non bloquant
+  bout en bout — il a fallu trois contournements SQL), TOUS FERMÉS LE JOUR MÊME
+  P1-021 ✅ → P1-020 ✅ → P1-022 ✅ : l'OWNER se connecte, crée sa box, l'accueil
+            l'y mène — le parcours entier prouvé en local, sans SQL.
+  P1-023 ✅ pnpm heberge:derive, joué contre la vraie base (deux issues).
             (3.4 rebonds asynchrones → P2-015, ②, pas un ticket neuf)
-        ↓  P1-020/021/022 conditionnent la PREUVE de P1-018 : elle se refera par
-           le vrai parcours, pas par du SQL
+        ↓  La PREUVE de P1-018 se rejoue par le vrai parcours, SUR L'HÉBERGÉ :
+           elle attend la recopie dashboard de P1-021 (action commanditaire,
+           contenu exact dans le ticket) + un redéploiement — plus aucun code
   D-023   ⟵ la RÉDACTION de la politique de confidentialité, qui n'est pas du
             code. Un ticket de code court (0,5) : le lien, la constante, le
             test qui les lie. Bloque P1-016 : aucun import réel avant.
@@ -552,11 +566,12 @@ sait pas lui répondre.
 | P1-017  | La première infrastructure de production          |    1,5 | ✅ **fusionné le 11 sept. 2026 (PR #79)** — projet Supabase hébergé (`eu-west-3`, PG **17.6** lu), `pg_cron`/`pg_net`/`vault` par migration, **émetteur push déployé et servi**, back-office sur Vercel. `test:db` distant vert, parité des droits (`auto_expose_new_tables=false`). **Deux critères d'e-mail fermés le 12 sept. 2026** : e-mail signé reçu (`SPF/DKIM/DMARC = pass`) et SMTP tiers prouvés — le volet `P1-016` est passé de câblé à **prouvé**. Runbooks : `deploiement-heberge.md`, `email-et-domaine.md` |
 | P1-018  | L'émetteur d'invitations du pilote                |    1,5 | ✅ **fusionné le 12 sept. 2026 (PR #84)** + **reprise du motif claim/mark (PR #85)** le même jour. Envoie aux `PENDING` de `import_members()` par l'**API Brevo** un e-mail « connectez-vous avec cette adresse » — **appariement d'e-mail** (`accept_pending_invitation`), **pas** de jeton D-005 (règle 8). Idempotent (`claim`/`mark`), journal `email_deliveries`, reprise des réservations mortes, échecs `permanent`/`temporary` distingués (écran **et** claim), vagues de 20, `maxDuration` explicite. **Ré-estimé 1 → 1,5** (build 1,25 ratifié + reprise 0,25). Reste un critère d'appareil : l'**envoi réel à 80**, clé Brevo posée — bloqué par le **build TestFlight** (`P1-016`), **pas** par ce code |
 | D-023   | Le consentement pointe vers un texte, et la constante en porte la date | 0,5 | **écrit le 9 sept. 2026, s'ouvre quand le texte existe** — sa rédaction n'est pas du code et n'est pas dans ce ticket. Le lien depuis `consents.tsx`, `current_policy_version()` alignée sur la date réelle, et **un test qui lie les deux** : la règle 10 appliquée à une valeur. **Bloque `P1-016`** : aucun import réel avant, sinon 80 personnes consentent à un texte inexistant et recochent toutes quand la constante change |
-| P1-020  | Créer la box pilote (appelant de `create_tenant`) |      1 | **à faire** *(à ratifier)* — trouvé le 12 sept. en répétant la mise en service : `create_tenant` **sans appelant** (règle 7, depuis P0), la box pilote ne naît qu'en SQL de prod. Appelant **minimal** ; le self-onboarding complet reste `P2-004`. **Bloquant mise en service.** Dépend de P1-021 |
-| P1-021  | La première connexion web aboutit                 |    0,5 | **à faire** *(à ratifier)* — gabarit « Confirm sign up » sans `{{ .ConfirmationURL }}` **et** `/login` web sans champ code = cul-de-sac ; il a fallu `email_confirmed_at` à la main. **Bloquant** : l'OWNER n'entre pas dans le back-office |
-| P1-022  | L'accueil web mène à sa box                        |    0,5 | **à faire** *(à ratifier)* — après connexion, on tombe sur le placeholder « Socle en place » (la page que désigne la Site URL). Redirige vers `/box/[slug]`. Semi-bloquant |
-| P1-023  | Un signal quand l'hébergé décroche                 |    0,5 | **à faire** *(à ratifier)* — trois écarts hébergés (web périmé, 7 migrations de retard, Site URL localhost) trouvés en butant dessus. Checklist posée (runbook) + un contrôle qui rougit. Non bloquant |
-|         | **Total ①**                                       | **118** | dont **103,25 faits**, **14,75 restants** |
+| P1-020  | Créer la box pilote (appelant de `create_tenant`) |      1 | ✅ **fusionné le 12 sept. 2026 (PR #88)**, estimation tenue et ratifiée. `create_tenant` a **enfin un appelant** (règle 7, depuis P0) : page `/creer-une-box` + action serveur, minimal — le self-onboarding complet reste `P2-004`. **Prouvé en local de bout en bout** (session réelle, aucun SQL) : formulaire → `303` → `/box/box-pilote-test 200`, OWNER en base. Critère d'appareil ouvert : la box pilote **réelle** naît par ce chemin, sur l'hébergé |
+| P1-021  | La première connexion web aboutit                 |    0,5 | ✅ **fusionné le 12 sept. 2026 (dans PR #88** — sa branche portait P1-020**)**, estimation tenue. « Confirm sign up » gagne le lien `{{ .ConfirmationURL }}` ; **deux défauts d'e-mail absorbés** : la copie « Lien envoyé » (l'ex-D-0xx du lot doc) et l'objet unique par envoi (`{{ .Token }}` dans l'objet, vérifié Mailpit — Gmail n'empile plus). **Prouvé en local** : adresse neuve → lien → session. **Reste une action commanditaire** : recopie dashboard (body + deux objets, contenu exact dans le ticket) |
+| P1-022  | L'accueil web mène à sa box                        |    0,5 | ✅ **fusionné le 12 sept. 2026 (PR #89)**, estimation tenue. L'accueil devient serveur : une box → `redirect /box/[slug]` (**prouvé** : `307 → 200`) ; plusieurs → choix ; aucune → créer/rejoindre ; déconnecté → « Se connecter ». Placeholder retiré, lien système de design **dev-only** (règle 9). Ferme le troisième verrou du parcours (P1-021 → P1-020 → P1-022) |
+| P1-023  | Un signal quand l'hébergé décroche                 |    0,5 | ✅ **fusionné le 12 sept. 2026 (PR #90)**, estimation tenue. `pnpm heberge:derive` : migrations comparées **dans les deux sens** contre la base hébergée liée (lecture seule), trois issues nommées (`À JOUR` / `DÉRIVE` / `ILLISIBLE` — jamais un vert par défaut, auto-recoupement à la D-014). **Les deux issues jouées contre la vraie base.** Le vert nomme sa portée : build web et Site URL restent à la checklist |
+| D-028   | L'accueil s'hydrate dans la langue du serveur *(rétroactif)* | 0,25 | ✅ **fait le 12 sept. 2026 (PR #86)** — écrit après coup, comme `D-012`/`D-017` : le correctif du **React #418** de l'accueil déployé (langue lue au rendu → SSR fr / client navigateur) ne figurait dans aucun total. Premier rendu = repli des deux côtés, langue du navigateur **après montage** (`deviceLocale`, rang 3) ; mobile et back-office inchangés |
+|         | **Total ①**                                       | **118,25** | dont **106 faits**, **12,25 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
 nouvelle.** Un chiffre qui monte se relit comme une dérive s'il ne porte pas sa
@@ -633,6 +648,8 @@ corrigé sans son calcul se re-conteste :
 | **`P1-018` fusionné (PR #84) et ratifié 1 → 1,25, 12 sept.** : le sous-budget confirmé, écrit et non absorbé | **115,25** | 103 | 12,25 |
 | **Reprise `P1-018` (PR #85, +0,25), 12 sept.** : réservations mortes reprises + `failed_permanent` — trouvée en revue, écrite, pas absorbée | **115,5** | **103,25** | **12,25** |
 | **Cinq manques de mise en service entrent, 12 sept. (soir)** : `P1-020` (1) + `P1-021` (0,5) + `P1-022` (0,5) + `P1-023` (0,5) = **+2,5** ; `P1-018` 3.4 (rebonds async) va à `P2-015` (②), pas dans ①. Trouvés en répétant la mise en service, chiffrés, pas absorbés | **118** | 103,25 | **14,75** |
+| **Les quatre bâtis et fusionnés le jour même** (PR #88 — qui porte aussi P1-021 —, #89, #90), chaque estimation **tenue et ratifiée** : les 2,5 passent aux faits. Preuves locales jouées ; restent les critères d'appareil (hébergé) | 118 | 105,75 | **12,25** |
+| **`D-028` rétroactif (0,25), fait** : le correctif React #418 de l'accueil (PR #86) ne figurait dans aucun total — troisième fois, même geste que `D-012`/`D-017` | **118,25** | **106** | 12,25 |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.

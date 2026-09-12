@@ -274,8 +274,9 @@ Ce qui **reste `[ ]`** (et pourquoi) :
   inutilisable sous Windows — `EPERM` symlink, pose de la valeur des deux côtés,
   décommissionnement du montage temporaire).
 - **Défaut relevé, hors périmètre infra** : erreur React #418 (décalage
-  d'hydratation) sur l'accueil web — la page se rétablit côté client ; à traiter
-  séparément (accueil `apps/web`, probablement langue/thème SSR ≠ client).
+  d'hydratation) sur l'accueil web — le diagnostic « langue SSR ≠ client » était
+  le bon. ✅ **Corrigé le 12 sept. 2026** (`D-028`, PR #86) : la langue du
+  navigateur ne se lit plus au rendu, elle s'applique après montage.
 
 ## Notes
 

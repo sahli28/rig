@@ -297,10 +297,11 @@ une **procédure de support**, pas un correctif :
 > désabonner » y figure et **doit en être retiré**. Sans cette étape, le symptôme est
 > indiscernable d'un bug d'envoi.
 
-*(Une trouvaille de revue reste à ouvrir en ticket au prochain lot doc : « Lien envoyé »
-affiché alors que l'e-mail porte un code — le web passe par le lien (`emailRedirectTo`), le
-mobile par le code, les deux partagent le gabarit qui met le code en gros et le lien en
-petit gris. Notée ici, pas encore un `D-0xx` — règle 11.)*
+*(La trouvaille « Lien envoyé » affiché alors que l'e-mail porte un code n'a
+**jamais eu besoin de son `D-0xx`** : `P1-021` l'a absorbée le 12 sept. — la copie
+web dit désormais « E-mail envoyé… clique le lien (il montre aussi un code, pour
+l'app mobile) », et l'objet porte le code, unique à chaque envoi, donc plus de fil
+Gmail où recopier un code périmé.)*
 
 ## Dates d'expiration à surveiller — elles se paient en panne silencieuse
 
