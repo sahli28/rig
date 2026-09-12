@@ -187,6 +187,11 @@ GitHub avant la mise en service.
 
 ### Trois prérequis de parcours, trouvés en répétant la mise en service (12 sept. 2026)
 
+> **✅ Tous trois bâtis, prouvés en local et fusionnés le jour même** (PR #88, #89 ;
+> `P1-023` en #90). Ce qui reste avant de rejouer la preuve sur l'hébergé n'est
+> **plus du code** : la recopie dashboard de `P1-021` (action commanditaire,
+> contenu exact dans son ticket) et un redéploiement web.
+
 Essayer d'envoyer les invitations de bout en bout sur l'hébergé a demandé **trois
 contournements SQL** — autant de lots à jouer **avant** le lundi matin, chacun chiffré et
 entré dans ① :

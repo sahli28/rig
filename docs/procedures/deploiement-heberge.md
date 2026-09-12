@@ -209,9 +209,9 @@ Vercel.
 
 **Adresses publiques** (200 vérifié) : `https://rack-web-rack8.vercel.app`,
 `https://rack-web-eight.vercel.app`. La page rend (`<title>Rack</title>`, i18n
-FR/EN). *Défaut relevé, hors périmètre infra : une erreur React #418 (décalage
-d'hydratation) sur l'accueil — la page se rétablit côté client ; à traiter
-séparément (accueil `apps/web`, probablement langue/thème SSR ≠ client).*
+FR/EN). *Le défaut React #418 relevé alors (décalage d'hydratation sur l'accueil, langue
+SSR ≠ client) est ✅ **corrigé le 12 sept. 2026** (`D-028`, PR #86) — visible sur
+l'hébergé au prochain redéploiement.*
 
 **Région des fonctions — à forcer en UE (RGPD).** Par défaut Vercel exécute les
 fonctions en `iad1` (US) ; les données membres qui transitent par le SSR doivent
