@@ -42,14 +42,37 @@ est connecté.** Et c'est aussi **la page que désigne la Site URL** de Supabase
 
 ## Critères d'acceptation
 
-- [ ] Connecté à une box → l'accueil redirige vers `/box/[slug]`.
-- [ ] Connecté à plusieurs → un choix, sans passer par la déconnexion.
-- [ ] Non connecté → l'accueil mène à `/login`, pas au système de design.
-- [ ] L'accueil ne porte plus d'affordance de debug hors `__DEV__` (règle 9).
-- [ ] **appareil / mise en service** : l'OWNER de la box, après connexion, voit sa box.
+- [x] Connecté à une box → l'accueil redirige vers `/box/[slug]` — **prouvé en
+      local** : `GET / 307` → `GET /box/box-pilote-test 200`.
+- [x] Connecté à plusieurs → un choix (liens nommés vers chaque box), sans passer
+      par la déconnexion — rendu conditionnel, couvert par le typecheck.
+- [x] Non connecté → l'accueil mène à `/login` — **prouvé en local** : vue publique
+      (accroche + « Se connecter »), pas de placeholder.
+- [x] L'accueil ne porte plus d'affordance de debug hors développement — le lien
+      « système de design » est gardé par `process.env.NODE_ENV !== 'production'`
+      (règle 9, l'équivalent web de `__DEV__`).
+- [ ] **appareil / mise en service** : l'OWNER de la box, après connexion, voit sa box
+      (sur l'hébergé, après recopie dashboard `P1-021` + redéploiement).
+
+## Réalisation — 12 septembre 2026
+
+`page.tsx` devient un **composant serveur** : `getUser` → si personne, vue publique ;
+sinon `fetchMe`, on filtre les appartenances **ACTIVE**, et **une** box → `redirect`
+avant tout rendu. Zéro, ou plusieurs → un composant client `HomeScreen` (le `t()`
+vit côté client) rend le choix / la création / les invitations en attente
+(`PendingBanner` réutilisé). Le placeholder « le back-office arrive en P1 » disparaît
+(clé `home.placeholder_web` retirée) ; l'accroche, « Se connecter », « Créer une
+box » et le choix réutilisent des clés `home.*` (dont celles déjà employées par
+l'accueil mobile).
+
+**Prouvé en local** : connecté à une box → l'accueil redirige dans `/box/[slug]` ;
+déconnecté → la vue publique. Le lien système de design n'apparaît qu'en dev
+(règle 9). L'entrée « Créer une box » (que `P1-020` attendait de ce lot) est en
+place dans la branche « aucune box ».
 
 ## Notes
 
-À faire entrer dans ①. **Semi-bloquant** : l'accès existe par l'URL `/box/[slug]`,
-mais un OWNER qui se connecte et tombe sur un placeholder croira que « ça ne marche
-pas ». La Site URL pointe cette page — c'est la première impression du back-office.
+Dans ①. Ce lot **ferme le troisième des trois verrous** de mise en service
+(`P1-021` → `P1-020` → `P1-022`) : l'OWNER se connecte, crée sa box, et l'accueil
+l'y mène. **La preuve de bout en bout de `P1-018`** peut désormais se rejouer par le
+vrai parcours, pas par du SQL.
