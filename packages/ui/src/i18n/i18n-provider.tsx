@@ -19,6 +19,7 @@ import {
   formatTime as coreFormatTime,
   formatWeekday as coreFormatWeekday,
   isLocale,
+  resolveLocale,
   translate,
   type FormatDateOptions,
   type Locale,
@@ -64,10 +65,25 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 export interface I18nProviderProps {
   children: ReactNode;
-  /** Langue initiale — **rang 3** : celle de l'appareil ou du navigateur. */
+  /**
+   * Langue du **premier rendu** — celle qui doit être identique côté serveur et
+   * côté client. Le mobile y met la langue de l'appareil (pas de SSR à
+   * désaccorder) ; le web SSR y met le **repli** (rang 4) et passe la langue du
+   * navigateur par `deviceLocale`, appliquée après montage (voir plus bas).
+   */
   initialLocale: Locale;
   /** Fuseau de la box, ex. `Europe/Paris`. */
   timeZone: string;
+  /**
+   * **Rang 3**, appliqué **après montage** : la langue du navigateur (étiquette
+   * BCP-47, ex. `navigator.language`). Réservé au web SSR — lire `navigator` au
+   * rendu y ferait diverger l'hydratation (le serveur n'a pas de `navigator`, il
+   * rend le repli ; le client rendrait la langue du navigateur), soit l'erreur
+   * React #418. En le passant ici, le premier rendu reste le repli des deux
+   * côtés, et la langue du navigateur ne s'applique qu'ensuite — comme le fait
+   * déjà la préférence stockée. Le mobile ne le passe pas (il n'a pas de SSR).
+   */
+  deviceLocale?: string;
   /** **Rang 1** : la préférence enregistrée sur cet appareil. */
   storage?: LocaleStorage;
   /**
@@ -88,6 +104,7 @@ export function I18nProvider({
   timeZone,
   storage,
   profileLocale,
+  deviceLocale,
 }: I18nProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
@@ -135,6 +152,16 @@ export function I18nProvider({
     if (!isLocale(profileLocale)) return;
     setLocaleState(profileLocale);
   }, [storageChecked, pinned, profileLocale]);
+
+  // Rang 3 — la langue du navigateur, appliquée **après montage** (web SSR) : la
+  // lire au premier rendu désaccorderait l'hydratation. N'agit que si aucune
+  // préférence stockée (rang 1) ni langue de compte (rang 2) n'a pris la main.
+  useEffect(() => {
+    if (deviceLocale === undefined) return;
+    if (!storageChecked || pinned) return;
+    if (profileLocale !== undefined && profileLocale !== null && isLocale(profileLocale)) return;
+    setLocaleState(resolveLocale({ device: deviceLocale }));
+  }, [deviceLocale, storageChecked, pinned, profileLocale]);
 
   const setLocale = useCallback(
     (next: Locale) => {
