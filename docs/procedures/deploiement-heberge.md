@@ -151,8 +151,20 @@ docker exec supabase_db_imys psql -U postgres -d postgres -c \
 ## Le back-office web (Vercel)
 
 Projet **`rack8/rack-web`** (équipe `rack`), déployé le 11 sept. 2026, framework
-Next.js, par **CLI** (`npx vercel` ; la connexion GitHub a échoué au `link` —
-sans conséquence, on déploie par upload de fichiers).
+Next.js, par **CLI** (`npx vercel` ; la connexion GitHub a échoué au `link` — on
+déploie par upload de fichiers).
+
+> **Le déploiement n'est PAS automatique — une fusion sur `main` ne redéploie
+> rien.** La connexion GitHub ayant échoué, `rack-web-rack8.vercel.app` sert le
+> **dernier build uploadé à la main** jusqu'à ce que quelqu'un relance
+> `npx vercel deploy --prod --scope rack8 --yes` (voir plus bas). **Conséquence à
+> tenir** : le critère « le back-office est atteignable depuis l'ordinateur de la
+> box » peut être **vert sur un build périmé**, et toute variable d'env nouvelle
+> (`BREVO_API_KEY`, `RACK_INVITE_URL`) n'est embarquée **qu'au prochain déploiement
+> explicite**, posée **avant** lui. **Rebrancher Vercel sur GitHub vaut d'être
+> retenté une fois avant la mise en service** pour retirer ce geste manuel ; tant
+> que ce n'est pas fait, le redéploiement est une **étape de `P1-016`**, pas un
+> automatisme. Le runbook e-mail le rappelle aussi (`email-et-domaine.md`).
 
 **Répertoire racine = `apps/web`, et le CLI ne le pose pas tout seul.** Un
 `vercel link` non interactif laisse `rootDirectory = null` (il traite le dossier
@@ -218,6 +230,67 @@ bloque ni le push ni l'accès back-office (lien de connexion). Le câblage compl
 compte Brevo, clé SMTP, enregistrements DNS OVH (SPF/DKIM/DMARC), champs SMTP du
 dashboard Supabase, durcissement DMARC — vit dans son propre runbook :
 **`email-et-domaine.md`**.
+
+## Rien n'est automatique côté hébergé — trois écarts, une checklist
+
+**Découvert le 12 septembre 2026 en répétant la mise en service : trois choses que
+« fusionné » ou « vert en CI » laisse croire faites, et qui ne le sont pas.** Aucune
+ne se signale ; on les découvre en butant dessus.
+
+1. **Le web ne se redéploie pas.** Une fusion sur `main` ne change **rien** au site
+   servi (connexion GitHub échouée, voir « Le back-office web »). Il faut
+   `npx vercel deploy --prod --scope rack8 --yes` depuis la racine. Fait le 12 sept.
+2. **Les migrations ne partent pas seules.** Le 12 sept., la base hébergée avait
+   **sept migrations de retard** (`20260911101000` → `20260912090000`), soit deux
+   tickets entiers (waitlist + émetteur d'invitations + reprise). Poussées par
+   `supabase db push --linked`. Le cron `rack-expire-waitlist-offers` tourne
+   désormais. **`db push` est un geste manuel** — le rappeler à chaque lot qui
+   ajoute une migration destinée à la box.
+3. **La configuration d'URL de Supabase Auth n'avait jamais été posée.** *Site URL*
+   restait `http://localhost:3000`, donc **tout lien de connexion renvoyait vers
+   localhost** — cassé pour quiconque n'est pas sur la machine de dev. Corrigé :
+   - **Site URL** = `https://rack-web-eight.vercel.app`
+   - **Redirect URLs** : `https://rack-web-eight.vercel.app/**`,
+     `https://rack-web-rack8.vercel.app/**`, `http://localhost:3000/**`
+   (Supabase → *Authentication → URL Configuration*.) À reposer vers le **domaine**
+   quand il servira le back-office.
+
+### Variables Vercel de l'émetteur d'invitations (`P1-018`), posées le 12 sept.
+
+| Variable | Type | Environnements | Valeur |
+| --- | --- | --- | --- |
+| `BREVO_API_KEY` | **Sensitive** | Production | la clé API Brevo (jamais ici) |
+| `RACK_INVITE_URL` | Config | Production **+** Preview | **provisoire** `https://rack-web-rack8.vercel.app/login` — à remplacer par le lien TestFlight |
+
+> **À vérifier** : le déploiement du 12 sept. n'a aliasé que `rack-web-eight.vercel.app`.
+> Si `rack-web-rack8.vercel.app` sert encore le build du 11 sept., `RACK_INVITE_URL`
+> pointe un build périmé — le corriger vers `rack-web-eight` (ou le domaine).
+
+### La CI n'est pas une barrière de fusion — à poser
+
+**Cinq PR (#82→#86) ont fusionné par-dessus une CI rouge** (job « Format », voir
+`fix(ci)` du 12 sept.). La **protection de branche GitHub n'exige donc pas les
+checks verts avant fusion** — sinon ces merges auraient été bloqués. C'est un
+réglage à poser (*Settings → Branches → Branch protection → Require status checks
+to pass*), et il vit **hors du dépôt**, d'où sa place ici. Sans lui, une CI rouge
+qui dure cesse d'être un signal, et le prochain rouge (anti-fuite, concurrence)
+ressemblera au rouge d'hier. *(Non vérifié depuis cette machine — à confirmer dans
+les réglages du dépôt.)*
+
+### Checklist de mise en service — à passer avant que la box arrive
+
+Aucune n'est couverte par une CI verte ou une fusion. Dans l'ordre :
+
+- [ ] `supabase db push --linked` : la base hébergée porte **toutes** les migrations
+      (comparer à `supabase/migrations/`), et `select version()` commence par `17`.
+- [ ] `npx vercel deploy --prod --scope rack8 --yes` : le site sert le **dernier**
+      build (vérifier une chaîne récente à l'écran, pas juste un `200`).
+- [ ] Supabase *Authentication → URL Configuration* : Site URL = l'adresse publique
+      réelle (pas localhost), Redirect URLs à jour.
+- [ ] Variables Vercel posées **avant** le déploiement, prod **et** preview au besoin.
+- [ ] Gabarits d'e-mail hébergés recopiés (voir `email-et-domaine.md`), OTP = 6.
+- [ ] Passage Supabase **Pro** et Vercel **Pro** (voir `P1-016`).
+- [ ] Protection de branche GitHub exigeant la CI verte (ci-dessus).
 
 ## Ce qui vit hors du dépôt
 

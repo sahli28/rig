@@ -160,18 +160,18 @@ consommé du lot migre vers `P1-016`, comme l'Estimation l'annonce.
       **claimé, envoyé à exp.host et marqué en 441 ms** ✅. Le **`sent` terminal**
       lui-même reste `[ ]` : exp.host renvoie `DeviceNotRegistered` pour tout
       jeton synthétique — seul un **vrai appareil** (§ 5 nonies) le produit
-- [~] Le back-office répond sur son adresse publique — ✅ `rack-web-rack8.vercel.app`
+- [x] Le back-office répond sur son adresse publique — ✅ `rack-web-rack8.vercel.app`
       en `200`, la page rend (protection de déploiement Vercel désactivée). La
-      connexion par lien **avec un vrai e-mail reçu** (pas Mailpit) reste `[ ]` :
-      le domaine existe désormais et le SMTP est câblé côté dépôt
-      (`docs/procedures/email-et-domaine.md`, volet `P1-016`) ; ce `[ ]` **bascule
-      quand la preuve tombe** — un magic link signé reçu, `SPF/DKIM/DMARC = pass`
-- [x] Le SMTP tiers est en place, ou l'arbitrage écrit dit pourquoi pas encore
-      et jusqu'à quand — **arbitrage écrit**, voir « Le SMTP tiers : pourquoi il
-      attend, et jusqu'à quand » ci-dessus ; le SMTP tiers lui-même reste `[ ]`,
-      **non plus derrière le domaine** (acheté, actif sur OVH) mais derrière la pose
-      des DNS + le câblage du dashboard + la preuve — tout écrit dans le runbook du
-      volet `P1-016`
+      connexion par lien **avec un vrai e-mail reçu** (pas Mailpit) est **prouvée le
+      12 sept. 2026** : magic link signé reçu en boîte, `SPF/DKIM/DMARC = pass`
+      (`d=rack-app.fr`, sélecteur `brevo2`), expéditeur `Rack <bonjour@rack-app.fr>`,
+      code à 6 chiffres, `mail-tester` 7,9/10
+      (`docs/procedures/email-et-domaine.md`, volet `P1-016`)
+- [x] Le SMTP tiers est en place — **prouvé le 12 sept. 2026** : Brevo signé sur
+      `rack-app.fr` (DNS OVH posés, dashboard Supabase câblé, plafond horaire à 100),
+      magic link reçu `SPF/DKIM/DMARC = pass`. L'arbitrage « pourquoi il attendait »
+      reste écrit ci-dessus pour mémoire ; il n'attend plus rien. Détail dans le
+      runbook du volet `P1-016` (`docs/procedures/email-et-domaine.md`)
 - [ ] `docs/procedures/` porte la liste de ce qui vit hors du dépôt
 - [ ] Aucun secret dans un commit — vérifié par `git log -p` sur la branche,
       pas supposé

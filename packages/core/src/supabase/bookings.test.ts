@@ -828,9 +828,7 @@ describe('confirmPromotion', () => {
   it('passe l’identifiant d’entrée sous son nom SQL', async () => {
     const { client, appels } = fakeClient({ data: RÉSERVATION });
     await confirmPromotion(client, ENTRÉE);
-    expect(appels).toEqual([
-      { fn: 'confirm_promotion', args: { p_waitlist_entry_id: ENTRÉE } },
-    ]);
+    expect(appels).toEqual([{ fn: 'confirm_promotion', args: { p_waitlist_entry_id: ENTRÉE } }]);
   });
 
   it('rend l’identifiant de la réservation créée', async () => {

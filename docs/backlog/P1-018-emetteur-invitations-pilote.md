@@ -70,9 +70,16 @@ Réponse à tenir avant le lundi matin, selon la forme du pilote :
   lundi matin — pas à absorber le jour J.
 
 Pour la **preuve à 3 adresses** (clé posée), l'URL du back-office suffit : on prouve
-que l'envoi part et que le journal est cohérent, pas le parcours d'un membre. À
-**trancher** : le pilote est-il iOS-seul (alors `RACK_INVITE_URL` = TestFlight
-public, rien à écrire) ou non (alors on ouvre le lot page d'atterrissage) ?
+que l'envoi part et que le journal est cohérent, pas le parcours d'un membre.
+
+**Tranché le 12 sept. 2026 : pilote iOS-seul.** Donc `RACK_INVITE_URL` = **le lien
+TestFlight public**, **aucune page d'atterrissage à écrire** (le lot ≈ 0,5 j·h n'est pas
+ouvert). **Le trou se déplace, il ne se ferme pas** : ce lien TestFlight n'existe pas
+encore — le build TestFlight (lot 1,25 de `P1-016`) n'est pas joué — donc **l'envoi des 80
+est bloqué par ce build**, pas par le code de ce ticket. Écrit noir sur blanc dans `P1-016`
+(« Le point d'entrée des 80, et ce qui le bloque encore ») et dans le runbook
+`email-et-domaine.md`, pour que « l'émetteur est fait » ne se lise jamais « les invitations
+peuvent partir ».
 
 ### La reprise du motif claim/mark (correctif post-fusion)
 
@@ -140,6 +147,15 @@ rejeté, via webhook Brevo) → **hors périmètre**, `P2-015` : au pilote, l'é
 synchrone couvre l'essentiel (adresse morte), et la personne d'accompagnement voit
 le reste en salle.
 
+> **Confirmé le 12 sept. 2026 (répétition de mise en service) — c'est le point 3.4
+> des cinq trouvés.** Une adresse **bien formée mais morte** est **acceptée par Brevo**
+> (201) et rebondit **plus tard**, en asynchrone : rien ne la capte, la liste « à
+> corriger » reste vide, et l'opérateur croit que 80 invitations sont parties. C'est
+> exactement le **webhook de rebond de `P2-015`** ci-dessus — **pas** un lot nouveau,
+> pas dupliqué en ticket. La parade pilote tient (échec synchrone + personne
+> d'accompagnement en salle) ; si la box veut le compte exact des remises **avant**
+> `P2-015`, c'est ce webhook qu'il faut avancer, en connaissance de cause.
+
 ### 5. Vagues — l'outil étale, il ne force pas le tout-d'un-coup
 Le runbook prescrit déjà `2 × 40` si le quota se resserre. L'émetteur traite un
 **lot borné par invocation** (une limite) : on l'exécute, on attend, on ré-exécute.
@@ -182,20 +198,42 @@ au moment de la fusion** (proposition : `P1-018` entre à 1 j·h, `P1-016` reste
 ligne, pas ce ticket.
 
 ## Critères d'acceptation
-- [ ] Depuis l'écran d'effectif d'une box, un envoi expédie un e-mail à chaque
+- [~] Depuis l'écran d'effectif d'une box, un envoi expédie un e-mail à chaque
       invitation `PENDING`, en FR ou EN selon la locale, contenant l'instruction de
-      connexion **avec l'adresse invitée** — aucun jeton dans l'URL
-- [ ] Relancer n'envoie qu'aux **encore `PENDING`** (ni acceptées, ni expirées)
-- [ ] Un envoi rejoué après coupure **ne renvoie pas** ce qui est déjà parti dans
-      la vague (idempotence prouvée)
-- [ ] `email_deliveries` porte l'envoi (adresse, réf., date, statut, id Brevo),
+      connexion **avec l'adresse invitée** — aucun jeton dans l'URL. *(Rendu et
+      classement testés ; l'envoi de bout en bout attend la mise en service, voir
+      « État de la preuve ».)*
+- [x] Relancer n'envoie qu'aux **encore `PENDING`** (ni acceptées, ni expirées) —
+      logique de `claim` prouvée en pgTAP
+- [x] Un envoi rejoué après coupure **ne renvoie pas** ce qui est déjà parti dans
+      la vague (idempotence prouvée) — pgTAP, y compris la reprise des réservations
+      mortes
+- [x] `email_deliveries` porte l'envoi (adresse, réf., date, statut, id Brevo),
       **sans corps ni donnée de santé** ; `tenant_id`, RLS forcée, policies, grants,
-      cas dans `rls_leak_test.sql`
-- [ ] Un échec synchrone (adresse morte) est `FAILED` et **visible** par la box
-- [ ] L'envoi se fait **par lot borné** (vagues possibles)
-- [ ] `pnpm i18n:check` couvre les clés de l'e-mail et échoue si une manque
+      cas dans `rls_leak_test.sql` — `rls-auditor` SAFE
+- [~] Un échec synchrone (adresse morte) est `FAILED` et **visible** par la box —
+      mécanisme fait (`failed`/`failed_permanent`) ; l'observation à l'écran attend
+      la mise en service
+- [x] L'envoi se fait **par lot borné** (vagues possibles) — `limit` 20
+- [x] `pnpm i18n:check` couvre les clés de l'e-mail et échoue si une manque
 - [ ] **appareil / mise en service** : « 80 invitations qui partent pour de vrai »
       se prouve à la mise en service, la clé API Brevo posée — pas sur une PR verte
+
+## État de la preuve — 12 septembre 2026 : **non faite**
+
+Répétition de mise en service sur l'hébergé. **Prouvé** : la chaîne Supabase Auth →
+Brevo (`SPF/DKIM/DMARC = pass`), les migrations poussées sur l'hébergé, le
+redéploiement web avec les variables, la configuration d'URL Supabase, et l'accès
+OWNER à une box de test.
+
+**Pas prouvé : l'envoi des invitations lui-même.** Le test s'est arrêté **avant**
+l'import CSV — le parcours pour y arriver demandait **trois contournements SQL**
+(forger un jeton pour `create_tenant`, `email_confirmed_at` à la main, la config
+d'URL), au point que le test aurait prouvé le contournement, pas le produit. Les
+**critères d'appareil restent ouverts**, et la preuve se refera **quand `P1-020`
+(créer la box) et `P1-021` (première connexion web) seront traités** : elle sera
+alors exercée par le **vrai parcours**, pas par du SQL. C'est la bonne raison de ne
+pas la cocher aujourd'hui.
 
 ## Notes
 Ne pas gonfler (garde-fou du lot) : **un émetteur, pas un framework**. Si

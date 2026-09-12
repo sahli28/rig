@@ -10,6 +10,13 @@ en expliquant la cause avant de corriger.
 ## Automatique
 
 1. `pnpm typecheck`
+1bis. `pnpm format:check` — **la CI a un job « Format » que cette porte ignorait.**
+   Le 11 septembre 2026, `2d93f85` (P1-006) a fusionné `bookings.test.ts` non
+   formaté : vert en local (parce que `/check` ne lançait que typecheck/lint/tests),
+   **rouge à distance**, et le rouge est resté sur `main` sous **cinq** PR
+   (#82→#86). Une CI rouge qui dure cesse d'être un signal : le prochain rouge
+   sera un test anti-fuite ou de concurrence, indiscernable de celui d'hier. La
+   parade est ici — exécuter **ce que la CI exécute**. Correctif : `pnpm format`.
 2. `pnpm lint`
 2bis. `pnpm lint:sondes` — **les interdits mordent-ils encore ?** Un lint vert ne
    dit pas qu'une règle s'applique, seulement qu'elle n'a rien trouvé. Le
