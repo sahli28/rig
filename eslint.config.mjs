@@ -232,9 +232,18 @@ export default tseslint.config(
   },
   {
     // Scripts Node autonomes, hors monorepo : hooks Claude Code et outillage.
+    // `fetch` et `AbortSignal` sont des globaux de Node depuis la 18, et
+    // `engines` exige >= 22 — les déclarer ici ne promet rien que le moteur
+    // n'ait pas (gabarits-derive.mjs, D-029).
     files: ['.claude/hooks/*.mjs', 'scripts/*.mjs'],
     languageOptions: {
-      globals: { process: 'readonly', console: 'readonly', URL: 'readonly' },
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        URL: 'readonly',
+        fetch: 'readonly',
+        AbortSignal: 'readonly',
+      },
     },
   },
   {

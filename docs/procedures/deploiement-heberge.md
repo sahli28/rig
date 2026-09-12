@@ -308,9 +308,12 @@ Aucune n'est couverte par une CI verte ou une fusion. Dans l'ordre :
 - [ ] Supabase *Authentication → URL Configuration* : Site URL = l'adresse publique
       réelle (pas localhost), Redirect URLs à jour.
 - [ ] Variables Vercel posées **avant** le déploiement, prod **et** preview au besoin.
-- [ ] Gabarits d'e-mail hébergés recopiés (voir `email-et-domaine.md`), OTP = 6.
-      **Troisième dérive le 12 sept. — le filet `pnpm gabarits:derive` est `D-029` ;
-      tant qu'il n'existe pas, cette case est la seule protection.**
+- [ ] Gabarits d'e-mail hébergés recopiés (voir `email-et-domaine.md`), OTP = 6 —
+      et vérifiés : `SUPABASE_ACCESS_TOKEN=sbp_… pnpm gabarits:derive` rend
+      **À JOUR** (`D-029` ; jeton d'accès personnel, dashboard → Account →
+      Access Tokens, passé au moment du geste, jamais stocké). Le vert ne
+      couvre que les gabarits `confirmation`/`magic_link` — l'OTP à 6 reste à
+      l'œil.
 - [ ] **Avant tout envoi d'invitations réelles** (garde-fou `P1-016`), dans l'ordre :
       build TestFlight soumis et lien public créé → `RACK_INVITE_URL` basculée
       (prod **et** preview) → redéploiement explicite → un e-mail de test à soi

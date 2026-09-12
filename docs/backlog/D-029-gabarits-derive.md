@@ -26,7 +26,7 @@ des sœurs.
 | --- | --- | --- |
 | Les gabarits versionnés | `supabase/templates/confirmation.html`, `magic-link.html` + objets `supabase/config.toml:282-295` | ✅ existent |
 | Le projet hébergé lié (`supabase link`) | trousseau de la machine, `deploiement-heberge.md` | ✅ fait |
-| Un accès en lecture à la config Auth hébergée | API de gestion Supabase (`/v1/projects/{ref}/config/auth`) **ou** `supabase config push --dry-run` | ⚠️ **à vérifier au build** — le CLI évolue ; si aucune lecture fiable, replier sur la case de checklist (voir Notes) |
+| Un accès en lecture à la config Auth hébergée | API de gestion Supabase (`GET /v1/projects/{ref}/config/auth`) | ✅ **tranché au build (13 sept.)** : l'API de gestion, avec un **jeton d'accès personnel passé en `SUPABASE_ACCESS_TOKEN` au moment du geste** — jamais stocké dans le dépôt. Le jeton du `supabase login` vit dans le trousseau Windows, qu'un script n'a pas à fouiller. `supabase config push` est **exclu** : pas de `--dry-run` dans le CLI (v2.116 vérifié), et il écraserait la config entière — dont `site_url = localhost` — vers la prod |
 | Le modèle de script à trois issues | `scripts/heberge-derive.mjs` (P1-023) | ✅ existe — même forme, même règle 10 |
 
 ## Ce que ce ticket rend possible, et qui l'appellera
@@ -57,12 +57,23 @@ des sœurs.
 
 ## Critères d'acceptation
 
-- [ ] Un gabarit modifié dans le dépôt sans recopie → `DÉRIVE`, avec le fichier
-      et le champ en cause
-- [ ] Dépôt et dashboard alignés → `À JOUR`, avec le compte de gabarits comparés
-- [ ] L'API inaccessible → `ILLISIBLE`, exit 2, aucun verdict
-- [ ] Les **deux issues** jouées contre la vraie base (comme P1-023), pas
-      seulement lues dans le code
+- [x] Un gabarit modifié dans le dépôt sans recopie → `DÉRIVE`, avec le champ en
+      cause — **joué le 13 sept.** contre un simulateur local de l'API (le
+      script exécuté tel quel, seule `SUPABASE_API_URL` change — la variable que
+      le CLI honore) : objet ancien → « contenus différents (43 car. / 19
+      car.) », corps vide → « l'hébergé sert le gabarit PAR DÉFAUT »
+- [x] Dépôt et dashboard alignés → `À JOUR`, avec le compte de champs — **joué
+      le 13 sept.** contre le simulateur, y compris avec du **CRLF et des
+      espaces de bord** côté « hébergé » : une recopie à la main ne dérive que
+      sur le contenu, pas sur les fins de ligne
+- [x] L'API inaccessible → `ILLISIBLE`, exit 2, aucun verdict — **joué le 13
+      sept. en réel** (jeton absent)
+- [ ] Les **deux issues** jouées contre la **vraie** config hébergée — **geste
+      commanditaire** : le jeton d'accès personnel est le tien
+      (dashboard → Account → Access Tokens), puis
+      `SUPABASE_ACCESS_TOKEN=sbp_… pnpm gabarits:derive`. Attendu aujourd'hui :
+      `À JOUR` si la recopie du 12 sept. est fidèle — un `DÉRIVE` serait une
+      **vraie trouvaille**, à corriger au dashboard puis re-vérifier
 
 ## Notes
 
