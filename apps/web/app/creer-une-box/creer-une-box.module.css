@@ -1,0 +1,88 @@
+/*
+ * Aucune couleur littérale : tout vient des variables injectées par
+ * <ThemeStyle/>, dérivées du thème (règle 7 de CLAUDE.md). Même forme que
+ * l'écran de connexion — une carte centrée.
+ */
+
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  background: var(--rack-color-surface-2);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-lg);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--rack-text-display);
+  font-weight: 700;
+}
+
+.muted {
+  margin: 0;
+  color: var(--rack-color-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: var(--rack-text-small);
+  font-weight: 500;
+}
+
+.input {
+  padding: 12px;
+  min-height: var(--rack-touch-target);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-surface);
+  color: var(--rack-color-text);
+  font: inherit;
+}
+
+.hint {
+  margin: 0;
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-small);
+}
+
+.primary {
+  margin-top: 8px;
+  border: none;
+  padding: 12px 16px;
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
+  font-weight: 600;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/*
+ * L'information n'est jamais portée par la couleur seule (`.claude/rules/ui.md`) :
+ * le message d'erreur est un texte, annoncé en `role="alert"`.
+ */
+.error {
+  margin: 0;
+  padding: 12px;
+  border-left: 4px solid var(--rack-color-danger);
+  background: var(--rack-color-surface);
+  border-radius: var(--rack-radius-md);
+}

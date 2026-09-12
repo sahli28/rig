@@ -76,11 +76,14 @@ export {
 
 export {
   acceptInvitation,
+  createTenant,
   fetchTenantPublicProfile,
   InvitationPreviewSchema,
+  NewBoxSchema,
   PendingInvitationSchema,
   acceptPendingInvitation,
   fetchPendingInvitations,
+  type NewBox,
   type PendingInvitation,
   TenantPublicProfileSchema,
   fetchInvitationPreview,

@@ -52,11 +52,68 @@ sont pas versionnés sur l'hébergé — `email-et-domaine.md`).
 
 ## Critères d'acceptation
 
-- [ ] Un compte neuf, **jamais confirmé**, se connecte par le web **sans SQL**.
+- [x] Un compte neuf, **jamais confirmé**, se connecte par le web **sans SQL** —
+      **prouvé en local le 12 sept. 2026** (voir Réalisation) : `/login?inscription=1`,
+      e-mail neuf → e-mail de confirmation avec **lien** → clic → session établie.
 - [ ] Le correctif est posé **dans le dépôt et dans le dashboard** (les deux, sinon
-      l'hébergé diverge).
+      l'hébergé diverge) — **dépôt fait ; dashboard = action pour la commanditaire**,
+      contenu exact ci-dessous. **Reste ouvert tant que le dashboard n'est pas mis à jour.**
 - [ ] **appareil / mise en service** : la première connexion réelle du staff de la
-      box aboutit.
+      box aboutit (après recopie dashboard + redéploiement).
+
+## Réalisation — 12 septembre 2026
+
+**Voie (1) retenue et jouée** : le gabarit « Confirm sign up » (`confirmation.html`)
+gagne le **bloc lien** (`{{ .ConfirmationURL }}`) qu'avait déjà `magic-link.html` — le
+web suit le lien, aucun champ code à ajouter côté web. Deux petits défauts d'e-mail
+**absorbés ici** (ils vivaient dans les mêmes fichiers) :
+
+- **« Lien envoyé » ↔ e-mail à code.** L'écran disait « Lien envoyé » alors que
+  l'e-mail met le **code** en gros et le lien en petit. Copie corrigée
+  (`login.sent_title`/`sent_body`, FR+EN) : « E-mail envoyé — ouvre le message et
+  **clique le lien**… (il montre aussi un code, pour l'app mobile) ». *(C'était le
+  D-0xx « Lien envoyé / code affiché » décalé du lot doc — traité ici, pas rouvert.)*
+- **Même objet → Gmail empile.** Les deux gabarits partageaient l'objet, donc un
+  membre qui redemande un code voyait des messages identiques et pouvait recopier un
+  code périmé. L'objet porte désormais **le code** : `Ton code Rack {{ .Token }} /
+  Your Rack code` — **unique à chaque envoi** (vérifié : Supabase rend `{{ .Token }}`
+  dans l'objet, testé en local via Mailpit), le plus récent en tête, code visible.
+
+**Prouvé en local (Mailpit + harnais web)** : objet rendu `Ton code Rack 278384 /
+Your Rack code` ; l'e-mail de confirmation porte un lien `/auth/v1/verify?token=…`
+rendu (aucun `{{ … }}` résiduel) ; le clic aboutit à une **session cookie
+`sb-…-auth-token` avec `access_token`** pour l'adresse neuve. Le parcours **aboutit**.
+
+### Action pour la commanditaire — recopier dans le dashboard hébergé (sinon oublié)
+
+Les gabarits **et les objets** ne sont pas versionnés côté hébergé
+(`email-et-domaine.md`). Dans **Supabase → Authentication → Emails** :
+
+1. **Confirm sign up → Subject** : `Ton code Rack {{ .Token }} / Your Rack code`
+2. **Magic Link (or OTP) → Subject** : `Ton code Rack {{ .Token }} / Your Rack code`
+3. **Confirm sign up → Message body** : coller **exactement** le contenu de
+   `supabase/templates/confirmation.html` de ce lot — soit :
+
+```html
+<h2>Rack</h2>
+
+<p>Bienvenue. Ton code de connexion / Welcome. Your sign-in code:</p>
+
+<p style="font-size: 28px; letter-spacing: 6px; font-weight: 700">{{ .Token }}</p>
+
+<p>
+  Il expire dans une heure. Si tu n'as rien demandé, ignore cet e-mail.<br />
+  It expires in one hour. If you didn't ask for it, ignore this email.
+</p>
+
+<p style="color: #5b6472; font-size: 12px">
+  Tu peux aussi te connecter depuis un navigateur :
+  <a href="{{ .ConfirmationURL }}">ouvrir le lien</a>.<br />
+  You can also sign in from a browser: <a href="{{ .ConfirmationURL }}">open the link</a>.
+</p>
+```
+
+*(Le body de « Magic Link » est déjà bon côté hébergé — seul son **objet** change.)*
 
 ## Notes
 

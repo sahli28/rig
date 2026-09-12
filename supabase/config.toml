@@ -282,12 +282,16 @@ otp_expiry = 3600
 # Gabarits maison : le mobile se connecte au **code à six chiffres**, que les
 # gabarits par défaut de Supabase ne portent pas (ils n'ont que le lien).
 # `confirmation` sert à la première connexion, `magic_link` aux suivantes.
+# Le code dans le sujet : chaque envoi a un sujet **unique**, donc Gmail ne les
+# empile plus dans un seul fil (un membre qui redemande un code ne recopie plus un
+# code périmé — le plus récent est en tête, code visible). Le `{{ .Token }}` est
+# rendu par Supabase dans le sujet comme dans le corps (vérifié en local via Mailpit).
 [auth.email.template.confirmation]
-subject = "Ton code Rack / Your Rack code"
+subject = "Ton code Rack {{ .Token }} / Your Rack code"
 content_path = "./supabase/templates/confirmation.html"
 
 [auth.email.template.magic_link]
-subject = "Ton code Rack / Your Rack code"
+subject = "Ton code Rack {{ .Token }} / Your Rack code"
 content_path = "./supabase/templates/magic-link.html"
 
 # Uncomment to customize email template
