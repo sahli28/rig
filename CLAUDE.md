@@ -119,6 +119,7 @@ pnpm test:db            # tests pgTAP, dont le test anti-fuite inter-tenant
 pnpm db:migrate         # applique les migrations Supabase en local
 pnpm db:reset           # reset + seed local
 pnpm migrations:immuables # une migration déjà versionnée a-t-elle changé ? (D-014)
+pnpm heberge:derive     # la base hébergée liée porte-t-elle les migrations du dépôt ? (P1-023)
 ```
 
 `pnpm test:db` **doit** être vert avant tout commit touchant `supabase/`.

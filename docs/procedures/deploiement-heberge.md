@@ -245,7 +245,9 @@ ne se signale ; on les découvre en butant dessus.
    tickets entiers (waitlist + émetteur d'invitations + reprise). Poussées par
    `supabase db push --linked`. Le cron `rack-expire-waitlist-offers` tourne
    désormais. **`db push` est un geste manuel** — le rappeler à chaque lot qui
-   ajoute une migration destinée à la box.
+   ajoute une migration destinée à la box. Depuis `P1-023`, **`pnpm heberge:derive`
+   rougit tout seul sur cet écart** (voir plus bas) — le contrôle qui manquait ce
+   jour-là.
 3. **La configuration d'URL de Supabase Auth n'avait jamais été posée.** *Site URL*
    restait `http://localhost:3000`, donc **tout lien de connexion renvoyait vers
    localhost** — cassé pour quiconque n'est pas sur la machine de dev. Corrigé :
@@ -277,12 +279,28 @@ qui dure cesse d'être un signal, et le prochain rouge (anti-fuite, concurrence)
 ressemblera au rouge d'hier. *(Non vérifié depuis cette machine — à confirmer dans
 les réglages du dépôt.)*
 
+### `pnpm heberge:derive` — le contrôle qui rougit sur la dérive des migrations
+
+**Le seul des trois écarts qui se vérifie tout seul** (`P1-023`,
+`scripts/heberge-derive.mjs`). Il compare `supabase/migrations/` à ce que la base
+hébergée **liée** porte réellement (`supabase migration list --linked`, lecture
+seule, mot de passe du trousseau), **dans les deux sens** : une migration du dépôt
+absente de l'hébergé (**en retard** → `db push`), et une migration de l'hébergé
+inconnue du dépôt (**pire** : parti en prod hors du dépôt — à élucider avant tout
+`db push`). Trois issues nommées, jamais une impression (règle 10) : `À JOUR`
+(exit 0, avec le compte), `DÉRIVE` (exit 1, la liste), `ILLISIBLE` (exit 2 — le
+CLI a échoué ou ne recoupe plus le dépôt : **ne rien conclure**, surtout pas un
+vert). Prérequis : `supabase link` sur la machine ; en CI il faudrait un secret
+`SUPABASE_DB_PASSWORD`, non câblé — le contrôle est un geste, comme le `db push`
+dont il vérifie l'oubli. **Son vert ne couvre que les migrations** : le build web
+et la Site URL restent aux lignes 2 et 3 de la checklist.
+
 ### Checklist de mise en service — à passer avant que la box arrive
 
 Aucune n'est couverte par une CI verte ou une fusion. Dans l'ordre :
 
-- [ ] `supabase db push --linked` : la base hébergée porte **toutes** les migrations
-      (comparer à `supabase/migrations/`), et `select version()` commence par `17`.
+- [ ] `pnpm heberge:derive` rend **À JOUR** — sinon `supabase db push --linked`,
+      puis re-vérifier ; et `select version()` commence par `17`.
 - [ ] `npx vercel deploy --prod --scope rack8 --yes` : le site sert le **dernier**
       build (vérifier une chaîne récente à l'écran, pas juste un `200`).
 - [ ] Supabase *Authentication → URL Configuration* : Site URL = l'adresse publique
