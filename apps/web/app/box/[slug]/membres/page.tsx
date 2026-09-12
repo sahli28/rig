@@ -10,6 +10,16 @@ import { Notice } from '../notice';
 import { ImportScreen } from './import-screen';
 
 /**
+ * L'action `sendInvitations` poste les invitations à Brevo **en série** (un POST
+ * par personne). Sur Vercel, une fonction sans `maxDuration` explicite retombe sur
+ * le défaut du plan — 10 s sur Hobby legacy — et serait tuée en pleine boucle, ce
+ * qui laisse des lignes `sending` mortes (reprises depuis, mais autant ne pas les
+ * provoquer). 60 s est le plafond Hobby legacy et tient largement sous Fluid
+ * Compute. Le lot est borné à 20 côté action ; à mesurer réellement à la preuve.
+ */
+export const maxDuration = 60;
+
+/**
  * Import d'un effectif.
  *
  * **Sans lui, aucune box existante ne migre** (spec §19, R3) : c'est ce ticket

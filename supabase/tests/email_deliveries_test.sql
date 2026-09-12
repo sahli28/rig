@@ -7,7 +7,7 @@
 -- `sending -> sent | failed`, idempotent (garde `status = sending`), autorisé.
 
 begin;
-select plan(16);
+select plan(19);
 
 \set rueil    '\'aaaaaaaa-0000-4000-8000-000000000001\''
 \set marc_jwt '{"sub":"11111111-0000-4000-8000-000000000001","role":"authenticated","email":"marc@rueil.example"}'
@@ -120,6 +120,70 @@ set local request.jwt.claims = :'lea_jwt';
 select is(
   (select count(*)::int from public.email_deliveries where tenant_id = :rueil),
   0, 'un simple membre ne voit aucun envoi — la policy est OWNER/MANAGER'
+);
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- Reprise (fix P1-018) : réservations mortes reprises, permanence respectée.
+-- Décor propre pour isoler ces cas : deux invitations vives, aucun envoi.
+-- ---------------------------------------------------------------------------
+reset role;
+delete from public.email_deliveries where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001';
+delete from public.invitations where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001';
+
+set local role authenticated;
+set local request.jwt.claims = :'marc_jwt';
+select public.import_members(
+  'aaaaaaaa-0000-4000-8000-000000000001',
+  '[{"email":"a@import.example"},{"email":"b@import.example"}]'::jsonb
+);
+reset role;
+
+-- 7. Une `sending` plus vieille que le bail (15 min) est une réservation morte :
+--    le prochain claim la passe `failed` (visible) et l'invitation redevient
+--    réservable. On la fabrique sur a@ ; b@ n'a jamais été envoyée.
+reset role;
+insert into public.email_deliveries (tenant_id, invitation_id, email, status, created_at)
+select 'aaaaaaaa-0000-4000-8000-000000000001', i.id, i.email::text, 'sending', now() - interval '20 minutes'
+from public.invitations i
+where i.tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001' and i.email::text = 'a@import.example';
+
+set local role authenticated;
+set local request.jwt.claims = :'marc_jwt';
+select is(
+  (select count(*)::int from public.claim_invitations_to_email(:rueil, 40, interval '24 hours')),
+  2, 'la réservation morte est reprise : a@ redevient réservable, avec b@'
+);
+reset role;
+
+select is(
+  (select count(*)::int from public.email_deliveries
+   where tenant_id = :rueil and status = 'failed'
+     and last_error like 'réservation expirée%'),
+  1, 'la ligne sending trop vieille est passée failed (visible), pas laissée en suspens'
+);
+
+-- 8. Échec temporaire (429) vs permanent (adresse invalide) : seul le temporaire
+--    est réessayé. a@ et b@ portent chacune une `sending` fraîche (claim §7).
+set local role authenticated;
+set local request.jwt.claims = :'marc_jwt';
+select public.mark_email_delivery(
+  (select d.id from public.email_deliveries d
+   join public.invitations i on i.id = d.invitation_id
+   where i.email::text = 'b@import.example' and d.status = 'sending'),
+  'failed', null, 'Brevo 429: quota du jour atteint'
+);
+select public.mark_email_delivery(
+  (select d.id from public.email_deliveries d
+   join public.invitations i on i.id = d.invitation_id
+   where i.email::text = 'a@import.example' and d.status = 'sending'),
+  'failed_permanent', null, 'Brevo 400: adresse invalide'
+);
+select is(
+  (select array_agg(email order by email)
+   from public.claim_invitations_to_email(:rueil, 40, interval '24 hours')),
+  array['b@import.example'],
+  'le 429 (temporaire) est réessayé ; l''adresse invalide (permanent) ne l''est plus'
 );
 reset role;
 

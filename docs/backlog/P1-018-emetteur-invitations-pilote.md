@@ -43,9 +43,57 @@ note d'estimation de `P1-016` (petit lot doc séparé — noté ici, pas absorb�
 | Le parcours d'acceptation par appariement d'e-mail | `accept_pending_invitation()`, `pending_invitations_for_me` | ✅ existent et testés |
 | Le magic link (la connexion elle-même) | Supabase Auth → SMTP Brevo (volet `P1-016`) | ✅ câblé — **c'est un autre e-mail, un autre canal** que l'invitation |
 | L'écran d'import de l'effectif | `apps/web/app/box/[slug]/membres/` | ✅ existe — l'émetteur se déclenche là où l'import vient d'avoir lieu |
-| L'adresse publique du back-office / de l'app | `apps/web` déployé (`P1-017`) | ✅ — le lien « se connecter » de l'e-mail y pointe |
+| **Le point d'entrée des 80 membres** (où mène `RACK_INVITE_URL`) | l'app **mobile** — pas encore distribuée (TestFlight, `P1-016`). `apps/web/login` est l'espace **admin**, pas la porte d'un membre | ⚠️ **trou de mise en service, nommé ci-dessous (règle 8).** L'URL du back-office suffit pour la preuve à 3 (on prouve l'envoi, pas le parcours) |
 | **Une clé API Brevo** (transactionnelle) | *rien* — hors dépôt | ❌ **prérequis runtime, à créer avec ce lot** (dans les réglages hébergés, jamais commitée). Le code et les tests peuvent atterrir **avant** qu'elle existe ; la preuve d'envoi réel attend la clé, comme le domaine attend sa preuve |
 | Une couche d'e-mail thémée, `sendEmail(template, locale, data)` | *rien* | ❌ **`P2-015`, et ce ticket ne la préempte pas** — voir le garde-fou |
+
+### Le point d'entrée du lundi matin (`RACK_INVITE_URL`) — trou nommé (règle 8)
+
+Question soulevée à la revue de la reprise : **vers quoi pointe `RACK_INVITE_URL`
+le jour des 80 envois ?** Les 80 sont des **membres**, et un membre vit sur le
+**mobile**. Si l'e-mail les envoie sur `rack-web-rack8.vercel.app/login`, ils
+atterrissent sur l'**espace box** (back-office admin) — qui n'est pas fait pour
+eux, et où ils n'ont aucun droit. Le lien « se connecter » n'a de sens que s'il
+mène là où un membre peut *devenir* membre.
+
+Réponse à tenir avant le lundi matin, selon la forme du pilote :
+
+- **Pilote iOS (le cas prévu, `P1-016`)** : `RACK_INVITE_URL` = **le lien TestFlight
+  public**. La personne installe l'app, l'ouvre, demande son magic link **avec son
+  adresse**, et `accept_pending_invitation()` l'apparie. Pas de jeton, pas de page
+  d'atterrissage à écrire — c'est le parcours déjà décidé (« forme de l'e-mail »
+  ci-dessous), l'URL n'en est que la première marche. **Aucun lot nouveau.**
+- **Si le pilote doit couvrir autre chose qu'iOS/TestFlight** (Android, repli web) :
+  il faut une **page d'atterrissage qui oriente selon l'appareil** (iOS →
+  TestFlight/App Store, Android → Play, bureau → « installez l'app »). Elle
+  **n'existe pas** : petit lot non écrit, **≈ 0,5 j·h**, à **ouvrir avant** le
+  lundi matin — pas à absorber le jour J.
+
+Pour la **preuve à 3 adresses** (clé posée), l'URL du back-office suffit : on prouve
+que l'envoi part et que le journal est cohérent, pas le parcours d'un membre. À
+**trancher** : le pilote est-il iOS-seul (alors `RACK_INVITE_URL` = TestFlight
+public, rien à écrire) ou non (alors on ouvre le lot page d'atterrissage) ?
+
+### La reprise du motif claim/mark (correctif post-fusion)
+
+Deux défauts du motif, invisibles sur une PR verte, corrigés en migration de reprise
+(`20260912090000`, `create or replace` — l'originale est immuable depuis la fusion) :
+
+1. **Réservation morte** : une ligne `sending` laissée par un processus tué (timeout
+   Vercel, déploiement) bloquait le renvoi 24 h en silence. Reprise : `sending`
+   plus vieille que **15 min** → `failed` (visible), l'invitation est réessayée.
+2. **Adresse morte re-postée** : pour que la reprise libère, `failed` ne bloque
+   plus — d'où un état terminal `failed_permanent` (rejet 4xx hors 429) qui, lui,
+   ne se réessaie jamais. La **même** classe qui distingue les échecs à l'écran
+   (permanent « à corriger » / temporaire « à réessayer ») pilote aussi le `claim`.
+
+Et deux durcissements d'hébergement : `maxDuration = 60` sur la route (une fonction
+Vercel sans plafond explicite retombe sur 10 s en Hobby legacy et serait tuée en
+pleine boucle), lot d'envoi **borné à 20** par vague.
+
+**Impact ① :** la reprise ajoute **≈ 0,25 j·h** au budget déjà ratifié (115,25).
+Trouvée en revue, écrite, pas absorbée : ① passe à **~115,5**, **à ratifier à cette
+fusion**.
 
 ## Décisions tranchées
 
