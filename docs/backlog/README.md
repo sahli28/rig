@@ -23,7 +23,7 @@ pas**.
 
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
-| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **13,25 j·h** |
+| **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **14,75 j·h** |
 | **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
@@ -60,6 +60,39 @@ que le 5 et le 9 septembre, rouverte : un total qui prend du retard sur les
 fusions. **Conséquence à tenir** : le calendrier de durcissement DMARC de
 `docs/procedures/email-et-domaine.md` est daté contre cette mise en service ; si
 la date bouge, il bouge avec elle.
+
+**Même jour, soir — `P1-018` fusionné, sa reprise avec, et le domaine prouvé.**
+L'émetteur d'invitations (PR #84) ratifié **1 → 1,25** à la fusion (le sous-budget
+confirmé), puis une **reprise du motif claim/mark** (PR #85, +0,25 : réservations
+mortes reprises, `failed_permanent` qui ne se réessaie pas). **① passe à 115,5, et
+les restants retombent à 12,25** puisque `P1-018` quitte la file. Et la chaîne
+d'e-mail est **prouvée** (magic link signé reçu, `SPF/DKIM/DMARC = pass`,
+`mail-tester` 7,9/10) : le domaine **✅ sort du chemin critique**. Ce lot de
+documentation (13,25 → 12,25, ✅ domaine, runbook à l'état réel) est joué **le
+12 sept.** et non le lendemain, à titre exceptionnel : le quota « une branche
+`docs/` par jour » de la règle 11 vise **l'inflation de tickets issue des revues**,
+et ce lot est à ~80 % un **relevé du monde réel** (e-mail signé daté, DNS posés,
+deux dates d'expiration, gabarits hébergés, parité OTP). La seule vraie trouvaille
+de revue — le ticket « Lien envoyé / code affiché » — est **décalée au prochain
+lot**, pour tenir l'intention de la règle sans en trahir la lettre. Les deux autres
+sous-règles sont satisfaites : **trois lots de code** (P1-018, reprise, hydratation
+de l'accueil) sont partis le même jour, donc « jamais deux merges de suite sans code
+produit » ne s'oppose à rien.
+
+**Et cinq manques trouvés en répétant la mise en service — ① monte à 118, et c'est
+la bonne raison.** En essayant d'envoyer les invitations de bout en bout sur
+l'hébergé, il a fallu **trois contournements SQL** : aucun parcours ne crée une box
+(`create_tenant` **sans appelant** depuis P0, règle 7), aucune première connexion web
+n'aboutit (gabarit sans lien, `/login` sans champ code), et l'accueil ne mène nulle
+part. Quatre lots entrent dans ① — `P1-020` (1), `P1-021` (0,5), `P1-022` (0,5),
+`P1-023` (0,5) — et le cinquième, les **rebonds asynchrones**, était déjà `P2-015`
+(②). **① : 115,5 → 118 ; restants 12,25 → 14,75.** Projection refaite :
+**14,75 ÷ 2,3 ≈ 6,4 semaines**, le code du jalon vers **début–mi novembre 2026**, la
+mise en service (avec les 4 jours d'accompagnement, qui ne se compressent pas)
+au-delà. Le chiffre glisse parce qu'il **cesse d'ignorer** ce qui bloque vraiment le
+lundi matin — un chiffre vrai qui glisse vaut mieux qu'un chiffre confortable qui
+ment. La preuve d'envoi de `P1-018` **n'est pas faite** et attend `P1-020`/`P1-021`
+(le vrai parcours, pas du SQL).
 
 **Revue de backlog du 5 septembre 2026 (soir).** Le tableau d'état disait
 `P1-014 : à faire` alors que PR #42 est sur `main` : le commit de code n'a pas
@@ -289,7 +322,7 @@ ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
 | **Projet Firebase** (+ `google-services.json`, + un appareil Android) | le **canal Android** du push | **Échéance `P1-016`.** Le code est plateforme-agnostique (Expo Push route vers FCM), mais Android exige un projet Firebase **et** un appareil de test — aucun des deux n'existe. Re-daté de `P1-007` à la mise en service, avec l'appareil qui sera à la box |
 | **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société — **donc l'entité juridique, ligne suivante** |
 | **Une entité juridique** | rien — **mais expose, personnellement** | **Cette ligne n'avait qu'une conséquence jusqu'au 9 sept. 2026 : Stripe, sans échéance avant mi-2027. Elle en a deux.** Le jour de `P1-016`, **l'éditeur du service** devient **sous-traitant de la box au sens de l'art. 28** (spec §15.1 : « sans ce document, vous êtes en infraction dès le premier client »). Une personne physique peut l'être — ce n'est pas bloquant — mais jusqu'à la société, c'est **un nom d'état civil** qui signe le DPA et porte le registre. **Échéance : la mise en service, pas le MVP.** Les trois pièces — DPA, registre, politique de confidentialité — sont des prérequis datés de `P1-016` |
-| **Un nom de domaine** (+ SPF, DKIM, DMARC) | P2-015, D-008, le retour Apple — **et `P1-016` depuis le 9 sept. 2026** | **`rack-app.fr` acheté et actif sur OVH.** Le volet e-mail est câblé côté dépôt (11 sept. 2026) : **Brevo** arbitré (FR/UE), bloc `[auth.email.smtp]` versionné, enregistrements DNS exacts + champs SMTP Supabase + durcissement DMARC écrits dans `docs/procedures/email-et-domaine.md`, Brevo inscrit au registre (`docs/rgpd/sous-traitants.md`). **Reste à faire par l'utilisatrice, hors dépôt** : compte Brevo, clé SMTP, pose des DNS OVH, champs SMTP dashboard + montée du plafond. **Pas encore ✅** : le passage se fait comme Apple/Expo **une fois l'e-mail signé prouvé reçu** (`SPF/DKIM/DMARC = pass`) — critère de mise en service, pas vert de PR |
+| ✅ ~~**Un nom de domaine** (+ SPF, DKIM, DMARC)~~ | ~~P2-015, D-008, le retour Apple, `P1-016`~~ | **✅ prouvé le 12 septembre 2026 — sort du chemin critique comme Apple et Expo.** `rack-app.fr` signé par **Brevo** : magic link reçu en boîte, **`SPF/DKIM/DMARC = pass`** (`d=rack-app.fr`, sélecteur `brevo2`), expéditeur `Rack <bonjour@rack-app.fr>`, **code à 6 chiffres**, `mail-tester` **7,9/10** (les 2,1 = un pixel de suivi, sans effet sur remise/auth). État réel dans `docs/procedures/email-et-domaine.md` (DNS OVH, sous-domaine de marque `mail.`, Zimbra, gabarits hébergés recopiés, OTP à 6, suivi anonymisé, deux dates d'expiration) ; `P1-017` ferme ses deux critères d'e-mail. **Ce qui n'est PAS le domaine** : le **build TestFlight** vers lequel `RACK_INVITE_URL` doit pointer — dépendance de `P1-016` qui bloque l'envoi des 80, pas cette ligne |
 
 ### ✅ Le compte Apple est actif — 8 septembre 2026
 
@@ -349,7 +382,7 @@ des trois dérapages qui ne s'est pas produit.
 
 ---
 
-## ① Jalon pilote — 115 j·h, dont **13,25 restants**
+## ① Jalon pilote — 118 j·h, dont **14,75 restants**
 
 Objectif : une box réelle utilise l'app en production pendant deux semaines.
 **Le paiement se fait hors app**, assumé et expliqué à la box pilote.
@@ -407,6 +440,17 @@ NON PROGRAMMÉS, chacun avec son déclencheur
             Déclencheur : la mise en service (P1-016), où une annulation réelle
             rencontre le doute réel.
 
+  LES MANQUES DE MISE EN SERVICE (trouvés le 12 sept. en répétant l'envoi de
+  bout en bout — il a fallu trois contournements SQL)
+  P1-021  ⟵ rien. La première connexion web aboutit (gabarit + code/lien).
+            Bloquant : sans elle, l'OWNER n'entre pas dans le back-office
+  P1-020  ⟵ P1-021. Créer la box pilote (appelant minimal de create_tenant,
+            règle 7). Bloquant : sinon la box naît en SQL de prod le lundi matin
+  P1-022  ⟵ P1-021. L'accueil web mène à sa box. Semi-bloquant
+  P1-023  ⟵ rien. Un signal quand l'hébergé décroche. Non bloquant
+            (3.4 rebonds asynchrones → P2-015, ②, pas un ticket neuf)
+        ↓  P1-020/021/022 conditionnent la PREUVE de P1-018 : elle se refera par
+           le vrai parcours, pas par du SQL
   D-023   ⟵ la RÉDACTION de la politique de confidentialité, qui n'est pas du
             code. Un ticket de code court (0,5) : le lien, la constante, le
             test qui les lie. Bloque P1-016 : aucun import réel avant.
@@ -498,11 +542,15 @@ sait pas lui répondre.
 | D-017   | Flash blanc au démarrage en mode sombre *(rétroactif)* |  0,25 | ✅ fait le 5 sept. 2026 (PR #43) — écrit le 6 sept. : le travail était rattaché à `D-009`, close la veille, donc dans aucun total |
 | D-016   | Trois écrans qui ne relisent rien au retour       |   0,25 | ✅ fait le 7 sept. 2026. **Ligne ajoutée le 9 sept. 2026** : son 0,25 était crédité aux faits par le tableau des mouvements sans avoir de ligne ici, donc compté dans un total où il ne figurait pas |
 | D-021   | La porte du coach, et la place de la séance       |   1,75 | ✅ **fait et passé le 9 sept. 2026** — **A14 ✅, le critère d'écran de `P1-015` est fermé.** Attention à la provenance : **PR #68 n'a fusionné que la documentation**, le code de ce ticket est parti dans la PR suivante (`feat/D-021-le-code`), et la passe a été jouée sur l'arbre de travail avant cette fusion. Une décision (`back-office.ts`, neuf droits × quatre rôles), **quinze comparaisons de rôle retirées d'`apps/web`**, dont une sœur que le ticket ne nommait pas (`join-card.tsx`) : la sonde ESLint l'a trouvée en mordant. Le panneau : la séance d'abord, l'annulation derrière un trait et un bouton danger, un seul primaire. **Rien d'observé dans un navigateur** — il n'y en a pas (`D-022`) — donc six critères restent `[ ]` pour la passe |
-| P1-016  | La mise en service chez la box pilote             |   1,75 | à faire, **en dernier** — écrit le 9 sept. 2026, entré dans ① le jour même (PR #64), **puis découpé après PR #65** : le projet hébergé et le déploiement partent dans `P1-017` pour ne pas concentrer l'inconnu la semaine de la box. Reste ici ce qui dépend vraiment du reste — build TestFlight, sauvegarde restaurée — **+ 4 jours d'accompagnement** qui ne sont pas des j·h. **Et le RGPD y est daté** : DPA, registre, politique de confidentialité **avant le premier import** — la sous-traitance art. 28 commence le jour de la mise en service, et `consents.tsx` horodate depuis le 31 août un consentement à une politique **qui n'existe pas**. **Volet domaine/SMTP câblé le 11 sept. 2026** (Brevo, DNS, runbook `email-et-domaine.md`, registre) — ~0,25 de la moitié « invitations », **dedans** ; le reste — **l'émetteur d'invitations** — est carve-out en **`P1-018`** (12 sept.). Et ce n'est **pas** le flux D-005 : l'effectif importé rejoint par **appariement d'e-mail** (`accept_pending_invitation`), pas par jeton — la note « liens D-005 » du volet est **fausse, à corriger** |
-| P1-017  | La première infrastructure de production          |    1,5 | ✅ **fusionné le 11 sept. 2026 (PR #79)** — projet Supabase hébergé (`eu-west-3`, PG **17.6** lu), `pg_cron`/`pg_net`/`vault` par migration, **émetteur push déployé et servi**, back-office sur Vercel. `test:db` distant vert, parité des droits (`auto_expose_new_tables=false`). **Reste des `[~]`/`[ ]` de preuve** derrière la mise en service : e-mail signé reçu et SMTP tiers — le **volet est câblé** (`P1-016`), la preuve attend. Runbooks : `deploiement-heberge.md`, `email-et-domaine.md` |
-| P1-018  | L'émetteur d'invitations du pilote                |      1 | **à faire** — carve-out de la moitié « invitations » de `P1-016` le 12 sept. 2026. Envoie l'e-mail d'invitation aux `PENDING` de `import_members()` par l'**API Brevo** ; l'effectif rejoint par **appariement d'e-mail** (`accept_pending_invitation`), **pas** par jeton D-005 (règle 8, trouvé en s'écrivant). Idempotent, journal `email_deliveries` minimal, bounces synchrones, vagues. **Émetteur minimal** — `sendEmail` thémé est `P2-015`. Prérequis runtime : la **clé API Brevo** |
+| P1-016  | La mise en service chez la box pilote             |   1,75 | à faire, **en dernier** — écrit le 9 sept. 2026, entré dans ① le jour même (PR #64), **puis découpé après PR #65** : le projet hébergé et le déploiement partent dans `P1-017` pour ne pas concentrer l'inconnu la semaine de la box. Reste ici ce qui dépend vraiment du reste — build TestFlight, sauvegarde restaurée — **+ 4 jours d'accompagnement** qui ne sont pas des j·h. **Et le RGPD y est daté** : DPA, registre, politique de confidentialité **avant le premier import** — la sous-traitance art. 28 commence le jour de la mise en service, et `consents.tsx` horodate depuis le 31 août un consentement à une politique **qui n'existe pas**. **Volet domaine/SMTP prouvé le 12 sept. 2026** (Brevo signé, `SPF/DKIM/DMARC = pass`, runbook `email-et-domaine.md` à l'**état réel**) — ~0,25 de la moitié « invitations », **dedans** ; le reste — **l'émetteur d'invitations** — est **`P1-018`**, fusionné + reprise le 12 sept. L'effectif rejoint par **appariement d'e-mail** (`accept_pending_invitation`), pas par jeton — la note « liens D-005 » du volet est **corrigée**. **Reste bloquant l'envoi des 80** : le **build TestFlight** (lot 1,25 ici), vers lequel `RACK_INVITE_URL` pointe — pilote iOS-seul tranché le 12 sept. |
+| P1-017  | La première infrastructure de production          |    1,5 | ✅ **fusionné le 11 sept. 2026 (PR #79)** — projet Supabase hébergé (`eu-west-3`, PG **17.6** lu), `pg_cron`/`pg_net`/`vault` par migration, **émetteur push déployé et servi**, back-office sur Vercel. `test:db` distant vert, parité des droits (`auto_expose_new_tables=false`). **Deux critères d'e-mail fermés le 12 sept. 2026** : e-mail signé reçu (`SPF/DKIM/DMARC = pass`) et SMTP tiers prouvés — le volet `P1-016` est passé de câblé à **prouvé**. Runbooks : `deploiement-heberge.md`, `email-et-domaine.md` |
+| P1-018  | L'émetteur d'invitations du pilote                |    1,5 | ✅ **fusionné le 12 sept. 2026 (PR #84)** + **reprise du motif claim/mark (PR #85)** le même jour. Envoie aux `PENDING` de `import_members()` par l'**API Brevo** un e-mail « connectez-vous avec cette adresse » — **appariement d'e-mail** (`accept_pending_invitation`), **pas** de jeton D-005 (règle 8). Idempotent (`claim`/`mark`), journal `email_deliveries`, reprise des réservations mortes, échecs `permanent`/`temporary` distingués (écran **et** claim), vagues de 20, `maxDuration` explicite. **Ré-estimé 1 → 1,5** (build 1,25 ratifié + reprise 0,25). Reste un critère d'appareil : l'**envoi réel à 80**, clé Brevo posée — bloqué par le **build TestFlight** (`P1-016`), **pas** par ce code |
 | D-023   | Le consentement pointe vers un texte, et la constante en porte la date | 0,5 | **écrit le 9 sept. 2026, s'ouvre quand le texte existe** — sa rédaction n'est pas du code et n'est pas dans ce ticket. Le lien depuis `consents.tsx`, `current_policy_version()` alignée sur la date réelle, et **un test qui lie les deux** : la règle 10 appliquée à une valeur. **Bloque `P1-016`** : aucun import réel avant, sinon 80 personnes consentent à un texte inexistant et recochent toutes quand la constante change |
-|         | **Total ①**                                       | **115** | dont **101,75 faits**, **13,25 restants** |
+| P1-020  | Créer la box pilote (appelant de `create_tenant`) |      1 | **à faire** *(à ratifier)* — trouvé le 12 sept. en répétant la mise en service : `create_tenant` **sans appelant** (règle 7, depuis P0), la box pilote ne naît qu'en SQL de prod. Appelant **minimal** ; le self-onboarding complet reste `P2-004`. **Bloquant mise en service.** Dépend de P1-021 |
+| P1-021  | La première connexion web aboutit                 |    0,5 | **à faire** *(à ratifier)* — gabarit « Confirm sign up » sans `{{ .ConfirmationURL }}` **et** `/login` web sans champ code = cul-de-sac ; il a fallu `email_confirmed_at` à la main. **Bloquant** : l'OWNER n'entre pas dans le back-office |
+| P1-022  | L'accueil web mène à sa box                        |    0,5 | **à faire** *(à ratifier)* — après connexion, on tombe sur le placeholder « Socle en place » (la page que désigne la Site URL). Redirige vers `/box/[slug]`. Semi-bloquant |
+| P1-023  | Un signal quand l'hébergé décroche                 |    0,5 | **à faire** *(à ratifier)* — trois écarts hébergés (web périmé, 7 migrations de retard, Site URL localhost) trouvés en butant dessus. Checklist posée (runbook) + un contrôle qui rougit. Non bloquant |
+|         | **Total ①**                                       | **118** | dont **103,25 faits**, **14,75 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
 nouvelle.** Un chiffre qui monte se relit comme une dérive s'il ne porte pas sa
@@ -576,6 +624,9 @@ corrigé sans son calcul se re-conteste :
 | **`P1-017` fusionné (PR #79), 11 sept.** : lots hébergés réalisés (projet, émetteur, web déployé) — les 1,5 passent aux faits. Les `[~]`/`[ ]` de preuve qui restent sont des critères d'appareil, pas des j·h non faits | 114 | 95,75 | 18,25 |
 | **`P1-006` fusionné (PR #80), 11 sept.** : waitlist prouvée en CI (`waitlist_test.sql`, 37 assertions) — les 6 passent aux faits. Reste un `[~]` d'appareil (« < 30 s ») et un défaut ouvert, `D-027` (hors ①) | **114** | **101,75** | **12,25** |
 | **`P1-018` entre dans ① (1), 12 sept.** : l'émetteur d'invitations, carve-out de la moitié « invitations » de `P1-016` — il y était **sous-budgété** (les 1,25 étaient le build/TestFlight + le câblage 0,25 ; l'émetteur, presque rien). Pas d'absorption silencieuse — **à ratifier à la fusion** | **115** | 101,75 | **13,25** |
+| **`P1-018` fusionné (PR #84) et ratifié 1 → 1,25, 12 sept.** : le sous-budget confirmé, écrit et non absorbé | **115,25** | 103 | 12,25 |
+| **Reprise `P1-018` (PR #85, +0,25), 12 sept.** : réservations mortes reprises + `failed_permanent` — trouvée en revue, écrite, pas absorbée | **115,5** | **103,25** | **12,25** |
+| **Cinq manques de mise en service entrent, 12 sept. (soir)** : `P1-020` (1) + `P1-021` (0,5) + `P1-022` (0,5) + `P1-023` (0,5) = **+2,5** ; `P1-018` 3.4 (rebonds async) va à `P2-015` (②), pas dans ①. Trouvés en répétant la mise en service, chiffrés, pas absorbés | **118** | 103,25 | **14,75** |
 
 **21,25 et non 22** : retirer 4 de 26 oublie les 0,75 qu'on vient de déduire.
 C'est exactement la façon dont ce total a dérivé les deux fois précédentes.

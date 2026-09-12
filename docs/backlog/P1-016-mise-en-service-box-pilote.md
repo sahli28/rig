@@ -151,10 +151,58 @@ inutilisables.
 > parce que le domaine est sur le chemin critique. `P1-017` l'avait déjà prévu (« le temps
 > non consommé du SMTP tiers reste dans `P1-016` »). **Total ① inchangé.**
 >
-> **Le reste de cette moitié « invitations » est l'émetteur maison** qui poste les 80
-> liens `D-005` via l'**API Brevo** (canal tranché dans le runbook — il faut une **clé API**
-> en plus de la clé SMTP). Il n'est **pas** encore écrit ; s'il déborde le budget restant
-> du lot, c'est une **ré-estimation à son ouverture**, pas une absorption silencieuse.
+> **Le reste de cette moitié « invitations » est l'émetteur maison**, **carve-out en
+> `P1-018`, bâti et fusionné le 12 sept. 2026** (+ une reprise du motif claim/mark le même
+> jour). Il poste par l'**API Brevo** un e-mail **« connectez-vous avec cette adresse »** —
+> **pas** de lien `D-005` : l'effectif importé rejoint par **appariement d'e-mail**
+> (`accept_pending_invitation`), correction règle 8 trouvée en écrivant le ticket. Il faut
+> une **clé API** en plus de la clé SMTP. Ré-estimé **1 → 1,5** (build 1,25 ratifié +
+> reprise 0,25), **① à 115,5** — écrit, pas absorbé.
+
+### Le point d'entrée des 80, et ce qui le bloque encore
+
+**Pilote iOS-seul (tranché le 12 sept. 2026).** L'invitation porte `RACK_INVITE_URL` = **le
+lien TestFlight public**. Le membre installe l'app, l'ouvre, demande son magic link avec son
+adresse, `accept_pending_invitation()` l'apparie. Pas de page d'atterrissage à écrire.
+
+**Mais ce lien TestFlight n'existe pas encore.** Aucun build n'est soumis : le lot
+**« development build iOS + TestFlight » (1,25 j·h, ci-dessus)** n'est pas joué. **Donc
+l'envoi des 80 invitations est bloqué par le build TestFlight**, alors que le code de
+`P1-018` est fermé. Ce n'est pas un défaut, c'est une **dépendance qui vient de se
+révéler** : « l'émetteur est fait » **ne veut pas dire** « les invitations peuvent partir ».
+Le membre qui atterrirait sur `rack-web-rack8.vercel.app/login` tomberait sur l'**espace
+box** (back-office admin), qui n'est pas fait pour lui.
+
+**Ce qui reste exerçable sans TestFlight :** la **preuve à 3 adresses** de `P1-018` marche
+avec **n'importe quelle URL** (même le back-office) — elle prouve l'**envoi et
+l'idempotence**, pas le parcours du membre.
+
+**Et le déploiement web n'est pas automatique** (`deploiement-heberge.md`,
+`email-et-domaine.md`) : une fusion sur `main` **ne redéploie rien**. Le critère « le
+back-office est atteignable depuis l'ordinateur de la box » peut être **vert sur un build
+périmé**, et `RACK_INVITE_URL` / `BREVO_API_KEY` ne sont embarquées qu'au **redéploiement
+explicite** (`npx vercel deploy --prod --scope rack8 --yes`, variables posées **avant**).
+C'est une **étape** de ce ticket, pas un automatisme — à retirer si Vercel est rebranché sur
+GitHub avant la mise en service.
+
+### Trois prérequis de parcours, trouvés en répétant la mise en service (12 sept. 2026)
+
+Essayer d'envoyer les invitations de bout en bout sur l'hébergé a demandé **trois
+contournements SQL** — autant de lots à jouer **avant** le lundi matin, chacun chiffré et
+entré dans ① :
+
+- **`P1-020` — créer la box pilote.** `create_tenant` n'a **aucun appelant** (règle 7,
+  depuis P0) : la box ne naît qu'en SQL de prod. **Bloquant.**
+- **`P1-021` — la première connexion web aboutit.** Gabarit « Confirm sign up » sans lien
+  **et** `/login` sans champ code = cul-de-sac ; il a fallu confirmer l'e-mail à la main.
+  **Bloquant** (l'OWNER n'entre pas dans le back-office).
+- **`P1-022` — l'accueil web mène à sa box** (aujourd'hui un placeholder, et c'est la page
+  de la Site URL). Semi-bloquant.
+
+**Ces trois conditionnent la preuve d'envoi de `P1-018`** : elle se refera par le vrai
+parcours, pas par du SQL. Et **`P1-023`** (signal quand l'hébergé décroche) + la **checklist
+de mise en service** (`deploiement-heberge.md`) rendent visibles les écarts qui, ce jour-là,
+se sont découverts en butant dessus.
 
 > ### La partie technique est du développement, et c'est tranché : elle vit ici
 >

@@ -23,11 +23,19 @@ liste.
 
 | Sous-traitant | Traitement | Données | Localisation | Transfert / réf. |
 | --- | --- | --- | --- | --- |
-| **Brevo** (Brevo SAS) | E-mail : magic link, invitations | e-mail, prénom, contenu du message | **UE** : société française (CNIL) ; traitement et stockage en France/Allemagne (OVH), sauvegardes Google Cloud Belgique | dans l'UE, **pas de CST** ; **DPA Brevo à archiver** |
+| **Brevo** (Brevo SAS) | E-mail : magic link, invitations ; **suivi d'ouverture anonymisé** (transactionnel) | e-mail, prénom, contenu du message ; **le suivi ne conserve ni adresse, ni IP, ni message ID, ni liens cliqués** | **UE** : société française (CNIL) ; traitement et stockage en France/Allemagne (OVH), sauvegardes Google Cloud Belgique | dans l'UE, **pas de CST** ; **DPA Brevo à archiver** |
 | **Supabase** | Base de données + Auth | l'essentiel des données membres | **UE** : projet `eu-west-3` (Paris) — vérifié (`deploiement-heberge.md`, ADR 0001) | dans l'UE ; **DPA Supabase à archiver** |
 | **Vercel** (Vercel Inc.) | Hébergement back-office web (Next.js SSR) | requêtes de session transitoires ; pas de stockage durable de données membres | **US** : plan de contrôle, comptes et support aux **US** ; les **fonctions sont forçables en région UE** (`cdg1`/`fra1`), cache éphémère | hors UE — **Data Privacy Framework / CST** ; **action** : forcer la région UE, voir `deploiement-heberge.md` ; **DPA Vercel à archiver** |
 | **Expo** (650 Industries) | Build mobile + routage push (→ APNs/FCM) | jeton push ; **la charge de notification est supprimée après transfert**, aucune PII, aucune donnée de santé (`CLAUDE.md` règle 11) | **US** : conforme RGPD/DPF, ne connaît pas l'identité des membres | hors UE — **DPF / CST** ; **DPA Expo à archiver** |
 | **Apple** (Apple Inc.) | Livraison push iOS (APNs) + distribution du build pilote (TestFlight) | jeton APNs, contenu de la notification | **US** | hors UE — **DPF / addendum data-processing Apple à archiver** |
+
+> **Brevo — suivi d'ouverture, vérifié le 12 septembre 2026.** Le suivi d'ouverture
+> **n'est pas désactivable** sur le transactionnel Brevo (limite du produit). Il a été
+> passé en **suivi anonymisé** (*Settings → Automations → Transactional emails →
+> Tracking*) : le traitement **existe**, il est **anonymisé** (ni adresse, ni IP, ni
+> message ID, ni liens cliqués conservés), il **n'est pas désactivable**. Écrit tel quel
+> pour que la ligne soit exacte à une box, et non « pas de suivi ». Détail et conséquence
+> délivrabilité (pixel, `mail-tester` 7,9/10) : `docs/procedures/email-et-domaine.md`.
 
 ## Sous-traitants prévus, pas encore actifs
 
