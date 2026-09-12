@@ -13,8 +13,22 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { can, fetchMe, findMembershipBySlug, importMembers } from '@rack/core/supabase';
-import { ImportRowSchema, MAX_IMPORT_ROWS, errorMessageKeyOf } from '@rack/core';
+import {
+  can,
+  claimInvitationsToEmail,
+  fetchMe,
+  findMembershipBySlug,
+  importMembers,
+  markEmailDelivery,
+} from '@rack/core/supabase';
+import {
+  ImportRowSchema,
+  MAX_IMPORT_ROWS,
+  errorMessageKeyOf,
+  renderInvitationEmail,
+  type RenderedEmail,
+  type TranslationKey,
+} from '@rack/core';
 import { serverClient } from '../../../../lib/supabase/server';
 import type { ImportState } from './import-state';
 
@@ -52,4 +66,110 @@ export async function runImport(
   } catch (error) {
     return { status: 'error', key: errorMessageKeyOf(error) };
   }
+}
+
+/**
+ * Poste un e-mail transactionnel via l'API Brevo. **Non exporté** : ce n'est pas
+ * une action serveur mais l'appel HTTP que `sendInvitations` orchestre. La clé vit
+ * en variable d'env **serveur** (jamais dans le bundle client, jamais commitée).
+ * Rend l'id de message Brevo, ou **lève** sur rejet — l'appelant marque `failed`.
+ */
+async function sendViaBrevo(
+  apiKey: string,
+  to: { email: string; name: string | null },
+  email: RenderedEmail,
+): Promise<string | null> {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': apiKey, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      sender: { name: 'Rack', email: 'bonjour@rack-app.fr' },
+      to: [to.name ? { email: to.email, name: to.name } : { email: to.email }],
+      subject: email.subject,
+      htmlContent: email.htmlContent,
+      textContent: email.textContent,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Brevo ${res.status}: ${body.slice(0, 200)}`);
+  }
+  const json = (await res.json().catch(() => ({}))) as { messageId?: string };
+  return json.messageId ?? null;
+}
+
+/**
+ * Envoie (ou relance) les invitations de la box par e-mail — le lundi matin de
+ * `P1-016`. Réserve un lot d'invitations PENDING nominatives sans envoi récent
+ * (idempotence + vagues), rend l'e-mail « connecte-toi avec cette adresse » — pas
+ * de jeton, l'effectif rejoint par appariement d'e-mail — le poste via Brevo et
+ * journalise chaque issue. Un échec Brevo n'entraîne pas les envois suivants :
+ * l'e-mail est un effet de bord, jamais une condition.
+ */
+export async function sendInvitations(
+  slug: string,
+  _prev: ImportState,
+  _form: FormData,
+): Promise<ImportState> {
+  const client = await serverClient();
+  const me = await fetchMe(client);
+  const membership = findMembershipBySlug(me, slug);
+
+  if (membership === null || !can(membership.role, 'members')) {
+    return { status: 'error', key: 'errors.forbidden_role' };
+  }
+
+  const apiKey = process.env.BREVO_API_KEY;
+  const inviteUrl = process.env.RACK_INVITE_URL ?? '';
+  // Rien n'est réservé sans la clé ni l'URL : sinon on laisserait des lignes
+  // `sending` qui n'aboutiraient jamais et bloqueraient la fenêtre d'idempotence.
+  if (apiKey === undefined || apiKey === '' || inviteUrl === '') {
+    return { status: 'error', key: 'errors.email_send_failed' };
+  }
+
+  // La box porte le nom et la langue de l'e-mail : l'invité n'a pas encore de compte.
+  const scoped = await fetchMe(client, membership.tenant_id);
+  const tenant = scoped.current_tenant;
+  if (tenant === null) return { status: 'error', key: 'errors.forbidden_role' };
+  const locale = tenant.default_locale === 'en' ? 'en' : 'fr';
+
+  let claimed;
+  try {
+    claimed = await claimInvitationsToEmail(client, membership.tenant_id, { limit: 40 });
+  } catch (error) {
+    return { status: 'error', key: errorMessageKeyOf(error) };
+  }
+
+  let sent = 0;
+  const failures: { email: string; key: TranslationKey }[] = [];
+  for (const invitation of claimed) {
+    const email = renderInvitationEmail(locale, {
+      boxName: tenant.name,
+      email: invitation.email,
+      inviteUrl,
+    });
+    try {
+      const providerMessageId = await sendViaBrevo(
+        apiKey,
+        { email: invitation.email, name: invitation.first_name },
+        email,
+      );
+      await markEmailDelivery(client, invitation.delivery_id, {
+        status: 'sent',
+        providerMessageId,
+      });
+      sent += 1;
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      // Le marquage de l'échec ne doit pas, à son tour, faire tomber l'envoi suivant.
+      await markEmailDelivery(client, invitation.delivery_id, {
+        status: 'failed',
+        error: reason,
+      }).catch(() => undefined);
+      failures.push({ email: invitation.email, key: 'errors.email_send_failed' });
+    }
+  }
+
+  revalidatePath(`/box/${slug}/membres`);
+  return { status: 'sent', sent, failed: failures.length, failures };
 }

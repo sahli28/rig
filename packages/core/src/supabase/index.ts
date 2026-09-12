@@ -67,6 +67,12 @@ export {
   type DirectoryRow,
   type InvitationState,
 } from './staff';
+export {
+  claimInvitationsToEmail,
+  markEmailDelivery,
+  type ClaimedInvitation,
+  type EmailDeliveryOutcome,
+} from './email-deliveries';
 
 export {
   acceptInvitation,

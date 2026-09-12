@@ -8,6 +8,13 @@ import type { ImportResult } from '@rack/core/supabase';
 export type ImportState =
   | { status: 'idle' }
   | { status: 'done'; result: ImportResult }
+  | {
+      status: 'sent';
+      sent: number;
+      failed: number;
+      /** Les adresses en échec, avec leur message — la box les corrige et relance. */
+      failures: { email: string; key: TranslationKey }[];
+    }
   | { status: 'error'; key: TranslationKey };
 
 export const IDLE: ImportState = { status: 'idle' };

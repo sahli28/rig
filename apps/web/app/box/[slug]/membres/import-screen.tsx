@@ -18,7 +18,7 @@ import {
 import type { TranslationKey } from '@rack/core';
 import styles from './membres.module.css';
 import { IDLE, type ImportState } from './import-state';
-import { runImport } from './actions';
+import { runImport, sendInvitations } from './actions';
 
 const FIELD_KEYS: Record<ImportField, TranslationKey> = {
   email: 'import.field_email',
@@ -66,6 +66,10 @@ export function ImportScreen({
 }) {
   const { t } = useI18n();
   const [state, action] = useActionState<ImportState, FormData>(runImport.bind(null, slug), IDLE);
+  const [sendState, sendAction] = useActionState<ImportState, FormData>(
+    sendInvitations.bind(null, slug),
+    IDLE,
+  );
 
   const [fichier, setFichier] = useState<Fichier | null>(null);
   const [mapping, setMapping] = useState<Partial<Record<ImportField, string>>>({});
@@ -106,30 +110,81 @@ export function ImportScreen({
       ? null
       : analyzeRows(applyMapping(fichier.lignes, mapping), { existingEmails, pendingEmails });
 
+  // L'envoi des invitations : une carte à part, montrée dès qu'il y a des
+  // invitations en attente. L'e-mail ne porte **aucun jeton** — chaque personne
+  // rejoint en se connectant avec son adresse (`accept_pending_invitation`).
+  const sendCard =
+    pendingEmails.length === 0 ? null : (
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>{t('import.send_button')}</h2>
+        <p className={styles.help}>{t('import.send_help')}</p>
+
+        {sendState.status === 'sent' ? (
+          <>
+            <p className={styles.help} role="status">
+              {t('import.send_result', {
+                sent: String(sendState.sent),
+                failed: String(sendState.failed),
+              })}
+            </p>
+            {sendState.failures.length > 0 ? (
+              <>
+                <p className={styles.rowMeta}>{t('import.send_failures_title')}</p>
+                <ul className={styles.list}>
+                  {sendState.failures.map((failure) => (
+                    <li key={failure.email} className={styles.row}>
+                      <span className={styles.rowMain}>{failure.email}</span>
+                      <span className={styles.badge}>{t(failure.key)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </>
+        ) : null}
+
+        {sendState.status === 'error' ? (
+          <p className={styles.error} role="alert">
+            {t(sendState.key)}
+          </p>
+        ) : null}
+
+        <form action={sendAction} className={styles.actions}>
+          <button type="submit" className={styles.primary}>
+            {t('import.send_button')}
+          </button>
+        </form>
+      </section>
+    );
+
   if (state.status === 'done') {
     return (
-      <section className={styles.card}>
-        <h1 className={styles.title}>{t('import.done_title')}</h1>
-        <p className={styles.help}>
-          {t('import.done_body', {
-            created: String(state.result.created),
-            member: String(state.result.already_member),
-            invited: String(state.result.already_invited),
-          })}
-        </p>
-        {/* Aucun lien à distribuer : les personnes importées rejoignent en se
-            connectant avec leur adresse. C'est ce qui évite de faire circuler
-            deux cents jetons dans un tableur. */}
-        <p className={styles.help}>{t('import.done_next')}</p>
-        <code className={styles.code}>
-          {typeof window === 'undefined' ? '' : `${window.location.origin}/invitations`}
-        </code>
-      </section>
+      <div className={styles.page}>
+        <section className={styles.card}>
+          <h1 className={styles.title}>{t('import.done_title')}</h1>
+          <p className={styles.help}>
+            {t('import.done_body', {
+              created: String(state.result.created),
+              member: String(state.result.already_member),
+              invited: String(state.result.already_invited),
+            })}
+          </p>
+          {/* Aucun lien à distribuer : les personnes importées rejoignent en se
+              connectant avec leur adresse. C'est ce qui évite de faire circuler
+              deux cents jetons dans un tableur. */}
+          <p className={styles.help}>{t('import.done_next')}</p>
+          <code className={styles.code}>
+            {typeof window === 'undefined' ? '' : `${window.location.origin}/invitations`}
+          </code>
+        </section>
+        {sendCard}
+      </div>
     );
   }
 
   return (
     <div className={styles.page}>
+      {sendCard}
       <section className={styles.card}>
         <h1 className={styles.title}>{t('import.title')}</h1>
         <p className={styles.help}>{t('import.help')}</p>

@@ -565,6 +565,60 @@ export type Database = {
           },
         ];
       };
+      email_deliveries: {
+        Row: {
+          created_at: string;
+          email: string;
+          id: string;
+          invitation_id: string;
+          last_error: string | null;
+          provider_message_id: string | null;
+          sent_at: string | null;
+          status: string;
+          tenant_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          email: string;
+          id?: string;
+          invitation_id: string;
+          last_error?: string | null;
+          provider_message_id?: string | null;
+          sent_at?: string | null;
+          status?: string;
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          id?: string;
+          invitation_id?: string;
+          last_error?: string | null;
+          provider_message_id?: string | null;
+          sent_at?: string | null;
+          status?: string;
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'email_deliveries_invitation_same_tenant';
+            columns: ['invitation_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'invitations';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'email_deliveries_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       invitations: {
         Row: {
           accepted_at: string | null;
@@ -1474,6 +1528,15 @@ export type Database = {
       cancel_booking: { Args: { p_booking_id: string }; Returns: string };
       cancel_class_bookings: { Args: { p_class_id: string }; Returns: number };
       claim_invitation: { Args: { p_invitation_id: string }; Returns: string };
+      claim_invitations_to_email: {
+        Args: { p_limit?: number; p_tenant_id: string; p_within?: string };
+        Returns: {
+          delivery_id: string;
+          email: string;
+          first_name: string;
+          invitation_id: string;
+        }[];
+      };
       claim_push_outbox: {
         Args: { p_limit?: number };
         Returns: {
@@ -1589,6 +1652,15 @@ export type Database = {
         Returns: string;
       };
       maintain_class_occurrences: { Args: never; Returns: undefined };
+      mark_email_delivery: {
+        Args: {
+          p_delivery_id: string;
+          p_error?: string;
+          p_provider_message_id?: string;
+          p_status: string;
+        };
+        Returns: undefined;
+      };
       mark_no_shows: { Args: never; Returns: number };
       mark_push_failed: {
         Args: { p_error: string; p_ids: string[] };
