@@ -47,10 +47,39 @@ couvre le cas **manuel** ; ce ticket ajoute le **contrôle qui rougit tout seul*
 
 ## Critères d'acceptation
 
-- [ ] Le script signale une base hébergée en retard de migrations (testé en le
-      mettant volontairement en retard).
-- [ ] Sortie : issues nommées, pas un « ça a l'air bon ».
-- [ ] Documenté dans `deploiement-heberge.md` à côté de la checklist.
+- [x] Le script signale une base hébergée en retard de migrations (testé en le
+      mettant volontairement en retard) — **testé contre la vraie base hébergée**,
+      voir Réalisation : une migration temporaire non poussée → `DÉRIVE… EN RETARD
+      de 1 migration(s)`, exit 1.
+- [x] Sortie : issues nommées, pas un « ça a l'air bon » — trois issues, `À JOUR`
+      (avec le compte), `DÉRIVE` (la liste, par sens), `ILLISIBLE` (exit 2, jamais
+      un vert par défaut).
+- [x] Documenté dans `deploiement-heberge.md` à côté de la checklist (dont la
+      première ligne passe par lui), et dans les commandes de `CLAUDE.md`.
+
+## Réalisation — 12 septembre 2026
+
+**`pnpm heberge:derive`** (`scripts/heberge-derive.mjs`). Il enveloppe
+`supabase migration list --linked --output-format json` — **lecture seule**, le mot
+de passe vit dans le trousseau du `link`, aucun credential dans le script — et
+compare **dans les deux sens** : dépôt sans hébergé (**en retard** → `db push`),
+hébergé sans dépôt (**inconnue du dépôt** — pire, à élucider avant tout push).
+
+Deux gardes hérités de D-014/règle 10 :
+
+- **auto-recoupement** : ce que le CLI dit du local doit recouper exactement
+  `supabase/migrations/` ; sinon le contrôle ne voit plus ce qu'il contrôle →
+  `ILLISIBLE`, exit 2, **jamais un vert** ;
+- le vert **nomme sa portée** : « ne couvre que les migrations » — le build web
+  périmé et la Site URL restent sur la checklist manuelle, et le message le dit
+  pour que le vert ne soit pas sur-lu.
+
+**Prouvé contre la vraie base hébergée** (deux issues jouées, pas déduites) :
+`À JOUR — 48 migrations` (exit 0) ; puis une migration temporaire
+`20990101000000_test_derive.sql`, jamais commitée → `DÉRIVE… EN RETARD de
+1 migration(s) : 20990101000000` + le correctif (exit 1) ; fichier supprimé, retour
+au propre. En CI : possible avec un secret `SUPABASE_DB_PASSWORD`, **non câblé** —
+le contrôle est un geste, du même statut que le `db push` dont il vérifie l'oubli.
 
 ## Notes
 

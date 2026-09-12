@@ -87,9 +87,15 @@ n'aboutit (gabarit sans lien, `/login` sans champ code), et l'accueil ne mène n
 part. Quatre lots entrent dans ① — `P1-020` (1), `P1-021` (0,5), `P1-022` (0,5),
 `P1-023` (0,5) — et le cinquième, les **rebonds asynchrones**, était déjà `P2-015`
 (②). **① : 115,5 → 118 ; restants 12,25 → 14,75.** Projection refaite :
-**14,75 ÷ 2,3 ≈ 6,4 semaines**, le code du jalon vers **début–mi novembre 2026**, la
-mise en service (avec les 4 jours d'accompagnement, qui ne se compressent pas)
-au-delà. Le chiffre glisse parce qu'il **cesse d'ignorer** ce qui bloque vraiment le
+**14,75 ÷ 2,3 ≈ 6,4 semaines**, soit le **code du jalon vers fin octobre 2026**
+(6,4 semaines depuis le 12 septembre ≈ le 27 octobre — le quotient tombe là, pas en
+novembre), puis la **mise en service début–mi novembre** : la marge entre les deux
+est **nommée**, ce sont les 4 jours d'accompagnement, qui ne se compressent pas.
+*(Corrigé le 12 sept. au soir : une première rédaction datait le code « début–mi
+novembre » — c'était la date du service, pas du code. Troisième dérive de ce
+chiffre ; la règle qui en sort : la projection s'écrit toujours en deux dates,
+code **et** service, chacune avec son calcul.)* Le chiffre glisse parce qu'il
+**cesse d'ignorer** ce qui bloque vraiment le
 lundi matin — un chiffre vrai qui glisse vaut mieux qu'un chiffre confortable qui
 ment. La preuve d'envoi de `P1-018` **n'est pas faite** et attend `P1-020`/`P1-021`
 (le vrai parcours, pas du SQL).
