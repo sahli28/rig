@@ -49,12 +49,33 @@ la prod.**
 
 ## Critères d'acceptation
 
-- [ ] Un utilisateur connecté crée une box (nom, slug) **sans SQL**, et en est OWNER
-      (ligne `memberships` OWNER, vérifiable).
-- [ ] `tenant_id` est dérivé de la fonction, jamais d'un champ client.
-- [ ] Slug en conflit → erreur i18n claire, pas un 500.
+- [x] Un utilisateur connecté crée une box (nom, slug) **sans SQL**, et en est OWNER
+      (ligne `memberships` OWNER, vérifiable) — **prouvé en local** (voir Réalisation).
+- [x] `tenant_id` est dérivé de la fonction, jamais d'un champ client — `create_tenant`
+      insère `tenants` puis lit l'id ; l'action ne passe que `name`/`slug`.
+- [x] Slug en conflit → erreur i18n claire, pas un 500 — `unique_violation` (23505)
+      → `box_new.slug_taken`.
 - [ ] **appareil / mise en service** : la box pilote réelle est créée par ce chemin,
-      pas par l'éditeur SQL.
+      pas par l'éditeur SQL (après recopie dashboard de `P1-021` + redéploiement).
+
+## Réalisation — 12 septembre 2026
+
+Chemin : page **`/creer-une-box`** (hors `/box/**`, donc hors du garde middleware —
+la page vérifie la session et renvoie vers `/login?next=/creer-une-box` si personne
+n'est connecté), action serveur **`createBox`** (Zod `NewBoxSchema`, session fait foi),
+wrapper core **`createTenant`** (`packages/core/src/supabase/tenant.ts`). Minimal :
+nom + slug ; le reste (fuseau, devise, langue) prend les défauts de la table et se
+règle dans les réglages (`P1-001b`). Succès → **redirection vers `/box/[slug]`**.
+
+**Prouvé de bout en bout en local** (session réelle, aucun SQL) : connecté comme
+OWNER, `/creer-une-box` → « Box Pilote Test » / `box-pilote-test` → `POST 303` →
+`GET /box/box-pilote-test 200`. En base : `tenants` (1), `tenant_settings` (1),
+`themes` (1), et `memberships` = **OWNER** pour le compte connecté. **Règle 7 enfin
+soldée** : `create_tenant` a un appelant.
+
+**Entrée depuis l'accueil** : elle vient avec `P1-022` (l'accueil qui mène quelque
+part et proposera « créer une box » à qui n'en a pas). D'ici là, `/creer-une-box`
+est atteignable par son URL — suffisant pour le pilote.
 
 ## Notes
 

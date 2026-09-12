@@ -7,6 +7,41 @@ import { z } from 'zod';
 import type { RackClient } from './client';
 
 /**
+ * La forme **minimale** d'une box à créer : un nom et un slug. Le reste — fuseau,
+ * devise, langue — prend les défauts de la table `tenants` et se règle ensuite
+ * dans les réglages (`P1-001b`). Miroir exact des contrôles de `create_tenant()` :
+ * nom non vide, slug en `^[a-z0-9]+(-[a-z0-9]+)*$`.
+ */
+export const NewBoxSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  slug: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
+});
+
+export type NewBox = z.infer<typeof NewBoxSchema>;
+
+/**
+ * Crée une box et fait de l'appelant son **OWNER** (`create_tenant`), et rend
+ * l'identifiant de la box. L'appelant doit être **authentifié** — la fonction SQL
+ * lève sinon (`insufficient_privilege`). Un slug déjà pris remonte en
+ * `unique_violation` (`23505`), que l'appelant traduit : la fonction ne le
+ * pré-vérifie pas, c'est la contrainte `tenants_slug_key` qui tranche, sans course.
+ *
+ * `create_tenant` est **la seule porte** vers une première appartenance avec
+ * `accept_invitation()` — d'où son `security definer` et son appelant unique.
+ */
+export async function createTenant(client: RackClient, box: NewBox): Promise<string> {
+  const { data, error } = await client.rpc('create_tenant', {
+    p_name: box.name,
+    p_slug: box.slug,
+  });
+  if (error) throw error;
+  return z.string().uuid().parse(data);
+}
+
+/**
  * Ce qu'une box expose **sans authentification** : sa marque, rien d'autre.
  * Aucun réglage, aucun effectif, aucune donnée personnelle — la fonction SQL
  * est `security definer` et ne rend que ces sept colonnes.
