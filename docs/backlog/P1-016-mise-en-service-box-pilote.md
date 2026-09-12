@@ -173,6 +173,20 @@ révéler** : « l'émetteur est fait » **ne veut pas dire** « les invitations
 Le membre qui atterrirait sur `rack-web-rack8.vercel.app/login` tomberait sur l'**espace
 box** (back-office admin), qui n'est pas fait pour lui.
 
+> **Garde-fou, vérifié le 12 septembre 2026 au soir en se cognant dessus, écrit le 13 :
+> AUCUNE invitation réelle vers une vraie box tant que `RACK_INVITE_URL` n'est pas le
+> lien TestFlight valide.** Aujourd'hui l'URL provisoire pointe sur
+> `rack-web-rack8.vercel.app` — qui, en plus d'être la mauvaise porte, sert un **build
+> périmé** (cet alias n'est jamais réaliasé par nos déploiements ; seul `rack-web-eight`
+> l'est). Un envoi lancé avant la bascule met **un lien mort dans 80 poches**, et il n'y a
+> pas de rattrapage : on ne renvoie pas 80 e-mails « pardon, refaites ». La checklist de
+> mise en service (`deploiement-heberge.md`) porte cette condition **avant** l'étape
+> d'envoi, dans l'ordre : ① build TestFlight soumis et lien public créé, ② `RACK_INVITE_URL`
+> basculée (prod **et** preview), ③ **redéploiement explicite**, ④ un e-mail de test à soi
+> dont le lien ouvre bien TestFlight — et alors seulement l'envoi. Le parcours d'arrivée
+> côté app est **`P1-024`** (le chaînon mobile d'acceptation), dont le critère d'appareil
+> se prouve ici, sur ce build.
+
 **Ce qui reste exerçable sans TestFlight :** la **preuve à 3 adresses** de `P1-018` marche
 avec **n'importe quelle URL** (même le back-office) — elle prouve l'**envoi et
 l'idempotence**, pas le parcours du membre.
@@ -289,6 +303,12 @@ bloquer une date :**
       contrôle négatif** : aucun membre réel n'a de ligne dans `consents` sous
       une version antérieure à celle du texte — sinon `me()` les fera tous
       recocher deux semaines après la mise en service
+- [ ] **Avant l'envoi des 80** (garde-fou ci-dessus) : `RACK_INVITE_URL` = lien
+      TestFlight valide, redéploiement fait, et un e-mail de test à soi dont le
+      lien ouvre TestFlight — dans cet ordre, aucune invitation réelle avant
+- [ ] **Hérité de `P1-018`** : un échec synchrone (adresse morte du fichier réel)
+      apparaît `FAILED` **à l'écran** de l'effectif — le mécanisme est prouvé en
+      pgTAP, l'observation ne peut se faire que sur un vrai fichier
 - [ ] Une sauvegarde a été **restaurée**, une fois, pour de vrai
 - [ ] Le journal de première semaine existe, daté, et chaque défaut qu'il contient
       a un ticket ou une raison écrite de ne pas en avoir
