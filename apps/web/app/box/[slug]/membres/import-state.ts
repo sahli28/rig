@@ -12,8 +12,12 @@ export type ImportState =
       status: 'sent';
       sent: number;
       failed: number;
-      /** Les adresses en échec, avec leur message — la box les corrige et relance. */
-      failures: { email: string; key: TranslationKey }[];
+      /**
+       * Les adresses en échec, séparées par nature : `permanent` (invalide, à
+       * corriger dans le fichier) et `temporary` (quota/réseau, à réessayer). Un
+       * 429 ne doit pas ressembler à une adresse morte.
+       */
+      failures: { email: string; kind: 'permanent' | 'temporary' }[];
     }
   | { status: 'error'; key: TranslationKey };
 

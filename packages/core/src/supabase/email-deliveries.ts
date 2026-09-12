@@ -18,7 +18,12 @@ const ClaimedInvitationSchema = z.object({
 export type ClaimedInvitation = z.infer<typeof ClaimedInvitationSchema>;
 
 export type EmailDeliveryOutcome =
-  { status: 'sent'; providerMessageId: string | null } | { status: 'failed'; error: string };
+  | { status: 'sent'; providerMessageId: string | null }
+  // `failed` : rejet temporaire (429 / 5xx / réseau), réessayé au clic suivant.
+  // `failed_permanent` : rejet définitif (adresse invalide) — plus jamais réservé
+  // par `claim`. La distinction est classée côté action selon le code HTTP Brevo.
+  | { status: 'failed'; error: string }
+  | { status: 'failed_permanent'; error: string };
 
 /**
  * Réserve un lot d'invitations PENDING **nominatives et vives** à mailer, sans
@@ -58,7 +63,9 @@ export async function markEmailDelivery(
     ...(outcome.status === 'sent' && outcome.providerMessageId !== null
       ? { p_provider_message_id: outcome.providerMessageId }
       : {}),
-    ...(outcome.status === 'failed' ? { p_error: outcome.error } : {}),
+    ...(outcome.status === 'failed' || outcome.status === 'failed_permanent'
+      ? { p_error: outcome.error }
+      : {}),
   });
   if (error) throw error;
 }

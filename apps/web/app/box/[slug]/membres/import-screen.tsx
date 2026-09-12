@@ -127,19 +127,28 @@ export function ImportScreen({
                 failed: String(sendState.failed),
               })}
             </p>
-            {sendState.failures.length > 0 ? (
-              <>
-                <p className={styles.rowMeta}>{t('import.send_failures_title')}</p>
-                <ul className={styles.list}>
-                  {sendState.failures.map((failure) => (
-                    <li key={failure.email} className={styles.row}>
-                      <span className={styles.rowMain}>{failure.email}</span>
-                      <span className={styles.badge}>{t(failure.key)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : null}
+            {(['permanent', 'temporary'] as const).map((kind) => {
+              const group = sendState.failures.filter((failure) => failure.kind === kind);
+              if (group.length === 0) return null;
+              return (
+                <div key={kind}>
+                  <p className={styles.rowMeta}>
+                    {t(
+                      kind === 'permanent'
+                        ? 'import.send_failures_permanent_title'
+                        : 'import.send_failures_temporary_title',
+                    )}
+                  </p>
+                  <ul className={styles.list}>
+                    {group.map((failure) => (
+                      <li key={failure.email} className={styles.row}>
+                        <span className={styles.rowMain}>{failure.email}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
           </>
         ) : null}
 

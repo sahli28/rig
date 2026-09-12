@@ -27,7 +27,6 @@ import {
   errorMessageKeyOf,
   renderInvitationEmail,
   type RenderedEmail,
-  type TranslationKey,
 } from '@rack/core';
 import { serverClient } from '../../../../lib/supabase/server';
 import type { ImportState } from './import-state';
@@ -69,10 +68,39 @@ export async function runImport(
 }
 
 /**
+ * Un rejet Brevo, avec son **code HTTP** — la seule information qui sépare une
+ * adresse morte (à corriger) d'un quota atteint (à réessayer). `status = null`
+ * quand `fetch` lui-même échoue (réseau), ce qui est toujours temporaire.
+ */
+class BrevoError extends Error {
+  constructor(
+    readonly status: number | null,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'BrevoError';
+  }
+}
+
+/**
+ * `permanent` (adresse à corriger) vs `temporary` (à réessayer). Un `4xx` **hors
+ * 429** est un rejet définitif de la requête (adresse invalide) ; `429`, `5xx` et
+ * l'échec réseau (`status = null`) sont transitoires. Cette même classe pilote le
+ * marquage en base (`failed_permanent` vs `failed`) **et** l'écran.
+ */
+function classifyBrevoFailure(error: unknown): 'permanent' | 'temporary' {
+  const status = error instanceof BrevoError ? error.status : null;
+  return status !== null && status >= 400 && status < 500 && status !== 429
+    ? 'permanent'
+    : 'temporary';
+}
+
+/**
  * Poste un e-mail transactionnel via l'API Brevo. **Non exporté** : ce n'est pas
  * une action serveur mais l'appel HTTP que `sendInvitations` orchestre. La clé vit
  * en variable d'env **serveur** (jamais dans le bundle client, jamais commitée).
- * Rend l'id de message Brevo, ou **lève** sur rejet — l'appelant marque `failed`.
+ * Rend l'id de message Brevo, ou **lève une `BrevoError`** sur rejet — l'appelant
+ * la classe et marque `failed` | `failed_permanent`.
  */
 async function sendViaBrevo(
   apiKey: string,
@@ -92,7 +120,7 @@ async function sendViaBrevo(
   });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    throw new Error(`Brevo ${res.status}: ${body.slice(0, 200)}`);
+    throw new BrevoError(res.status, `Brevo ${res.status}: ${body.slice(0, 200)}`);
   }
   const json = (await res.json().catch(() => ({}))) as { messageId?: string };
   return json.messageId ?? null;
@@ -135,13 +163,16 @@ export async function sendInvitations(
 
   let claimed;
   try {
-    claimed = await claimInvitationsToEmail(client, membership.tenant_id, { limit: 40 });
+    // Un lot borné (vague) : 20 POST Brevo en série tiennent sous le maxDuration de
+    // la route (voir page.tsx). L'opérateur reclique pour la vague suivante —
+    // l'idempotence (claim/mark) garantit « jamais deux fois ».
+    claimed = await claimInvitationsToEmail(client, membership.tenant_id, { limit: 20 });
   } catch (error) {
     return { status: 'error', key: errorMessageKeyOf(error) };
   }
 
   let sent = 0;
-  const failures: { email: string; key: TranslationKey }[] = [];
+  const failures: { email: string; kind: 'permanent' | 'temporary' }[] = [];
   for (const invitation of claimed) {
     const email = renderInvitationEmail(locale, {
       boxName: tenant.name,
@@ -160,13 +191,16 @@ export async function sendInvitations(
       });
       sent += 1;
     } catch (error) {
+      const kind = classifyBrevoFailure(error);
       const reason = error instanceof Error ? error.message : String(error);
       // Le marquage de l'échec ne doit pas, à son tour, faire tomber l'envoi suivant.
+      // `failed_permanent` retire l'adresse des prochaines vagues (adresse morte) ;
+      // `failed` reste réessayable (quota, réseau).
       await markEmailDelivery(client, invitation.delivery_id, {
-        status: 'failed',
+        status: kind === 'permanent' ? 'failed_permanent' : 'failed',
         error: reason,
       }).catch(() => undefined);
-      failures.push({ email: invitation.email, key: 'errors.email_send_failed' });
+      failures.push({ email: invitation.email, kind });
     }
   }
 
