@@ -272,11 +272,12 @@ ne se signale ; on les découvre en butant dessus.
 >
 > **Deux alias prod = deux pièges, mesurés le 13 sept.** : un build périmé qui a
 > l'air vivant, et des **sessions non partagées** (le cookie est par domaine — se
-> connecter sur l'un ne connecte pas sur l'autre). Recommandation : **un seul
-> domaine servi** — retirer l'alias `rack-web-rack8` (ou le rediriger vers
-> `rack-web-eight`), et retenter la connexion Vercel ↔ GitHub pour que `main`
-> déploie seul (déjà noté plus bas ; l'échec du `link` date du premier essai,
-> pas d'une impossibilité). Décision commanditaire — dashboards Vercel.
+> connecter sur l'un ne connecte pas sur l'autre).
+> **✅ Réglé le 14 sept. 2026 : l'alias `rack-web-rack8` est supprimé** — un seul
+> domaine servi, `rack-web-eight.vercel.app`. Reste ouvert : retenter la
+> connexion Vercel ↔ GitHub pour que `main` déploie seul (l'échec du `link` date
+> du premier essai, pas d'une impossibilité) — sinon le redéploiement reste un
+> geste de la checklist.
 
 ### Les `Gateway Timeout` du plan gratuit — mesurés le 13 sept. 2026 (`D-032`)
 
