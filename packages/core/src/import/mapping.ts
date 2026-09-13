@@ -15,17 +15,22 @@ import { z } from 'zod';
 export const IMPORT_FIELDS = ['email', 'first_name', 'last_name', 'role'] as const;
 export type ImportField = (typeof IMPORT_FIELDS)[number];
 
-/** En-têtes reconnus, en français et en anglais, accents et casse ignorés. */
+/**
+ * En-têtes reconnus, en français et en anglais — accents, casse et tirets bas
+ * ignorés (`normalise()`). Le tiret bas couvre d'un coup les clés que le
+ * produit utilise lui-même : un export snake_case (`first_name`, `last_name`)
+ * n'était pas reconnu alors que `first name` l'était (D-030).
+ */
 const ENTETES: Record<ImportField, readonly string[]> = {
-  email: ['email', 'e-mail', 'mail', 'adresse email', 'adresse e-mail', 'courriel'],
+  email: ['email', 'e-mail', 'e mail', 'mail', 'adresse email', 'adresse e-mail', 'courriel'],
   first_name: ['prenom', 'first name', 'firstname', 'given name'],
   last_name: ['nom', 'nom de famille', 'last name', 'lastname', 'surname', 'family name'],
   role: ['role', 'rôle', 'statut', 'fonction'],
 };
 
-/** Sans accents, sans casse, sans espaces superflus. */
+/** Sans accents, sans casse, sans espaces superflus — et le tiret bas vaut espace. */
 function normalise(entete: string): string {
-  return entete.trim().toLocaleLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  return entete.replace(/_/g, ' ').trim().toLocaleLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
 /**
