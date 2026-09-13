@@ -3,7 +3,7 @@
     "name": "Rack",
     "slug": "rack",
     "scheme": "rack",
-    "version": "0.0.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -13,7 +13,8 @@
       "bundleIdentifier": "app.rack.mobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "2"
     },
     "android": {
       "package": "app.rack.mobile",
