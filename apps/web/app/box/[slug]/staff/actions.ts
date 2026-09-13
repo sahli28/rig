@@ -35,16 +35,23 @@ const EmailSchema = z.string().trim().email();
 
 type Contexte = { client: RackClient; tenantId: string; role: string };
 
+/** L'hébergé n'a pas répondu à temps (D-032) — rendu comme état, jamais levé. */
+const INDISPONIBLE: ActionState = { status: 'error', key: 'errors.unknown' };
+
 /** Box et rôle redérivés de la session, jamais reçus du formulaire. */
-async function contexte(slug: string): Promise<Contexte | null> {
+async function contexte(slug: string): Promise<Contexte | ActionState> {
   const client = await serverClient();
-  const me = await fetchMe(client);
-  const membership = findMembershipBySlug(me, slug);
+  try {
+    const me = await fetchMe(client);
+    const membership = findMembershipBySlug(me, slug);
 
-  if (membership === null) return null;
-  if (!can(membership.role, 'staff')) return null;
+    if (membership === null) return FORBIDDEN;
+    if (!can(membership.role, 'staff')) return FORBIDDEN;
 
-  return { client, tenantId: membership.tenant_id, role: membership.role };
+    return { client, tenantId: membership.tenant_id, role: membership.role };
+  } catch {
+    return INDISPONIBLE;
+  }
 }
 
 function echec(error: unknown): ActionState {
@@ -62,7 +69,7 @@ export async function changeRole(
   form: FormData,
 ): Promise<ActionState> {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const cible = IdSchema.safeParse(membershipId);
   const role = RoleSchema.safeParse(texte(form.get('role')));
@@ -86,7 +93,7 @@ export async function excludeMember(
   _prev: ActionState,
 ): Promise<ActionState> {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const cible = IdSchema.safeParse(membershipId);
   if (!cible.success) return INVALID;
@@ -114,7 +121,7 @@ export async function issueInvitation(
   form: FormData,
 ): Promise<ActionState> {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const role = RoleSchema.safeParse(texte(form.get('role')));
   if (!role.success) return INVALID;
@@ -152,7 +159,7 @@ export async function revokeInvitation(
   _prev: ActionState,
 ): Promise<ActionState> {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const cible = IdSchema.safeParse(invitationId);
   if (!cible.success) return INVALID;

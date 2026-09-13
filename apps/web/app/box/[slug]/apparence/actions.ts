@@ -24,16 +24,22 @@ import type { ActionState } from './action-state';
 
 const FORBIDDEN: ActionState = { status: 'error', key: 'errors.forbidden_role' };
 const INVALID: ActionState = { status: 'error', key: 'settings.error_invalid' };
+/** L'hébergé n'a pas répondu à temps (D-032) — rendu comme état, jamais levé. */
+const INDISPONIBLE: ActionState = { status: 'error', key: 'errors.unknown' };
 
 async function contexteProprietaire(
   slug: string,
-): Promise<{ client: RackClient; tenantId: string } | null> {
+): Promise<{ client: RackClient; tenantId: string } | ActionState> {
   const client = await serverClient();
-  const me = await fetchMe(client);
-  const membership = findMembershipBySlug(me, slug);
+  try {
+    const me = await fetchMe(client);
+    const membership = findMembershipBySlug(me, slug);
 
-  if (membership === null || !can(membership.role, 'appearance')) return null;
-  return { client, tenantId: membership.tenant_id };
+    if (membership === null || !can(membership.role, 'appearance')) return FORBIDDEN;
+    return { client, tenantId: membership.tenant_id };
+  } catch {
+    return INDISPONIBLE;
+  }
 }
 
 function texte(value: FormDataEntryValue | null): string {
@@ -46,7 +52,7 @@ export async function saveAppearance(
   form: FormData,
 ): Promise<ActionState> {
   const ctx = await contexteProprietaire(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const parsed = BoxAppearanceSchema.safeParse({
     app_name: texte(form.get('app_name')),

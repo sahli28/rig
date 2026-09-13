@@ -33,13 +33,21 @@ import type { ImportState } from './import-state';
 
 const RowsSchema = z.array(ImportRowSchema).min(1).max(MAX_IMPORT_ROWS);
 
+/** L'hébergé n'a pas répondu à temps (D-032) — rendu comme état, jamais levé. */
+const INDISPONIBLE: ImportState = { status: 'error', key: 'errors.unknown' };
+
 export async function runImport(
   slug: string,
   _prev: ImportState,
   form: FormData,
 ): Promise<ImportState> {
   const client = await serverClient();
-  const me = await fetchMe(client);
+  let me;
+  try {
+    me = await fetchMe(client);
+  } catch {
+    return INDISPONIBLE;
+  }
   const membership = findMembershipBySlug(me, slug);
 
   if (membership === null || !can(membership.role, 'members')) {
@@ -140,7 +148,12 @@ export async function sendInvitations(
   _form: FormData,
 ): Promise<ImportState> {
   const client = await serverClient();
-  const me = await fetchMe(client);
+  let me;
+  try {
+    me = await fetchMe(client);
+  } catch {
+    return INDISPONIBLE;
+  }
   const membership = findMembershipBySlug(me, slug);
 
   if (membership === null || !can(membership.role, 'members')) {
@@ -156,7 +169,12 @@ export async function sendInvitations(
   }
 
   // La box porte le nom et la langue de l'e-mail : l'invité n'a pas encore de compte.
-  const scoped = await fetchMe(client, membership.tenant_id);
+  let scoped;
+  try {
+    scoped = await fetchMe(client, membership.tenant_id);
+  } catch {
+    return INDISPONIBLE;
+  }
   const tenant = scoped.current_tenant;
   if (tenant === null) return { status: 'error', key: 'errors.forbidden_role' };
   const locale = tenant.default_locale === 'en' ? 'en' : 'fr';

@@ -35,6 +35,12 @@ import { HORIZON_DAYS, type ActionState } from './action-state';
 
 const INVALID: ActionState = { status: 'error', key: 'planning.error_invalid' };
 const FORBIDDEN: ActionState = { status: 'error', key: 'errors.forbidden_role' };
+/**
+ * L'hébergé n'a pas répondu à temps (D-032). Rendu comme état, jamais levé :
+ * une exception dans une action donnait un 500 nu et perdait la saisie —
+ * c'est le défaut observé à la mise en service du 13 septembre 2026.
+ */
+const INDISPONIBLE: ActionState = { status: 'error', key: 'errors.unknown' };
 const OK: ActionState = { status: 'ok' };
 /** Effacer une séance demande un geste explicite : voir `saveWorkout`. */
 const CONFIRM_DELETE: ActionState = { status: 'error', key: 'workout.confirm_delete' };
@@ -43,16 +49,20 @@ const DELETED: ActionState = { status: 'ok', key: 'workout.deleted' };
 
 type Contexte = { client: RackClient; tenantId: string };
 
-/** Résout la box et le rôle depuis la session. `null` = ni box, ni droit. */
-async function contexte(slug: string): Promise<Contexte | null> {
+/** Résout la box et le rôle depuis la session. Un échec rend l'état à afficher. */
+async function contexte(slug: string): Promise<Contexte | ActionState> {
   const client = await serverClient();
-  const me = await fetchMe(client);
-  const membership = findMembershipBySlug(me, slug);
+  try {
+    const me = await fetchMe(client);
+    const membership = findMembershipBySlug(me, slug);
 
-  if (membership === null) return null;
-  if (!can(membership.role, 'planning_admin')) return null;
+    if (membership === null) return FORBIDDEN;
+    if (!can(membership.role, 'planning_admin')) return FORBIDDEN;
 
-  return { client, tenantId: membership.tenant_id };
+    return { client, tenantId: membership.tenant_id };
+  } catch {
+    return INDISPONIBLE;
+  }
 }
 
 /**
@@ -66,15 +76,19 @@ async function contexte(slug: string): Promise<Contexte | null> {
  * couches disent la même chose, la policy refuse de toute façon, et celle-ci
  * transforme un refus opaque en phrase.
  */
-async function contexteStaff(slug: string): Promise<Contexte | null> {
+async function contexteStaff(slug: string): Promise<Contexte | ActionState> {
   const client = await serverClient();
-  const me = await fetchMe(client);
-  const membership = findMembershipBySlug(me, slug);
+  try {
+    const me = await fetchMe(client);
+    const membership = findMembershipBySlug(me, slug);
 
-  if (membership === null) return null;
-  if (!can(membership.role, 'workout')) return null;
+    if (membership === null) return FORBIDDEN;
+    if (!can(membership.role, 'workout')) return FORBIDDEN;
 
-  return { client, tenantId: membership.tenant_id };
+    return { client, tenantId: membership.tenant_id };
+  } catch {
+    return INDISPONIBLE;
+  }
 }
 
 function echec(error: unknown): ActionState {
@@ -141,7 +155,7 @@ function serieDepuis(form: FormData) {
 
 export async function createSchedule(slug: string, _prev: ActionState, form: FormData) {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const parsed = serieDepuis(form);
   if (parsed === null || !parsed.success) return INVALID;
@@ -164,7 +178,7 @@ export async function createSchedule(slug: string, _prev: ActionState, form: For
 
 export async function updateSchedule(slug: string, id: string, _prev: ActionState, form: FormData) {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const parsed = serieDepuis(form);
   if (parsed === null || !parsed.success) return INVALID;
@@ -197,7 +211,7 @@ export async function updateSchedule(slug: string, id: string, _prev: ActionStat
  */
 export async function archiveSchedule(slug: string, id: string): Promise<ActionState> {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const { error } = await tenantScope(ctx.client, ctx.tenantId)
     .update('class_schedules', { deleted_at: new Date().toISOString() })
@@ -235,7 +249,7 @@ export async function cancelClass(
   form: FormData,
 ): Promise<ActionState> {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const raison = texte(form.get('reason'));
   if (raison.length === 0 || raison.length > 280) return INVALID;
@@ -277,7 +291,7 @@ export async function cancelClass(
  */
 export async function restoreClass(slug: string, id: string): Promise<ActionState> {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const { error } = await tenantScope(ctx.client, ctx.tenantId)
     .update('classes', {
@@ -321,7 +335,7 @@ export async function saveWorkout(
   form: FormData,
 ): Promise<ActionState> {
   const ctx = await contexteStaff(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const titre = texte(form.get('title'));
   const corps = texte(form.get('body'));

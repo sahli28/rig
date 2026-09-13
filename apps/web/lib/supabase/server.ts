@@ -12,7 +12,7 @@
 
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
-import type { Database, RackClient } from '@rack/core/supabase';
+import { resilientFetch, type Database, type RackClient } from '@rack/core/supabase';
 import { webSupabaseConfig } from './config';
 
 export async function serverClient(): Promise<RackClient> {
@@ -20,6 +20,11 @@ export async function serverClient(): Promise<RackClient> {
   const { url, anonKey } = webSupabaseConfig();
 
   return createServerClient<Database>(url, anonKey, {
+    // Le transport résilient de D-032 : délai par requête, rejeu borné aux
+    // lectures GET/HEAD, journal des requêtes lentes (chemin seul, jamais la
+    // query string). Les `Gateway Timeout` intermittents de l'hébergé gratuit
+    // remontaient sinon en 500 nu — voir le ticket.
+    global: { fetch: resilientFetch(fetch) },
     cookies: {
       getAll: () => store.getAll(),
       setAll: (cookiesToSet) => {

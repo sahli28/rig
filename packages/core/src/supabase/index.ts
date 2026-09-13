@@ -214,6 +214,8 @@ export {
   type LigneCoursChangee,
 } from './realtime-classes';
 
+export { resilientFetch, type JournalRequete, type ResilientFetchOptions } from './resilient-fetch';
+
 export {
   tenantScope,
   type TenantInsert,

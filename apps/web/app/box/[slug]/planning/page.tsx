@@ -81,20 +81,26 @@ export default async function Page({
   // cours la semaine dernière » : sans la semaine précédente en mémoire, il
   // faudrait deux requêtes par cellule, sur une grille qui en affiche une
   // quarantaine.
-  const [classesRows, semainePrecedenteRows] = await Promise.all([
-    scope
-      .select('classes')
-      .is('deleted_at', null)
-      .gte('starts_at', instantLocal(debut, timeZone))
-      .lt('starts_at', instantLocal(fin, timeZone))
-      .order('starts_at'),
-    scope
-      .select('classes')
-      .is('deleted_at', null)
-      .gte('starts_at', instantLocal(`${shiftWeeks(monday, -1)}T00:00:00`, timeZone))
-      .lt('starts_at', instantLocal(debut, timeZone))
-      .order('starts_at'),
-  ]);
+  //
+  // Et **une seule requête pour les deux** (D-032) : la fenêtre va du lundi
+  // précédent au lundi suivant, coupée ici. Sur l'hébergé gratuit, chaque
+  // aller-retour de plus est une occasion de « Gateway Timeout » — celle-ci
+  // était la plus simple à retirer sans rien changer aux données.
+  const debutInstant = instantLocal(debut, timeZone);
+  const quinzaineRows = await scope
+    .select('classes')
+    .is('deleted_at', null)
+    .gte('starts_at', instantLocal(`${shiftWeeks(monday, -1)}T00:00:00`, timeZone))
+    .lt('starts_at', instantLocal(fin, timeZone))
+    .order('starts_at');
+
+  // En instants, pas en chaînes : PostgREST rend `+00:00` là où la borne peut
+  // porter un autre décalage — deux écritures du même instant ne se comparent
+  // pas caractère à caractère.
+  const bascule = Date.parse(debutInstant);
+  const quinzaine = quinzaineRows.data ?? [];
+  const semaineCourante = quinzaine.filter((row) => Date.parse(row.starts_at) >= bascule);
+  const precedentes = quinzaine.filter((row) => Date.parse(row.starts_at) < bascule);
 
   const typesById = new Map(
     (classTypesRows.data ?? []).map((row) => [row.id, localizedText(row.name_i18n, locale)]),
@@ -113,7 +119,7 @@ export default async function Page({
     ]),
   );
 
-  const occurrences: Occurrence[] = (classesRows.data ?? []).map((row) => ({
+  const occurrences: Occurrence[] = semaineCourante.map((row) => ({
     id: row.id,
     schedule_id: row.schedule_id,
     starts_at: row.starts_at,
@@ -142,7 +148,6 @@ export default async function Page({
 
   // Les séances de la semaine, en une requête plutôt qu'une par cellule : la
   // grille en affiche une quarantaine (P1-015).
-  const precedentes = semainePrecedenteRows.data ?? [];
   const workouts = await fetchWorkoutsByClass(client, {
     tenantId: membership.tenant_id,
     classIds: [...occurrences.map((o) => o.id), ...precedentes.map((row) => row.id)],
@@ -152,7 +157,7 @@ export default async function Page({
   // la sélection compare — un identifiant, un type, un jour **local de la box**,
   // et de quoi se reconnaître dans une liste.
   const jourDe = localDayIn(timeZone);
-  const candidates = [...(classesRows.data ?? []), ...precedentes].map((row) => ({
+  const candidates = quinzaine.map((row) => ({
     id: row.id,
     classTypeId: row.class_type_id,
     day: jourDe(row.starts_at),
