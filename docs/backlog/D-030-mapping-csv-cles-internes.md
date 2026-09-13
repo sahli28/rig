@@ -44,6 +44,10 @@ l'outil qui ne se comprend pas lui-même.
 
 ## Critères d'acceptation
 
-- [ ] Un CSV à en-têtes `email,first_name,last_name,role` est entièrement mappé
-      sans intervention
-- [ ] Les en-têtes déjà reconnus le restent (aucune régression dans la suite)
+- [x] Un CSV à en-têtes `email,first_name,last_name,role` est entièrement mappé
+      sans intervention — **fait le 13 sept. 2026**, test écrit **avant** le
+      correctif (rouge constaté, puis vert). Retenue : le tiret bas vaut espace
+      dans `normalise()` — toutes les clés snake_case d'un coup — plus le
+      synonyme `e mail` que cette normalisation fait naître (`E_MAIL`)
+- [x] Les en-têtes déjà reconnus le restent — les 18 tests existants de la
+      suite passent inchangés (20/20)

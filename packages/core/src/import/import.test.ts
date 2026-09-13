@@ -103,6 +103,25 @@ describe('guessMapping', () => {
   it('ne propose rien pour une colonne inconnue', () => {
     expect(guessMapping(['Numéro de licence'])).toEqual({});
   });
+
+  // D-030 : les clés que le produit utilise lui-même — un export snake_case,
+  // dont tout ce que ce dépôt émet — n'étaient pas reconnues : `first name`
+  // avec espace l'était, `first_name` avec tiret bas non.
+  it('reconnaît ses propres clés snake_case', () => {
+    expect(guessMapping(['email', 'first_name', 'last_name', 'role'])).toEqual({
+      email: 'email',
+      first_name: 'first_name',
+      last_name: 'last_name',
+      role: 'role',
+    });
+  });
+
+  it('reconnaît un snake_case composé (E_MAIL, Given_Name)', () => {
+    expect(guessMapping(['E_MAIL', 'Given_Name'])).toEqual({
+      email: 'E_MAIL',
+      first_name: 'Given_Name',
+    });
+  });
 });
 
 describe('applyMapping', () => {
