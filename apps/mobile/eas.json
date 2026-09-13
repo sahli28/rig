@@ -12,10 +12,18 @@
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://llakbulflemibnfagnyh.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable__WWJM0F1OlzdtTaBherM8Q_fWKWqQ7L"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://llakbulflemibnfagnyh.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable__WWJM0F1OlzdtTaBherM8Q_fWKWqQ7L"
+      }
     }
   },
   "submit": {

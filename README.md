@@ -112,6 +112,15 @@ Sur **appareil physique**, remplacer `127.0.0.1` par l'IP de la machine sur le
 réseau local (`http://192.168.x.x:55321`) : sur le téléphone, `127.0.0.1` désigne
 le téléphone.
 
+⚠️ **`.env.local` ne voyage pas : une build EAS ne le voit jamais.** Le bundle
+des profils `preview` et `production` est produit dans le cloud, où seul ce qui
+est versionné existe — la première build TestFlight a **crashé au lancement**
+pour cette raison (`D-031`). Les deux `EXPO_PUBLIC_*` du projet **hébergé**
+vivent donc dans les blocs `env` d'`apps/mobile/eas.json` (valeurs publiques
+par construction, donc versionnées), et `apps/mobile/eas-env.test.ts` rougit si
+elles manquent — ou si une clé qui n'est pas `EXPO_PUBLIC_*` (un secret) tente
+d'y entrer.
+
 Le web sait vivre sans ces variables — la page publique et la galerie du système
 de design restent consultables, la session est simplement désactivée. Le mobile,
 lui, refuse de démarrer avec un message qui nomme le fichier à créer.
