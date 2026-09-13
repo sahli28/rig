@@ -39,19 +39,25 @@ import type { ActionState } from './action-state';
 
 const INVALID: ActionState = { status: 'error', key: 'settings.error_invalid' };
 const FORBIDDEN: ActionState = { status: 'error', key: 'errors.forbidden_role' };
+/** L'hébergé n'a pas répondu à temps (D-032) — rendu comme état, jamais levé. */
+const INDISPONIBLE: ActionState = { status: 'error', key: 'errors.unknown' };
 
 type Contexte = { client: RackClient; tenantId: string; role: string };
 
-/** Résout la box et le rôle depuis la session. `null` = ni box, ni droit. */
-async function contexte(slug: string): Promise<Contexte | null> {
+/** Résout la box et le rôle depuis la session. Un échec rend l'état à afficher. */
+async function contexte(slug: string): Promise<Contexte | ActionState> {
   const client = await serverClient();
-  const me = await fetchMe(client);
-  const membership = findMembershipBySlug(me, slug);
+  try {
+    const me = await fetchMe(client);
+    const membership = findMembershipBySlug(me, slug);
 
-  if (membership === null) return null;
-  if (!can(membership.role, 'settings')) return null;
+    if (membership === null) return FORBIDDEN;
+    if (!can(membership.role, 'settings')) return FORBIDDEN;
 
-  return { client, tenantId: membership.tenant_id, role: membership.role };
+    return { client, tenantId: membership.tenant_id, role: membership.role };
+  } catch {
+    return INDISPONIBLE;
+  }
 }
 
 function echec(error: unknown): ActionState {
@@ -83,7 +89,8 @@ function texteOuNul(value: FormDataEntryValue | null): string | null {
  */
 export async function saveIdentity(slug: string, _prev: ActionState, form: FormData) {
   const ctx = await contexte(slug);
-  if (ctx === null || !can(ctx.role, 'identity')) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
+  if (!can(ctx.role, 'identity')) return FORBIDDEN;
 
   const parsed = BoxIdentitySchema.safeParse({
     name: texte(form.get('name')),
@@ -118,7 +125,7 @@ export async function saveIdentity(slug: string, _prev: ActionState, form: FormD
 
 export async function saveBookingRules(slug: string, _prev: ActionState, form: FormData) {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const parsed = BookingRulesPatchSchema.safeParse({
     open_days_before: nombre(form.get('open_days_before')),
@@ -147,7 +154,7 @@ export async function saveBookingRules(slug: string, _prev: ActionState, form: F
 
 export async function addOpeningHour(slug: string, _prev: ActionState, form: FormData) {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const parsed = OpeningHourSchema.safeParse({
     weekday: nombre(form.get('weekday')),
@@ -182,7 +189,7 @@ export async function addOpeningHour(slug: string, _prev: ActionState, form: For
 /** Retrait par `deleted_at` : pas de suppression physique (règle 10). */
 export async function removeOpeningHour(slug: string, id: string) {
   const ctx = await contexte(slug);
-  if (ctx === null) return;
+  if ('status' in ctx) return;
 
   await tenantScope(ctx.client, ctx.tenantId)
     .update('opening_hours', { deleted_at: new Date().toISOString() })
@@ -197,7 +204,7 @@ export async function removeOpeningHour(slug: string, id: string) {
 
 export async function addLocation(slug: string, _prev: ActionState, form: FormData) {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const parsed = LocationPatchSchema.safeParse({
     name: texte(form.get('name')),
@@ -216,7 +223,7 @@ export async function addLocation(slug: string, _prev: ActionState, form: FormDa
 
 export async function addRoom(slug: string, _prev: ActionState, form: FormData) {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const parsed = RoomPatchSchema.safeParse({
     location_id: texte(form.get('location_id')),
@@ -234,7 +241,7 @@ export async function addRoom(slug: string, _prev: ActionState, form: FormData) 
 
 export async function archiveRoom(slug: string, id: string) {
   const ctx = await contexte(slug);
-  if (ctx === null) return;
+  if ('status' in ctx) return;
 
   await tenantScope(ctx.client, ctx.tenantId)
     .update('rooms', { deleted_at: new Date().toISOString() })
@@ -263,7 +270,7 @@ function typeDeCoursDepuis(form: FormData) {
 
 export async function addClassType(slug: string, _prev: ActionState, form: FormData) {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const parsed = typeDeCoursDepuis(form);
   if (!parsed.success) return INVALID;
@@ -277,7 +284,7 @@ export async function addClassType(slug: string, _prev: ActionState, form: FormD
 
 export async function saveClassType(slug: string, id: string, _prev: ActionState, form: FormData) {
   const ctx = await contexte(slug);
-  if (ctx === null) return FORBIDDEN;
+  if ('status' in ctx) return ctx;
 
   const parsed = typeDeCoursDepuis(form);
   if (!parsed.success) return INVALID;
@@ -293,7 +300,7 @@ export async function saveClassType(slug: string, id: string, _prev: ActionState
 
 export async function archiveClassType(slug: string, id: string) {
   const ctx = await contexte(slug);
-  if (ctx === null) return;
+  if ('status' in ctx) return;
 
   await tenantScope(ctx.client, ctx.tenantId)
     .update('class_types', { deleted_at: new Date().toISOString() })

@@ -269,6 +269,25 @@ ne se signale ; on les découvre en butant dessus.
 > Pas de réalias à faire pour les membres : la valeur définitive est le **lien
 > TestFlight** (garde-fou de `P1-016` — **aucune invitation réelle avant la bascule**).
 > Si une preuve technique a besoin d'une URL web d'ici là, prendre `rack-web-eight`.
+>
+> **Deux alias prod = deux pièges, mesurés le 13 sept.** : un build périmé qui a
+> l'air vivant, et des **sessions non partagées** (le cookie est par domaine — se
+> connecter sur l'un ne connecte pas sur l'autre). Recommandation : **un seul
+> domaine servi** — retirer l'alias `rack-web-rack8` (ou le rediriger vers
+> `rack-web-eight`), et retenter la connexion Vercel ↔ GitHub pour que `main`
+> déploie seul (déjà noté plus bas ; l'échec du `link` date du premier essai,
+> pas d'une impossibilité). Décision commanditaire — dashboards Vercel.
+
+### Les `Gateway Timeout` du plan gratuit — mesurés le 13 sept. 2026 (`D-032`)
+
+`POST /box/…/reglages` et `/planning` en 500 **intermittents** (mêmes pages en
+200 juste avant/après) : la fonction Vercel n'atteint pas Supabase gratuit dans
+le délai. Depuis `D-032`, l'écran encaisse (message + « Réessayer », saisie
+préservée) et **les logs Vercel journalisent chaque requête lente** (`[supabase]
+{method, path, status, durationMs, attempt}` — chemin sans query string). À la
+prochaine occurrence, cette ligne dit si c'est un **cold start** (lenteurs
+groupées au réveil → le passage **Pro**, critère de `P1-016`, gagne sa preuve)
+ou **une requête précise** (→ ticket d'index/vue, avec la donnée).
 
 ### La CI n'est pas une barrière de fusion — à poser
 
