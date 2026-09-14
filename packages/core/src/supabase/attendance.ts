@@ -15,16 +15,22 @@ import { tenantScope } from './active-tenant';
  */
 
 /**
- * Un inscrit sur la feuille : prénom + initiale (règle d'exposition commune,
- * `.claude/rules/privacy.md`), plus l'état de présence. `booking_id` est la
+ * Un inscrit sur la feuille, plus l'état de présence. `booking_id` est la
  * ligne que `set_attendance()` marque ; les horodatages arrivent en chaîne ou
  * `null` (sérialisation PostgREST).
+ *
+ * **`last_name` complet depuis le 14 septembre 2026** — décision commanditaire,
+ * exception datée dans `.claude/rules/privacy.md` : le staff gère la box, et
+ * une feuille d'appel de salle porte des noms complets. `last_initial` reste
+ * servi : c'est la projection minimisée qu'une surface semi-publique (kiosque,
+ * `P1-008b`) devra consommer à la place du nom.
  */
 export interface AttendanceRow {
   membership_id: string;
   booking_id: string;
   first_name: string | null;
   last_initial: string | null;
+  last_name: string | null;
   attended_at: string | null;
   no_show_at: string | null;
 }
@@ -38,6 +44,7 @@ const AttendanceRowSchema = z.object({
   booking_id: z.string(),
   first_name: z.string().nullable(),
   last_initial: z.string().nullable(),
+  last_name: z.string().nullable(),
   attended_at: z.string().nullable(),
   no_show_at: z.string().nullable(),
 });
@@ -98,6 +105,34 @@ export async function fetchAttendanceSheet(
   if (error !== null) throw error;
 
   return AttendanceRowSchema.array().parse(data ?? []);
+}
+
+/**
+ * Les inscrits de **plusieurs** cours en une requête — la grille du planning
+ * web en affiche une quarantaine, et une requête par panneau serait le motif
+ * exact que `D-032` vient de payer (P1-027). Même forme que
+ * `fetchWorkoutsByClass()`.
+ */
+export async function fetchAttendanceByClass(
+  client: RackClient,
+  { tenantId, classIds }: { tenantId: string; classIds: string[] },
+): Promise<Record<string, AttendanceRow[]>> {
+  if (classIds.length === 0) return {};
+
+  const { data, error } = await tenantScope(client, tenantId)
+    .selectView('class_attendance_sheet')
+    .in('class_id', classIds)
+    .order('first_name')
+    .order('membership_id');
+
+  if (error !== null) throw error;
+
+  const par: Record<string, AttendanceRow[]> = {};
+  for (const brut of data ?? []) {
+    const row = AttendanceRowSchema.extend({ class_id: z.string() }).parse(brut);
+    (par[row.class_id] ??= []).push(row);
+  }
+  return par;
 }
 
 /**

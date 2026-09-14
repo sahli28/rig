@@ -1,6 +1,6 @@
 'use client';
 
-import type { ClassWorkout } from '@rack/core/supabase';
+import type { AttendanceRow, ClassWorkout } from '@rack/core/supabase';
 
 type SourceCandidate = { id: string; classTypeId: string; day: string; label: string };
 
@@ -36,6 +36,7 @@ export function PlanningScreen({
   editable,
   staff,
   workouts,
+  roster,
   candidates,
 }: {
   slug: string;
@@ -52,6 +53,7 @@ export function PlanningScreen({
   editable: boolean;
   staff: boolean;
   workouts: Record<string, ClassWorkout>;
+  roster: Record<string, AttendanceRow[]>;
   candidates: SourceCandidate[];
 }) {
   const { t, formatDate } = useI18n();
@@ -94,6 +96,7 @@ export function PlanningScreen({
           editable={editable}
           staff={staff}
           workouts={workouts}
+          roster={roster}
           candidates={candidates}
         />
       </section>

@@ -88,7 +88,7 @@ ad hoc aux règles différentes, ce sont trois surfaces qu'on ne compare jamais.
 | **Admin** — OWNER/MANAGER sur tous les membres | tout, **e-mail compris** | responsabilité de traitement de la box | `member_admin_directory` (D-001) |
 | **Coach** — un membre sur qui anime son cours | prénom, **initiale** du nom | exécution du contrat du coach : son nom est déjà au mur et sur le site | `tenant_coaches` (P1-010) |
 | **Pair** — un membre sur les autres inscrits **du même cours** | prénom, **initiale** du nom | **intérêt légitime**, avec information et **opposition** — un pair n'exerce aucune fonction, contrairement au coach | `class_roster` (P1-003c) |
-| **Présence** — le staff sur un cours de sa box | prénom, **initiale** du nom | **traitement légitime de la box** : pointer une présence exécute son contrat, comme la feuille d'appel d'une salle. **Ignore l'opposition `hidden_from_roster`** — elle masque aux pairs, pas au coach qui coche | `class_attendance_sheet` (P1-008a) |
+| **Présence** — le staff sur un cours de sa box | prénom **et nom complets** *(depuis le 14 sept. 2026 — l'exception datée du point 3)* | **traitement légitime de la box** : pointer une présence exécute son contrat, comme la feuille d'appel d'une salle — qui porte des noms complets. **Ignore l'opposition `hidden_from_roster`** — elle masque aux pairs, pas au coach qui coche | `class_attendance_sheet` (P1-008a, élargie P1-027) |
 
 Ce qui vaut pour **toute** audience non administrative :
 
@@ -100,9 +100,20 @@ Ce qui vaut pour **toute** audience non administrative :
    en clair pour tout membre depuis P1-002, et `memberships` rend `user_id`,
    rôles et dates à tous les membres d'une box : interdire un `membership_id`
    dans une vue ne retirerait rien du produit, ça rendrait la vue injoignable.
-3. **Le nom se réduit à « prénom + initiale ».** Une vue qui ne transporte qu'un
-   caractère ne peut pas laisser fuir un patronyme par inadvertance. C'est déjà
-   la ligne du partage inter-box, réutilisée plutôt que réinventée.
+3. **Le nom se réduit à « prénom + initiale »** — coachs-annuaire et pairs. Une
+   vue qui ne transporte qu'un caractère ne peut pas laisser fuir un patronyme
+   par inadvertance. C'est déjà la ligne du partage inter-box, réutilisée
+   plutôt que réinventée.
+   **Une exception, nommée et datée (décision commanditaire, 14 sept. 2026,
+   `P1-027`) : la feuille de présence** (`class_attendance_sheet`) porte le nom
+   **complet** — le staff gère la box, et la feuille d'appel d'une salle porte
+   des noms complets. La base légale ne change pas (traitement légitime,
+   exécution du contrat), et la ligne du point 1 tient toujours : ni e-mail, ni
+   téléphone, ni naissance. **Le pendant obligatoire** : une surface
+   **semi-publique** — le kiosque tablette de `P1-008b`, lisible par qui passe
+   la porte — ne consomme jamais cette vue ; sa projection minimisée
+   (`first_name` + `last_initial`, toujours servis par la vue) existe pour ça,
+   et le garde-fou est écrit dans `P1-008b` avant son code.
 4. **Une photo est du consentement**, jamais de l'exécution du contrat : elle
    n'est pas nécessaire pour animer un cours. Et elle attend un producteur —
    il n'y a ni stockage ni téléversement avant P1-001f.

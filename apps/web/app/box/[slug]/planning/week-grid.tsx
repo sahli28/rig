@@ -1,7 +1,7 @@
 'use client';
 
-import type { ClassWorkout, WorkoutSource } from '@rack/core/supabase';
-import { sourcesPourOccurrence } from '@rack/core/supabase';
+import type { AttendanceRow, ClassWorkout, WorkoutSource } from '@rack/core/supabase';
+import { attendanceStateOf, sourcesPourOccurrence } from '@rack/core/supabase';
 
 type SourceCandidate = { id: string; classTypeId: string; day: string; label: string };
 import { WorkoutForm } from './workout-form';
@@ -32,6 +32,7 @@ export function WeekGrid({
   editable,
   staff,
   workouts,
+  roster,
   candidates,
 }: {
   slug: string;
@@ -41,6 +42,7 @@ export function WeekGrid({
   editable: boolean;
   staff: boolean;
   workouts: Record<string, ClassWorkout>;
+  roster: Record<string, AttendanceRow[]>;
   candidates: SourceCandidate[];
 }) {
   // Le fuseau vient du contexte, pas d'une prop : c'est celui de la box, et
@@ -89,6 +91,7 @@ export function WeekGrid({
                       editable={editable}
                       staff={staff}
                       workout={workouts[occurrence.id] ?? null}
+                      inscrits={roster[occurrence.id] ?? []}
                       sources={sourcesPourOccurrence({
                         occurrence: {
                           id: occurrence.id,
@@ -117,6 +120,7 @@ function OccurrenceCard({
   editable,
   staff,
   workout,
+  inscrits,
   sources,
 }: {
   slug: string;
@@ -125,6 +129,7 @@ function OccurrenceCard({
   editable: boolean;
   staff: boolean;
   workout: ClassWorkout | null;
+  inscrits: AttendanceRow[];
   sources: WorkoutSource[];
 }) {
   const { t } = useI18n();
@@ -207,6 +212,44 @@ function OccurrenceCard({
               sources={sources}
             />
           )}
+
+          {/* Qui vient (P1-027) — noms complets : le staff gère la box
+              (décision du 14 sept. 2026, privacy.md), et la portée est celle
+              de la vue elle-même, jamais un filtre d'écran (règle 2). Lecture
+              seule : cocher la présence reste au mobile, en salle (P1-008a). */}
+          <section className={styles.roster}>
+            <h3 className={styles.label}>
+              {t('planning.roster_heading', {
+                count: inscrits.length,
+                capacity: occurrence.capacity,
+              })}
+            </h3>
+            {inscrits.length === 0 ? (
+              <p className={styles.hint}>{t('attendance.empty_body')}</p>
+            ) : (
+              <ul className={styles.rosterList}>
+                {inscrits.map((inscrit) => {
+                  const etat = attendanceStateOf(inscrit);
+                  return (
+                    <li key={inscrit.booking_id} className={styles.rosterRow}>
+                      <span>
+                        {[inscrit.first_name, inscrit.last_name].filter(Boolean).join(' ') || '—'}
+                      </span>
+                      {etat !== 'pending' && (
+                        <span className={styles.rosterState}>
+                          {t(
+                            etat === 'present'
+                              ? 'planning.roster_present'
+                              : 'planning.roster_no_show',
+                          )}
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
 
           {editable && (
             <>
