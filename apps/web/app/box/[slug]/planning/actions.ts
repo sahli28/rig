@@ -24,6 +24,8 @@ import {
   can,
   fetchMe,
   findMembershipBySlug,
+  instantLocal,
+  isCalendarDate,
   parseWeeklyRrule,
   type RackClient,
   type RruleDay,
@@ -229,6 +231,83 @@ export async function archiveSchedule(slug: string, id: string): Promise<ActionS
 // ---------------------------------------------------------------------------
 // Occurrences — les exceptions à la série
 // ---------------------------------------------------------------------------
+
+/**
+ * Pose un cours **ponctuel** : une occurrence sans série (P1-026).
+ *
+ * `schedule_id: null` + `is_override: true` — l'invariant
+ * `classes_ponctuel_est_derogatoire` rend le second obligatoire, et c'est lui
+ * qui garantit qu'aucun rafraîchissement de série ne balaiera la ligne. La
+ * seconde ceinture est structurelle : les refresh joignent `schedule_id = s.id`,
+ * un NULL n'y correspond jamais.
+ *
+ * L'heure saisie est **locale à la box** (règle 9 de CLAUDE.md) ; `ends_at` se
+ * calcule avec la durée du type de cours — la même recette que la
+ * matérialisation des séries.
+ */
+export async function createOneOff(
+  slug: string,
+  _prev: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contexte(slug);
+  if ('status' in ctx) return ctx;
+
+  const date = texte(form.get('date'));
+  const heure = texte(form.get('time'));
+  const classTypeId = texte(form.get('class_type_id'));
+  const roomId = texte(form.get('room_id'));
+  const coachId = texte(form.get('coach_membership_id'));
+  const capacity = Number(texte(form.get('capacity')));
+
+  if (
+    !isCalendarDate(date) ||
+    !/^([01]\d|2[0-3]):[0-5]\d$/.test(heure) ||
+    classTypeId === '' ||
+    roomId === '' ||
+    coachId === '' ||
+    !Number.isInteger(capacity) ||
+    capacity < 1 ||
+    capacity > 999
+  ) {
+    return INVALID;
+  }
+
+  const scope = tenantScope(ctx.client, ctx.tenantId);
+
+  // Le fuseau de la box et la durée du type : les deux ingrédients des instants.
+  const tenant = await scope.currentTenant();
+  if (tenant.error) return echec(tenant.error);
+  if (tenant.data === null) return INVALID;
+
+  const type = await scope
+    .select('class_types')
+    .eq('id', classTypeId)
+    .is('deleted_at', null)
+    .maybeSingle();
+  if (type.error) return echec(type.error);
+  if (type.data === null) return INVALID;
+
+  const startsAt = instantLocal(`${date}T${heure}:00`, tenant.data.timezone);
+  const endsAt = new Date(Date.parse(startsAt) + type.data.duration_minutes * 60_000).toISOString();
+
+  // Salle et coach d'une autre box : les FK composites `(id, tenant_id)`
+  // refusent — pas besoin de les re-vérifier ici.
+  const { error } = await scope.insert('classes', {
+    schedule_id: null,
+    class_type_id: classTypeId,
+    room_id: roomId,
+    coach_membership_id: coachId,
+    starts_at: startsAt,
+    ends_at: endsAt,
+    capacity,
+    is_override: true,
+  });
+  if (error) return echec(error);
+
+  revalidatePath(`/box/${slug}/planning`);
+  return OK;
+}
 
 /**
  * Annule **une** occurrence sans toucher à la série.

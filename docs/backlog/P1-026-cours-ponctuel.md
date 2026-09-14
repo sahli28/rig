@@ -59,11 +59,21 @@ pgTAP qui prouve les deux moitiés — l'occurrence ponctuelle survit à un
 
 ## Critères d'acceptation
 
-- [ ] Un cours ponctuel créé à l'écran apparaît dans la grille à sa date, sans
-      nouvelle ligne dans « Séries »
-- [ ] `refresh_class_schedule()` (modif d'une série quelconque) ne le touche ni
-      ne le duplique — pgTAP
-- [ ] `schedule_id null` sans `is_override` est refusé par la base — pgTAP
-- [ ] Il se réserve côté membre comme n'importe quel cours (vérif harnais :
-      `book_class` ne lit pas la série)
-- [ ] `rls-auditor` SAFE sur la migration
+- [x] Un cours ponctuel créé à l'écran apparaît dans la grille à sa date, sans
+      nouvelle ligne dans « Séries » — **harnais, 14 sept. 2026** : WOD jeudi
+      17/09 12:00 (Sarah, 8 places) posé sur le jour vide, séries inchangées ;
+      en base `schedule_id NULL, is_override=t`, 12:00 Paris = 10:00 UTC,
+      `ends_at` = +60 min du type
+- [x] Le **balayage global** (chemin du job nocturne, toutes séries) ne le
+      touche ni ne le duplique — pgTAP (`one_off_class_test.sql` ③ :
+      `updated_at` intact, une seule ligne à l'horaire)
+- [x] `schedule_id null` sans `is_override` est refusé par la base — pgTAP ①
+      (`23514`)
+- [x] Il se réserve côté membre comme n'importe quel cours — **mieux que la
+      vérif harnais prévue : en pgTAP** (④) : Léa réserve par `book_class()`,
+      réservation `CONFIRMED`, `booked_count` suit. La lecture d'`rls-auditor`
+      confirme qu'aucune fonction de réservation/waitlist/présence/push ne
+      référence `schedule_id`
+- [x] `rls-auditor` **SAFE** — question des sœurs posée : le seul chemin qui
+      supposait `NOT NULL` était le type TypeScript `Occurrence`, corrigé
+      (`string | null`), un seul site d'assignation, aucun consommateur

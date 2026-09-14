@@ -27,7 +27,8 @@ import { shiftDays, weekDates } from './class-schedules';
 /** Une occurrence de cours, telle qu'un écran l'affiche. */
 export type Occurrence = {
   id: string;
-  schedule_id: string;
+  /** `null` = cours ponctuel (P1-026), sans série derrière. */
+  schedule_id: string | null;
   /** Le type de cours, **et pas seulement son nom** : le pré-remplissage de
    * P1-015 compare des types, et deux types peuvent porter le même libellé. */
   class_type_id: string;
