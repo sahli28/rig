@@ -373,7 +373,7 @@ export type Database = {
           id: string;
           is_override: boolean;
           room_id: string;
-          schedule_id: string;
+          schedule_id: string | null;
           starts_at: string;
           status: Database['public']['Enums']['class_status'];
           tenant_id: string;
@@ -392,7 +392,7 @@ export type Database = {
           id?: string;
           is_override?: boolean;
           room_id: string;
-          schedule_id: string;
+          schedule_id?: string | null;
           starts_at: string;
           status?: Database['public']['Enums']['class_status'];
           tenant_id: string;
@@ -411,7 +411,7 @@ export type Database = {
           id?: string;
           is_override?: boolean;
           room_id?: string;
-          schedule_id?: string;
+          schedule_id?: string | null;
           starts_at?: string;
           status?: Database['public']['Enums']['class_status'];
           tenant_id?: string;

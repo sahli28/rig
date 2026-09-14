@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useI18n } from '@rack/ui/i18n';
 import { parseWeeklyRrule } from '@rack/core/supabase';
 import { SeriesForm } from './series-form';
+import { OneOffForm } from './one-off-form';
 import { WeekGrid } from './week-grid';
 import styles from './planning.module.css';
 import { DAY_LABELS, type Choice, type Occurrence, type Serie } from '@rack/core/supabase';
@@ -143,6 +144,19 @@ export function PlanningScreen({
               trigger={
                 <button type="button" className={styles.primary}>
                   {t('planning.new_series')}
+                </button>
+              }
+            />
+            {/* Le ponctuel (P1-026) : une occurrence, pas une série d'un jour.
+                Secondaire — la série reste le geste structurant de l'écran. */}
+            <OneOffForm
+              slug={slug}
+              classTypes={classTypes}
+              rooms={rooms}
+              coaches={coaches}
+              trigger={
+                <button type="button" className={styles.secondary}>
+                  {t('planning.one_off')}
                 </button>
               }
             />
