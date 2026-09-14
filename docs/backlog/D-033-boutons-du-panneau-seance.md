@@ -35,6 +35,13 @@ panneau : cette passe cosmétique se joue **après eux**, sinon elle se refait.
 
 ## Critères d'acceptation
 
-- [ ] Une seule action primaire visible ; capture avant/après dans la PR
-- [ ] `read_page filter=interactive` : l'ordre de tabulation suit la lecture,
-      chaque bouton s'annonce par ce qu'il fait
+- [x] Une seule action primaire visible — **fait le 14 sept. 2026, au
+      harnais** : « Enregistrer » seul primaire, à droite ; « Changer les
+      places » secondaire à droite de sa zone ; « Annuler ce cours » danger,
+      **isolé sous son propre trait** ; « Fermer » devient un **lien discret**
+      (souligné, texte atténué) — le troisième bouton de même poids était
+      exactement ce que la passe reprochait. Captures avant/après jouées au
+      harnais dans la session du 14 sept. ; à reprendre dans la PR si besoin
+- [x] `read_page filter=interactive` : Enregistrer → Places → Changer les
+      places → Annuler ce cours → Fermer — l'ordre de lecture, chaque bouton
+      annoncé par son geste

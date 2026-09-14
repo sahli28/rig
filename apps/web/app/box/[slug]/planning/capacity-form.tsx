@@ -49,7 +49,7 @@ export function CapacityForm({
         />
         <span className={styles.hint}>{t('planning.capacity_hint', { booked })}</span>
       </label>
-      <div className={styles.actions}>
+      <div className={styles.actionsEnd}>
         <SubmitButton label={t('planning.capacity_save')} variant="secondary" />
       </div>
       <Feedback state={state} />

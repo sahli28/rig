@@ -266,6 +266,12 @@ bloquer une date :**
   sa date, `consents.tsx` y mène par un lien. Aucune des trois n'est ici sans les
   deux autres.
 - La configuration de la box avec elle, en visio.
+- **Les consignes d'exploitation, dites à la box** — dont celle-ci, décision
+  commanditaire du 14 septembre 2026 (`P1-029`) : **une séance se publie avant
+  21 h.** Entre 21 h et 7 h, le push aux inscrits est écarté (quiet hours, pas
+  de report au matin au pilote) — la séance reste visible dans l'app, mais
+  personne n'est prévenu. Le lot « report au matin » est nommé au ticket
+  `P1-029`, à ouvrir si l'usage le réclame.
 - L'import, les invitations, la relance.
 - La présence en salle et le suivi.
 - **Le journal de ce qui casse**, tenu pendant la première semaine : c'est la

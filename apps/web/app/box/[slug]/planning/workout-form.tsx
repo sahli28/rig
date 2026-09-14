@@ -147,7 +147,9 @@ export function WorkoutForm({
         </label>
       )}
 
-      <div className={styles.actions}>
+      {/* À droite, seul : le primaire du dialogue ne partage sa ligne avec
+          rien (D-033). */}
+      <div className={styles.actionsEnd}>
         {/* L'envoi destructeur n'a pas l'air d'un enregistrement : même règle
             que l'annulation du cours, un cran plus haut dans ce dialogue. */}
         <SubmitButton

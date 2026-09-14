@@ -265,6 +265,10 @@ function OccurrenceCard({
                   booked={occurrence.booked_count}
                 />
               )}
+              {/* La zone destructrice sous SON trait (D-021, D-033) : la jauge
+                  au-dessus est un geste courant, annuler n'en partage ni la
+                  ligne ni le voisinage. */}
+              <hr className={styles.separator} />
               {annule ? (
                 <RestoreForm slug={slug} id={occurrence.id} />
               ) : annulationOuverte ? (
@@ -284,10 +288,12 @@ function OccurrenceCard({
           )}
 
           {/* Fermer vit au niveau du dialogue, pas dans un formulaire : un coach
-              n'a pas de panneau d'annulation, et il doit pouvoir sortir aussi. */}
-          <div className={styles.actions} style={{ marginTop: 16 }}>
+              n'a pas de panneau d'annulation, et il doit pouvoir sortir aussi.
+              Un LIEN discret (D-033) : sortir n'est pas une action, et un
+              troisième bouton de même poids était ce que la passe reprochait. */}
+          <div className={styles.actionsEnd} style={{ marginTop: 16 }}>
             <Dialog.Close asChild>
-              <button type="button" className={styles.secondary}>
+              <button type="button" className={styles.dialogClose}>
                 {t('common.close')}
               </button>
             </Dialog.Close>
