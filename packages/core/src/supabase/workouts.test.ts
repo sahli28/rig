@@ -59,13 +59,16 @@ describe('sourcesPourOccurrence', () => {
     { id: 'soir', classTypeId: 'wod', day: '2026-09-10', label: '19:00 · WOD' },
   ];
 
-  it('propose les autres cours du même jour, quel que soit leur type', () => {
-    // « S'il y a un Haltéro dans la journée, je ne retape pas le même WOD. »
+  it('propose les cours du même jour, du même type seulement (P1-028)', () => {
+    // Renversement assumé de P1-015, décidé à l'usage le 14 septembre 2026 :
+    // « toute la journée, tous types » proposait une séance d'Haltéro en
+    // éditant un WOD Endurance — ce sont des WOD différents, la liste était
+    // du bruit. Une séance ne se reprend qu'entre cours du même type.
     const ids = sourcesPourOccurrence({ occurrence: cible, candidates, workouts }).map(
       (s) => s.classId,
     );
     expect(ids).toContain('matin');
-    expect(ids).toContain('haltero');
+    expect(ids).not.toContain('haltero');
   });
 
   it('propose le même type la semaine précédente', () => {
