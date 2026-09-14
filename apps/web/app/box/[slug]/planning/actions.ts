@@ -282,6 +282,52 @@ export async function cancelClass(
 }
 
 /**
+ * Change les places d'**une** occurrence — jamais par la série (P1-025).
+ *
+ * Le cas principal est un cours **déjà réservé** : le refresh ne touche que les
+ * occurrences vierges, donc rien d'autre ne peut changer cette capacité-là.
+ * `is_override` passe à `true` — le drapeau que les deux refresh respectent
+ * déjà — pour qu'une modification de série n'écrase pas la valeur posée à la
+ * main. (Annuler puis rétablir la ramènera à la série : c'est la sémantique de
+ * `restoreClass`, assumée.)
+ *
+ * **Deux gardes, un seul message.** La pré-lecture de `booked_count` rend le
+ * refus lisible avant d'écrire ; si une réservation gagne la course entre la
+ * lecture et l'écriture, la contrainte `classes_booked_within_capacity` lève
+ * un `23514` — mappé vers la même clé, jamais une erreur brute (le motif du
+ * `23505` du slug, `reglages/actions.ts`).
+ */
+export async function saveCapacity(
+  slug: string,
+  id: string,
+  _prev: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contexte(slug);
+  if ('status' in ctx) return ctx;
+
+  const capacity = Number(texte(form.get('capacity')));
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 999) return INVALID;
+
+  const scope = tenantScope(ctx.client, ctx.tenantId);
+  const ligne = await scope.select('classes').eq('id', id).maybeSingle();
+  if (ligne.error) return echec(ligne.error);
+  if (ligne.data === null) return INVALID;
+  if (capacity < ligne.data.booked_count) {
+    return { status: 'error', key: 'errors.capacity_below_booked' };
+  }
+
+  const { error } = await scope.update('classes', { capacity, is_override: true }).eq('id', id);
+  if (error?.code === '23514') {
+    return { status: 'error', key: 'errors.capacity_below_booked' };
+  }
+  if (error) return echec(error);
+
+  revalidatePath(`/box/${slug}/planning`);
+  return OK;
+}
+
+/**
  * Rétablit une occurrence annulée.
  *
  * `is_override` repasse à `false`, et ce n'est pas un détail : annuler puis

@@ -41,15 +41,23 @@ Le modèle est prêt ; c'est l'écran qui n'expose pas :
 
 ## Critères d'acceptation
 
-- [ ] Une occurrence réservée (`booked_count > 0`) passe de 12 à 20 places
-      depuis son panneau ; la grille l'affiche ; la série n'a pas bougé
-- [ ] Redescendre à `booked_count - 1` est refusé **avec le message** qui dit
-      combien sont déjà réservées — pré-lecture et course (`23514`) rendent le
-      même texte
-- [ ] L'occurrence modifiée porte `is_override = true` ; une modification de la
-      série ensuite ne l'écrase pas (le test existant du refresh le prouve déjà —
-      le critère est de **poser** le drapeau, pas de re-prouver le filtre)
-- [ ] Un COACH ne voit pas le champ, et la policy refuse s'il poste quand même
+- [x] Une occurrence réservée (`booked_count > 0`) passe de 12 à 20 places
+      depuis son panneau ; la grille l'affiche ; la série n'a pas bougé —
+      **harnais, 14 sept. 2026** : cours à 8 réservations → 20 places,
+      « Enregistré. » (`role="status"`), grille « 8 / 20 », base
+      `capacity=20, is_override=t`, série intacte
+- [x] Redescendre sous `booked_count` est refusé **avec le message** — prouvé
+      sur une **vraie course au harnais** : l'écran affichait 5 réservations,
+      la base en portait 8 (posées après le rendu), soumission de 6 → le
+      plancher HTML périmé laisse passer, la garde serveur rend « Impossible
+      de descendre sous le nombre de places déjà réservées » en `role="alert"`.
+      Le `23514` de la contrainte rend la même clé si la course perd entre la
+      pré-lecture et l'écriture
+- [x] L'occurrence modifiée porte `is_override = true` — lu en base après le
+      geste ; le filtre des refresh est déjà prouvé par les tests existants
+- [x] Un COACH ne voit pas le champ (rendu sous `editable` seulement) et
+      `contexte()` — borné `planning_admin`, D-021 — refuse son POST avant même
+      la policy admin de `classes_update`, qui refuse aussi
 
 ## Notes
 
