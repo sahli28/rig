@@ -36,7 +36,17 @@ condition de plus, pas une donnée de plus.
 
 ## Critères d'acceptation
 
-- [ ] Le cas rapporté rougit avant le correctif, passe après : un candidat d'un
-      autre type le même jour n'est **plus** proposé
-- [ ] « Même type la semaine précédente » et « même type le même jour »
+- [x] Le cas rapporté rougit avant le correctif, passe après : un candidat d'un
+      autre type le même jour n'est **plus** proposé — **fait le 14 sept. 2026**,
+      rouge constaté puis 11/11
+- [x] « Même type la semaine précédente » et « même type le même jour »
       restent proposés — aucune régression dans la suite
+
+## Le renversement, signalé (règle 6)
+
+Ce correctif **renverse une décision produit de P1-015**, qui citait le coach :
+« s'il y a un Haltéro dans la journée je ne retape pas le même WOD » — c'est
+elle qui avait ouvert le même-jour-tous-types, et le test l'affirmait en toutes
+lettres. L'usage réel du 14 septembre a dit l'inverse, la commanditaire a
+tranché, et le renversement est **daté** dans l'en-tête de
+`sourcesPourOccurrence()` et dans le test réécrit — pas écrasé en silence.

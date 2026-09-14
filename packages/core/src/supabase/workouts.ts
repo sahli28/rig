@@ -120,13 +120,19 @@ export interface WorkoutSource {
 }
 
 /**
- * Les sources de pré-remplissage d'une occurrence : les **autres cours du même
- * jour**, et **le même type de cours la semaine précédente**.
+ * Les sources de pré-remplissage d'une occurrence : **les cours du même type**,
+ * le même jour ou la semaine précédente.
  *
- * Ce sont les deux gestes que le coach décrit — « s'il y a un Haltéro dans la
- * journée je ne retape pas le même WOD », et « un WOD endurance du lundi ne sera
- * pas forcément le même le jeudi ». Rien de plus : une bibliothèque de séances
- * serait un autre produit, et `P2-009` est déjà celui-là.
+ * **Le même type, toujours — et c'est un renversement daté.** P1-015 avait
+ * retenu « tous les cours du même jour, quel que soit le type », sur la phrase
+ * du coach « s'il y a un Haltéro dans la journée je ne retape pas le même
+ * WOD ». L'usage réel a dit l'inverse le 14 septembre 2026 : une séance
+ * d'Haltéro proposée en éditant un WOD Endurance était du bruit — ce sont des
+ * WOD différents. Une séance ne se reprend qu'entre cours du même type
+ * (P1-028), et « un WOD endurance du lundi ne sera pas forcément le même le
+ * jeudi » reste vrai : la semaine précédente est toujours proposée. Rien de
+ * plus : une bibliothèque de séances serait un autre produit, et `P2-009` est
+ * déjà celui-là.
  *
  * **Pure, et alimentée par ce que l'écran a déjà chargé.** La première version
  * interrogeait la base par occurrence : deux requêtes par cellule, sur une
@@ -149,10 +155,11 @@ export function sourcesPourOccurrence({
     // Se pré-remplir depuis soi n'a pas de sens : l'écran affiche déjà son texte.
     if (candidat.id === occurrence.id) continue;
 
+    // Jamais entre types (P1-028, renversement daté — voir l'en-tête).
+    if (candidat.classTypeId !== occurrence.classTypeId) continue;
+
     const memeJour = candidat.day === occurrence.day;
-    const memeTypeSemaineAvant =
-      candidat.classTypeId === occurrence.classTypeId && candidat.day === semainePrecedente;
-    if (!memeJour && !memeTypeSemaineAvant) continue;
+    if (!memeJour && candidat.day !== semainePrecedente) continue;
 
     const seance = workouts[candidat.id];
     // Une occurrence sans séance n'est pas une source : proposer un texte vide
