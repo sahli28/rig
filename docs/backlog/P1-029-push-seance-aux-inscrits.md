@@ -62,6 +62,11 @@ ticket câble le canal, il n'en refait pas un.
    donc **personne** (le membre la voit dans l'app), comme toute catégorie non
    exemptée. Le report est un lot possible (colonne + claim + émetteur) si
    l'usage le réclame — écrit dans la migration, pas absorbé.
+   **Ratifié par la commanditaire le 14 septembre 2026 : on RESTE sur le
+   comportement mesuré pour le pilote.** Pas de report au matin ; la parade
+   est une consigne d'exploitation — **publier avant 21 h** — portée aux
+   consignes d'accompagnement de `P1-016` pour être dite à la box. Le lot
+   « report au matin » reste nommé, déclencheur : l'usage le réclame.
 2. **`rls-auditor` a rendu LEAK sur le premier jet, à raison** : `p_now` —
    l'instant de référence des quiet hours — était un paramètre de la fonction
    grantée à `authenticated`. Un staff appelant le RPC à 23 h avec un `p_now`

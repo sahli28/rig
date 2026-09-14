@@ -59,6 +59,11 @@ Le modèle est prêt ; c'est l'écran qui n'expose pas :
       `contexte()` — borné `planning_admin`, D-021 — refuse son POST avant même
       la policy admin de `classes_update`, qui refuse aussi
 
+**Validé sur l'hébergé le 14 septembre 2026, passe commanditaire** : capacité
+d'un cours déjà réservé modifiée depuis son panneau, grille à jour, refus sous
+le nombre d'inscrits avec le message clair — pas d'erreur brute. Le ticket est
+clos des deux côtés, harnais et production.
+
 ## Notes
 
 Pas de fonction SQL neuve : l'invariant vit déjà sur la table (là où l'état

@@ -403,3 +403,28 @@
   color: var(--rack-color-text-muted);
   font-size: var(--rack-text-small);
 }
+
+/*
+ * D-033 — la hiérarchie des gestes du panneau, en trois poids.
+ *
+ * Les envois se rangent à droite (le sens de lecture finit là) ; « Fermer »
+ * n'est pas une action, c'est une sortie — un lien discret, pas un bouton qui
+ * concourt avec les vrais gestes ; « Annuler ce cours » reste un bouton danger,
+ * isolé sous son trait.
+ */
+.actionsEnd {
+  composes: actions;
+  justify-content: flex-end;
+}
+
+.dialogClose {
+  background: transparent;
+  border: 0;
+  padding: 10px 4px;
+  min-height: var(--rack-touch-target);
+  color: var(--rack-color-text-muted);
+  font-family: var(--rack-font-family);
+  font-size: var(--rack-text-body);
+  text-decoration: underline;
+  cursor: pointer;
+}
