@@ -67,6 +67,17 @@ Deno.test('buildExpoMessages — annulation porte la date et le bon gabarit', ()
   assert(!entry.message.body.includes('{'), 'les placeholders {date} et {time} sont résolus');
 });
 
+Deno.test(
+  'buildExpoMessages — séance publiée : titre, date résolue, lien vers le cours (P1-029)',
+  () => {
+    const [entry] = buildExpoMessages([reminderRow({ id: 'o5', category: 'WORKOUT_UPDATED' })]);
+    assertEquals(entry.message.title, 'Ta séance est prête');
+    assert(entry.message.body.includes('CrossFit'), 'le nom du cours est présent');
+    assert(!entry.message.body.includes('{'), '{class}, {date} et {time} sont résolus');
+    assertEquals(entry.message.data.url, 'rack:///class/c1');
+  },
+);
+
 Deno.test('buildExpoMessages — promotion : offre à confirmer vs place réservée (drapeau)', () => {
   const base = reminderRow({ id: 'o3', category: 'WAITLIST_PROMOTION' });
   const [offer] = buildExpoMessages([

@@ -53,12 +53,44 @@ ticket câble le canal, il n'en refait pas un.
   producteur, autre texte — à ouvrir si l'usage le demande.
 - Le récapitulatif hebdomadaire (« ta semaine ») : `P2`.
 
+## Deux corrections en cours de route, tracées (règle 6)
+
+1. **« Quiet hours → différé » était faux, et le ticket le croyait.** Mesuré
+   avant d'écrire : `notification_eligibility` rend `QUIET_HOURS` et
+   `enqueue_push()` **n'enfile rien** — il n'existe aucun mécanisme de report
+   (pas de `send_after` dans l'outbox). Une séance publiée à 22 h ne notifie
+   donc **personne** (le membre la voit dans l'app), comme toute catégorie non
+   exemptée. Le report est un lot possible (colonne + claim + émetteur) si
+   l'usage le réclame — écrit dans la migration, pas absorbé.
+2. **`rls-auditor` a rendu LEAK sur le premier jet, à raison** : `p_now` —
+   l'instant de référence des quiet hours — était un paramètre de la fonction
+   grantée à `authenticated`. Un staff appelant le RPC à 23 h avec un `p_now`
+   de midi aurait poussé en pleine nuit — la sœur du piège 7 de `database.md`,
+   appliquée à l'horloge. Correctif appliqué selon son patch : enfileur
+   interne `notify_workout_published_at(id, p_now)` révoqué des rôles
+   applicatifs, porte publique `notify_workout_published(id)` qui fixe
+   `now()` elle-même. La migration n'était pas versionnée : corrigée en place
+   (règle 13).
+
 ## Critères d'acceptation
 
-- [ ] pgTAP : réservé → une ligne `push_outbox` ; non réservé → aucune ;
-      re-sauvegarde sans changement → aucune nouvelle ; quiet hours → différé
-- [ ] Le bandeau « canal n'existe pas » a disparu, remplacé par rien (publier
-      redevient silencieux à l'écran)
-- [ ] `rls-auditor` SAFE ; la fonction refuse un appelant non-staff — pgTAP
+- [x] pgTAP (10 assertions, `workout_push_test.sql`) : réservée + consentante
+      → une ligne `WORKOUT_UPDATED` au contexte complet ; non-réservé →
+      aucune ; **quiet hours → écarté** (le fait mesuré, pas le différé
+      supposé) ; l'enfileur interne inatteignable même pour le staff (42501) ;
+      MEMBER refusé ; cross-box = même refus qu'un id inconnu
+- [x] Re-sauvegarde sans changement → aucun push : le « pas deux fois pour
+      rien » vit dans `saveWorkout` (comparaison titre+corps relus), documenté
+      dans le test SQL (« l'enfileur ré-enfile — le dédoublonnage est à
+      l'action »)
+- [x] Le bandeau « canal n'existe pas » a disparu avec sa clé i18n — publier
+      redevient silencieux à l'écran, le push est un effet de bord jamais
+      bloquant (échec journalisé, publication réussie quand même)
+- [x] L'émetteur rend le gabarit `WORKOUT_UPDATED` FR/EN, date et heure
+      résolues, lien profond `rack:///class/[id]` — **13/13 sous Deno, le
+      vrai moteur**
+- [x] `rls-auditor` : LEAK trouvé puis **SAFE après correctif** (contre-vérifié
+      sur la version corrigée)
 - [~] **appareil** : le push reçu sur l'iPhone à la publication réelle — même
       chemin de preuve que les `[ ]` de `P1-007`, joué à la même passe
+      TestFlight

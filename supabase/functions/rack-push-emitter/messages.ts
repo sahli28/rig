@@ -42,6 +42,13 @@ const TEMPLATES: Record<string, { title: string; body: string; withDate: boolean
     body: 'push.waitlist_promotion_offer_body',
     withDate: false,
   },
+  // P1-029 : la séance du cours réservé est publiée ou a changé. Le lien
+  // profond (fiche du cours) est le même que les autres catégories.
+  WORKOUT_UPDATED: {
+    title: 'push.workout_updated_title',
+    body: 'push.workout_updated_body',
+    withDate: true,
+  },
 };
 
 const PLACEHOLDER = /\{(\w+)\}/g;

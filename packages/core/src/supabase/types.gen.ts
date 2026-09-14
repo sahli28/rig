@@ -1702,6 +1702,14 @@ export type Database = {
         };
         Returns: boolean;
       };
+      notify_workout_published: {
+        Args: { p_class_id: string };
+        Returns: number;
+      };
+      notify_workout_published_at: {
+        Args: { p_class_id: string; p_now: string };
+        Returns: number;
+      };
       pending_invitations_for_me: {
         Args: never;
         Returns: {
@@ -1786,7 +1794,11 @@ export type Database = {
       membership_role: 'OWNER' | 'MANAGER' | 'COACH' | 'MEMBER';
       membership_status: 'ACTIVE' | 'SUSPENDED' | 'LEFT' | 'REMOVED';
       notification_category:
-        'CLASS_REMINDER' | 'WAITLIST_PROMOTION' | 'CLASS_CANCELLATION' | 'MARKETING';
+        | 'CLASS_REMINDER'
+        | 'WAITLIST_PROMOTION'
+        | 'CLASS_CANCELLATION'
+        | 'MARKETING'
+        | 'WORKOUT_UPDATED';
       tenant_status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
       waitlist_status: 'WAITING' | 'OFFERED' | 'ACCEPTED' | 'EXPIRED' | 'LEFT' | 'CLASS_CANCELLED';
     };
@@ -1933,6 +1945,7 @@ export const Constants = {
         'WAITLIST_PROMOTION',
         'CLASS_CANCELLATION',
         'MARKETING',
+        'WORKOUT_UPDATED',
       ],
       tenant_status: ['ACTIVE', 'SUSPENDED', 'CLOSED'],
       waitlist_status: ['WAITING', 'OFFERED', 'ACCEPTED', 'EXPIRED', 'LEFT', 'CLASS_CANCELLED'],
