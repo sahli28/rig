@@ -118,17 +118,16 @@ export function WorkoutForm({
           veut et le publie quand il est prêt ; confondre les deux publierait un
           texte à moitié tapé au premier enregistrement.
 
-          Et **publier ne prévient personne** : la convention est déjà à deux pas
-          dans ce fichier — `planning.cancel_no_notification`, écrite pour ne pas
-          laisser croire que seize personnes sont au courant. Elle vaut ici. */}
+          Depuis P1-029, publier **prévient les inscrits** (push, si le texte a
+          changé) — le bandeau « aucun canal » est parti avec le canal. Publier
+          redevient silencieux à l'écran : le push est un effet de bord, pas
+          une promesse d'interface. */}
       <label className={styles.field}>
         <span className={styles.label}>
           <input type="checkbox" name="publish" defaultChecked={publishedAt !== null} />{' '}
           {t('workout.publish')}
         </span>
       </label>
-
-      <p className={styles.warning}>{t('workout.publish_no_notification')}</p>
 
       {/* **Vider le champ efface la séance, et ça se dit avant.**
           La confirmation n'apparaît que dans le cas destructeur — vider un champ

@@ -512,10 +512,20 @@ export async function saveWorkout(
 
   const publishedAt = publier ? (existante?.published_at ?? new Date().toISOString()) : null;
 
+  // Le push part si la séance devient publiée, ou si son texte change alors
+  // qu'elle l'est — jamais sur une re-sauvegarde à l'identique (P1-029). C'est
+  // ici que vit le « pas deux fois pour rien » : le producteur SQL, lui, ne
+  // peut pas savoir si le texte a changé.
+  const titreNormalise = titre.length === 0 ? null : titre;
+  const texteChange =
+    existante === null || existante.body !== corps || existante.title !== titreNormalise;
+  const devientPubliee = publier && (existante === null || existante.published_at === null);
+  const doitNotifier = publier && (devientPubliee || texteChange);
+
   if (existante === null) {
     const { error } = await scope.insert('class_workouts', {
       class_id: classId,
-      title: titre.length === 0 ? null : titre,
+      title: titreNormalise,
       body: corps,
       published_at: publishedAt,
     });
@@ -523,12 +533,26 @@ export async function saveWorkout(
   } else {
     const { error } = await scope
       .update('class_workouts', {
-        title: titre.length === 0 ? null : titre,
+        title: titreNormalise,
         body: corps,
         published_at: publishedAt,
       })
       .eq('id', existante.id);
     if (error) return echec(error);
+  }
+
+  // **Un effet de bord, jamais une condition** — même règle que l'e-mail
+  // d'invitation : un échec d'enfilage ne fait pas échouer la publication. Les
+  // quiet hours écartent en silence (le producteur rend 0), et c'est le
+  // comportement de toute catégorie non exemptée — mesuré, écrit au ticket.
+  if (doitNotifier) {
+    const push = await ctx.client.rpc('notify_workout_published', { p_class_id: classId });
+    // Journalisé partout, production comprise : c'est la même observabilité
+    // que le transport D-032 — un message d'erreur Postgres, aucune donnée
+    // personnelle.
+    if (push.error) {
+      console.warn(`[push] notify_workout_published : ${push.error.message}`);
+    }
   }
 
   revalidatePath(`/box/${slug}/planning`);
