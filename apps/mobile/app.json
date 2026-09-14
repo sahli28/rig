@@ -13,8 +13,7 @@
       "bundleIdentifier": "app.rack.mobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      },
-      "buildNumber": "4"
+      }
     },
     "android": {
       "package": "app.rack.mobile",

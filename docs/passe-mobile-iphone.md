@@ -51,6 +51,31 @@ passes**, et **§ 6** (ce qu'on note, ce qu'on ne commite pas).
 
 ---
 
+## Le compteur de build EAS est CHEZ EAS, plus dans le dépôt (D-036)
+
+**Payé le 14 septembre 2026** : avec `appVersionSource: "local"`, le
+`buildNumber` d'`app.json` a divergé de ce qu'Apple détenait — collision sur le
+n°3, une build refusée le jour même de la première soumission. Deux compteurs
+pour un même numéro, celui du dépôt ne pouvait que dériver (une build lancée
+d'une autre machine, un fichier pas committé, un revert).
+
+Depuis `D-036` : `eas.json` porte **`appVersionSource: "remote"`** — le
+compteur vit chez EAS, `autoIncrement` l'y incrémente, et `app.json` ne porte
+**plus** de `buildNumber` (il n'y a plus de second compteur à désynchroniser).
+
+**Geste unique, à faire une fois, sur le compte EAS** (commanditaire) — aligner
+le compteur distant sur ce qu'Apple détient réellement avant la prochaine
+build :
+
+```bash
+pnpm --filter @rack/mobile exec eas build:version:set --platform ios
+```
+
+(saisir la valeur du **dernier build soumis chez Apple** — App Store Connect
+fait foi ; `eas build:version:sync` existe aussi si un binaire local doit
+servir de référence). Sans ce geste, la première build « remote » repart d'un
+compteur vide et la collision revient par l'autre porte.
+
 ## 1. L'adresse de la machine sur le réseau local
 
 Le téléphone ne connaît pas `127.0.0.1` : cette adresse, pour lui, c'est
