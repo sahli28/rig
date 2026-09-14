@@ -55,6 +55,18 @@ le ticket — c'est le meilleur usage qu'on ait fait de la règle 8 jusqu'ici.*
 | Une file hors ligne côté web | ❌ rien. Le cache mobile (`schedule-cache.ts`) ne s'y transpose pas |
 | **De quoi authentifier une tablette de kiosque** | ❌ **décision non prise, et volontairement** — voir ci-dessous |
 
+## Garde-fou d'identité, posé AVANT le code (décision commanditaire, 14 sept. 2026)
+
+**Le kiosque est une surface SEMI-PUBLIQUE** — une tablette à l'entrée, lisible
+par quiconque passe la porte. Il ne consomme **jamais** la vue enrichie de
+`P1-027` (`class_attendance_sheet`, qui rend `last_name` complet au staff) :
+il passe par une **projection minimisée** — prénom + initiale, la règle des
+pairs — quelle que soit la session sous laquelle il tourne. La décision
+d'élargir les noms au staff a été prise **en même temps** que ce garde-fou,
+précisément pour que le second ne se redécouvre pas après coup : un écran
+n'hérite pas de l'audience de sa session, il a la sienne — celle de qui peut
+**le regarder**.
+
 ## Les trois trouvailles, à ne pas repayer
 
 ### 1. « Validation locale » hors ligne ne peut pas vouloir dire ce qu'elle dit

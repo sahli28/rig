@@ -49,17 +49,18 @@ export function SubmitButton({
   variant = 'primary',
 }: {
   label: string;
-  variant?: 'primary' | 'danger';
+  /** `secondary` pour un envoi qui ne doit pas concurrencer le geste quotidien (P1-025). */
+  variant?: 'primary' | 'danger' | 'secondary';
 }) {
   const { t } = useI18n();
   const { pending } = useFormStatus();
 
+  const classe = { primary: styles.primary, danger: styles.danger, secondary: styles.secondary }[
+    variant
+  ];
+
   return (
-    <button
-      type="submit"
-      className={variant === 'danger' ? styles.danger : styles.primary}
-      disabled={pending}
-    >
+    <button type="submit" className={classe} disabled={pending}>
       {pending ? t('common.loading') : label}
     </button>
   );

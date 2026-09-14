@@ -13,3 +13,6 @@ supabase/.branches
 # markdown sans rien apporter, et pollue les diffs des tickets.
 docs/
 .claude/
+
+# Exports du bureau Claude — même raison que le .gitignore.
+Claude outputs/

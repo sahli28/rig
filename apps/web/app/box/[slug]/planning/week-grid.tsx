@@ -5,6 +5,7 @@ import { sourcesPourOccurrence } from '@rack/core/supabase';
 
 type SourceCandidate = { id: string; classTypeId: string; day: string; label: string };
 import { WorkoutForm } from './workout-form';
+import { CapacityForm } from './capacity-form';
 import { useActionState, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useI18n } from '@rack/ui/i18n';
@@ -210,6 +211,17 @@ function OccurrenceCard({
           {editable && (
             <>
               {staff && <hr className={styles.separator} />}
+              {/* Les places de CE cours (P1-025) — admin seulement, avant la
+                  zone destructrice : changer une jauge est un geste courant,
+                  annuler reste derrière son trait (D-021). */}
+              {!annule && (
+                <CapacityForm
+                  slug={slug}
+                  classId={occurrence.id}
+                  capacity={occurrence.capacity}
+                  booked={occurrence.booked_count}
+                />
+              )}
               {annule ? (
                 <RestoreForm slug={slug} id={occurrence.id} />
               ) : annulationOuverte ? (

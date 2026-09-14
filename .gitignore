@@ -32,3 +32,6 @@ AGENTS.md
 .vercel
 supabase/snippets/
 apps/web/.gitignore
+
+# Exports du bureau Claude (aperçus déposés à la racine) : jamais dans le dépôt.
+Claude outputs/
