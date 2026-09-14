@@ -50,3 +50,7 @@ elle qui avait ouvert le même-jour-tous-types, et le test l'affirmait en toutes
 lettres. L'usage réel du 14 septembre a dit l'inverse, la commanditaire a
 tranché, et le renversement est **daté** dans l'en-tête de
 `sourcesPourOccurrence()` et dans le test réécrit — pas écrasé en silence.
+
+**Validé sur l'hébergé le 14 septembre 2026, passe commanditaire — dans les
+deux sens** : la séance Back Squat d'un Haltéro proposée sur un autre Haltéro,
+et absente d'un TEAM WOD comme d'un WOD Endurance. Clos des deux côtés.

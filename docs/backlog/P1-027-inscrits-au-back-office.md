@@ -81,3 +81,7 @@ mobile consomme. La consommer depuis le web est le gros du ticket. Les deux
       aucune autre vue ne reçoit `last_name`, `create or replace` conserve
       grants et `security_invoker`, la vue reste hors publication realtime,
       aucun chemin MEMBER/inter-box ouvert
+
+**Validé sur l'hébergé le 14 septembre 2026, passe commanditaire** :
+« Inscrits — 1 sur 12 », nom et prénom complets au panneau, portée box,
+lecture seule. Clos des deux côtés.

@@ -132,7 +132,7 @@ function OccurrenceCard({
   inscrits: AttendanceRow[];
   sources: WorkoutSource[];
 }) {
-  const { t } = useI18n();
+  const { t, formatTime } = useI18n();
   const [open, setOpen] = useState(false);
   // L'annulation est repliée derrière une affordance secondaire, et se replie
   // avec le dialogue : rouvrir une occurrence ne doit pas rouvrir le motif.
@@ -141,7 +141,13 @@ function OccurrenceCard({
 
   const contenu = (
     <>
-      <span className={styles.slotTime}>{time}</span>
+      {/* La plage, pas seulement le départ (D-035) : « à quelle heure je
+          ressors » est la question du planning familial, et `ends_at` existait
+          en base sans jamais atteindre l'écran web. Même écriture que la carte
+          mobile — un tiret demi-cadratin espacé. */}
+      <span className={styles.slotTime}>
+        {time} – {formatTime(occurrence.ends_at)}
+      </span>
       <span>{occurrence.className}</span>
       <span className={styles.slotMeta}>
         {occurrence.roomName} · {occurrence.coachName}

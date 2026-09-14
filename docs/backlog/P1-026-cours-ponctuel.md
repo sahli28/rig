@@ -77,3 +77,8 @@ pgTAP qui prouve les deux moitiés — l'occurrence ponctuelle survit à un
 - [x] `rls-auditor` **SAFE** — question des sœurs posée : le seul chemin qui
       supposait `NOT NULL` était le type TypeScript `Occurrence`, corrigé
       (`string | null`), un seul site d'assignation, aucun consommateur
+
+**Validé sur l'hébergé le 14 septembre 2026, passe commanditaire** : un cours
+ponctuel réel créé à l'écran (Haltéro 19:00, 0/1 puis 1/1 après réservation) —
+présent dans la grille, **absent** de la liste des Séries, et il survit aux
+modifications de série. Clos des deux côtés.
