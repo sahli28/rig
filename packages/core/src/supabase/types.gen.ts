@@ -1418,6 +1418,7 @@ export type Database = {
           class_id: string | null;
           first_name: string | null;
           last_initial: string | null;
+          last_name: string | null;
           membership_id: string | null;
           no_show_at: string | null;
           tenant_id: string | null;

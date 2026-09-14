@@ -14,6 +14,7 @@ function row(over: Partial<AttendanceRow>): AttendanceRow {
     booking_id: 'b',
     first_name: 'Léa',
     last_initial: 'M',
+    last_name: 'Martin',
     attended_at: null,
     no_show_at: null,
     ...over,

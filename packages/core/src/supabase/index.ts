@@ -43,6 +43,7 @@ export {
 export {
   attendanceStateOf,
   summarizeAttendance,
+  fetchAttendanceByClass,
   fetchAttendanceSheet,
   setAttendance,
   type AttendanceRow,

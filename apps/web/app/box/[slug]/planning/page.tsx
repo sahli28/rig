@@ -15,6 +15,7 @@ import {
   type Occurrence,
   type Serie,
   can,
+  fetchAttendanceByClass,
   fetchWorkoutsByClass,
 } from '@rack/core/supabase';
 import { serverClient } from '../../../../lib/supabase/server';
@@ -153,6 +154,14 @@ export default async function Page({
     classIds: [...occurrences.map((o) => o.id), ...precedentes.map((row) => row.id)],
   });
 
+  // Les inscrits de la semaine affichée, même règle : UNE requête pour toute
+  // la grille (P1-027), jamais une par panneau — le motif que D-032 a payé.
+  // Semaine courante seulement : la précédente ne sert qu'au pré-remplissage.
+  const roster = await fetchAttendanceByClass(client, {
+    tenantId: membership.tenant_id,
+    classIds: occurrences.map((o) => o.id),
+  });
+
   // Ce dans quoi le pré-remplissage puise : les deux semaines, réduites à ce que
   // la sélection compare — un identifiant, un type, un jour **local de la box**,
   // et de quoi se reconnaître dans une liste.
@@ -192,6 +201,7 @@ export default async function Page({
       // `D-021`, la même table que la porte, qui ne l'avait pas suivi.
       staff={can(membership.role, 'workout')}
       workouts={workouts}
+      roster={roster}
       candidates={candidates}
     />
   );

@@ -65,8 +65,19 @@ mobile consomme. La consommer depuis le web est le gros du ticket. Les deux
 
 ## Critères d'acceptation
 
-- [ ] Tout le staff de la box (COACH compris, portée box — décision du
+- [x] Tout le staff de la box (COACH compris, portée box — décision du
       14 sept.) voit la liste des inscrits ; un MEMBER, rien ; l'autre box,
-      rien — pgTAP
-- [ ] Les noms sont complets, et `privacy.md` porte la décision datée
-- [ ] `rls-auditor` SAFE sur la migration
+      rien — pgTAP (`attendance_test.sql`, 29 assertions : les deux nouvelles
+      tournent **sous la session de Sarah, COACH** — l'audience exacte de la
+      décision ; MEMBER = 0 ligne et l'isolation inter-box étaient déjà
+      prouvés par la suite)
+- [x] Les noms sont complets — **harnais, 14 sept.** : panneau du cours de
+      18:30, « Inscrits — 2 sur 16 », **Julie Kaczmarek** et **Léa Martin**,
+      entre la séance et les places, lecture seule. Une **seule** requête pour
+      toute la semaine (`fetchAttendanceByClass`, motif D-032). `privacy.md`
+      porte l'exception datée (point 3 + ligne « Présence »), et
+      `last_initial` reste servi — la projection minimisée du kiosque
+- [x] `rls-auditor` **SAFE** — les quatre questions des sœurs répondues :
+      aucune autre vue ne reçoit `last_name`, `create or replace` conserve
+      grants et `security_invoker`, la vue reste hors publication realtime,
+      aucun chemin MEMBER/inter-box ouvert

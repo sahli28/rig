@@ -374,3 +374,32 @@
   white-space: nowrap;
   border: 0;
 }
+
+/*
+ * La liste des inscrits du panneau (P1-027). Lecture seule : les états de
+ * présence viennent du mobile, en salle — ici on regarde, on ne coche pas.
+ */
+.roster {
+  margin-top: 16px;
+}
+
+.rosterList {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rosterRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: var(--rack-text-body);
+}
+
+.rosterState {
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-small);
+}

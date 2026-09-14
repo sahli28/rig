@@ -11,7 +11,7 @@
 -- `booking_test.sql` / `cancellation_test.sql`.
 
 begin;
-select plan(27);
+select plan(29);
 
 -- ---------------------------------------------------------------------------
 -- 1. La forme
@@ -153,6 +153,25 @@ select is(
    where booking_id = 'b0000000-0000-4000-8000-00000000000a'),
   null,
   'et la feuille la remontre non pointée'
+);
+
+-- Depuis P1-027 (décision commanditaire du 14 sept. 2026, exception datée dans
+-- privacy.md) : le staff lit le NOM COMPLET — la feuille d'appel d'une salle en
+-- porte. Et la projection minimisée reste servie : c'est elle, jamais le nom,
+-- qu'une surface semi-publique (kiosque P1-008b) consommera.
+
+select is(
+  (select last_name from public.class_attendance_sheet
+   where booking_id = 'b0000000-0000-4000-8000-00000000000a'),
+  'Martin',
+  'le staff lit le nom complet de l''inscrite (P1-027, exception datée)'
+);
+
+select is(
+  (select last_initial from public.class_attendance_sheet
+   where booking_id = 'b0000000-0000-4000-8000-00000000000a'),
+  'M',
+  'et la projection minimisée (initiale) reste servie — celle du kiosque'
 );
 
 -- ---------------------------------------------------------------------------
