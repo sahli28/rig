@@ -175,11 +175,23 @@ insert into public.invitations (tenant_id, email, role, token_hash, expires_at) 
 
 -- Consentement plateforme (tenant_id null) et consentement de box, pour couvrir
 -- les deux branches de la policy hybride.
+--
+-- La version vient de `current_policy_version()`, jamais d'une date recopiée :
+-- quatre lignes figées à '2026-08-01' auraient fait redemander ACCEPT_CONSENTS
+-- à Léa au premier `db:reset` suivant un changement de constante (D-023), et
+-- `privacy-policy.test.ts` interdit désormais la date en dur ici.
+--
+-- Léa porte les deux consentements requis (TERMS + PRIVACY) : elle est le
+-- témoin du critère « db:reset puis me() ne redemande rien ». Thomas n'a pas
+-- PRIVACY et Marc n'a aucune ligne — c'est voulu : la passe manuelle a besoin
+-- de comptes qui arrivent encore sur l'écran de consentement (§ 5 du journal
+-- de passe, geste 3).
 insert into public.consents (user_id, tenant_id, purpose, granted, policy_version) values
-  ('33333333-0000-4000-8000-000000000001', null,                                   'TERMS',       true, '2026-08-01'),
-  ('33333333-0000-4000-8000-000000000001', 'aaaaaaaa-0000-4000-8000-000000000001', 'BOX_TERMS',   true, '2026-08-01'),
-  ('55555555-0000-4000-8000-000000000001', null,                                   'TERMS',       true, '2026-08-01'),
-  ('55555555-0000-4000-8000-000000000001', 'bbbbbbbb-0000-4000-8000-000000000001', 'LEADERBOARD', false,'2026-08-01');
+  ('33333333-0000-4000-8000-000000000001', null,                                   'TERMS',       true, public.current_policy_version()),
+  ('33333333-0000-4000-8000-000000000001', null,                                   'PRIVACY',     true, public.current_policy_version()),
+  ('33333333-0000-4000-8000-000000000001', 'aaaaaaaa-0000-4000-8000-000000000001', 'BOX_TERMS',   true, public.current_policy_version()),
+  ('55555555-0000-4000-8000-000000000001', null,                                   'TERMS',       true, public.current_policy_version()),
+  ('55555555-0000-4000-8000-000000000001', 'bbbbbbbb-0000-4000-8000-000000000001', 'LEADERBOARD', false,public.current_policy_version());
 
 insert into public.devices (user_id, push_token, platform) values
   ('33333333-0000-4000-8000-000000000001', 'expo-token-lea',    'ios'),

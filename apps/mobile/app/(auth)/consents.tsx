@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
 import { Banner, Button, Switch } from '@rack/ui/native';
-import { errorMessageKeyOf, type TranslationKey } from '@rack/core';
+import { errorMessageKeyOf, privacyPolicyUrl, type TranslationKey } from '@rack/core';
 import { fetchPolicyVersion, recordConsents, type ConsentChoice } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
@@ -116,6 +116,26 @@ export default function ConsentsScreen() {
           onValueChange={setPrivacy}
           disabled={busy}
         />
+        {/* Le texte que la case fait « lire » (D-023). Navigateur, pas de
+            WebView : un document qu'on doit pouvoir retrouver mérite une URL
+            qu'on peut partager et rouvrir. */}
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel={t('consents.privacy_link')}
+          onPress={() => void Linking.openURL(privacyPolicyUrl())}
+          style={{ minHeight: theme.minTouchTarget, justifyContent: 'center' }}
+        >
+          <Text
+            style={{
+              color: theme.colors.primary,
+              fontSize: theme.typography.body,
+              fontFamily: theme.fontFamily,
+              textDecorationLine: 'underline',
+            }}
+          >
+            {t('consents.privacy_link')}
+          </Text>
+        </Pressable>
         {hasBox ? (
           <>
             <Switch

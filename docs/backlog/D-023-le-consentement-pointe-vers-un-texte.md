@@ -2,6 +2,28 @@
 
 **Phase** `P1` (dette) · **Estimation** `0,5` j·h · **Dépend de** la rédaction de la politique de confidentialité — **c'est son déclencheur d'ouverture** · **Bloque** `P1-016` · **Spec** §7.3, §15.1 · **Origine** `P1-016`, 9 septembre 2026
 
+> **Ouvert et codé le 15 septembre 2026** — le texte a été rédigé et validé par
+> la commanditaire le jour même. Le code est fait et prouvé (voir les critères) ;
+> restent le geste d'appareil, et deux choses **hors ticket** que `P1-016`
+> date : la relecture juriste et les champs `[…]` de la box, tous deux **avant
+> l'import réel**. Le `db push` de la migration vers l'hébergé fera recocher
+> les comptes d'essai (leurs consentements `2026-08-01` sont périmés) — c'est
+> la conséquence de séquence annoncée plus bas, jouée au bon moment : avant
+> tout membre réel.
+>
+> **Deux écarts au ticket, assumés et signalés (règle 6)** :
+>
+> 1. la constante est passée à la vraie date **par migration ajoutée**, pas en
+>    place — le prérequis « Règle 13 » ci-dessous le prévoyait « après
+>    `P1-017` », et `P1-017` est passé : la base hébergée porte déjà l'ancienne
+>    migration, et `heberge:derive` ne compare que les **noms** de fichiers,
+>    une édition en place y serait invisible ;
+> 2. le seed avait un trou que le ticket ne voyait pas : **Léa n'avait pas de
+>    ligne `PRIVACY`** (le § 5 nonies du journal de passe le documentait), donc
+>    le critère « ne redemande pas `ACCEPT_CONSENTS` » était injouable tel
+>    quel. La ligne est ajoutée ; Marc et Thomas restent sans, exprès — la
+>    passe a besoin de comptes qui arrivent encore sur l'écran de consentement.
+
 ## Objectif
 
 Un membre qui coche « J'ai lu la politique de confidentialité » peut la lire, et
@@ -77,18 +99,28 @@ _Chaque état est vérifié dans le dépôt, le 9 septembre 2026._
 
 ## Critères d'acceptation
 
-- [ ] Sur l'écran de consentement, un lien mène au texte, **et il s'ouvre** sur
-      l'appareil
-- [ ] La page publique affiche le texte et sa date de version, en FR et en EN
-- [ ] `select public.current_policy_version()` retourne la date du texte publié
-      — **prouvé par le test**, qui rougit quand on change l'une sans l'autre
-- [ ] Un consentement enregistré après ce ticket porte cette date ; `pnpm
-      db:reset` puis `me()` pour Léa ne redemande pas `ACCEPT_CONSENTS`
-- [ ] `turbo run test --dry=json` montre que modifier le document change le
-      hash — vérifié par une modification réelle, pas un `touch`
-- [ ] Parité i18n
+- [~] Sur l'écran de consentement, un lien mène au texte — **le lien existe**
+      (`consents.tsx`, `Linking.openURL(privacyPolicyUrl())`) ; « il s'ouvre »
+      est la moitié appareil, dernier critère
+- [x] La page publique affiche le texte et sa date de version, en FR et en EN
+      — vérifié au harnais le 15 sept. 2026 (les deux langues, date formatée
+      **et** version brute `2026-09-15` en tête, aucun débordement à 375 px)
+- [x] `select public.current_policy_version()` retourne la date du texte publié
+      — **prouvé par le test** (`privacy-policy.test.ts` : la **dernière**
+      définition dans les migrations = `POLICY_VERSION`), et rejoué en SQL sur
+      base fraîche le 15 sept. 2026
+- [x] Un consentement enregistré après ce ticket porte cette date ; `pnpm
+      db:reset` puis `me()` pour Léa ne redemande pas `ACCEPT_CONSENTS` —
+      prouvé en SQL le 15 sept. 2026 (`required_actions = []`, trois lignes de
+      consentement à `2026-09-15`). A demandé d'ajouter la ligne `PRIVACY` de
+      Léa au seed (voir l'écart signalé en tête)
+- [x] `turbo run test --dry=json` montre que modifier le document change le
+      hash — vérifié par une modification réelle le 15 sept. 2026 :
+      `@rack/core#test` `40d340f7…` → `106814b3…`, puis retour exact à
+      `40d340f7…` une fois la modification retirée
+- [x] Parité i18n — `i18n-check` vert (561 clés alignées)
 - [ ] **appareil** — le lien s'ouvre depuis Expo Go sur l'iPhone, et le texte
-      est lisible à 200 %. Geste ajouté au § 5
+      est lisible à 200 %. Geste ajouté au § 5 (**3 bis**)
 
 ## Estimation
 
