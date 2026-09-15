@@ -52,3 +52,10 @@ export {
   type InvitationEmailInput,
   type RenderedEmail,
 } from './email/invitation-email';
+
+export {
+  POLICY_VERSION,
+  PRIVACY_POLICY_PATH_SEGMENT,
+  PUBLIC_WEB_ORIGIN,
+  privacyPolicyUrl,
+} from './privacy-policy';

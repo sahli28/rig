@@ -155,6 +155,7 @@ viser le QR code du terminal, toucher la notification.
 | 1 | L'app s'ouvre | Écran de bienvenue, aux couleurs du thème, en français |
 | 2 | Saisir `marc@rueil.example`, demander le code | Écran de saisie du code à six chiffres |
 | 3 | Sur le PC, Mailpit `http://127.0.0.1:55324` → dernier message → recopier le code sur le téléphone | Connexion acceptée, puis l'écran des consentements |
+| 3 bis | Toucher **« Lire la politique de confidentialité »** sous la case (D-023) | Safari s'ouvre sur la page publique : le texte, **sa date de version visible en tête**, lisible à 200 % (Réglages → Loupe, ou le zoom du navigateur). Revenir dans Expo Go ensuite |
 | 4 | Accepter, arriver sur l'accueil | On voit l'écran d'accueil membre |
 | 5 | **Tuer l'app** (glisser vers le haut depuis le sélecteur), la rouvrir | **On est toujours connectée** |
 
@@ -709,12 +710,14 @@ passe — personne à qui envoyer, ligne `pending`, « cassé » une fois de plu
    `EXPO_PUBLIC_SUPABASE_ANON_KEY` du projet hébergé dans `.env.local`,
    **redémarrer Metro**, recharger l'app (le dev build lit le bundle de Metro —
    pas de rebuild).
-2. **Purger l'aiguillage de consentement AVANT le geste.** Le seed laisse Léa sur
-   `ACCEPT_CONSENTS` (elle a `TERMS` + `BOX_TERMS`, **pas `PRIVACY`**) : au premier
-   login sur l'hébergé, `useAuthRedirect` force `/consents`. Terminer l'onboarding
-   (accorder `PRIVACY`) d'abord — sinon **un toucher de notif retombe sur
-   `/consents`, pas sur `/class/[id]`** (l'aiguillage se rejoue à chaque
-   changement d'état), et c'est un faux rouge sur le second critère.
+2. **Purger l'aiguillage de consentement AVANT le geste.** Depuis D-023, le
+   **seed** donne à Léa les deux consentements requis à la version courante —
+   mais l'hébergé ne rejoue pas le seed : ce que Léa y a coché l'a été **sous
+   l'ancienne version** (`2026-08-01`), et la migration D-023 la périme. Au
+   premier login sur l'hébergé, `useAuthRedirect` force donc `/consents` —
+   recocher d'abord — sinon **un toucher de notif retombe sur `/consents`, pas
+   sur `/class/[id]`** (l'aiguillage se rejoue à chaque changement d'état), et
+   c'est un faux rouge sur le second critère.
 3. **Inscrire Léa à un cours du jour.** Le seed ne réserve **que Hugo** (au cours
    complet), pas Léa — et un cours réservable **aujourd'hui** n'est pas garanti
    (Rueil n'a pas de série le dimanche ; `book_class` refuse un cours commencé
