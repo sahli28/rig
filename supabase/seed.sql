@@ -158,6 +158,24 @@ insert into public.memberships (id, tenant_id, user_id, role) values
   -- sur celui-ci.
   ('b3000000-0000-4000-8000-000000000004', 'bbbbbbbb-0000-4000-8000-000000000001', '77777777-0000-4000-8000-000000000001', 'MEMBER');
 
+-- Depuis P2-018, réserver exige un abonnement qui couvre la date du cours
+-- (RM2.8) : **toute appartenance du seed reçoit un accès de 12 mois commencé il
+-- y a un mois** — l'état réel d'une box vivante, et des lignes des deux côtés
+-- pour l'isolation. Sans ces lignes, chaque `book_class()` des suites pgTAP et
+-- de la passe manuelle répondrait NO_VALID_ENTITLEMENT. Un test qui a besoin
+-- d'un membre **sans** accès supprime ses lignes dans son décor (transaction
+-- annulée), comme `member_subscriptions_test.sql` le fait pour Julie.
+insert into public.member_subscriptions (tenant_id, membership_id, duration_months, starts_on, ends_on)
+select
+  m.tenant_id,
+  m.id,
+  12,
+  ((now() at time zone t.timezone)::date - interval '1 month')::date,
+  (((now() at time zone t.timezone)::date - interval '1 month')::date
+     + make_interval(months => 12) - interval '1 day')::date
+from public.memberships m
+join public.tenants t on t.id = m.tenant_id;
+
 -- Depuis D-005, la table ne garde que l'**empreinte** du jeton. Les jetons en
 -- clair du seed restent `inv-rueil-0001` et `inv-nanterre-0001` : ils sont
 -- écrits ici hachés, mais on peut toujours les taper tels quels pour la passe

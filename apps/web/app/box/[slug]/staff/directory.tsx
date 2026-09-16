@@ -6,6 +6,7 @@ import { useI18n } from '@rack/ui/i18n';
 import {
   MEMBERSHIP_ROLES,
   MEMBERSHIP_STATUSES,
+  SUBSCRIPTION_DURATIONS,
   canModifyMembership,
   displayName,
   filterDirectory,
@@ -15,7 +16,7 @@ import {
 import type { TranslationKey } from '@rack/core';
 import styles from './staff.module.css';
 import { IDLE, type ActionState } from './action-state';
-import { changeRole, excludeMember } from './actions';
+import { changeRole, excludeMember, grantSubscription } from './actions';
 
 const ROLE_KEYS: Record<string, TranslationKey> = {
   OWNER: 'staff.role_owner',
@@ -41,10 +42,13 @@ export function Directory({
   slug,
   rows,
   actorRole,
+  accessByMembership,
 }: {
   slug: string;
   rows: DirectoryRow[];
   actorRole: string;
+  /** Échéance d'accès (P2-018) par appartenance — absente = pas d'accès actif. */
+  accessByMembership: Record<string, string>;
 }) {
   const { t } = useI18n();
   const [q, setQ] = useState('');
@@ -120,7 +124,13 @@ export function Directory({
       ) : (
         <ul className={styles.list}>
           {visibles.map((row) => (
-            <MemberRow key={row.membership_id} slug={slug} row={row} actorRole={actorRole} />
+            <MemberRow
+              key={row.membership_id}
+              slug={slug}
+              row={row}
+              actorRole={actorRole}
+              accessUntil={accessByMembership[row.membership_id] ?? null}
+            />
           ))}
         </ul>
       )}
@@ -132,12 +142,14 @@ function MemberRow({
   slug,
   row,
   actorRole,
+  accessUntil,
 }: {
   slug: string;
   row: DirectoryRow;
   actorRole: string;
+  accessUntil: string | null;
 }) {
-  const { t } = useI18n();
+  const { t, formatDate } = useI18n();
 
   const [etatRole, changer] = useActionState<ActionState, FormData>(
     changeRole.bind(null, slug, row.membership_id),
@@ -145,6 +157,10 @@ function MemberRow({
   );
   const [etatRetrait, retirer] = useActionState<ActionState, void>(
     excludeMember.bind(null, slug, row.membership_id),
+    IDLE,
+  );
+  const [etatAcces, donner] = useActionState<ActionState, FormData>(
+    grantSubscription.bind(null, slug, row.membership_id),
     IDLE,
   );
 
@@ -164,6 +180,14 @@ function MemberRow({
       </span>
 
       <span className={styles.badge}>{t(STATUS_KEYS[row.status] ?? 'staff.status_active')}</span>
+
+      {/* L'accès (P2-018) : ce que la garde de réservation verra. L'absence
+          d'accès n'est pas une anomalie — un nouvel importé n'en a pas encore. */}
+      <span className={styles.rowMeta}>
+        {accessUntil === null
+          ? t('staff.access_none')
+          : t('staff.access_until', { date: formatDate(accessUntil) })}
+      </span>
 
       {modifiable ? (
         <form action={changer} className={styles.inline}>
@@ -196,12 +220,42 @@ function MemberRow({
         <span className={styles.rowMeta}>{t(ROLE_KEYS[row.role] ?? 'staff.role_member')}</span>
       )}
 
+      {/* La feuille d'attribution (P2-018) : une durée, pas un tarif — le
+          règlement se fait hors app. Pas de garde `canModifyMembership` ici :
+          donner un accès n'est pas gouverner un rôle, et la fonction SQL refuse
+          déjà quiconque n'administre pas la box. */}
+      {row.status === 'ACTIVE' ? (
+        <form action={donner} className={styles.inline}>
+          <label className={styles.srOnly} htmlFor={`duration-${row.membership_id}`}>
+            {t('staff.grant_duration_label')}
+          </label>
+          <select
+            id={`duration-${row.membership_id}`}
+            name="duration"
+            className={styles.select}
+            defaultValue="1"
+          >
+            {SUBSCRIPTION_DURATIONS.map((mois) => (
+              <option key={mois} value={mois}>
+                {mois === 1
+                  ? t('staff.duration_one_month')
+                  : t('staff.duration_months', { count: mois })}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className={styles.ghost}>
+            {t('staff.grant_access')}
+          </button>
+        </form>
+      ) : null}
+
       {modifiable && row.status === 'ACTIVE' ? (
         <RemoveButton nom={displayName(row)} onConfirm={() => void retirer()} />
       ) : null}
 
       <Feedback state={etatRole} />
       <Feedback state={etatRetrait} />
+      <Feedback state={etatAcces} />
     </li>
   );
 }
@@ -241,8 +295,15 @@ function RemoveButton({ nom, onConfirm }: { nom: string; onConfirm: () => void }
 }
 
 function Feedback({ state }: { state: ActionState }) {
-  const { t } = useI18n();
+  const { t, formatDate } = useI18n();
 
+  if (state.status === 'granted') {
+    return (
+      <span className={styles.feedback} role="status">
+        {t('staff.access_granted_until', { date: formatDate(state.endsOn) })}
+      </span>
+    );
+  }
   if (state.status === 'ok') {
     return (
       <span className={styles.feedback} role="status">

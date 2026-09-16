@@ -134,11 +134,14 @@ const JOUR_MS = 86_400_000;
  *   cause : sans réseau, il n'y a pas d'appel. Un cours affiché depuis le cache
  *   est dans le même cas — ses places datent, et proposer d'agir dessus serait
  *   le mensonge que P1-002b a passé un lot à rendre impossible ;
- * - **`NO_VALID_ENTITLEMENT` n'est pas ici.** `member_has_booking_right()` rend
- *   vrai pour toute appartenance `ACTIVE`, et `current_tenant_ids()` — base de
- *   toutes les policies — exige `ACTIVE` aussi : un membre suspendu ne voit
- *   aucun cours, donc n'atteint jamais cet écran. Le code est traité à l'arrivée
- *   (une suspension peut tomber entre l'affichage et le tap), pas anticipé.
+ * - **`NO_VALID_ENTITLEMENT` n'est pas ici, et depuis P2-018 c'est un choix,
+ *   plus une impossibilité.** `member_has_booking_right()` exige désormais un
+ *   abonnement qui couvre la date du cours (RM2.8) : un membre actif **sans
+ *   accès** voit le planning et atteint ce bouton. On ne pré-calcule pas son
+ *   refus — il faudrait dupliquer ici la frontière de date locale de l'oracle,
+ *   et un écran qui devine un refus finit par mentir (le motif du point 5 du
+ *   SQL). Le code est traité à l'arrivée du tap (`errorMessageKeyOf` →
+ *   « contacte ta box »), et l'accueil, lui, affiche l'état d'accès.
  */
 export function bookingAffordance(input: AffordanceInput): BookingAffordance {
   const { klass, rules, now, alreadyBooked, myWaitlist, upcomingCount, online, origin } = input;

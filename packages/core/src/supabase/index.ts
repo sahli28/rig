@@ -255,3 +255,12 @@ export {
   type RosterPeer,
   type UpcomingBooking,
 } from './bookings';
+export {
+  MemberSubscriptionSchema,
+  SUBSCRIPTION_DURATIONS,
+  accessUntil,
+  fetchMemberSubscriptions,
+  grantMemberSubscription,
+  type MemberSubscription,
+  type SubscriptionDuration,
+} from './subscriptions';
