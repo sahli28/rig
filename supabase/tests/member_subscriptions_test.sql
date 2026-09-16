@@ -13,7 +13,7 @@
 -- la seule base d'une appartenance, toujours sur ce que ce décor-ci a écrit.
 
 begin;
-select plan(27);
+select plan(42);
 
 -- ---------------------------------------------------------------------------
 -- Décor
@@ -44,7 +44,14 @@ insert into public.classes (
   ('d2180000-0000-4000-8000-000000000002', 'aaaaaaaa-0000-4000-8000-000000000001', null,
    'a4000000-0000-4000-8000-000000000001', 'a2000000-0000-4000-8000-000000000001',
    'a3000000-0000-4000-8000-000000000003',
-   now() + interval '4 months', now() + interval '4 months 1 hour', 30, true);
+   now() + interval '4 months', now() + interval '4 months 1 hour', 30, true),
+  -- Le troisième sert au retrait (P2-026) : Julie a déjà réservé celui à
+  -- +2 mois, et `book_class` répond ALREADY_BOOKED **avant** les droits — un
+  -- refus post-retrait ne se prouve que sur un cours qu'elle n'a pas.
+  ('d2180000-0000-4000-8000-000000000003', 'aaaaaaaa-0000-4000-8000-000000000001', null,
+   'a4000000-0000-4000-8000-000000000001', 'a2000000-0000-4000-8000-000000000001',
+   'a3000000-0000-4000-8000-000000000003',
+   now() + interval '1 month', now() + interval '1 month 1 hour', 30, true);
 
 -- ---------------------------------------------------------------------------
 -- 1. La forme, et les droits d'exécution
@@ -333,6 +340,141 @@ select is_empty(
 );
 
 reset role;
+
+-- ---------------------------------------------------------------------------
+-- 9. Le retrait (P2-026) — le geste humain, et la lecture qui oublie
+-- ---------------------------------------------------------------------------
+
+select has_function(
+  'public', 'revoke_member_subscription',
+  array['uuid'],
+  'revoke_member_subscription(appartenance)'
+);
+
+select is(
+  has_function_privilege('authenticated', 'public.revoke_member_subscription(uuid)', 'EXECUTE'),
+  true,
+  'revoke_member_subscription est appelable — sa garde de rôle est dans son corps'
+);
+
+select is(
+  has_function_privilege('anon', 'public.revoke_member_subscription(uuid)', 'EXECUTE'),
+  false,
+  'mais pas par anon'
+);
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub":"44444444-0000-4000-8000-000000000001","role":"authenticated","email":"sarah@example.com"}';
+
+select throws_ok(
+  $$select public.revoke_member_subscription('a3000000-0000-4000-8000-000000000004')$$,
+  '42501', null,
+  'un COACH ne peut pas retirer un accès (FORBIDDEN_ROLE)'
+);
+
+set local request.jwt.claims =
+  '{"sub":"66666666-0000-4000-8000-000000000001","role":"authenticated","email":"julie@example.com"}';
+
+select throws_ok(
+  $$select public.revoke_member_subscription('a3000000-0000-4000-8000-000000000004')$$,
+  '42501', null,
+  'un MEMBER non plus'
+);
+
+set local request.jwt.claims =
+  '{"sub":"11111111-0000-4000-8000-000000000001","role":"authenticated","email":"marc@rueil.example"}';
+
+select is(
+  public.revoke_member_subscription('a3000000-0000-4000-8000-000000000004'),
+  1,
+  'un OWNER retire l''accès de Julie : sa ligne de 3 mois est archivée'
+);
+
+reset role;
+
+select ok(
+  not public.member_has_booking_right(
+    'a3000000-0000-4000-8000-000000000004',
+    now() + interval '2 months'),
+  'l''oracle ne voit plus l''abonnement retiré'
+);
+
+select is(
+  (select count(*) from public.audit_logs
+   where action = 'subscription.revoked'
+     and target_id = 'a3000000-0000-4000-8000-000000000004'),
+  1::bigint,
+  'le retrait est journalisé, dans la même transaction'
+);
+
+-- Le parcours réel, pas seulement l'oracle : Julie tente un cours qu'elle n'a
+-- pas encore réservé.
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub":"66666666-0000-4000-8000-000000000001","role":"authenticated","email":"julie@example.com"}';
+
+select throws_ok(
+  $$select public.book_class(
+      'd2180000-0000-4000-8000-000000000003',
+      'a3000000-0000-4000-8000-000000000004',
+      'idem-p2026-apres-retrait'
+    )$$,
+  '42501', null,
+  'l''accès retiré, Julie ne réserve plus (NO_VALID_ENTITLEMENT)'
+);
+
+-- La lecture oublie : ni la personne ni l'administration ne revoient la ligne.
+select is_empty(
+  $$select 1 from public.member_subscriptions
+    where membership_id = 'a3000000-0000-4000-8000-000000000004'$$,
+  'Julie ne voit plus son abonnement retiré'
+);
+
+set local request.jwt.claims =
+  '{"sub":"11111111-0000-4000-8000-000000000001","role":"authenticated","email":"marc@rueil.example"}';
+
+select is_empty(
+  $$select 1 from public.member_subscriptions
+    where membership_id = 'a3000000-0000-4000-8000-000000000004'$$,
+  'l''administration non plus : la ligne retirée sort des lectures'
+);
+
+-- Un second clic n'est pas une erreur, et n'écrit pas de fausse trace.
+select is(
+  public.revoke_member_subscription('a3000000-0000-4000-8000-000000000004'),
+  0,
+  'retirer un accès déjà retiré rend 0, sans lever'
+);
+
+reset role;
+
+select is(
+  (select count(*) from public.audit_logs
+   where action = 'subscription.revoked'
+     and target_id = 'a3000000-0000-4000-8000-000000000004'),
+  1::bigint,
+  'et le journal ne gagne pas d''entrée pour un no-op'
+);
+
+-- Retiré n'est pas banni : une ré-attribution rouvre l'accès.
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub":"11111111-0000-4000-8000-000000000001","role":"authenticated","email":"marc@rueil.example"}';
+
+select lives_ok(
+  $$select public.grant_member_subscription('a3000000-0000-4000-8000-000000000004', 1)$$,
+  'après un retrait, une nouvelle attribution passe'
+);
+
+reset role;
+
+select ok(
+  public.member_has_booking_right(
+    'a3000000-0000-4000-8000-000000000004',
+    now() + interval '1 week'),
+  'et l''oracle rouvre : retiré n''est pas banni'
+);
 
 select * from finish();
 rollback;

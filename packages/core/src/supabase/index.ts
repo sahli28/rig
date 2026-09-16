@@ -261,6 +261,7 @@ export {
   accessUntil,
   fetchMemberSubscriptions,
   grantMemberSubscription,
+  revokeMemberSubscription,
   type MemberSubscription,
   type SubscriptionDuration,
 } from './subscriptions';

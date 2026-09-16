@@ -1838,6 +1838,10 @@ export type Database = {
         Returns: undefined;
       };
       revoke_device: { Args: { p_push_token: string }; Returns: number };
+      revoke_member_subscription: {
+        Args: { p_membership_id: string };
+        Returns: number;
+      };
       set_attendance: {
         Args: { p_booking_id: string; p_present: boolean };
         Returns: string;
