@@ -30,15 +30,15 @@ confidentialité, notes de revue — pas seulement « buildée ».
 
 ## Hors périmètre
 
-- Le canal Android / Firebase → `P1-016` (échéance mise en service) ; la soumission
-  Play suit une fois le build Android prouvé.
+- Le canal Android → `P2-024` ; la soumission Play Store → `P2-025`. Android est
+  désormais prioritaire dans la ②, plus repoussé à la mise en service.
 - White-label N2 (app dédiée par box) → hors MVP.
 
 ## Critères d'acceptation
 
 - [ ] L'app est **acceptée** sur l'App Store (le seul critère qui compte)
 - [ ] La fiche existe en FR et EN
-- [~] Play Store : après le build Android (`P1-016`)
+- [ ] Le pendant Play Store est traité par `P2-025` (build Android : `P2-024`)
 
 ## Notes
 

@@ -24,12 +24,13 @@ pas**.
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
 | **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **12,25 j·h** |
-| **② MVP orientée coach** | qu'une box programme, invite ses membres et **gère leur accès sans nous** ; le règlement se fait hors app | programmer, logguer, se classer, réserver selon un accès attribué à la main | **+ 63,5 j·h** |
+| **② MVP orientée coach** | qu'une box programme, invite ses membres et **gère leur accès sans nous** ; le règlement se fait hors app ; iOS **et** Android | programmer, logguer, se classer, réserver selon un accès attribué à la main | **+ 68 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
-**janvier 2027**, MVP orientée coach vers **mai 2027** — la ② est passée de
-80,5 à 63,5 j·h le 16 septembre 2026 (63,5 ÷ 2,3 ≈ 27,6 semaines après le code du
-pilote), la machine à encaisser (35 j·h) attendant l'entité juridique. Ces dates
+**janvier 2027**, MVP orientée coach vers **mai–juin 2027** — la ② est passée de
+80,5 à 68 j·h le 16 septembre 2026 (Android inclus et prioritaire, +4,5 ; 68 ÷ 2,3
+≈ 29,6 semaines après le code du pilote → mai–juin 2027), la machine à encaisser
+(35 j·h) attendant l'entité juridique. Ces dates
 sont ce qu'elles sont ; les connaître vaut mieux que les découvrir.
 
 > **L'écart entre le calcul et la date a un nom depuis le 9 septembre 2026.**
@@ -333,7 +334,7 @@ coche à la main.
 chiffré — elles étaient quatre jusqu'au 8 septembre 2026 — **et une troisième
 ne bloque rien mais expose, avec une échéance qui n'est plus lointaine.** **Un
 compte de développement** reste depuis `P1-007` — le projet **Firebase** (canal
-Android, échéance `P1-016`) ; **Expo/EAS a été lié le 11 septembre** et sort de
+Android, **remonté à la ② / `P2-024`, prioritaire, 16 sept. 2026**) ; **Expo/EAS a été lié le 11 septembre** et sort de
 cette liste comme Apple, le `projectId` est dans `app.json`.
 **Aucune ne se rattrape en codant plus vite.** Elles ne vivent nulle part
 ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
@@ -343,7 +344,8 @@ ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
 | ~~**Trois `client_id` Google**~~ | ~~P0-005b~~ | **Sort du chemin critique le 8 sept. 2026** — non parce qu'elle est faite, mais parce que `P0-005b` passe **non programmé** : câbler un SSO tiers rend `P2-003` obligatoire (guideline 4.8). Voir ci-dessous |
 | ✅ ~~**Compte développeur Apple**~~ | ~~`P1-007`, `P1-006`, `P1-003b`, `P2-003`~~ | **Actif le 8 septembre 2026**, jusqu'au 8 sept. 2027, renouvellement automatique. App Store Connect ouvert. Il aura été le premier rang pendant deux jours |
 | ✅ ~~**Compte Expo/EAS**~~ | ~~la preuve appareil du push + le build TestFlight de `P1-016`~~ | **Lié le 11 septembre 2026** — projet `@mhdsahli/rack`, `projectId` dans `app.json` (`extra.eas.projectId`). **Sort du chemin critique comme Apple l'a fait.** Reste, côté build : `eas device:create` puis `eas build -p ios --profile development`, piloté sur le compte Apple qui porte l'abonnement — c'est ce build qui prouve les critères appareil de `P1-007` |
-| **Projet Firebase** (+ `google-services.json`, + un appareil Android) | le **canal Android** du push | **Échéance `P1-016`.** Le code est plateforme-agnostique (Expo Push route vers FCM), mais Android exige un projet Firebase **et** un appareil de test — aucun des deux n'existe. Re-daté de `P1-007` à la mise en service, avec l'appareil qui sera à la box |
+| **Projet Firebase** (+ identifiants FCM, + un appareil Android) | le **canal Android** du push, donc `P2-024` puis `P2-025` | **Remonté à la ② le 16 sept. 2026 — prioritaire (`P2-024`).** Le code est plateforme-agnostique (Expo Push route vers FCM), mais Android exige un projet Firebase **et** un appareil de test — aucun des deux n'existe. N'attend plus la mise en service |
+| **Compte Google Play Developer** (25 $, une fois) | la soumission Play (`P2-025`) | **Nouveau sur cette liste (16 sept. 2026).** Distinct du projet Firebase et du compte Apple. À vérifier : existe-t-il ? |
 | **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société — **donc l'entité juridique, ligne suivante** |
 | **Une entité juridique** | rien — **mais expose, personnellement** | **Cette ligne n'avait qu'une conséquence jusqu'au 9 sept. 2026 : Stripe, sans échéance avant mi-2027. Elle en a deux.** Le jour de `P1-016`, **l'éditeur du service** devient **sous-traitant de la box au sens de l'art. 28** (spec §15.1 : « sans ce document, vous êtes en infraction dès le premier client »). Une personne physique peut l'être — ce n'est pas bloquant — mais jusqu'à la société, c'est **un nom d'état civil** qui signe le DPA et porte le registre. **Échéance : la mise en service, pas le MVP.** Les trois pièces — DPA, registre, politique de confidentialité — sont des prérequis datés de `P1-016` |
 | ✅ ~~**Un nom de domaine** (+ SPF, DKIM, DMARC)~~ | ~~P2-015, D-008, le retour Apple, `P1-016`~~ | **✅ prouvé le 12 septembre 2026 — sort du chemin critique comme Apple et Expo.** `rack-app.fr` signé par **Brevo** : magic link reçu en boîte, **`SPF/DKIM/DMARC = pass`** (`d=rack-app.fr`, sélecteur `brevo2`), expéditeur `Rack <bonjour@rack-app.fr>`, **code à 6 chiffres**, `mail-tester` **7,9/10** (les 2,1 = un pixel de suivi, sans effet sur remise/auth). État réel dans `docs/procedures/email-et-domaine.md` (DNS OVH, sous-domaine de marque `mail.`, Zimbra, gabarits hébergés recopiés, OTP à 6, suivi anonymisé, deux dates d'expiration) ; `P1-017` ferme ses deux critères d'e-mail. **Ce qui n'est PAS le domaine** : le **build TestFlight** vers lequel `RACK_INVITE_URL` doit pointer — dépendance de `P1-016` qui bloque l'envoi des 80, pas cette ligne |
@@ -765,13 +767,16 @@ fait en Stripe — quand l'entité existera, l'un remplace l'autre sans jeter le
 modèle (`member_has_booking_right()` est déjà le point d'accroche prévu, commenté
 en ce sens depuis P1-003).
 
+**Ajout du 16 septembre 2026 (même jour) — Android entre dans la ② et il est prioritaire.** Le canal push Android (Firebase + build + preuve) était daté à la mise en service `P1-016`, et le Play Store n'était qu'un `[~]` en queue de `P2-023` : ils deviennent `P2-024` (prioritaire, joué tôt — c'est de la configuration et deux gates, Firebase et un appareil, pas du code neuf) et `P2-025`. **+4,5 j·h, la ② passe de 63,5 à 68.** La box pilote est sur iPhone, mais les vrais membres ne le seront pas tous — un push qui ne marche que sur la moitié des téléphones n'est pas un jalon franchi.
+
 ### Ordre
 
 ```
 P2-009 → P2-013b → P2-010 → P2-012 → P2-013 → P2-011 → P2-014   (programmation, puis scores)
 P2-017 → P2-018 → P2-019 → P2-020 → P2-004                      (identité, accès, planning, dashboard)
 P2-021 → P2-022                                                 (design mobile, puis web)
-P2-002 → P2-003 → P2-023                                        (RGPD, Apple, soumission — les stores en dernier)
+P2-024                                                         (canal Android : Firebase + build + preuve push — PRIORITAIRE, tôt)
+P2-002 → P2-003 → P2-023 ∥ P2-025                               (RGPD, Apple, puis soumission App Store ET Play Store)
 ```
 
 `P2-018` (l'accès) est le premier à jouer du bloc « gestion » : c'est lui qui
@@ -799,7 +804,9 @@ existe déjà.
 | P2-003  | Sign in with Apple                            |   3 | bloquant de publication |
 | P2-023  | Soumission App Store                          |   2 | **neuf** — fiche, captures, notes de revue 3.1.3, labels |
 | P2-020  | Open gym qui chevauche un cours               | 1,5 | **neuf** — `is_open_access`, chevauchement autorisé et étiqueté |
-|         | **Total ②**                                   | **63,5** | dont 45,5 déjà ticketés, 18 neufs |
+| P2-024  | Canal Android : Firebase, build, preuve push  | 2,5 | **neuf, prioritaire** — profil `android` (eas.json), FCM, build, push prouvé |
+| P2-025  | Soumission Play Store                         |   2 | **neuf** — fiche, Data safety ; dépend de P2-024 |
+|         | **Total ②**                                   | **68** | dont 45,5 déjà ticketés, 22,5 neufs |
 
 ### Différé — attend l'entité juridique (35 j·h)
 
