@@ -24,11 +24,14 @@ pas**.
 | Horizon | Ce qu'il prouve | Ce qu'une box peut faire | Reste à faire |
 | ------- | --------------- | ------------------------ | ------------: |
 | **① Jalon pilote** | que l'outil sert, en vrai, tous les jours | réserver, annuler, faire la queue, pointer | **12,25 j·h** |
-| **② MVP vendable** | qu'une box s'inscrit, encaisse et programme **sans nous** | payer, programmer, logguer, se classer, voir son CA | **+ 80,5 j·h** |
+| **② MVP orientée coach** | qu'une box programme, invite ses membres et **gère leur accès sans nous** ; le règlement se fait hors app ; iOS **et** Android | programmer, logguer, se classer, réserver selon un accès attribué à la main | **+ 68 j·h** |
 
 Au rythme de **2,3 j·h par semaine** (15–20 h effectives) : jalon pilote vers
-**janvier 2027**, MVP vendable vers **septembre 2027**. Ces dates sont ce
-qu'elles sont ; les connaître vaut mieux que les découvrir.
+**janvier 2027**, MVP orientée coach vers **mai–juin 2027** — la ② est passée de
+80,5 à 68 j·h le 16 septembre 2026 (Android inclus et prioritaire, +4,5 ; 68 ÷ 2,3
+≈ 29,6 semaines après le code du pilote → mai–juin 2027), la machine à encaisser
+(35 j·h) attendant l'entité juridique. Ces dates
+sont ce qu'elles sont ; les connaître vaut mieux que les découvrir.
 
 > **L'écart entre le calcul et la date a un nom depuis le 9 septembre 2026.**
 > 19,5 ÷ 2,3 ≈ 8,5 semaines, donc début novembre — et le jalon est annoncé en
@@ -331,7 +334,7 @@ coche à la main.
 chiffré — elles étaient quatre jusqu'au 8 septembre 2026 — **et une troisième
 ne bloque rien mais expose, avec une échéance qui n'est plus lointaine.** **Un
 compte de développement** reste depuis `P1-007` — le projet **Firebase** (canal
-Android, échéance `P1-016`) ; **Expo/EAS a été lié le 11 septembre** et sort de
+Android, **remonté à la ② / `P2-024`, prioritaire, 16 sept. 2026**) ; **Expo/EAS a été lié le 11 septembre** et sort de
 cette liste comme Apple, le `projectId` est dans `app.json`.
 **Aucune ne se rattrape en codant plus vite.** Elles ne vivent nulle part
 ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
@@ -341,7 +344,8 @@ ailleurs dans le dépôt : ni un ticket, ni un test, ni la CI ne les rappellera.
 | ~~**Trois `client_id` Google**~~ | ~~P0-005b~~ | **Sort du chemin critique le 8 sept. 2026** — non parce qu'elle est faite, mais parce que `P0-005b` passe **non programmé** : câbler un SSO tiers rend `P2-003` obligatoire (guideline 4.8). Voir ci-dessous |
 | ✅ ~~**Compte développeur Apple**~~ | ~~`P1-007`, `P1-006`, `P1-003b`, `P2-003`~~ | **Actif le 8 septembre 2026**, jusqu'au 8 sept. 2027, renouvellement automatique. App Store Connect ouvert. Il aura été le premier rang pendant deux jours |
 | ✅ ~~**Compte Expo/EAS**~~ | ~~la preuve appareil du push + le build TestFlight de `P1-016`~~ | **Lié le 11 septembre 2026** — projet `@mhdsahli/rack`, `projectId` dans `app.json` (`extra.eas.projectId`). **Sort du chemin critique comme Apple l'a fait.** Reste, côté build : `eas device:create` puis `eas build -p ios --profile development`, piloté sur le compte Apple qui porte l'abonnement — c'est ce build qui prouve les critères appareil de `P1-007` |
-| **Projet Firebase** (+ `google-services.json`, + un appareil Android) | le **canal Android** du push | **Échéance `P1-016`.** Le code est plateforme-agnostique (Expo Push route vers FCM), mais Android exige un projet Firebase **et** un appareil de test — aucun des deux n'existe. Re-daté de `P1-007` à la mise en service, avec l'appareil qui sera à la box |
+| **Projet Firebase** (+ identifiants FCM, + un appareil Android) | le **canal Android** du push, donc `P2-024` puis `P2-025` | **Remonté à la ② le 16 sept. 2026 — prioritaire (`P2-024`).** Le code est plateforme-agnostique (Expo Push route vers FCM), mais Android exige un projet Firebase **et** un appareil de test — aucun des deux n'existe. N'attend plus la mise en service |
+| **Compte Google Play Developer** (25 $, une fois) | la soumission Play (`P2-025`) | **Nouveau sur cette liste (16 sept. 2026).** Distinct du projet Firebase et du compte Apple. À vérifier : existe-t-il ? |
 | **Activation de Stripe Connect** | P2-001, donc tout l'argent | Vérification d'identité de la société — **donc l'entité juridique, ligne suivante** |
 | **Une entité juridique** | rien — **mais expose, personnellement** | **Cette ligne n'avait qu'une conséquence jusqu'au 9 sept. 2026 : Stripe, sans échéance avant mi-2027. Elle en a deux.** Le jour de `P1-016`, **l'éditeur du service** devient **sous-traitant de la box au sens de l'art. 28** (spec §15.1 : « sans ce document, vous êtes en infraction dès le premier client »). Une personne physique peut l'être — ce n'est pas bloquant — mais jusqu'à la société, c'est **un nom d'état civil** qui signe le DPA et porte le registre. **Échéance : la mise en service, pas le MVP.** Les trois pièces — DPA, registre, politique de confidentialité — sont des prérequis datés de `P1-016` |
 | ✅ ~~**Un nom de domaine** (+ SPF, DKIM, DMARC)~~ | ~~P2-015, D-008, le retour Apple, `P1-016`~~ | **✅ prouvé le 12 septembre 2026 — sort du chemin critique comme Apple et Expo.** `rack-app.fr` signé par **Brevo** : magic link reçu en boîte, **`SPF/DKIM/DMARC = pass`** (`d=rack-app.fr`, sélecteur `brevo2`), expéditeur `Rack <bonjour@rack-app.fr>`, **code à 6 chiffres**, `mail-tester` **7,9/10** (les 2,1 = un pixel de suivi, sans effet sur remise/auth). État réel dans `docs/procedures/email-et-domaine.md` (DNS OVH, sous-domaine de marque `mail.`, Zimbra, gabarits hébergés recopiés, OTP à 6, suivi anonymisé, deux dates d'expiration) ; `P1-017` ferme ses deux critères d'e-mail. **Ce qui n'est PAS le domaine** : le **build TestFlight** vers lequel `RACK_INVITE_URL` doit pointer — dépendance de `P1-016` qui bloque l'envoi des 80, pas cette ligne |
@@ -736,63 +740,89 @@ total juste sur le papier.
 
 ---
 
-## ② MVP vendable — **80,5 j·h**
+## ② MVP orientée coach — **63,5 j·h**
 
-Objectif : « une box s'inscrit, se configure et **encaisse sans votre
-intervention** » (spec §13.4). Rien de ce bloc n'existait dans le backlog avant
-la réconciliation du 2 septembre 2026 : sept items MUST et un SHOULD y étaient
-simplement absents.
+Objectif : le coach programme, la box invite ses membres et **gère leur accès à
+la main**, et le règlement se fait **hors app** (lien Stripe de la box). Ce que la
+spec §13.4 appelait « encaisser sans nous » attend l'entité juridique — sans elle,
+pas de Stripe Connect.
+
+**Revue du 16 septembre 2026 — la ② devient « orientée coach », et c'est le retour
+du terrain qui la redessine.** Trois décisions de la commanditaire, sur le retour
+du coach de la box pilote qui veut la MVP : (1) **pas d'entité juridique pour
+l'instant** → pas de Stripe Connect → le règlement passe par un **lien Stripe
+externe** du compte de la box, hors app ; (2) l'accès n'est plus piloté par le
+paiement mais **attribué à la main** — un abonnement à **durée fixe** (1, 2, 3, 6
+ou 12 mois, 12 au plus), la réservation se bloquant une fois la date de fin passée
+(RM2.8) ; (3) **« consulter son CA » sort de la MVP** — sans paiement in-app, l'app
+n'a pas la donnée : la box lit son chiffre dans son Stripe, et la tuile CA quitte
+`P2-004`. En regard, quatre demandes entrent : **identité de marque de la box**
+(white-label N0, « pas de Rack dans l'app »), **passe design mobile**, **passe
+design web** (inspi Hustle Up), **open gym qui chevauche un cours**. Conséquence
+chiffrée : **toute la machine à encaisser** (`P2-001`, `P2-005` à `P2-008`,
+`P2-015`, `P2-016` — 35 j·h) sort du chemin critique et attend l'entité ; la MVP
+que le coach veut tombe de **80,5 à 63,5 j·h**, dont 45,5 déjà ticketés.
+`P2-018` (abonnement manuel) tient la version dépouillée de ce que `P2-006` aurait
+fait en Stripe — quand l'entité existera, l'un remplace l'autre sans jeter le
+modèle (`member_has_booking_right()` est déjà le point d'accroche prévu, commenté
+en ce sens depuis P1-003).
+
+**Ajout du 16 septembre 2026 (même jour) — Android entre dans la ② et il est prioritaire.** Le canal push Android (Firebase + build + preuve) était daté à la mise en service `P1-016`, et le Play Store n'était qu'un `[~]` en queue de `P2-023` : ils deviennent `P2-024` (prioritaire, joué tôt — c'est de la configuration et deux gates, Firebase et un appareil, pas du code neuf) et `P2-025`. **+4,5 j·h, la ② passe de 63,5 à 68.** La box pilote est sur iPhone, mais les vrais membres ne le seront pas tous — un push qui ne marche que sur la moitié des téléphones n'est pas un jalon franchi.
 
 ### Ordre
 
 ```
-P2-001 → P2-005 → P2-015 → P2-006 → P2-007 → P2-008     (l'argent)
-P2-009 → P2-013b → P2-010 → P2-012 → P2-013 → P2-011 → P2-014   (la programmation, puis les scores)
-P2-004 → P2-016                                         (dashboard, puis reporting)
-P2-002 → P2-003                                         (RGPD, Apple — avant les stores)
+P2-009 → P2-013b → P2-010 → P2-012 → P2-013 → P2-011 → P2-014   (programmation, puis scores)
+P2-017 → P2-018 → P2-019 → P2-020 → P2-004                      (identité, accès, planning, dashboard)
+P2-021 → P2-022                                                 (design mobile, puis web)
+P2-024                                                         (canal Android : Firebase + build + preuve push — PRIORITAIRE, tôt)
+P2-002 → P2-003 → P2-023 ∥ P2-025                               (RGPD, Apple, puis soumission App Store ET Play Store)
 ```
 
-Trois ordres méritent une explication, parce qu'ils **contredisent** la
-numérotation de la spec :
-
-- **P2-015 (e-mails) avant P2-006 (abonnements)**, sinon l'abonnement n'a pas de
-  canal pour envoyer sa facture, et P2-008 n'a pas de canal pour relancer un
-  impayé. Aucun ticket n'envoyait d'e-mail avant celui-là.
-- **P2-013 (scores) avant P2-011 (scaling)**, alors que la spec ordonne M13 puis
-  M14 : une charge « 75 % du 1RM » ne se résout pas sans `personal_records`.
-- **P2-013b (mes records) juste après le socle, avant tout écran de
-  programmation** — ajouté le 6 septembre 2026. La raison a corrigé la
-  précédente : P2-011 ne dépend pas des *scores* mais des *records*, et P2-013b
-  sait en produire sans qu'aucun WOD ait eu lieu. Il ne dépend que de P2-009,
-  c'est le premier usage que le modèle d'entraînement rend possible, et le
-  moins cher.
+`P2-018` (l'accès) est le premier à jouer du bloc « gestion » : c'est lui qui
+débloque la réservation des vrais membres, et il se branche sur une garde qui
+existe déjà.
 
 ### État
 
-| Ticket | Titre                                          | j·h | MUST/SHOULD couvert |
-| ------ | ---------------------------------------------- | --: | ------------------- |
-| P2-001 | Stripe Connect Express, et la couche webhook   |   5 | **M9** |
-| P2-005 | Formules : le catalogue de la box              |   3 | M8 (1/3) |
-| P2-015 | E-mails transactionnels                        |   4 | **M19** (le tiers manquant) |
-| P2-006 | Abonnements                                    |   7 | **M8** |
-| P2-007 | Packs de crédits et portefeuille               |   6 | **M10** |
-| P2-008 | Impayés, relances et suspension                |   5 | M8 (RM4.6) |
-| P2-009 | Le modèle d'entraînement                       |   8 | socle M12 — **6 → 8 le 6 sept. 2026** : D11 à D14 de l'addendum §21 (programme relatif, adhésions, blocs typés, colonnes de score) |
-| P2-013b | Mes records : saisie directe, historique, calculateur de % |   3 | socle M14, **débloque M13** — demandé le 6 sept. 2026 d'après HustleUp |
-| P2-010 | Program Builder                                |   7 | **M12** |
-| P2-012 | Le WOD du jour, côté membre                    |   3 | M12 (membre) |
-| P2-013 | Saisie de score et records personnels          | 4,5 | **M14** — l'écran « Mes records » est parti en P2-013b |
-| P2-011 | Rx / Scaled / Beginner, charges en % de 1RM    |   4 | **M13** |
-| P2-014 | Leaderboard par WOD                            |   4 | **M15** |
-| P2-004 | Dashboard box et mise en route                 |   4 | **M17**, M2 (`create_tenant()`) |
-| P2-016 | Reporting financier et export comptable        |   5 | **S6**, M17 (CA), M21 (finances) |
-| P2-002 | Droits RGPD en self-service                    |   5 | **M20** |
-| P2-003 | Sign in with Apple                             |   3 | **M1** — bloquant de publication |
-|        | **Total ②**                                    | **80,5** | |
+| Ticket | Titre | j·h | Note |
+| ------ | ----- | --: | ---- |
+| P2-009  | Le modèle d'entraînement                      |   8 | socle programmation (inchangé) |
+| P2-013b | Mes records + calculateur de %                |   3 | l'écran « 60 kg → 50 %, 60 %… » |
+| P2-010  | Program Builder                               |   7 | le builder de cycles du coach |
+| P2-012  | Le WOD du jour, côté membre                    |   3 | |
+| P2-013  | Saisie de score et records personnels         | 4,5 | |
+| P2-011  | Rx / Scaled / Beginner, charges en % de 1RM   |   4 | |
+| P2-014  | Leaderboard par WOD                           |   4 | |
+| P2-004  | Dashboard box et mise en route                |   4 | **sans tuile CA** : présences, remplissage, membres actifs |
+| P2-018  | Abonnement à durée fixe, attribution manuelle | 3,5 | **neuf** — 1/2/3/6/12 mois (≤12), date de fin, garde de réservation (RM2.8) |
+| P2-019  | Lien externe de paiement                      |   2 | **neuf** — lien Stripe sur la box + bouton in-app + mention « hors app » |
+| P2-002  | Droits RGPD en self-service                   |   5 | exigé pour les vrais membres + Apple |
+| P2-017  | Identité de la box partout, zéro « Rack »     |   2 | **neuf** — audit white-label N0 (le thème existe déjà, P1-001e) |
+| P2-021  | Passe design mobile (+ direction visuelle)    |   4 | **neuf** — accueil + planning + WOD + carte membre |
+| P2-022  | Passe design web (back-office)                |   3 | **neuf** — inspi Hustle Up, après P2-021 |
+| P2-003  | Sign in with Apple                            |   3 | bloquant de publication |
+| P2-023  | Soumission App Store                          |   2 | **neuf** — fiche, captures, notes de revue 3.1.3, labels |
+| P2-020  | Open gym qui chevauche un cours               | 1,5 | **neuf** — `is_open_access`, chevauchement autorisé et étiqueté |
+| P2-024  | Canal Android : Firebase, build, preuve push  | 2,5 | **neuf, prioritaire** — profil `android` (eas.json), FCM, build, push prouvé |
+| P2-025  | Soumission Play Store                         |   2 | **neuf** — fiche, Data safety ; dépend de P2-024 |
+|         | **Total ②**                                   | **68** | dont 45,5 déjà ticketés, 22,5 neufs |
 
-**P2-001, P2-003, P2-015 et D-008 attendent tous une démarche administrative** —
-Stripe Connect, le compte Apple, un nom de domaine. Voir « Chemin critique hors
-code » en tête de ce fichier : c'est là que ces échéances vivent.
+### Différé — attend l'entité juridique (35 j·h)
+
+Le paiement in-app suppose Stripe Connect, qui suppose l'entité. Sans elle, le
+règlement se fait hors app (lien de la box, `P2-019`) et l'accès s'attribue à la
+main (`P2-018`).
+
+| Ticket | Titre | j·h | Pourquoi il attend |
+| ------ | ----- | --: | ------------------ |
+| P2-001 | Stripe Connect Express + webhooks | 5 | vérification d'identité société |
+| P2-005 | Catalogue de formules tarifées    | 3 | pas de vente in-app |
+| P2-006 | Abonnements Stripe                 | 7 | `P2-018` en tient la version manuelle |
+| P2-007 | Packs de crédits et portefeuille   | 6 | flux d'argent |
+| P2-008 | Impayés, relances, suspension     | 5 | flux d'argent |
+| P2-015 | E-mails transactionnels            | 4 | les invitations marchent déjà (P1-017) |
+| P2-016 | Reporting financier + CA           | 5 | l'app ne voit pas les paiements |
 
 ---
 
