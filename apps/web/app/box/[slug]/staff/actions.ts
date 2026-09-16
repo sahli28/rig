@@ -13,10 +13,12 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import {
   MEMBERSHIP_ROLES,
+  SUBSCRIPTION_DURATIONS,
   createInvitation,
   can,
   fetchMe,
   findMembershipBySlug,
+  grantMemberSubscription,
   removeMember,
   setMemberRole,
   tenantScope,
@@ -106,6 +108,47 @@ export async function excludeMember(
 
   revalidatePath(`/box/${slug}/staff`);
   return { status: 'ok' };
+}
+
+/**
+ * Attribue un accès à durée fixe (P2-018). Pas de prix ni de catalogue : la
+ * durée est un choix, le règlement se fait hors app (P2-019). La fonction SQL
+ * refuse elle-même ce que l'écran ne montre pas — un COACH reçoit
+ * `FORBIDDEN_ROLE` — et journalise dans la même transaction.
+ */
+export async function grantSubscription(
+  slug: string,
+  membershipId: string,
+  _prev: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contexte(slug);
+  if ('status' in ctx) return ctx;
+
+  const cible = IdSchema.safeParse(membershipId);
+  const duree = z.coerce
+    .number()
+    .int()
+    .safeParse(texte(form.get('duration')));
+  if (
+    !cible.success ||
+    !duree.success ||
+    !(SUBSCRIPTION_DURATIONS as readonly number[]).includes(duree.data)
+  ) {
+    return INVALID;
+  }
+
+  try {
+    const ligne = await grantMemberSubscription(
+      ctx.client,
+      cible.data,
+      duree.data as (typeof SUBSCRIPTION_DURATIONS)[number],
+    );
+    revalidatePath(`/box/${slug}/staff`);
+    return { status: 'granted', endsOn: ligne.ends_on };
+  } catch (error) {
+    return echec(error);
+  }
 }
 
 /**

@@ -14,6 +14,8 @@ export type ActionState =
   | { status: 'idle' }
   | { status: 'ok' }
   | { status: 'issued'; token: string }
+  /** L'attribution d'un accès (P2-018) rend son échéance, en date locale de la box. */
+  | { status: 'granted'; endsOn: string }
   | { status: 'error'; key: TranslationKey };
 
 export const IDLE: ActionState = { status: 'idle' };

@@ -790,6 +790,74 @@ export type Database = {
           },
         ];
       };
+      member_subscriptions: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          duration_months: number;
+          ends_on: string;
+          granted_by: string | null;
+          id: string;
+          membership_id: string;
+          starts_on: string;
+          tenant_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          duration_months: number;
+          ends_on: string;
+          granted_by?: string | null;
+          id?: string;
+          membership_id: string;
+          starts_on: string;
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          duration_months?: number;
+          ends_on?: string;
+          granted_by?: string | null;
+          id?: string;
+          membership_id?: string;
+          starts_on?: string;
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'member_subscriptions_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'member_admin_directory';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'member_subscriptions_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'memberships';
+            referencedColumns: ['id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'member_subscriptions_membership_same_tenant';
+            columns: ['membership_id', 'tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenant_coaches';
+            referencedColumns: ['membership_id', 'tenant_id'];
+          },
+          {
+            foreignKeyName: 'member_subscriptions_tenant_id_fkey';
+            columns: ['tenant_id'];
+            isOneToOne: false;
+            referencedRelation: 'tenants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       memberships: {
         Row: {
           created_at: string;
@@ -1592,6 +1660,27 @@ export type Database = {
       };
       expire_waitlist_offers: { Args: { p_now?: string }; Returns: number };
       get_roster_visibility: { Args: { p_tenant_id: string }; Returns: boolean };
+      grant_member_subscription: {
+        Args: { p_duration_months: number; p_membership_id: string };
+        Returns: {
+          created_at: string;
+          deleted_at: string | null;
+          duration_months: number;
+          ends_on: string;
+          granted_by: string | null;
+          id: string;
+          membership_id: string;
+          starts_on: string;
+          tenant_id: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'member_subscriptions';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       import_members: {
         Args: { p_expires_in?: string; p_rows: Json; p_tenant_id: string };
         Returns: Json;

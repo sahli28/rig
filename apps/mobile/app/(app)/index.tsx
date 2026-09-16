@@ -6,8 +6,10 @@ import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
 import { Badge, Banner, Button, Card, ListRow, Skeleton } from '@rack/ui/native';
 import {
+  accessUntil,
   appliqueChangementAuCours,
   fetchDaySchedule,
+  fetchMemberSubscriptions,
   localDay,
   pastilleEtat,
   seatsLeft,
@@ -203,6 +205,78 @@ function ProchainCours() {
     </Card>
   );
 }
+/**
+ * L'état d'accès du membre (P2-018) — la moitié affichage de RM2.8.
+ *
+ * « Accès actif jusqu'au … », ou un état clair « Pas d'accès actif — contacte
+ * ta box ». **Pas de CTA de vente** : il n'y a pas de vente in-app, le
+ * règlement se fait hors app (P2-019) et l'attribution est un geste du staff.
+ *
+ * Un échec de lecture ne rend **rien** : « pas d'accès » est une affirmation,
+ * pas un repli — l'afficher sur un timeout dirait au membre que sa box l'a
+ * coupé, alors que c'est le réseau qui a toussé. Même règle que la carte du
+ * prochain cours au retour (`charger`, plus haut).
+ */
+function AccesBox() {
+  const theme = useTheme();
+  const { t, formatDate } = useI18n();
+  const { me, activeTenantId } = useSession();
+
+  const membershipId =
+    me?.memberships.find((item) => item.tenant_id === activeTenantId)?.id ?? null;
+  const timeZone = me?.current_tenant?.timezone ?? 'Europe/Paris';
+
+  const [etat, setEtat] = useState<'chargement' | 'illisible' | { until: string | null }>(
+    'chargement',
+  );
+  const lecture = useRef(0);
+
+  const charger = useCallback(async () => {
+    if (activeTenantId === null || membershipId === null) return;
+    const jeton = ++lecture.current;
+    try {
+      const lignes = await fetchMemberSubscriptions(supabase, activeTenantId);
+      if (jeton !== lecture.current) return;
+      // La RLS rend « ce que je peux lire » : pour un staff, toute la box. On ne
+      // parle ici que de **son** accès.
+      const miennes = lignes.filter((ligne) => ligne.membership_id === membershipId);
+      setEtat({ until: accessUntil(miennes, localDay(new Date().toISOString(), timeZone)) });
+    } catch {
+      if (jeton !== lecture.current) return;
+      // Ne jamais dégrader un état affiché vers « illisible » : une relecture au
+      // retour qui échoue garde ce qu'une lecture réussie a établi.
+      setEtat((precedent) => (precedent === 'chargement' ? 'illisible' : precedent));
+    }
+  }, [activeTenantId, membershipId, timeZone]);
+
+  useEffect(() => {
+    void charger();
+  }, [charger]);
+
+  // L'attribution arrive pendant que l'app est ouverte : au retour sur
+  // l'accueil, on relit (D-016) — silencieusement, comme le prochain cours.
+  useRelireAuRetour(useCallback(() => void charger(), [charger]));
+
+  if (etat === 'chargement' || etat === 'illisible') return null;
+
+  if (etat.until === null) {
+    return <Banner title={t('home.access_none')} tone="warning" />;
+  }
+
+  return (
+    <Text
+      accessibilityRole="text"
+      style={{
+        color: theme.colors.textMuted,
+        fontSize: theme.typography.small,
+        fontFamily: theme.fontFamily,
+      }}
+    >
+      {t('home.access_until', { date: formatDate(etat.until) })}
+    </Text>
+  );
+}
+
 export default function HomeScreen() {
   const theme = useTheme();
   const { t } = useI18n();
@@ -262,7 +336,10 @@ export default function HomeScreen() {
           ))}
         </View>
       ) : (
-        <ProchainCours />
+        <>
+          <ProchainCours />
+          <AccesBox />
+        </>
       )}
 
       {/* **Qui est connecté : une aide de passe, pas une information de membre**
