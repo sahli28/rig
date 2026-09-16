@@ -2,6 +2,13 @@
 
 **Phase** P2 · **Estimation** 4 j·h · **Dépend de** P1-001b, P1-001c, P1-003 · **Spec** §6.2, §12.5
 
+> **Revue du 16 septembre 2026 — la tuile « CA du mois » quitte cet écran.**
+> Le paiement passe hors app (lien Stripe de la box, `P2-019`) et l'accès est
+> attribué à la main (`P2-018`) : l'app ne voit aucun encaissement, donc aucune
+> source de CA. Le dashboard garde présences, taux de remplissage et membres
+> actifs ; le chiffre d'affaires se lit dans le Stripe de la box. `revenue_report()`
+> et `P2-016` restent différés avec l'entité juridique.
+
 ## Pourquoi ce ticket existe
 
 Il recueille **deux critères orphelins** de P1-001, qui pointaient vers un écran
