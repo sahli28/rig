@@ -20,6 +20,7 @@ import {
   findMembershipBySlug,
   grantMemberSubscription,
   removeMember,
+  revokeMemberSubscription,
   setMemberRole,
   tenantScope,
   type RackClient,
@@ -149,6 +150,33 @@ export async function grantSubscription(
   } catch (error) {
     return echec(error);
   }
+}
+
+/**
+ * Retire l'accès d'un membre (P2-026) : ses abonnements courants et futurs
+ * sont archivés, la réservation se bloque immédiatement. La fonction SQL
+ * refuse elle-même un COACH, et un second clic rend 0 sans erreur — l'écran
+ * n'a pas de cas d'échec à inventer pour lui.
+ */
+export async function revokeAccess(
+  slug: string,
+  membershipId: string,
+  _prev: ActionState,
+): Promise<ActionState> {
+  const ctx = await contexte(slug);
+  if ('status' in ctx) return ctx;
+
+  const cible = IdSchema.safeParse(membershipId);
+  if (!cible.success) return INVALID;
+
+  try {
+    await revokeMemberSubscription(ctx.client, cible.data);
+  } catch (error) {
+    return echec(error);
+  }
+
+  revalidatePath(`/box/${slug}/staff`);
+  return { status: 'ok' };
 }
 
 /**

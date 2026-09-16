@@ -50,10 +50,29 @@ export async function grantMemberSubscription(
 }
 
 /**
+ * Retire l'accès d'un membre (P2-026) : archive ses abonnements courants et
+ * futurs. OWNER/MANAGER seulement — la fonction SQL refuse elle-même, deux
+ * couches comme le grant. Rend le nombre de lignes archivées ; `0` = rien à
+ * retirer (second clic), sans erreur.
+ */
+export async function revokeMemberSubscription(
+  client: RackClient,
+  membershipId: string,
+): Promise<number> {
+  const { data, error } = await client.rpc('revoke_member_subscription', {
+    p_membership_id: membershipId,
+  });
+  if (error) throw error;
+  return z.number().int().parse(data);
+}
+
+/**
  * Les abonnements lisibles par la session dans la box active : les siens pour
  * un membre, toute la box pour OWNER/MANAGER — c'est la RLS qui borne, pas un
  * paramètre. Les lignes archivées sont filtrées **ici** (piège 13 de
- * database.md : les lectures filtrent explicitement).
+ * database.md : les lectures filtrent explicitement) — et, depuis P2-026, par
+ * les policies elles-mêmes : double ceinture, ce filtre-ci reste pour dire
+ * l'intention au lecteur du code.
  */
 export async function fetchMemberSubscriptions(
   client: RackClient,

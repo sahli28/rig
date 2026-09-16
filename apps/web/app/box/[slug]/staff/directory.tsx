@@ -16,7 +16,7 @@ import {
 import type { TranslationKey } from '@rack/core';
 import styles from './staff.module.css';
 import { IDLE, type ActionState } from './action-state';
-import { changeRole, excludeMember, grantSubscription } from './actions';
+import { changeRole, excludeMember, grantSubscription, revokeAccess } from './actions';
 
 const ROLE_KEYS: Record<string, TranslationKey> = {
   OWNER: 'staff.role_owner',
@@ -163,6 +163,10 @@ function MemberRow({
     grantSubscription.bind(null, slug, row.membership_id),
     IDLE,
   );
+  const [etatRetraitAcces, retirerAcces] = useActionState<ActionState, void>(
+    revokeAccess.bind(null, slug, row.membership_id),
+    IDLE,
+  );
 
   // L'écran masque ce que la fonction refuse : un gestionnaire ne touche ni un
   // propriétaire ni un autre gestionnaire (`MANAGER_CANNOT_MODIFY_ADMIN`).
@@ -249,6 +253,12 @@ function MemberRow({
         </form>
       ) : null}
 
+      {/* Le retrait d'accès (P2-026) n'existe que là où il y a un accès à
+          retirer : une porte qui ne mène nulle part est pire que pas de porte. */}
+      {row.status === 'ACTIVE' && accessUntil !== null ? (
+        <RevokeAccessButton nom={displayName(row)} onConfirm={() => void retirerAcces()} />
+      ) : null}
+
       {modifiable && row.status === 'ACTIVE' ? (
         <RemoveButton nom={displayName(row)} onConfirm={() => void retirer()} />
       ) : null}
@@ -256,7 +266,43 @@ function MemberRow({
       <Feedback state={etatRole} />
       <Feedback state={etatRetrait} />
       <Feedback state={etatAcces} />
+      <Feedback state={etatRetraitAcces} />
     </li>
+  );
+}
+
+/**
+ * Retirer l'**accès** (P2-026), à distinguer de retirer la **personne** : la
+ * réservation se bloque immédiatement, l'appartenance reste. Une confirmation,
+ * parce que l'effet est instantané chez le membre — mais réversible : une
+ * nouvelle attribution rouvre. Radix porte le comportement, comme RemoveButton.
+ */
+function RevokeAccessButton({ nom, onConfirm }: { nom: string; onConfirm: () => void }) {
+  const { t } = useI18n();
+
+  return (
+    <AlertDialog.Root>
+      <AlertDialog.Trigger className={styles.danger}>
+        {t('staff.revoke_access')}
+      </AlertDialog.Trigger>
+      <AlertDialog.Portal>
+        <AlertDialog.Overlay className={styles.overlay} />
+        <AlertDialog.Content className={styles.dialog}>
+          <AlertDialog.Title className={styles.cardTitle}>
+            {t('staff.revoke_access_title', { name: nom })}
+          </AlertDialog.Title>
+          <AlertDialog.Description className={styles.help}>
+            {t('staff.revoke_access_body')}
+          </AlertDialog.Description>
+          <div className={styles.dialogActions}>
+            <AlertDialog.Cancel className={styles.ghost}>{t('common.cancel')}</AlertDialog.Cancel>
+            <AlertDialog.Action className={styles.danger} onClick={onConfirm}>
+              {t('staff.revoke_access_confirm')}
+            </AlertDialog.Action>
+          </div>
+        </AlertDialog.Content>
+      </AlertDialog.Portal>
+    </AlertDialog.Root>
   );
 }
 
