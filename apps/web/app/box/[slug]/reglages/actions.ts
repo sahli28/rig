@@ -291,6 +291,7 @@ function typeDeCoursDepuis(form: FormData) {
     duration_minutes: nombre(form.get('duration_minutes')),
     color: texte(form.get('color')),
     default_capacity: nombre(form.get('default_capacity')),
+    is_open_access: form.get('is_open_access') === 'on',
   });
 }
 

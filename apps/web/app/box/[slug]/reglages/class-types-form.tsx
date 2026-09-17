@@ -15,6 +15,7 @@ export type TypeDeCours = {
   duration_minutes: number;
   color: string;
   default_capacity: number;
+  is_open_access: boolean;
 };
 
 /**
@@ -199,6 +200,23 @@ function ClassTypeFields({ type }: { type?: TypeDeCours }) {
           defaultValue={localizedText(type?.description_i18n, 'fr')}
           maxLength={120}
         />
+      </div>
+
+      {/* L'accès libre (P2-020) : sans cette case, la colonne n'aurait aucun
+          écrivain hors du seed (règle 7). La `key` force React à reprendre le
+          défaut quand la donnée serveur change — le motif du select de rôle. */}
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor={`${prefixe}-open-access`}>
+          <input
+            key={String(type?.is_open_access ?? false)}
+            id={`${prefixe}-open-access`}
+            name="is_open_access"
+            type="checkbox"
+            defaultChecked={type?.is_open_access ?? false}
+          />{' '}
+          {t('settings.class_type_open_access')}
+        </label>
+        <span className={styles.rowMeta}>{t('settings.class_type_open_access_help')}</span>
       </div>
     </div>
   );

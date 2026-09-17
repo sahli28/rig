@@ -127,6 +127,32 @@ async function rafraichir(ctx: Contexte, scheduleId: string) {
   });
 }
 
+/**
+ * L'avertissement de chevauchement de salle (P2-020) : deux cours **coachés**
+ * au même endroit se signalent, l'accès libre passe sans friction — la règle
+ * vit en SQL (`coached_room_conflicts_for_*`, security invoker, la RLS de la
+ * session s'applique). **Un effet de bord, jamais une condition** : le cours
+ * est créé quoi qu'il arrive, et un échec du comptage rend un « Enregistré »
+ * muet plutôt qu'une erreur — même règle que le push de P1-029.
+ */
+async function okAvecChevauchement(
+  ctx: Contexte,
+  cible: { classId: string } | { scheduleId: string },
+): Promise<ActionState> {
+  const { data, error } =
+    'classId' in cible
+      ? await ctx.client.rpc('coached_room_conflicts_for_class', { p_class_id: cible.classId })
+      : await ctx.client.rpc('coached_room_conflicts_for_schedule', {
+          p_schedule_id: cible.scheduleId,
+        });
+
+  if (error !== null) {
+    console.warn(`[planning] chevauchement de salle : ${error.message}`);
+    return OK;
+  }
+  return (data ?? 0) > 0 ? { status: 'ok', key: 'planning.warn_room_overlap' } : OK;
+}
+
 /** Lit une série depuis le formulaire, sous la forme canonique de la RRULE. */
 function serieDepuis(form: FormData) {
   const days = form.getAll('days').filter((d): d is string => typeof d === 'string') as RruleDay[];
@@ -175,7 +201,7 @@ export async function createSchedule(slug: string, _prev: ActionState, form: For
   if (refresh.error) return echec(refresh.error);
 
   revalidatePath(`/box/${slug}/planning`);
-  return OK;
+  return okAvecChevauchement(ctx, { scheduleId: data.id });
 }
 
 export async function updateSchedule(slug: string, id: string, _prev: ActionState, form: FormData) {
@@ -200,7 +226,9 @@ export async function updateSchedule(slug: string, id: string, _prev: ActionStat
   if (refresh.error) return echec(refresh.error);
 
   revalidatePath(`/box/${slug}/planning`);
-  return OK;
+  // Changer la salle ou l'heure d'une série est le même geste que la créer :
+  // la sœur de createSchedule, avertie pareil (P2-020).
+  return okAvecChevauchement(ctx, { scheduleId: id });
 }
 
 /**
@@ -293,20 +321,23 @@ export async function createOneOff(
 
   // Salle et coach d'une autre box : les FK composites `(id, tenant_id)`
   // refusent — pas besoin de les re-vérifier ici.
-  const { error } = await scope.insert('classes', {
-    schedule_id: null,
-    class_type_id: classTypeId,
-    room_id: roomId,
-    coach_membership_id: coachId,
-    starts_at: startsAt,
-    ends_at: endsAt,
-    capacity,
-    is_override: true,
-  });
+  const { data, error } = await scope
+    .insert('classes', {
+      schedule_id: null,
+      class_type_id: classTypeId,
+      room_id: roomId,
+      coach_membership_id: coachId,
+      starts_at: startsAt,
+      ends_at: endsAt,
+      capacity,
+      is_override: true,
+    })
+    .select('id')
+    .single();
   if (error) return echec(error);
 
   revalidatePath(`/box/${slug}/planning`);
-  return OK;
+  return okAvecChevauchement(ctx, { classId: data.id });
 }
 
 /**
