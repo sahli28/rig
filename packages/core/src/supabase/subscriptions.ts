@@ -86,6 +86,25 @@ export async function fetchMemberSubscriptions(
 }
 
 /**
+ * Le lien de paiement externe de la box (P2-019), ou `null` si elle n'en a pas
+ * posé — auquel cas aucun bouton ne se montre (pas de bouton mort). Lisible par
+ * tout membre de la box (`tenant_settings_select`, P0-004) ; le lien est opaque,
+ * on ne le parse pas.
+ */
+export async function fetchPaymentLink(
+  client: RackClient,
+  tenantId: string,
+): Promise<string | null> {
+  const { data, error } = await tenantScope(client, tenantId)
+    .select('tenant_settings')
+    .maybeSingle();
+  if (error) throw error;
+  return z
+    .object({ payment_link_url: z.string().nullable() })
+    .parse(data ?? { payment_link_url: null }).payment_link_url;
+}
+
+/**
  * L'échéance de l'accès courant : le plus lointain `ends_on` des lignes qui
  * couvrent `todayLocal` (date locale de la box, `YYYY-MM-DD` — voir
  * `localDay`), ou `null` si rien ne couvre. Même frontière que l'oracle SQL :

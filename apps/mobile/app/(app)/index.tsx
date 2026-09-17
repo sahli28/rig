@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useRouter } from 'expo-router';
 import { useNetworkState } from 'expo-network';
-import { ScrollView, Text, View } from 'react-native';
+import { Linking, ScrollView, Text, View } from 'react-native';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
 import { Badge, Banner, Button, Card, ListRow, Skeleton } from '@rack/ui/native';
@@ -10,6 +10,7 @@ import {
   appliqueChangementAuCours,
   fetchDaySchedule,
   fetchMemberSubscriptions,
+  fetchPaymentLink,
   localDay,
   pastilleEtat,
   seatsLeft,
@@ -229,20 +230,30 @@ function AccesBox() {
   const [etat, setEtat] = useState<'chargement' | 'illisible' | { until: string | null }>(
     'chargement',
   );
+  // Le lien de paiement de la box (P2-019). `null` = pas de lien posé, ou pas
+  // encore lu : dans les deux cas, aucun bouton — pas de bouton mort.
+  const [lien, setLien] = useState<string | null>(null);
   const lecture = useRef(0);
 
   const charger = useCallback(async () => {
     if (activeTenantId === null || membershipId === null) return;
     const jeton = ++lecture.current;
-    try {
-      const lignes = await fetchMemberSubscriptions(supabase, activeTenantId);
-      if (jeton !== lecture.current) return;
+    // Les deux lectures sont indépendantes : un lien illisible ne prive pas de
+    // l'état d'accès, et inversement.
+    const [abonnements, lienPose] = await Promise.allSettled([
+      fetchMemberSubscriptions(supabase, activeTenantId),
+      fetchPaymentLink(supabase, activeTenantId),
+    ]);
+    if (jeton !== lecture.current) return;
+
+    if (lienPose.status === 'fulfilled') setLien(lienPose.value);
+
+    if (abonnements.status === 'fulfilled') {
       // La RLS rend « ce que je peux lire » : pour un staff, toute la box. On ne
       // parle ici que de **son** accès.
-      const miennes = lignes.filter((ligne) => ligne.membership_id === membershipId);
+      const miennes = abonnements.value.filter((ligne) => ligne.membership_id === membershipId);
       setEtat({ until: accessUntil(miennes, localDay(new Date().toISOString(), timeZone)) });
-    } catch {
-      if (jeton !== lecture.current) return;
+    } else {
       // Ne jamais dégrader un état affiché vers « illisible » : une relecture au
       // retour qui échoue garde ce qu'une lecture réussie a établi.
       setEtat((precedent) => (precedent === 'chargement' ? 'illisible' : precedent));
@@ -259,21 +270,56 @@ function AccesBox() {
 
   if (etat === 'chargement' || etat === 'illisible') return null;
 
+  /**
+   * Le bouton « Régler mon abonnement » (P2-019) : seulement si la box a posé
+   * un lien, avec accès actif (renouveler) ou sans (premier règlement). En
+   * `secondary` — l'accueil garde une seule action primaire, le planning. La
+   * mention dit une fois où l'argent se passe : hors app, chez la box.
+   */
+  const reglement =
+    lien === null ? null : (
+      <>
+        <Button
+          label={t('home.pay_cta')}
+          variant="secondary"
+          onPress={() => void Linking.openURL(lien)}
+          fullWidth
+        />
+        <Text
+          style={{
+            color: theme.colors.textMuted,
+            fontSize: theme.typography.small,
+            fontFamily: theme.fontFamily,
+          }}
+        >
+          {t('home.pay_note')}
+        </Text>
+      </>
+    );
+
   if (etat.until === null) {
-    return <Banner title={t('home.access_none')} tone="warning" />;
+    return (
+      <View style={{ gap: theme.space(2) }}>
+        <Banner title={t('home.access_none')} tone="warning" />
+        {reglement}
+      </View>
+    );
   }
 
   return (
-    <Text
-      accessibilityRole="text"
-      style={{
-        color: theme.colors.textMuted,
-        fontSize: theme.typography.small,
-        fontFamily: theme.fontFamily,
-      }}
-    >
-      {t('home.access_until', { date: formatDate(etat.until) })}
-    </Text>
+    <View style={{ gap: theme.space(2) }}>
+      <Text
+        accessibilityRole="text"
+        style={{
+          color: theme.colors.textMuted,
+          fontSize: theme.typography.small,
+          fontFamily: theme.fontFamily,
+        }}
+      >
+        {t('home.access_until', { date: formatDate(etat.until) })}
+      </Text>
+      {reglement}
+    </View>
   );
 }
 
