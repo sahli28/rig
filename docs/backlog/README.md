@@ -771,6 +771,8 @@ en ce sens depuis P1-003).
 
 **Passe du 16 septembre 2026 — `P2-018` livré et mergé (PR #107).** La garde RM2.8 est remplie : `member_has_booking_right()` exige une appartenance active **et** un abonnement couvrant la date locale de la box ; ses **deux** appelants en profitent — `book_class()` et `join_waitlist()`, que le ticket ne nommait pas. `member_subscriptions` : durées {1,2,3,6,12} et `ends_on` inclus par CHECK, RLS force, écriture seulement par `grant_member_subscription()` (security definer, audit). 27 assertions pgTAP écrites avant la migration (dont la frontière du lendemain au passage d'heure d'été du 25/10), suite verte, `rls-auditor` SAFE. Trois écarts signalés : la liste des membres vit dans `staff/` (pas `membres/`, qui n'est que l'import) — les tickets d'accès suivants s'y accrochent ; FK en `cascade` pour ne pas bloquer la suppression RGPD ; le seed donne 12 mois à toutes les appartenances (sans quoi les `book_class()` existants rougissaient). Un écart devient un ticket — **`P2-026`** (retrait par bouton, aujourd'hui `deleted_at` en SQL, + filtre `deleted_at` en lecture ; l'oracle, lui, filtre déjà `deleted_at`, donc le retrait bloque bien la réservation — vérifié). Reste en `[~]` : le parcours réel hébergé (db push + geste commanditaire) et le geste d'appareil sur l'accueil (passe TestFlight). **② : +1 (P2-026) → 69 j·h, dont 3,5 faits.**
 
+**Passe des 16–17 septembre 2026 — `P2-026` (PR #109) et `P2-019` (PR #110) livrés.** `P2-026` : `revoke_member_subscription()` (security definer, garde OWNER/MANAGER, audit) est le seul chemin de retrait ; les policies de lecture de `member_subscriptions` filtrent désormais `deleted_at` (l'observation de l'auditeur, fermée) ; +4 pgTAP. `P2-019` : `tenant_settings.payment_link_url` (CHECK `https`, ≤ 2000), onglet « Paiement » aux réglages, bouton « Régler mon abonnement » sur la carte d'accès mobile — visible seulement si un lien est posé, échec de lecture = pas de bouton. Ticket réduit à une seule colonne : `me()` projette ses colonnes et le mobile lit la table via `tenantScope`. Seul `[~]` : l'ouverture réelle du lien sur iPhone (critère d'appareil, daté à `P2-021`). **La boucle accès + paiement est fermée : une box donne un accès, le retire, et affiche son lien de règlement — sans nous. ② : 6,5 j·h faits sur 69.**
+
 ### Ordre
 
 ```
@@ -798,7 +800,7 @@ existe déjà.
 | P2-014  | Leaderboard par WOD                           |   4 | |
 | P2-004  | Dashboard box et mise en route                |   4 | **sans tuile CA** : présences, remplissage, membres actifs |
 | P2-018  | Abonnement à durée fixe, attribution manuelle | 3,5 | ✅ **fait le 16 sept.** (PR #107) — garde RM2.8 remplie (book_class + join_waitlist), member_subscriptions, 27 pgTAP |
-| P2-019  | Lien externe de paiement                      |   2 | **neuf** — lien Stripe sur la box + bouton in-app + mention « hors app » |
+| P2-019  | Lien externe de paiement                      |   2 | ✅ **fait le 17 sept.** (PR #110) — payment_link_url (CHECK https), bouton mobile conditionnel |
 | P2-002  | Droits RGPD en self-service                   |   5 | exigé pour les vrais membres + Apple |
 | P2-017  | Identité de la box partout, zéro « Rack »     |   2 | **neuf** — audit white-label N0 (le thème existe déjà, P1-001e) |
 | P2-021  | Passe design mobile (+ direction visuelle)    |   4 | **neuf** — accueil + planning + WOD + carte membre |
@@ -808,8 +810,8 @@ existe déjà.
 | P2-020  | Open gym qui chevauche un cours               | 1,5 | **neuf** — `is_open_access`, chevauchement autorisé et étiqueté |
 | P2-024  | Canal Android : Firebase, build, preuve push  | 2,5 | **neuf, prioritaire** — profil `android` (eas.json), FCM, build, push prouvé |
 | P2-025  | Soumission Play Store                         |   2 | **neuf** — fiche, Data safety ; dépend de P2-024 |
-| P2-026  | Retrait d'accès (bouton) + filtre deleted_at  |   1 | **neuf** — écart de la passe P2-018 : le retrait n'avait pas de bouton |
-|         | **Total ②**                                   | **69** | dont 45,5 déjà ticketés ; 3,5 faits (P2-018) |
+| P2-026  | Retrait d'accès (bouton) + filtre deleted_at  |   1 | ✅ **fait le 17 sept.** (PR #109) — revoke_member_subscription (seul chemin), lecture filtre deleted_at |
+|         | **Total ②**                                   | **69** | dont 45,5 déjà ticketés ; 6,5 faits (P2-018, P2-026, P2-019) |
 
 ### Différé — attend l'entité juridique (35 j·h)
 
