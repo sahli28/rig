@@ -7,6 +7,7 @@ import { BookingRulesForm } from './booking-rules-form';
 import { OpeningHoursForm } from './opening-hours-form';
 import { PlacesForm } from './places-form';
 import { ClassTypesForm } from './class-types-form';
+import { PaymentLinkForm } from './payment-link-form';
 
 /**
  * Réglages de la box.
@@ -95,6 +96,11 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           id: 'cours',
           labelKey: 'settings.tab_types',
           content: <ClassTypesForm slug={slug} types={classTypes.data ?? []} />,
+        },
+        {
+          id: 'paiement',
+          labelKey: 'settings.tab_payment',
+          content: <PaymentLinkForm slug={slug} lien={settings.data?.payment_link_url ?? null} />,
         },
       ]}
     />

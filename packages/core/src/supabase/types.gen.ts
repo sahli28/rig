@@ -1225,6 +1225,7 @@ export type Database = {
           default_visitor_capacity: number;
           max_upcoming_bookings: number;
           open_days_before: number;
+          payment_link_url: string | null;
           tenant_id: string;
           updated_at: string;
         };
@@ -1237,6 +1238,7 @@ export type Database = {
           default_visitor_capacity?: number;
           max_upcoming_bookings?: number;
           open_days_before?: number;
+          payment_link_url?: string | null;
           tenant_id: string;
           updated_at?: string;
         };
@@ -1249,6 +1251,7 @@ export type Database = {
           default_visitor_capacity?: number;
           max_upcoming_bookings?: number;
           open_days_before?: number;
+          payment_link_url?: string | null;
           tenant_id?: string;
           updated_at?: string;
         };

@@ -130,6 +130,7 @@ export {
 
 export {
   BookingRulesPatchSchema,
+  PaymentLinkPatchSchema,
   BoxIdentitySchema,
   ClassTypePatchSchema,
   DEFAULT_CLASS_TYPE_COLOR,
@@ -260,6 +261,7 @@ export {
   SUBSCRIPTION_DURATIONS,
   accessUntil,
   fetchMemberSubscriptions,
+  fetchPaymentLink,
   grantMemberSubscription,
   revokeMemberSubscription,
   type MemberSubscription,

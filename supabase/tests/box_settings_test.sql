@@ -11,7 +11,7 @@
 -- gestionnaire.
 
 begin;
-select plan(33);
+select plan(37);
 
 -- ---------------------------------------------------------------------------
 -- Léa — simple MEMBER de Rueil
@@ -302,6 +302,53 @@ select ok(
 select ok(
   not has_table_privilege('authenticated', 'public.opening_hours', 'TRUNCATE'),
   'idem pour opening_hours'
+);
+
+-- ---------------------------------------------------------------------------
+-- Lien externe de paiement (P2-019) — la box le pose, le membre le lit
+-- ---------------------------------------------------------------------------
+
+select has_column(
+  'public', 'tenant_settings', 'payment_link_url',
+  'tenant_settings porte le lien de paiement externe'
+);
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"11111111-0000-4000-8000-000000000001","role":"authenticated","email":"marc@rueil.example"}';
+
+update public.tenant_settings
+set payment_link_url = 'https://buy.stripe.com/test-rueil'
+where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001';
+
+select is(
+  (select payment_link_url from public.tenant_settings
+   where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'),
+  'https://buy.stripe.com/test-rueil',
+  'un OWNER pose un lien https, il persiste'
+);
+
+-- Le membre lit le lien par le même chemin que le mobile : la policy de
+-- lecture de P0-004 couvre la colonne neuve — c'est une décision d'exposition,
+-- et elle est voulue.
+set local request.jwt.claims = '{"sub":"33333333-0000-4000-8000-000000000001","role":"authenticated","email":"lea@example.com"}';
+
+select is(
+  (select payment_link_url from public.tenant_settings
+   where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'),
+  'https://buy.stripe.com/test-rueil',
+  'une MEMBER lit le lien de sa box — le chemin du bouton mobile'
+);
+
+reset role;
+
+-- Refusé par la base quel que soit le chemin d'écriture, même postgres : le
+-- CHECK est l'invariant, Zod n'est que le message poli.
+select throws_ok(
+  $$update public.tenant_settings
+    set payment_link_url = 'http://buy.stripe.com/test-rueil'
+    where tenant_id = 'aaaaaaaa-0000-4000-8000-000000000001'$$,
+  '23514', null,
+  'un lien non-https est refusé par la base'
 );
 
 select * from finish();

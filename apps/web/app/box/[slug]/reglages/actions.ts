@@ -25,6 +25,7 @@ import {
   ClassTypePatchSchema,
   LocationPatchSchema,
   OpeningHourSchema,
+  PaymentLinkPatchSchema,
   RoomPatchSchema,
   can,
   fetchMe,
@@ -137,6 +138,31 @@ export async function saveBookingRules(slug: string, _prev: ActionState, form: F
     checkin_window_after_minutes: nombre(form.get('checkin_window_after_minutes')),
   });
   if (!parsed.success) return INVALID;
+
+  const { error } = await tenantScope(ctx.client, ctx.tenantId).update(
+    'tenant_settings',
+    parsed.data,
+  );
+  if (error) return echec(error);
+
+  revalidatePath(`/box/${slug}/reglages`);
+  return { status: 'ok' } as const;
+}
+
+/**
+ * Lien externe de paiement (P2-019). Champ vidé = `null` = lien retiré — le
+ * bouton côté membre disparaît. Une URL non-https rend une clé dédiée, pas le
+ * `INVALID` générique : c'est la seule erreur que la box peut vraiment faire.
+ */
+export async function savePaymentLink(slug: string, _prev: ActionState, form: FormData) {
+  const ctx = await contexte(slug);
+  if ('status' in ctx) return ctx;
+
+  const brut = texte(form.get('payment_link_url'));
+  const parsed = PaymentLinkPatchSchema.safeParse({
+    payment_link_url: brut === '' ? null : brut,
+  });
+  if (!parsed.success) return { status: 'error', key: 'settings.payment_link_invalid' } as const;
 
   const { error } = await tenantScope(ctx.client, ctx.tenantId).update(
     'tenant_settings',

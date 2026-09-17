@@ -150,6 +150,28 @@ export const BookingRulesPatchSchema = z.object({
 export type BookingRulesPatch = z.infer<typeof BookingRulesPatchSchema>;
 
 // ---------------------------------------------------------------------------
+// Lien externe de paiement — `tenant_settings.payment_link_url` (P2-019)
+// ---------------------------------------------------------------------------
+
+/**
+ * Miroir du CHECK `tenant_settings_payment_link_https` : https obligatoire,
+ * borné en longueur, `null` = lien retiré (le bouton disparaît). Le lien est
+ * **opaque** — on valide le transport, jamais le contenu (§15.6, la box est le
+ * vendeur).
+ */
+export const PaymentLinkPatchSchema = z.object({
+  payment_link_url: z
+    .string()
+    .trim()
+    .url()
+    .regex(/^https:\/\//i)
+    .max(2000)
+    .nullable(),
+});
+
+export type PaymentLinkPatch = z.infer<typeof PaymentLinkPatchSchema>;
+
+// ---------------------------------------------------------------------------
 // Catalogue — `class_types`
 // ---------------------------------------------------------------------------
 
