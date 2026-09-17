@@ -247,6 +247,23 @@ function setUp() {
       'MEMBER', 'ACTIVE'
     from generate_series(1, ${N}) as i;
 
+    -- Depuis P2-018, réserver exige un abonnement couvrant la date du cours :
+    -- sans ces lignes, les ${N} tentatives tombent en NO_VALID_ENTITLEMENT
+    -- **avant** le verrou, et le harnais mesure une contention qui n'existe
+    -- plus (CI rouge du 17 sept. 2026 — la fixture de ce harnais est la sœur
+    -- du seed, et seule la CI l'exécute). Le nettoyage n'a pas de ligne à lui :
+    -- la FK vers memberships et tenants est en cascade.
+    insert into public.member_subscriptions
+      (tenant_id, membership_id, duration_months, starts_on, ends_on)
+    select
+      '${TENANT}',
+      ('dd500000-' || lpad(i::text, 4, '0') || '-4000-8000-000000000001')::uuid,
+      12,
+      ((now() at time zone 'Europe/Paris')::date - interval '1 month')::date,
+      (((now() at time zone 'Europe/Paris')::date - interval '1 month')::date
+         + make_interval(months => 12) - interval '1 day')::date
+    from generate_series(1, ${N}) as i;
+
     -- Une série porteuse : classes.schedule_id est not null, une occurrence
     -- appartient toujours à une récurrence.
     insert into public.class_schedules (id, tenant_id, class_type_id, room_id,
