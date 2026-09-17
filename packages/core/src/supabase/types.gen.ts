@@ -271,6 +271,7 @@ export type Database = {
           description_i18n: Json | null;
           duration_minutes: number;
           id: string;
+          is_open_access: boolean;
           name_i18n: Json;
           tenant_id: string;
           updated_at: string;
@@ -283,6 +284,7 @@ export type Database = {
           description_i18n?: Json | null;
           duration_minutes: number;
           id?: string;
+          is_open_access?: boolean;
           name_i18n: Json;
           tenant_id: string;
           updated_at?: string;
@@ -295,6 +297,7 @@ export type Database = {
           description_i18n?: Json | null;
           duration_minutes?: number;
           id?: string;
+          is_open_access?: boolean;
           name_i18n?: Json;
           tenant_id?: string;
           updated_at?: string;
@@ -1620,6 +1623,14 @@ export type Database = {
           push_tokens: string[];
           tenant_id: string;
         }[];
+      };
+      coached_room_conflicts_for_class: {
+        Args: { p_class_id: string };
+        Returns: number;
+      };
+      coached_room_conflicts_for_schedule: {
+        Args: { p_schedule_id: string };
+        Returns: number;
       };
       confirm_promotion: {
         Args: { p_waitlist_entry_id: string };

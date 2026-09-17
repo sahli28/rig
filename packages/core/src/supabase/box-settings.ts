@@ -191,6 +191,9 @@ export const ClassTypePatchSchema = z.object({
   duration_minutes: z.number().int().min(5).max(480),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   default_capacity: z.number().int().min(1).max(500),
+  // Accès libre (P2-020) : ce type partage une salle avec un cours coaché sans
+  // avertissement. La règle repose sur la colonne, pas sur le nom du type.
+  is_open_access: z.boolean(),
 });
 
 export type ClassTypePatch = z.infer<typeof ClassTypePatchSchema>;

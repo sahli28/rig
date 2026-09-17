@@ -102,17 +102,19 @@ insert into public.rooms (id, tenant_id, location_id, name, capacity) values
 
 -- Des lignes **des deux côtés**, comme partout ailleurs dans ce seed : un test
 -- d'isolation qui passe sur des données à sens unique ne prouve rien.
-insert into public.class_types (id, tenant_id, name_i18n, description_i18n, duration_minutes, color, default_capacity) values
+-- « Open gym » est en accès libre **par la colonne** (P2-020) : la règle de
+-- chevauchement de salle repose sur `is_open_access`, jamais sur le nom.
+insert into public.class_types (id, tenant_id, name_i18n, description_i18n, duration_minutes, color, default_capacity, is_open_access) values
   ('a4000000-0000-4000-8000-000000000001', 'aaaaaaaa-0000-4000-8000-000000000001',
-   '{"fr": "WOD", "en": "WOD"}', '{"fr": "Le cours du jour.", "en": "Workout of the day."}', 60, '#E4572E', 16),
+   '{"fr": "WOD", "en": "WOD"}', '{"fr": "Le cours du jour.", "en": "Workout of the day."}', 60, '#E4572E', 16, false),
   ('a4000000-0000-4000-8000-000000000002', 'aaaaaaaa-0000-4000-8000-000000000001',
-   '{"fr": "Haltérophilie", "en": "Weightlifting"}', null, 90, '#2E4057', 10),
+   '{"fr": "Haltérophilie", "en": "Weightlifting"}', null, 90, '#2E4057', 10, false),
   ('a4000000-0000-4000-8000-000000000003', 'aaaaaaaa-0000-4000-8000-000000000001',
-   '{"fr": "Open gym", "en": "Open gym"}', null, 120, '#4C956C', 20),
+   '{"fr": "Open gym", "en": "Open gym"}', null, 120, '#4C956C', 20, true),
   ('b4000000-0000-4000-8000-000000000001', 'bbbbbbbb-0000-4000-8000-000000000001',
-   '{"fr": "WOD", "en": "WOD"}', null, 60, '#16457A', 20),
+   '{"fr": "WOD", "en": "WOD"}', null, 60, '#16457A', 20, false),
   ('b4000000-0000-4000-8000-000000000002', 'bbbbbbbb-0000-4000-8000-000000000001',
-   '{"fr": "Hyrox", "en": "Hyrox"}', '{"fr": "Préparation Hyrox.", "en": "Hyrox prep."}', 75, '#8C1C13', 12);
+   '{"fr": "Hyrox", "en": "Hyrox"}', '{"fr": "Préparation Hyrox.", "en": "Hyrox prep."}', 75, '#8C1C13', 12, false);
 
 -- Heures **locales de la box** (tenants.timezone), jamais UTC — cf. le
 -- commentaire de la migration. 0 = lundi, 6 = dimanche ; un jour sans ligne est

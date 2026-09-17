@@ -56,6 +56,7 @@ describe('ClassTypePatchSchema', () => {
     duration_minutes: 60,
     color: '#E4572E',
     default_capacity: 16,
+    is_open_access: false,
   };
 
   it('accepte un type de cours conforme', () => {
@@ -66,6 +67,12 @@ describe('ClassTypePatchSchema', () => {
     ['une durée hors bornes', { ...valide, duration_minutes: 0 }],
     ['une couleur qui n’est pas un hexadécimal', { ...valide, color: 'rouge' }],
     ['une capacité nulle', { ...valide, default_capacity: 0 }],
+    // P2-020 : le drapeau est requis — un appelant qui l'oublie doit échouer
+    // ici, pas écrire false en silence.
+    [
+      'un patch sans le drapeau d’accès libre',
+      (({ is_open_access: _, ...reste }) => reste)(valide),
+    ],
   ])('refuse %s', (_libelle, patch) => {
     expect(ClassTypePatchSchema.safeParse(patch).success).toBe(false);
   });
