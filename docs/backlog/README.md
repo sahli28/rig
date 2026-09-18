@@ -802,16 +802,16 @@ existe déjà.
 | P2-018  | Abonnement à durée fixe, attribution manuelle | 3,5 | ✅ **fait le 16 sept.** (PR #107) — garde RM2.8 remplie (book_class + join_waitlist), member_subscriptions, 27 pgTAP |
 | P2-019  | Lien externe de paiement                      |   2 | ✅ **fait le 17 sept.** (PR #110) — payment_link_url (CHECK https), bouton mobile conditionnel |
 | P2-002  | Droits RGPD en self-service                   |   5 | exigé pour les vrais membres + Apple |
-| P2-017  | Identité de la box partout, zéro « Rack »     |   2 | **neuf** — audit white-label N0 (le thème existe déjà, P1-001e) |
+| P2-017  | Identité de la box partout, zéro « Rack »     |   2 | ✅ **fait le 18 sept.** (PR #115) — audit white-label N0, deux fuites fermées |
 | P2-021  | Passe design mobile (+ direction visuelle)    |   4 | **neuf** — accueil + planning + WOD + carte membre |
 | P2-022  | Passe design web (back-office)                |   3 | **neuf** — inspi Hustle Up, après P2-021 |
 | P2-003  | Sign in with Apple                            |   3 | bloquant de publication |
 | P2-023  | Soumission App Store                          |   2 | **neuf** — fiche, captures, notes de revue 3.1.3, labels |
-| P2-020  | Open gym qui chevauche un cours               | 1,5 | **neuf** — `is_open_access`, chevauchement autorisé et étiqueté |
-| P2-024  | Canal Android : Firebase, build, preuve push  | 2,5 | **neuf, prioritaire** — profil `android` (eas.json), FCM, build, push prouvé |
+| P2-020  | Open gym qui chevauche un cours               | 1,5 | ✅ **fait le 18 sept.** (PR #113) — `is_open_access`, chevauchement signalé, jamais bloqué |
+| P2-024  | Canal Android : Firebase, build, preuve push  | 2,5 | ⏳ **config faite le 18 sept.** (PR #116) — profil `preview` APK + env, `google-services.json` committé (projet `rack-b6a4a`) ; **preuve appareil (push + `rack://`) en attente** [~] |
 | P2-025  | Soumission Play Store                         |   2 | **neuf** — fiche, Data safety ; dépend de P2-024 |
 | P2-026  | Retrait d'accès (bouton) + filtre deleted_at  |   1 | ✅ **fait le 17 sept.** (PR #109) — revoke_member_subscription (seul chemin), lecture filtre deleted_at |
-|         | **Total ②**                                   | **69** | dont 45,5 déjà ticketés ; 6,5 faits (P2-018, P2-026, P2-019) |
+|         | **Total ②**                                   | **69** | dont 45,5 déjà ticketés ; **10 faits** (P2-018/019/026/017/020) + P2-024 config (preuve appareil en attente) |
 
 ### Différé — attend l'entité juridique (35 j·h)
 

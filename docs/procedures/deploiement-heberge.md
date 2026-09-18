@@ -352,6 +352,7 @@ Aucune n'est couverte par une CI verte ou une fusion. Dans l'ordre :
 | `anon key` | tableau de bord Supabase → API | **publique** par construction (RLS fait foi) ; part dans le bundle web |
 | `push_emitter_url` | table `app_runtime_config` (hébergé **et** local) | non secret ; posé par l'`insert` ci-dessus |
 | Variables Vercel | tableau de bord Vercel | les deux `NEXT_PUBLIC_*` ci-dessus |
+| Clé de compte de service Firebase (FCM V1) | fichier `rack-b6a4a-firebase-adminsdk-*.json` dans `C:\Users\sahli\Documents\imys data` (hors dépôt) **+** identifiants EAS (`eas credentials` → Android) | **secret** — autorise Expo Push → FCM. Projet Firebase `rack-b6a4a`. Jamais dans le dépôt. `google-services.json`, lui, **est** committé (client, non secret, P2-024) |
 
 ## Décommissionner le montage temporaire — l'ordre compte
 
