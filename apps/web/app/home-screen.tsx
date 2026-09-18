@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { DEFAULT_BRAND } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
 import { LanguageSwitcher } from './language-switcher';
 import { PendingBanner } from './pending-banner';
@@ -25,7 +26,10 @@ export function HomeScreen({ variant, boxes }: { variant: 'public' | 'signed-in'
 
   return (
     <main style={{ maxWidth: 880, margin: '0 auto', padding: 24 }}>
-      <h1 style={{ fontSize: 'var(--rack-text-display)' }}>Rack</h1>
+      {/* L'accueil est une surface pré-box (une session avec UNE box redirige
+          avant d'arriver ici) : la marque plateforme est la bonne — mais par
+          son token, pas en dur, pour qu'elle n'ait qu'une source (P2-017). */}
+      <h1 style={{ fontSize: 'var(--rack-text-display)' }}>{DEFAULT_BRAND.appName}</h1>
 
       {variant === 'public' ? (
         <>
