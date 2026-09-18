@@ -14,7 +14,7 @@ import { describe, expect, it } from 'vitest';
  * machine de dev, où `.env.local` existe.
  */
 const eas = JSON.parse(readFileSync(new URL('./eas.json', import.meta.url), 'utf8')) as {
-  build: Record<string, { env?: Record<string, string> }>;
+  build: Record<string, { env?: Record<string, string>; android?: Record<string, unknown> }>;
 };
 
 const PROFILS_CLOUD = ['preview', 'production'] as const;
@@ -40,5 +40,36 @@ describe('eas.json — les variables publiques des builds cloud (D-031)', () => 
         expect(cle, `${profil}.env porte « ${cle} »`).toMatch(/^EXPO_PUBLIC_/);
       }
     }
+  });
+});
+
+/**
+ * `P2-024` — le canal Android. Aucun des trois profils ne portait de bloc
+ * `android` : `eas build -p android` n'avait aucun profil à quoi s'accrocher.
+ * Ce test fige la condition **nécessaire** — un profil Android existe, et celui
+ * qui distribue en interne pour la preuve appareil porte bien ses `env`, la
+ * sœur exacte de `D-031` sur l'autre plateforme (sans `env`, écran blanc au
+ * lancement). La condition suffisante — le push reçu, `rack://` qui ouvre le
+ * bon écran — reste un critère d'appareil, dit dans le ticket.
+ */
+describe('eas.json — le canal Android (P2-024)', () => {
+  it('au moins un profil de build porte un bloc android', () => {
+    const profilsAndroid = Object.entries(eas.build).filter(([, config]) => config.android);
+    expect(
+      profilsAndroid.map(([nom]) => nom),
+      'aucun profil ne porte de bloc android',
+    ).not.toHaveLength(0);
+  });
+
+  it('le profil de distribution interne (preview) porte android ET ses EXPO_PUBLIC_*', () => {
+    const preview = eas.build['preview'];
+    // Le bloc android : c'est le profil qu'on installe sur le téléphone de test.
+    expect(preview?.android, "le profil preview n'a pas de bloc android").toBeDefined();
+    // La sœur D-031 : un build Android cloud sans env crashe au lancement,
+    // exactement comme la build TestFlight iOS l'a fait le 13 sept.
+    expect(preview?.env?.['EXPO_PUBLIC_SUPABASE_URL']).toMatch(
+      /^https:\/\/[a-z]{20}\.supabase\.co$/,
+    );
+    expect(preview?.env?.['EXPO_PUBLIC_SUPABASE_ANON_KEY']).toMatch(/^sb_publishable_/);
   });
 });

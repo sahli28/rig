@@ -41,7 +41,9 @@ Android laissé ouvert par `P1-007` se ferme ici.
 
 ## Critères d'acceptation
 
-- [ ] Un profil `android` existe dans `eas.json`, avec les variables d'environnement
+- [x] Un profil `android` existe dans `eas.json`, avec les variables d'environnement
+      — `preview.android.buildType = apk`, `env` déjà au niveau du profil ; gardé
+      par `apps/mobile/eas-env.test.ts` (deux assertions P2-024)
 - [ ] Un build Android s'installe et démarre sans écran blanc (les variables sont
       chargées — même piège que `D-031` sur iOS)
 - [~] **Appareil** : push reçu sur un téléphone Android, et `rack://` ouvre le bon
@@ -53,3 +55,39 @@ Android laissé ouvert par `P1-007` se ferme ici.
 Priorité relevée par la commanditaire le 16 sept. 2026 : Android n'attend plus la
 mise en service (`P1-016`), il entre dans la ② avec sa fiche. Le code est prêt ;
 ce qui manque est de la configuration et deux gates (Firebase, un appareil).
+
+## Journal
+
+**18 sept. 2026 — la configuration, faite ; le build et l'appareil restent.**
+Livré sur `feat/P2-024-canal-android-firebase-build` (un commit) :
+
+- `apps/mobile/eas.json` : `preview.android.buildType = apk` — c'est le profil
+  qu'on installe sur le téléphone (distribution interne, `env` déjà présent au
+  niveau du profil, donc parité D-031 tenue). Gardé par deux assertions P2-024
+  dans `eas-env.test.ts` (un profil `android` existe ; `preview` porte `android`
+  **et** ses `EXPO_PUBLIC_*`) — écrites rouges d'abord, vertes après.
+- `apps/mobile/app.json` : `android.googleServicesFile = "./google-services.json"`.
+  Le `package` du fichier est `app.rack.mobile`, il coïncide avec `app.json` ;
+  `project_id` = `rack-b6a4a`, cohérent avec le nom de la clé de compte de service.
+- `apps/mobile/google-services.json` : **committé**, pas gitignoré. Décision prise
+  avec la commanditaire, cohérente avec `D-031` : c'est de la config **publique
+  par construction** (clé client restreinte par package + SHA, elle part dans
+  chaque APK), donc versionnée et diffable plutôt qu'un état hors dépôt qui dérive
+  (`D-029`). *Et surtout* : un build EAS **cloud** n'embarque pas les fichiers
+  gitignorés — un `google-services.json` gitignoré + chemin statique aurait fait
+  échouer `eas build`. `.prettierignore` le laisse tel que Firebase le rend.
+
+**Ce qui reste — gestes commanditaire, hors dépôt :**
+
+1. **Clé de compte de service FCM V1** (`rack-b6a4a-firebase-adminsdk-*.json`,
+   dans `imys data`, **jamais** dans le dépôt) → `eas credentials` → Android →
+   *FCM V1 service account key*. C'est ce qui autorise Expo Push à émettre vers
+   FCM. **Secret — ne se colle nulle part en clair.**
+2. **Build** : `eas build -p android --profile preview` (APK sideloadable), puis
+   installation sur le téléphone Android de test.
+3. **Preuve appareil** (`[~]`) : un push reçu sur Android, et `rack://` qui ouvre
+   le bon écran depuis la notification. Ferme le `[~]` Android de `P1-007`.
+
+Le critère de code (profil `android` + `env`) est `[x]`. Les deux critères
+d'appareil restent ouverts jusqu'à la passe — convention règle 5 de `CLAUDE.md`
+(fusionné ≠ clos tant que l'appareil n'a pas parlé).

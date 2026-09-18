@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "12622844628",
+    "project_id": "rack-b6a4a",
+    "storage_bucket": "rack-b6a4a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:12622844628:android:667c0b847fe391fd1f6141",
+        "android_client_info": {
+          "package_name": "app.rack.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcl3QXYipU95NIcZzyIbWUqTbJ4oT71M0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
