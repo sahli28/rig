@@ -43,3 +43,28 @@ Activer les notifications (ou accorder la permission OS) enregistre le jeton pus
 
 Révélé en testant `P2-024` sur Android le 18 sept. 2026 : le push n'arrivait
 qu'après redémarrage de l'app, la permission ayant déjà été accordée entre-temps.
+
+## Journal
+
+**18 sept. 2026 — corrigé sur `fix/D-037-jeton-push-au-redemarrage` (un commit).**
+La séquence d'enregistrement de l'effet 2 est extraite dans une fonction exportée
+`ensurePushDeviceRegistered({ tenantId, userId })` de `apps/mobile/lib/push.ts`,
+best-effort (ne lève jamais). Deux appelants :
+
+- l'**effet 2**, au montage — deps inchangées `[userId, activeTenantId]`, donc
+  **aucune boucle** ajoutée ;
+- le **toggle PUSH des Réglages** (`preferences.tsx`), dès qu'on active les
+  notifications, après l'écriture du consentement et `reload()` — lancé sans
+  `await` pour ne pas bloquer le toast sur la boîte de dialogue de permission, et
+  hors du chemin qui pourrait annuler la bascule optimiste. C'est ce chemin qui
+  demande la permission OS dans la foulée, donc il couvre aussi « permission
+  nouvellement accordée ».
+
+**Pas de double enregistrement** (critère 2), par construction et sans nouveau
+test : `getExpoPushTokenAsync` rend le même jeton pour l'appareil et
+`register_device` (`security definer`) réassigne sur conflit de jeton au lieu
+d'insérer — comportement déjà prouvé par `supabase/tests/push_emitter_test.sql`.
+La chaîne d'envoi (producteurs, émetteur, `push_outbox`) n'est **pas** touchée.
+
+`/check` vert (typecheck, format, lint, 18 sondes, `test`, `test:db` 723/723).
+Les deux critères d'appareil restent `[ ]`/`[~]` jusqu'à la re-passe Android.
