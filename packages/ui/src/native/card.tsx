@@ -34,7 +34,11 @@ export function Card({ children, onPress, accessibilityLabel, style }: CardProps
         base,
         // Une carte actionnable est une cible tactile : sa hauteur ne peut pas
         // dépendre uniquement de son contenu.
-        { minHeight: theme.minTouchTarget, opacity: pressed ? 0.85 : 1 },
+        {
+          minHeight: theme.minTouchTarget,
+          backgroundColor: pressed ? theme.colors.surface3 : theme.colors.surface2,
+          transform: [{ scale: pressed ? 0.985 : 1 }],
+        },
         style,
       ]}
     >

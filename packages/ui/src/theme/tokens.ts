@@ -30,6 +30,8 @@ export interface ThemeColors {
   surface: string;
   /** Fond secondaire : cartes, champs, lignes alternées. */
   surface2: string;
+  /** Fond relevé : piste de contrôle segmenté, squelettes, état pressé. */
+  surface3: string;
   /** Texte principal. */
   text: string;
   /** Texte secondaire, toujours ≥ 4,5:1 sur `surface`. */
@@ -43,6 +45,15 @@ export interface ThemeColors {
   onDanger: string;
   /** Voile derrière une feuille modale. Hexadécimal 8 chiffres, alpha compris. */
   overlay: string;
+  /**
+   * Couleur du voile posé sur une image, **sans alpha** : les bandes du dégradé
+   * le portent (`scrimBands`). Identique dans les deux schémas — une photo de
+   * salle ne devient pas claire parce que le téléphone l'est.
+   */
+  scrim: string;
+  /** Texte posé sur une image voilée. Indépendant du schéma, comme le voile. */
+  onImage: string;
+  onImageMuted: string;
 }
 
 export interface ThemeRadius {
@@ -51,6 +62,14 @@ export interface ThemeRadius {
   lg: number;
   /** Pastilles et avatars. */
   full: number;
+}
+
+/** Durées, en millisecondes. Ignorées sous `prefers-reduced-motion`. */
+export interface ThemeMotion {
+  /** Retour au tap : état pressé. */
+  fast: number;
+  /** Entrée d'un contenu, changement d'onglet. */
+  base: number;
 }
 
 export interface ThemeTypography {
@@ -86,6 +105,7 @@ export interface Theme {
   colors: ThemeColors;
   radius: ThemeRadius;
   typography: ThemeTypography;
+  motion: ThemeMotion;
   fontFamily: string;
   /** Échelle de 4 pt : `space(3)` vaut 12. */
   space: (steps: number) => number;

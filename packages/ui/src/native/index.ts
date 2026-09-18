@@ -13,7 +13,9 @@ export { Banner, type BannerProps, type BannerTone } from './banner';
 export { Button, type ButtonProps, type ButtonVariant } from './button';
 export { Card, type CardProps } from './card';
 export { EmptyState, type EmptyStateProps } from './empty-state';
+export { Icon, type IconName, type IconProps } from './icon';
 export { IconButton, type IconButtonProps } from './icon-button';
+export { ImageBackdrop, Scrim, type ImageBackdropProps, type ScrimProps } from './scrim';
 export { Input, type InputProps } from './input';
 export { ListRow, type ListRowProps } from './list-row';
 export {

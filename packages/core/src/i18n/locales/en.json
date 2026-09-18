@@ -582,5 +582,15 @@
   "workout.save": "Save",
   "workout.title_field": "Title",
   "workout.title_hint": "Optional. Without a title, the class name is used.",
-  "workout.unpublished": "Draft — members cannot see it"
+  "workout.unpublished": "Draft — members cannot see it",
+  "home.access_active": "Active access",
+  "home.access_until_short": "until {date}",
+  "home.greeting": "Hi {name}",
+  "home.greeting_neutral": "Hi there",
+  "tabs.bookings": "Bookings",
+  "tabs.home": "Home",
+  "tabs.planning": "Schedule",
+  "tabs.profile": "Profile",
+  "home.no_class_today_title": "No more classes today",
+  "home.no_class_today_body": "Your next WOD is waiting in the schedule."
 }

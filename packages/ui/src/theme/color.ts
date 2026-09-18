@@ -127,3 +127,21 @@ export function withLightness(hex: string, lightness: number): string {
   const hsl = rgbToHsl(parseHex(hex));
   return toHex(hslToRgb({ ...hsl, l: Math.max(0, Math.min(1, lightness)) }));
 }
+
+/** Mélange linéaire : `amount` = part de `a` dans `b`, de 0 à 1. Rend un hex opaque. */
+export function mixHex(a: string, b: string, amount: number): string {
+  const t = Math.max(0, Math.min(1, amount));
+  const ca = parseHex(a);
+  const cb = parseHex(b);
+  return toHex({
+    r: cb.r + (ca.r - cb.r) * t,
+    g: cb.g + (ca.g - cb.g) * t,
+    b: cb.b + (ca.b - cb.b) * t,
+  });
+}
+
+/** `#rrggbb` + alpha 0–1 → `#rrggbbaa`, lisible par React Native comme par le CSS. */
+export function withAlpha(hex: string, alpha: number): string {
+  const a = Math.max(0, Math.min(1, alpha));
+  return `${toHex(parseHex(hex))}${channelToHex(a * 255)}`;
+}

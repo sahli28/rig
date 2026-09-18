@@ -9,6 +9,12 @@ export interface ListRowProps {
   leading?: ReactNode;
   /** Zone de droite : badge, chevron, compteur de places. */
   trailing?: ReactNode;
+  /**
+   * Sous le texte : les pastilles d'un cours. À droite (`trailing`), une pastille
+   * longue — « 12 places restantes » — écrase le sous-titre sur quatre lignes en
+   * français ; dessous, elle a toute la largeur.
+   */
+  footer?: ReactNode;
   onPress?: () => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -19,6 +25,7 @@ export function ListRow({
   subtitle,
   leading,
   trailing,
+  footer,
   onPress,
   disabled = false,
   style,
@@ -50,6 +57,7 @@ export function ListRow({
             {subtitle}
           </Text>
         )}
+        {footer}
       </View>
       {trailing}
     </>
@@ -78,7 +86,7 @@ export function ListRow({
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         base,
-        { backgroundColor: pressed ? theme.colors.surface2 : 'transparent' },
+        { backgroundColor: pressed ? theme.colors.surface3 : 'transparent' },
         style,
       ]}
     >

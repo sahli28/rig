@@ -52,8 +52,8 @@ export function Skeleton({ width = '100%', height = 16, radius }: SkeletonProps)
       style={{
         width,
         height,
-        borderRadius: radius ?? theme.radius.sm,
-        backgroundColor: theme.colors.border,
+        borderRadius: radius ?? theme.radius.md,
+        backgroundColor: theme.colors.surface3,
         opacity: pulse,
       }}
     />

@@ -1,11 +1,14 @@
 import { Text, View } from 'react-native';
-import { useTheme } from '../theme/index';
+import { softTone, useTheme } from '../theme/index';
+import { Icon, type IconName } from './icon';
 
 export type BadgeTone = 'neutral' | 'primary' | 'success' | 'warning' | 'danger';
 
 export interface BadgeProps {
   label: string;
   tone?: BadgeTone;
+  /** Décorative : le libellé porte le sens, l'icône l'accélère à l'œil. */
+  icon?: IconName;
   /**
    * Ce que le lecteur d'écran annonce, quand le libellé visible est plus court
    * que ce qu'il faut comprendre.
@@ -21,7 +24,7 @@ export interface BadgeProps {
  * Pastille d'état. Le texte porte toujours l'information : « Complet » s'écrit,
  * il ne se devine pas à la couleur (règle d'accessibilité du projet).
  */
-export function Badge({ label, tone = 'neutral', accessibilityLabel }: BadgeProps) {
+export function Badge({ label, tone = 'neutral', icon, accessibilityLabel }: BadgeProps) {
   const theme = useTheme();
 
   const foreground = {
@@ -32,26 +35,32 @@ export function Badge({ label, tone = 'neutral', accessibilityLabel }: BadgeProp
     danger: theme.colors.danger,
   }[tone];
 
+  // Fond teinté plutôt que liseré (P2-021) : la pastille se lit comme un état,
+  // pas comme un bouton. `softTone` garantit AA sur son propre fond.
+  const doux = softTone(theme, foreground);
+
   return (
     <View
       accessible
       accessibilityLabel={accessibilityLabel ?? label}
       style={{
         alignSelf: 'flex-start',
-        paddingHorizontal: theme.space(2),
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.space(1),
+        paddingHorizontal: theme.space(3),
         paddingVertical: theme.space(1),
-        borderRadius: theme.radius.sm,
-        borderWidth: 1,
-        borderColor: foreground,
-        backgroundColor: theme.colors.surface,
+        borderRadius: theme.radius.full,
+        backgroundColor: doux.background,
       }}
     >
+      {icon === undefined ? null : <Icon name={icon} size={14} color={doux.foreground} />}
       <Text
         style={{
-          color: foreground,
+          color: doux.foreground,
           fontSize: theme.typography.caption,
           fontFamily: theme.fontFamily,
-          fontWeight: '600',
+          fontWeight: '700',
         }}
       >
         {label}

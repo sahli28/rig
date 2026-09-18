@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
-import { Stack } from 'expo-router';
+import { Text, View } from 'react-native';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
 import { Banner, SegmentedControl, Skeleton, Switch, Toast } from '@rack/ui/native';
@@ -14,9 +13,10 @@ import {
   type ConsentPurpose,
   type NotificationCategory,
 } from '@rack/core/supabase';
-import { supabase } from '../../lib/supabase';
-import { useSession } from '../../lib/session';
-import { ensurePushDeviceRegistered } from '../../lib/push';
+import { supabase } from '../../../lib/supabase';
+import { useSession } from '../../../lib/session';
+import { ensurePushDeviceRegistered } from '../../../lib/push';
+import { TabScreen } from '../../../components/tab-screen';
 
 /**
  * Mes préférences — **et d'abord la réparation d'un trou**.
@@ -174,16 +174,7 @@ export default function PreferencesScreen() {
   );
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        flexGrow: 1,
-        backgroundColor: theme.colors.surface,
-        padding: theme.space(4),
-        gap: theme.space(4),
-      }}
-    >
-      <Stack.Screen options={{ headerShown: true, title: t('preferences.title') }} />
-
+    <TabScreen title={t('preferences.title')}>
       <Text
         style={{
           color: theme.colors.textMuted,
@@ -291,6 +282,6 @@ export default function PreferencesScreen() {
       )}
 
       {enregistre ? <Toast message={t('planning.saved')} tone="success" /> : null}
-    </ScrollView>
+    </TabScreen>
   );
 }

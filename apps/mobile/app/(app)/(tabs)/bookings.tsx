@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
-import { Button, EmptyState, ListRow, Skeleton } from '@rack/ui/native';
+import { Button, EmptyState, Icon, ImageBackdrop, ListRow, Skeleton } from '@rack/ui/native';
 import { fetchUpcomingBookings, type UpcomingBooking } from '@rack/core/supabase';
-import { supabase } from '../../lib/supabase';
-import { useSession } from '../../lib/session';
-import { useRelireAuRetour } from '../../lib/use-relire-au-retour';
+import { supabase } from '../../../lib/supabase';
+import { useSession } from '../../../lib/session';
+import { useRelireAuRetour } from '../../../lib/use-relire-au-retour';
+import { useThemeImages } from '../../../lib/theme-images';
+import { TabScreen } from '../../../components/tab-screen';
 
 /**
  * Mes réservations — les cours à venir, à l'heure locale de la box.
@@ -27,8 +29,12 @@ interface Vue {
   reservations: UpcomingBooking[];
 }
 
+/** Hauteur d'une réservation — partagée avec son squelette. */
+const HAUTEUR_LIGNE = 92;
+
 export default function BookingsScreen() {
   const theme = useTheme();
+  const images = useThemeImages();
   const { t, locale, formatDate, formatTime } = useI18n();
   const { me, activeTenantId } = useSession();
   const router = useRouter();
@@ -88,20 +94,11 @@ export default function BookingsScreen() {
   useRelireAuRetour(useCallback(() => void charger(true), [charger]));
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        flexGrow: 1,
-        backgroundColor: theme.colors.surface,
-        padding: theme.space(4),
-        gap: theme.space(3),
-      }}
-    >
-      <Stack.Screen options={{ headerShown: true, title: t('booking.mine_title') }} />
-
+    <TabScreen title={t('booking.mine_title')}>
       {vue.phase === 'chargement' ? (
-        <View style={{ gap: theme.space(2) }}>
-          <Skeleton height={64} />
-          <Skeleton height={64} />
+        <View style={{ gap: theme.space(3) }}>
+          <Skeleton height={HAUTEUR_LIGNE} radius={theme.radius.lg} />
+          <Skeleton height={HAUTEUR_LIGNE} radius={theme.radius.lg} />
         </View>
       ) : vue.phase === 'indisponible' ? (
         <EmptyState
@@ -114,14 +111,56 @@ export default function BookingsScreen() {
         <EmptyState
           title={t('booking.mine_empty_title')}
           description={t('booking.mine_empty_body')}
+          illustration={
+            <ImageBackdrop
+              source={images.empty}
+              from={0.15}
+              to={0.55}
+              style={{ alignSelf: 'stretch', height: 132, borderRadius: theme.radius.lg }}
+            />
+          }
           action={
-            <Button label={t('home.planning_cta')} onPress={() => router.push('/planning')} />
+            // `navigate`, pas `push` : le planning est un onglet, on y va, on ne
+            // l'empile pas.
+            <Button
+              label={t('home.planning_cta')}
+              icon="calendar"
+              onPress={() => router.navigate('/planning')}
+            />
           }
         />
       ) : (
         vue.reservations.map((reservation) => (
           <ListRow
             key={reservation.bookingId}
+            style={{
+              minHeight: HAUTEUR_LIGNE,
+              backgroundColor: theme.colors.surface2,
+              borderRadius: theme.radius.lg,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              padding: theme.space(4),
+            }}
+            // L'heure en grand, comme au planning ; elle reste dans le sous-titre
+            // pour le lecteur d'écran.
+            leading={
+              <Text
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+                style={{
+                  minWidth: 58,
+                  color: theme.colors.text,
+                  fontSize: theme.typography.title,
+                  fontFamily: theme.fontFamily,
+                  fontWeight: '800',
+                  letterSpacing: -0.4,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {formatTime(reservation.starts_at)}
+              </Text>
+            }
+            trailing={<Icon name="chevron-right" color={theme.colors.textMuted} />}
             title={reservation.className}
             // La date **et** l'heure : cet écran se lit sur plusieurs jours,
             // contrairement au planning qui en affiche un seul.
@@ -137,6 +176,6 @@ export default function BookingsScreen() {
           />
         ))
       )}
-    </ScrollView>
+    </TabScreen>
   );
 }

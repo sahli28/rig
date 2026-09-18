@@ -3,12 +3,13 @@ import { Text, View } from 'react-native';
 import { z } from 'zod';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
-import { Banner, Button, Input } from '@rack/ui/native';
+import { Banner, Button, ImageBackdrop, Input } from '@rack/ui/native';
 import { errorMessageKeyOf, type TranslationKey } from '@rack/core';
 import { acceptInvitation } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useBrand } from '../../lib/brand';
 import { useSession } from '../../lib/session';
+import { useThemeImages } from '../../lib/theme-images';
 
 const EmailSchema = z.string().trim().email();
 const CODE = /^\d{6}$/;
@@ -23,6 +24,7 @@ const CODE = /^\d{6}$/;
  */
 export default function AuthScreen() {
   const theme = useTheme();
+  const images = useThemeImages();
   const { t } = useI18n();
   // Du contexte, pas de l'URL : un paramètre ne survit pas à une redirection,
   // et c'est exactement comme ça que le jeton se perdait.
@@ -113,85 +115,96 @@ export default function AuthScreen() {
   }
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: theme.colors.surface,
-        padding: theme.space(4),
-        gap: theme.space(4),
-        justifyContent: 'center',
-      }}
-    >
-      <Text
+    <View style={{ flex: 1, backgroundColor: theme.colors.surface }}>
+      {/* **L'image est un bandeau, pas un fond** (P2-021) : un formulaire se
+          remplit sur une surface unie. Le titre seul se pose sur la photo,
+          voilée ; les champs vivent en dessous. */}
+      <ImageBackdrop
+        source={images.welcome}
+        from={0.3}
+        to={0.9}
         style={{
-          color: theme.colors.text,
-          fontSize: theme.typography.title,
-          fontFamily: theme.fontFamily,
-          fontWeight: '700',
+          height: 220,
+          justifyContent: 'flex-end',
+          paddingHorizontal: theme.space(4),
+          paddingBottom: theme.space(5),
         }}
       >
-        {step === 'email' ? t('auth.email_title') : t('auth.code_title')}
-      </Text>
+        <Text
+          accessibilityRole="header"
+          style={{
+            color: theme.colors.onImage,
+            fontSize: theme.typography.title,
+            fontFamily: theme.fontFamily,
+            fontWeight: '800',
+            letterSpacing: -0.4,
+          }}
+        >
+          {step === 'email' ? t('auth.email_title') : t('auth.code_title')}
+        </Text>
+      </ImageBackdrop>
 
-      {errorKey === null ? null : <Banner title={t(errorKey)} tone="danger" />}
+      <View style={{ padding: theme.space(4), gap: theme.space(4) }}>
+        {errorKey === null ? null : <Banner title={t(errorKey)} tone="danger" />}
 
-      {step === 'email' ? (
-        <>
-          <Input
-            label={t('auth.email_label')}
-            value={email}
-            onChangeText={setEmail}
-            placeholder={t('auth.email_placeholder')}
-            hint={t('auth.email_hint')}
-            keyboardType="email-address"
-            editable={!busy}
-            {...(fieldErrorKey === null ? {} : { error: t(fieldErrorKey) })}
-          />
-          <Button
-            label={t('auth.send_code')}
-            onPress={() => void sendCode()}
-            loading={busy}
-            fullWidth
-          />
-        </>
-      ) : (
-        <>
-          <Input
-            label={t('auth.code_label')}
-            value={code}
-            onChangeText={setCode}
-            keyboardType="number-pad"
-            hint={noticeKey === null ? t('auth.code_hint', { email }) : t(noticeKey)}
-            editable={!busy}
-            {...(fieldErrorKey === null ? {} : { error: t(fieldErrorKey) })}
-          />
-          <Button
-            label={t('auth.verify')}
-            onPress={() => void verifyCode()}
-            loading={busy}
-            fullWidth
-          />
-          <Button
-            label={t('auth.resend')}
-            variant="ghost"
-            onPress={() => void sendCode()}
-            disabled={busy}
-            fullWidth
-          />
-          <Button
-            label={t('auth.change_email')}
-            variant="ghost"
-            onPress={() => {
-              setStep('email');
-              setCode('');
-              setFieldErrorKey(null);
-              setNoticeKey(null);
-            }}
-            disabled={busy}
-            fullWidth
-          />
-        </>
-      )}
+        {step === 'email' ? (
+          <>
+            <Input
+              label={t('auth.email_label')}
+              value={email}
+              onChangeText={setEmail}
+              placeholder={t('auth.email_placeholder')}
+              hint={t('auth.email_hint')}
+              keyboardType="email-address"
+              editable={!busy}
+              {...(fieldErrorKey === null ? {} : { error: t(fieldErrorKey) })}
+            />
+            <Button
+              label={t('auth.send_code')}
+              onPress={() => void sendCode()}
+              loading={busy}
+              fullWidth
+            />
+          </>
+        ) : (
+          <>
+            <Input
+              label={t('auth.code_label')}
+              value={code}
+              onChangeText={setCode}
+              keyboardType="number-pad"
+              hint={noticeKey === null ? t('auth.code_hint', { email }) : t(noticeKey)}
+              editable={!busy}
+              {...(fieldErrorKey === null ? {} : { error: t(fieldErrorKey) })}
+            />
+            <Button
+              label={t('auth.verify')}
+              onPress={() => void verifyCode()}
+              loading={busy}
+              fullWidth
+            />
+            <Button
+              label={t('auth.resend')}
+              variant="ghost"
+              onPress={() => void sendCode()}
+              disabled={busy}
+              fullWidth
+            />
+            <Button
+              label={t('auth.change_email')}
+              variant="ghost"
+              onPress={() => {
+                setStep('email');
+                setCode('');
+                setFieldErrorKey(null);
+                setNoticeKey(null);
+              }}
+              disabled={busy}
+              fullWidth
+            />
+          </>
+        )}
+      </View>
     </View>
   );
 }

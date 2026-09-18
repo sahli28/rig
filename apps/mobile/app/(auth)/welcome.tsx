@@ -3,8 +3,10 @@ import { Image, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
-import { Banner, Button } from '@rack/ui/native';
+import { Banner, Button, ImageBackdrop } from '@rack/ui/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBrand } from '../../lib/brand';
+import { useThemeImages } from '../../lib/theme-images';
 
 /**
  * Écran de bienvenue, **aux couleurs de la box avant toute connexion**.
@@ -23,6 +25,8 @@ import { useBrand } from '../../lib/brand';
  */
 export default function WelcomeScreen() {
   const theme = useTheme();
+  const images = useThemeImages();
+  const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const router = useRouter();
   const { slug, token } = useLocalSearchParams<{ slug?: string; token?: string }>();
@@ -37,13 +41,19 @@ export default function WelcomeScreen() {
   }, [invitationToken, token, slug, resolveSlug, resolveToken]);
 
   return (
-    <View
+    // **L'image plein écran, toujours voilée** (P2-021). Le contenu se pose en
+    // bas : là où le voile est plein, donc le contraste garanti, et là où se
+    // trouve le pouce (§12.1, principe 4). Sans image, `ImageBackdrop` rend un
+    // fond `scrim` uni — l'écran ne dépend pas d'un fichier.
+    <ImageBackdrop
+      source={images.welcome}
       style={{
         flex: 1,
-        backgroundColor: theme.colors.surface,
-        padding: theme.space(4),
-        gap: theme.space(5),
-        justifyContent: 'center',
+        paddingHorizontal: theme.space(5),
+        paddingTop: insets.top + theme.space(4),
+        paddingBottom: insets.bottom + theme.space(8),
+        gap: theme.space(3),
+        justifyContent: 'flex-end',
       }}
     >
       {brand?.logoUrl ? (
@@ -51,16 +61,17 @@ export default function WelcomeScreen() {
           source={{ uri: brand.logoUrl }}
           accessibilityLabel={brand.appName}
           resizeMode="contain"
-          style={{ height: 72, width: '100%' }}
+          style={{ height: 72, width: 160, alignSelf: 'flex-start' }}
         />
       ) : null}
 
       <Text
         style={{
-          color: theme.colors.text,
+          color: theme.colors.onImage,
           fontSize: theme.typography.display,
           fontFamily: theme.fontFamily,
-          fontWeight: '700',
+          fontWeight: '800',
+          letterSpacing: -1,
         }}
       >
         {brand === null
@@ -70,7 +81,7 @@ export default function WelcomeScreen() {
 
       <Text
         style={{
-          color: theme.colors.textMuted,
+          color: theme.colors.onImageMuted,
           fontSize: theme.typography.body,
           fontFamily: theme.fontFamily,
         }}
@@ -91,7 +102,8 @@ export default function WelcomeScreen() {
       {/* Aucun paramètre : le jeton voyage par le contexte, que la navigation
           ne peut pas vider. Le passer aussi dans l'URL rouvrirait deux sources
           de vérité, dont une qui se perd à la première redirection. */}
+      <View style={{ height: theme.space(2) }} />
       <Button label={t('auth.welcome_cta')} fullWidth onPress={() => router.push('/auth')} />
-    </View>
+    </ImageBackdrop>
   );
 }

@@ -10,6 +10,8 @@ export {
   hslToRgb,
   relativeLuminance,
   withLightness,
+  mixHex,
+  withAlpha,
   type Rgb,
   type Hsl,
 } from './color';
@@ -25,6 +27,8 @@ export {
 } from './contrast';
 
 export { buildTheme } from './build-theme';
+export { softTone, type SoftTone } from './soft-tone';
+export { scrimBands, type ScrimBand } from './scrim';
 export {
   brandFromPublicProfile,
   brandFromTheme,
@@ -43,5 +47,6 @@ export {
   type ThemeColors,
   type ThemeRadius,
   type ThemeTypography,
+  type ThemeMotion,
   type ThemeContrastReport,
 } from './tokens';
