@@ -8,6 +8,7 @@ import {
   Button,
   Card,
   EmptyState,
+  Icon,
   IconButton,
   Input,
   ListRow,
@@ -84,7 +85,7 @@ export function Gallery() {
       <Section title="IconButton">
         <View style={{ flexDirection: 'row', gap: theme.space(2) }}>
           <IconButton accessibilityLabel="Fermer" onPress={() => {}}>
-            <Text style={{ color: theme.colors.text, fontSize: theme.typography.title }}>×</Text>
+            <Icon name="x" />
           </IconButton>
           <IconButton accessibilityLabel="Ajouter" onPress={() => {}}>
             <Text style={{ color: theme.colors.primary, fontSize: theme.typography.title }}>+</Text>

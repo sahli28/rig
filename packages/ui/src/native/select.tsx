@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useTheme } from '../theme/index';
+import { Icon } from './icon';
 import { Sheet } from './sheet';
 
 export interface SelectOption {
@@ -95,7 +96,9 @@ export function Select({
                 accessibilityState={{ selected: isSelected }}
                 style={{
                   minHeight: theme.minTouchTarget,
-                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: theme.space(2),
                   paddingHorizontal: theme.space(2),
                   borderBottomWidth: 1,
                   borderBottomColor: theme.colors.border,
@@ -107,13 +110,14 @@ export function Select({
                     fontSize: theme.typography.body,
                     fontFamily: theme.fontFamily,
                     fontWeight: isSelected ? '700' : '400',
+                    flex: 1,
                   }}
                 >
-                  {/* La coche double la couleur : le choix reste lisible en
-                      vision monochrome. */}
-                  {isSelected ? '✓ ' : ''}
                   {option.label}
                 </Text>
+                {/* La coche double la couleur : le choix reste lisible en
+                    vision monochrome. */}
+                {isSelected ? <Icon name="check" color={theme.colors.primary} /> : null}
               </Pressable>
             );
           })}

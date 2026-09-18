@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useNetworkState } from 'expo-network';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
@@ -9,7 +9,9 @@ import {
   Banner,
   Button,
   EmptyState,
+  Icon,
   IconButton,
+  ImageBackdrop,
   ListRow,
   Select,
   Skeleton,
@@ -24,20 +26,22 @@ import {
   shiftDays,
 } from '@rack/core/supabase';
 import type { BookedDays, DayClass, DaySchedule, LigneCoursChangee } from '@rack/core/supabase';
-import { supabase } from '../../lib/supabase';
-import { useCoursEnDirect } from '../../lib/use-realtime-classes';
-import { useRelireAuRetour } from '../../lib/use-relire-au-retour';
-import { useSession } from '../../lib/session';
+import { supabase } from '../../../lib/supabase';
+import { useCoursEnDirect } from '../../../lib/use-realtime-classes';
+import { useRelireAuRetour } from '../../../lib/use-relire-au-retour';
+import { useSession } from '../../../lib/session';
 import {
   readBookedDays,
   readDay,
   writeBookedDays,
   writeDay,
   type ScheduleOrigin,
-} from '../../lib/schedule-cache';
-import { MonthCalendar } from '../../components/month-calendar';
-import { dernierJourDu, moisDe, premierJourDu } from '../../components/month-grid-state';
-import { comptesDuMois, moisACharger, reservesDuJour } from '../../lib/booked-classes';
+} from '../../../lib/schedule-cache';
+import { MonthCalendar } from '../../../components/month-calendar';
+import { TabScreen } from '../../../components/tab-screen';
+import { useThemeImages } from '../../../lib/theme-images';
+import { dernierJourDu, moisDe, premierJourDu } from '../../../components/month-grid-state';
+import { comptesDuMois, moisACharger, reservesDuJour } from '../../../lib/booked-classes';
 
 /**
  * Le planning du jour, côté membre.
@@ -78,8 +82,12 @@ interface VueJour {
   schedule: DaySchedule | null;
   origine: ScheduleOrigin;
 }
+/** Hauteur d'une ligne de cours — partagée avec son squelette, pour que rien ne saute. */
+const HAUTEUR_LIGNE = 92;
+
 export default function PlanningScreen() {
   const theme = useTheme();
+  const images = useThemeImages();
   const { t, formatDate, formatTime, formatRelativeDate, locale } = useI18n();
   const { me, activeTenantId } = useSession();
   const router = useRouter();
@@ -411,24 +419,14 @@ export default function PlanningScreen() {
   );
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        flexGrow: 1,
-        backgroundColor: theme.colors.surface,
-        padding: theme.space(4),
-        gap: theme.space(3),
-      }}
-    >
-      {/* Écran atteint depuis l'accueil : il a un retour légitime, donc il
-          déclare les deux (convention D-009, `.claude/rules/ui.md`).
-
-          `headerRight` reste **libre** : c'est là que P1-009 posera le sélecteur
-          de box, sur l'en-tête que D-009 vient d'assainir. Rien n'est réservé
-          ici — un emplacement vide serait du code mort — mais rien ne l'occupe
-          non plus, et le ticket le dit des deux côtés. */}
-      <Stack.Screen options={{ headerShown: true, title: t('planning.title') }} />
-
-      {/* Le jour. Les flèches ‹ / › libèrent la largeur pour la date : les
+    // Écran d'onglet (P2-021) : plus d'en-tête de pile, le titre vit dans le
+    // gabarit. **Aucune image ici** — un planning se lit, il ne se regarde pas.
+    //
+    // `headerRight` reste **libre** : c'est là que P1-009 posera le sélecteur de
+    // box. Rien n'est réservé — un emplacement vide serait du code mort.
+    <TabScreen title={t('planning.title')}>
+      {/* Le jour. Les flèches — des **icônes** depuis P2-021, plus des glyphes
+          texte — libèrent la largeur pour la date : les
           libellés texte « Jour précédent » / « Jour suivant » mangeaient le
           centre et cassaient la date syllabe par syllabe en français (`D-038`).
           À l'oreille, « ‹ » et « › » ne sont pas des mots : le libellé accessible
@@ -438,15 +436,7 @@ export default function PlanningScreen() {
           accessibilityLabel={t('planning.previous_day')}
           onPress={() => allerAu(shiftDays(date, -1))}
         >
-          <Text
-            style={{
-              color: theme.colors.text,
-              fontSize: theme.typography.title,
-              fontFamily: theme.fontFamily,
-            }}
-          >
-            ‹
-          </Text>
+          <Icon name="chevron-left" />
         </IconButton>
         <Text
           style={{
@@ -464,15 +454,7 @@ export default function PlanningScreen() {
           accessibilityLabel={t('planning.next_day')}
           onPress={() => allerAu(shiftDays(date, 1))}
         >
-          <Text
-            style={{
-              color: theme.colors.text,
-              fontSize: theme.typography.title,
-              fontFamily: theme.fontFamily,
-            }}
-          >
-            ›
-          </Text>
+          <Icon name="chevron-right" />
         </IconButton>
       </View>
 
@@ -554,10 +536,10 @@ export default function PlanningScreen() {
         // Il ne reste qu'une lecture locale du cache, de l'ordre de quelques
         // dizaines de millisecondes — trop court pour mériter une animation.
         enLigne ? (
-          <View style={{ gap: theme.space(2) }}>
-            <Skeleton height={64} />
-            <Skeleton height={64} />
-            <Skeleton height={64} />
+          <View style={{ gap: theme.space(3) }}>
+            <Skeleton height={HAUTEUR_LIGNE} radius={theme.radius.lg} />
+            <Skeleton height={HAUTEUR_LIGNE} radius={theme.radius.lg} />
+            <Skeleton height={HAUTEUR_LIGNE} radius={theme.radius.lg} />
           </View>
         ) : null
       ) : vue.phase === 'indisponible' ? (
@@ -572,7 +554,20 @@ export default function PlanningScreen() {
           }
         />
       ) : shown.length === 0 ? (
-        <EmptyState title={t('planning.empty_title')} description={t('planning.empty_body')} />
+        // L'image est dans l'**état vide**, pas derrière le planning : quand il
+        // n'y a rien à lire, il reste quelque chose à regarder (§12.1, principe 7).
+        <EmptyState
+          title={t('planning.empty_title')}
+          description={t('planning.empty_body')}
+          illustration={
+            <ImageBackdrop
+              source={images.empty}
+              from={0.15}
+              to={0.55}
+              style={{ alignSelf: 'stretch', height: 132, borderRadius: theme.radius.lg }}
+            />
+          }
+        />
       ) : (
         shown.map((item) => {
           const places = seatsLeft(item);
@@ -589,8 +584,38 @@ export default function PlanningScreen() {
               {...(vue.origine === 'cache' || !enLigne
                 ? {}
                 : { onPress: () => router.push(`/class/${item.id}`) })}
+              style={{
+                minHeight: HAUTEUR_LIGNE,
+                alignItems: 'flex-start',
+                backgroundColor: theme.colors.surface2,
+                borderRadius: theme.radius.lg,
+                borderWidth: 1,
+                // Le cours réservé se repère au liseré **et** au badge : jamais
+                // à la couleur seule.
+                borderColor: reserve ? theme.colors.primary : theme.colors.border,
+                padding: theme.space(4),
+              }}
+              // L'heure d'abord, et en grand : c'est ce qu'on cherche dans un
+              // planning. Elle reste dans le sous-titre pour le lecteur d'écran,
+              // qui ne lit pas la colonne de gauche.
+              leading={
+                <Text
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                  style={{
+                    minWidth: 58,
+                    color: theme.colors.text,
+                    fontSize: theme.typography.title,
+                    fontFamily: theme.fontFamily,
+                    fontWeight: '800',
+                    letterSpacing: -0.4,
+                    fontVariant: ['tabular-nums'],
+                  }}
+                >
+                  {formatTime(item.starts_at)}
+                </Text>
+              }
               title={item.className}
-              // L'heure d'abord : c'est ce qu'on cherche dans un planning.
               // Le coach n'est ajouté que s'il existe : « 18:30 – 19:30 · Salle · »
               // avec une fin vide serait pire que pas de coach du tout.
               subtitle={[
@@ -600,8 +625,15 @@ export default function PlanningScreen() {
               ]
                 .filter((part) => part !== '')
                 .join(' · ')}
-              trailing={
-                <View style={{ alignItems: 'flex-end', gap: theme.space(1) }}>
+              footer={
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: theme.space(2),
+                    marginTop: theme.space(1),
+                  }}
+                >
                   {/* **Le badge « Réservé » est un texte** (`.claude/rules/ui.md`) :
                       un liseré coloré ne dirait rien à un lecteur d'écran, et
                       rien du tout à qui ne distingue pas les couleurs.
@@ -614,7 +646,9 @@ export default function PlanningScreen() {
                       qui rend visible le critère du ticket : réserver change
                       **les deux**, et une liste qui n'en changerait qu'un se
                       contredirait. */}
-                  {reserve ? <Badge label={t('booking.booked')} tone="primary" /> : null}
+                  {reserve ? (
+                    <Badge label={t('booking.booked')} tone="primary" icon="check" />
+                  ) : null}
                   <Badge
                     // **Avec l'unité, toujours.** « 3 » ne dit rien à un lecteur
                     // d'écran : le voyant lit la colonne autour, pas lui.
@@ -633,6 +667,6 @@ export default function PlanningScreen() {
           );
         })
       )}
-    </ScrollView>
+    </TabScreen>
   );
 }

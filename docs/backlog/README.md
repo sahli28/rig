@@ -806,7 +806,7 @@ existe déjà.
 | P2-019  | Lien externe de paiement                      |   2 | ✅ **fait le 17 sept.** (PR #110) — payment_link_url (CHECK https), bouton mobile conditionnel |
 | P2-002  | Droits RGPD en self-service                   |   5 | exigé pour les vrais membres + Apple |
 | P2-017  | Identité de la box partout, zéro « Rack »     |   2 | ✅ **fait le 18 sept.** (PR #115) — audit white-label N0, deux fuites fermées |
-| P2-021  | Passe design mobile (+ direction visuelle)    |   4 | **neuf** — accueil + planning + WOD + carte membre |
+| P2-021  | Passe design mobile (+ direction visuelle)    |   4 | **codé, passe iPhone en attente** — direction « Craie & acier », onglets, accueil + planning + réservations + bienvenue/connexion. WOD et carte membre sortis (voir fiche) |
 | P2-022  | Passe design web (back-office)                |   3 | **neuf** — inspi Hustle Up, après P2-021 |
 | P2-003  | Sign in with Apple                            |   3 | bloquant de publication |
 | P2-023  | Soumission App Store                          |   2 | **neuf** — fiche, captures, notes de revue 3.1.3, labels |

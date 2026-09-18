@@ -19,6 +19,7 @@ import type { ColorScheme, Theme, TenantBrand, ThemeColors } from './tokens';
 interface SchemeBase {
   surface: string;
   surface2: string;
+  surface3: string;
   text: string;
   textMuted: string;
   border: string;
@@ -30,33 +31,44 @@ interface SchemeBase {
 }
 
 /**
- * Socle neutre par schéma. Ce sont les seules couleurs littérales du produit :
+ * Socle neutre par schéma — **chaud** depuis P2-021 (direction « Craie & acier ») :
+ * noir brun et papier ivoire. La chaleur vient d'ici, jamais de la primaire, qui
+ * appartient à la box.
+ * Ce sont les seules couleurs littérales du produit :
  * elles vivent ici et nulle part ailleurs (règle 7 de CLAUDE.md).
  */
 const SCHEME_BASE: Record<ColorScheme, SchemeBase> = {
   light: {
-    surface: '#ffffff',
-    surface2: '#f4f5f7',
-    text: '#0f1115',
-    textMuted: '#5b6472',
-    border: '#dfe3e8',
+    surface: '#f8f5f0',
+    surface2: '#ffffff',
+    surface3: '#efeae2',
+    text: '#16140f',
+    textMuted: '#625c52',
+    border: '#e2dbd0',
     success: '#1b7f4b',
     warning: '#8a5a00',
-    danger: '#c0392b',
-    overlay: '#0f111599',
+    danger: '#b93226',
+    overlay: '#16140f99',
   },
   dark: {
-    surface: '#0f1115',
-    surface2: '#181c23',
-    text: '#f4f5f7',
-    textMuted: '#a2abb8',
-    border: '#2a2f38',
-    success: '#4ade80',
-    warning: '#fbbf24',
-    danger: '#f87171',
+    surface: '#11100f',
+    surface2: '#1b1a18',
+    surface3: '#262421',
+    text: '#f6f3ef',
+    textMuted: '#aaa49b',
+    border: '#33302c',
+    success: '#56d68b',
+    warning: '#f5c04a',
+    danger: '#f98080',
     overlay: '#000000b3',
   },
 };
+
+/**
+ * Ce qui se pose sur une image. **Hors schéma** : le voile est sombre en clair
+ * comme en sombre, donc le texte qu'il porte est clair dans les deux.
+ */
+const ON_IMAGE = { scrim: '#0c0b0a', onImage: '#ffffff', onImageMuted: '#d9d5cf' };
 
 /** Choisit un premier plan lisible sur `background`, en dernier recours noir ou blanc. */
 function readableOn(background: string, preferred: readonly string[]): string {
@@ -76,6 +88,7 @@ function buildColors(brand: TenantBrand, base: SchemeBase): ThemeColors {
     onPrimary: readableOn(primary, ['#ffffff', base.text]),
     surface: base.surface,
     surface2: base.surface2,
+    surface3: base.surface3,
     text: base.text,
     textMuted: ensureContrast(base.textMuted, base.surface, AA_TEXT).color,
     // Un trait de séparation est décoratif : seuil composant, pas seuil texte.
@@ -88,6 +101,7 @@ function buildColors(brand: TenantBrand, base: SchemeBase): ThemeColors {
       base.text,
     ]),
     overlay: base.overlay,
+    ...ON_IMAGE,
   };
 }
 
@@ -107,6 +121,7 @@ export function buildTheme(brand: TenantBrand, scheme: ColorScheme): Theme {
       full: 999,
     },
     typography: { caption: 12, small: 14, body: 16, title: 20, display: 32 },
+    motion: { fast: 120, base: 220 },
     fontFamily: brand.font,
     space: (steps: number) => steps * 4,
     // 44 pt sur iOS, 48 dp sur Android : on retient le plus exigeant des deux.

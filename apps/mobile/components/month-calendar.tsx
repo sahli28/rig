@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
+import { Icon } from '@rack/ui/native';
 import {
   estDansLe,
   moisDe,
@@ -112,15 +113,7 @@ export function MonthCalendar({
             opacity: reculPossible ? 1 : 0.35,
           }}
         >
-          <Text
-            style={{
-              color: theme.colors.primary,
-              fontSize: theme.typography.body,
-              fontFamily: theme.fontFamily,
-            }}
-          >
-            {'‹'}
-          </Text>
+          <Icon name="chevron-left" color={theme.colors.primary} />
         </Pressable>
 
         <Text
@@ -148,15 +141,7 @@ export function MonthCalendar({
             justifyContent: 'center',
           }}
         >
-          <Text
-            style={{
-              color: theme.colors.primary,
-              fontSize: theme.typography.body,
-              fontFamily: theme.fontFamily,
-            }}
-          >
-            {'›'}
-          </Text>
+          <Icon name="chevron-right" color={theme.colors.primary} />
         </Pressable>
       </View>
 

@@ -18,10 +18,14 @@
   },
   "peerDependencies": {
     "react": ">=19",
-    "react-native": ">=0.86"
+    "react-native": ">=0.86",
+    "@expo/vector-icons": ">=15"
   },
   "peerDependenciesMeta": {
     "react-native": {
+      "optional": true
+    },
+    "@expo/vector-icons": {
       "optional": true
     }
   },

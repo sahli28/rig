@@ -47,7 +47,9 @@ export function EmptyState({ title, description, action, illustration }: EmptySt
       >
         {description}
       </Text>
-      {action}
+      {/* Un `Button` s'aligne à gauche par défaut (`alignSelf`) : ce conteneur le
+          recentre sans que l'appelant ait à le savoir. */}
+      {action === undefined ? null : <View style={{ alignItems: 'center' }}>{action}</View>}
     </View>
   );
 }

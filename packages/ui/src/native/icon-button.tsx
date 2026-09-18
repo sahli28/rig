@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useTheme } from '../theme/index';
 
 export interface IconButtonProps {
-  /** L'icône elle-même. Aucune bibliothèque d'icônes n'est imposée par le kit. */
+  /** L'icône elle-même — `<Icon name=… />` du kit. */
   children: ReactNode;
   onPress: () => void;
   /** Obligatoire : un bouton sans texte est muet pour un lecteur d'écran. */
@@ -35,7 +35,9 @@ export function IconButton({
           borderRadius: theme.radius.full,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: pressed ? theme.colors.surface2 : 'transparent',
+          backgroundColor: pressed ? theme.colors.surface3 : theme.colors.surface2,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
           opacity: disabled ? 0.5 : 1,
         },
         style,

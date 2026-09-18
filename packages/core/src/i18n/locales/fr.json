@@ -582,5 +582,15 @@
   "workout.save": "Enregistrer",
   "workout.title_field": "Titre",
   "workout.title_hint": "Facultatif. Sans titre, le nom du cours est utilisé.",
-  "workout.unpublished": "Brouillon — les membres ne la voient pas"
+  "workout.unpublished": "Brouillon — les membres ne la voient pas",
+  "home.access_active": "Accès actif",
+  "home.access_until_short": "jusqu'au {date}",
+  "home.greeting": "Salut {name}",
+  "home.greeting_neutral": "Salut",
+  "tabs.bookings": "Réservations",
+  "tabs.home": "Accueil",
+  "tabs.planning": "Planning",
+  "tabs.profile": "Profil",
+  "home.no_class_today_title": "Plus de cours aujourd'hui",
+  "home.no_class_today_body": "Ton prochain WOD t'attend au planning."
 }
