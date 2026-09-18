@@ -1,3 +1,5 @@
+import { cache } from 'react';
+import type { Metadata } from 'next';
 import { brandFromPublicProfile } from '@rack/ui/theme';
 import { fetchInvitationPreview, invitationAcceptsEmail } from '@rack/core/supabase';
 import { ThemeStyle } from '../../theme-style';
@@ -5,6 +7,34 @@ import { serverClient } from '../../../lib/supabase/server';
 import { supabaseConfigured } from '../../../lib/supabase/config';
 import { Notice } from '../../box/[slug]/notice';
 import { JoinCard } from './join-card';
+
+/**
+ * Une seule résolution du jeton par requête, partagée entre la page et ses
+ * métadonnées : `generateMetadata` et le rendu s'exécutent séparément, et sans
+ * ce `cache()` l'aperçu serait relu deux fois.
+ */
+const previewOf = cache(async (token: string) => {
+  if (!supabaseConfigured) return null;
+  const supabase = await serverClient();
+  return fetchInvitationPreview(supabase, token);
+});
+
+/**
+ * L'onglet du navigateur au nom de la box (P2-017). Le layout racine titre
+ * « Rack » — correct pour le back-office, pas pour la seule page web qu'un
+ * membre voit avec sa box : c'est chez elle qu'il croit arriver, et l'onglet
+ * ne doit pas dire le contraire. Invitation invalide → pas de box à nommer,
+ * le titre racine reste.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  const preview = await previewOf(token);
+  return preview === null ? {} : { title: preview.app_name };
+}
 
 /**
  * Rejoindre une box, depuis un lien ou un QR mural.
@@ -25,7 +55,7 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
   if (!supabaseConfigured) return <Notice kind="not_configured" />;
 
   const supabase = await serverClient();
-  const preview = await fetchInvitationPreview(supabase, token);
+  const preview = await previewOf(token);
 
   // Inconnue, expirée, révoquée, déjà consommée, ou box fermée : la fonction SQL
   // ne distingue pas les cinq, et cet écran non plus. Dire « expirée » à qui
