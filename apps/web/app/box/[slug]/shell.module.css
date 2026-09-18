@@ -270,3 +270,19 @@
     padding: 16px;
   }
 }
+
+/* Le titre et la coche du sélecteur de langue, dans le menu de compte (D-040). */
+.menuLabel {
+  padding: 8px 12px 4px;
+  font-size: var(--rack-text-caption);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rack-color-text-muted);
+}
+
+.menuCheck {
+  width: 16px;
+  display: inline-flex;
+  flex: none;
+}
