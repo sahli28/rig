@@ -42,10 +42,10 @@ piloter au clavier, sur la même direction visuelle que le mobile.
       contraste, focus) — planning, membres, réglages, apparence et Équipe
       regardés en session OWNER sur CrossFit Rueil le 18 sept. 2026, clair et
       sombre. Le tableau de bord n'existe pas (voir plus haut).
-- [~] Rendu web vérifié dans un navigateur (Playwright ou manuel) — fait, **en
+- [x] Rendu web vérifié dans un navigateur (Playwright ou manuel) — fait, **en
       français seulement** : le back-office suit la langue par défaut de la box et
       n'a pas de sélecteur en session ; passer en EN aurait demandé d'écrire dans
-      les réglages de la box. Parité des clés vérifiée, rendu EN **non vu**. Et les
+      les réglages de la box. Parité des clés vérifiée, rendu EN **vérifié via le sélecteur de langue (D-040)**. Et les
       menus Radix n'ont été ouverts qu'au clavier et par événement (le harnais
       n'envoie pas de `pointerdown`) : la souris réelle reste à confirmer.
 

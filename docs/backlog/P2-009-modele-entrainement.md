@@ -196,13 +196,13 @@ du backlog le dit. Règle 7 de `CLAUDE.md`, appliquée d'avance pour une fois.
   `deleted_at`.
 - `program_weeks`, `sessions`, `blocks`, `block_movements`, `variants` selon
   §7.3, tous en `tenant_id not null` — **seul `programs` est hybride.**
-  `sessions.class_id` porte une FK **non nullable** vers `classes` : une séance
-  qui n'est rattachée à aucun cours n'a ni date ni public, et le modèle ne doit
-  pas permettre de l'écrire. FK **composite `(class_id, tenant_id)`** vers
-  `classes (id, tenant_id)` — règle 4 de `.claude/rules/database.md`, sans quoi
-  une séance de la box A référencerait un cours de la box B. Une
-  séance appartient toujours à quelqu'un ; c'est le programme qui peut être
-  universel. Voir le point à trancher ci-dessous.
+  `sessions.class_id` : FK **composite `(class_id, tenant_id)`** vers
+  `classes (id, tenant_id)` (règle 4 de `.claude/rules/database.md`, sans quoi une
+  séance de la box A référencerait un cours de la box B). **Nullable, contrainte
+  par `programs.mode` (D11)** : posée et non nulle pour une séance CALENDAR ;
+  nulle pour une séance RELATIVE (ni date ni cours). Le `check` de cohérence de
+  D11 fait foi. Une séance appartient toujours à une box (`tenant_id not null`) ;
+  c'est le programme qui peut être universel. Voir le point à trancher ci-dessous.
 - RLS forcée partout, policies lecture COACH+ / écriture COACH, tests pgTAP
   d'isolation dans un nouveau `training_model_test.sql`.
 
