@@ -26,16 +26,29 @@ import { supabase } from './supabase';
 import { useSession } from './session';
 import { rememberPushToken } from './push-registration';
 
+/**
+ * `expo-notifications` n'existe pas sur le web (`D-039`). Le moindre appel y lève,
+ * et comme `useDeviceSync` est monté à la racine (`app/_layout.tsx`), ce throw
+ * fait tomber **tout écran authentifié** dans le harnais web — au point de rendre
+ * l'arbre d'accessibilité illisible (`ui.md`). Le web est le back-office, pas une
+ * cible push : on n'y fait donc **aucun** appel `Notifications`. Chaque accès à
+ * `Notifications` passe par cette garde ; sur web, tout est neutre, sans crash.
+ * Sur iOS et Android, `PUSH_SUPPORTED` est vrai : comportement inchangé.
+ */
+const PUSH_SUPPORTED = Platform.OS !== 'web';
+
 // Premier plan : afficher la notification même quand l'app est ouverte. Posé au
-// chargement du module (une seule fois), pas dans le hook.
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+// chargement du module (une seule fois), pas dans le hook. Muet sur web (D-039).
+if (PUSH_SUPPORTED) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 function currentPlatform(): DevicePlatform {
   if (Platform.OS === 'ios') return 'ios';
@@ -75,11 +88,16 @@ function openFromResponse(response: Notifications.NotificationResponse | null): 
  * (`security definer`) au lieu d'insérer une seconde ligne — pas de double
  * enregistrement. On ne l'ajoute surtout **pas** aux deps de l'effet, ce qui
  * rouvrirait une boucle d'enregistrement.
+ *
+ * No-op sur web (`D-039`) : la garde vit **ici** et pas seulement dans l'effet,
+ * parce que le toggle des Réglages appelle aussi cette fonction — et cet écran
+ * est atteignable sur le harnais web, où le moindre appel `Notifications` lève.
  */
 export async function ensurePushDeviceRegistered(params: {
   tenantId: string;
   userId: string;
 }): Promise<void> {
+  if (!PUSH_SUPPORTED) return;
   try {
     const prefs = await fetchMyPreferences(supabase, {
       tenantId: params.tenantId,
@@ -129,11 +147,16 @@ export function useDeviceSync(): void {
   //    prochain montage quand on active les notifications en cours de session.
   useEffect(() => {
     if (userId === null || activeTenantId === null) return;
+    // Web : `ensurePushDeviceRegistered` est un no-op (garde `PUSH_SUPPORTED`
+    // à l'intérieur, D-039), donc rien à garder ici en plus.
     void ensurePushDeviceRegistered({ tenantId: activeTenantId, userId });
   }, [userId, activeTenantId]);
 
   // 3. Le lien profond — au démarrage à froid (ouvert via la notif) et app ouverte.
+  //    Gardé sur web (D-039) : ces deux appels n'existent pas sous `expo-notifications`
+  //    web et faisaient tomber tout écran authentifié du harnais.
   useEffect(() => {
+    if (!PUSH_SUPPORTED) return;
     void Notifications.getLastNotificationResponseAsync().then(openFromResponse);
     const sub = Notifications.addNotificationResponseReceivedListener(openFromResponse);
     return () => sub.remove();
