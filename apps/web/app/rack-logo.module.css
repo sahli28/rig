@@ -1,27 +1,11 @@
-/* Aucune couleur littérale : variables de <ThemeStyle/> uniquement (règle 7). */
+/*
+ * Le SVG est inline (obligatoire pour `currentColor` et pour la variante
+ * compacte) : il n'y a donc rien à colorer ici. Il se cale sur une hauteur, la
+ * largeur suit son ratio.
+ */
 
 .logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-weight: 900;
-  font-style: italic;
-  font-size: var(--rack-text-display);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  user-select: none;
-}
-
-.mark {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--rack-radius-sm);
-  background: var(--rack-color-primary);
-  color: var(--rack-color-on-primary);
-}
-
-.word {
-  color: var(--rack-color-text);
+  display: block;
+  height: 24px;
+  width: auto;
 }
