@@ -602,9 +602,10 @@ sait pas lui répondre.
 | D-034   | Un fond visuel web, branché sur le thème           |   0,25 | **non programmé, hors ① — s'ouvre à la livraison de l'asset** (fourni par la commanditaire, jamais généré). La contrainte est posée d'avance : le slot passe par le thème (`--rack-*`), pas un `url(…)` en dur |
 | D-035   | La grille web dit à quelle heure on ressort        |   0,25 | ✅ **fait le 14 sept. 2026** — la carte affiche la plage « début – fin » (même écriture que le mobile) ; `ends_at` existait en base sans jamais atteindre l'écran web. Web seulement |
 | D-036   | Le compteur de build vit chez EAS                  |   0,25 | ✅ **fait le 14 sept. 2026** — `appVersionSource: "remote"`, le `buildNumber` sort d'`app.json` (plus de second compteur à désynchroniser — la collision du n°3, payée le jour de la première soumission). Runbook mobile à jour ; reste le **geste commanditaire** unique : `eas build:version:set` aligné sur App Store Connect avant la prochaine build |
-| D-037   | Le jeton push ne s'enregistre qu'au redémarrage    | 0,75 | ⟵ **test Android `P2-024`, 18 sept.** : l'effet d'enregistrement (`push.ts`) dépend de `[userId, activeTenantId]`, pas du passage de la préférence push à `true` → jeton posé au prochain démarrage seulement |
-| D-038   | L'en-tête du planning déborde en français          |  0,5 | ⟵ **test Android `P2-024`, 18 sept.** : libellés FR plus longs → la date centrale s'écrase et se casse syllabe par syllabe. Correctif = flèches ‹ › + libellé a11y (déjà prévu par le commentaire) |
-| D-039   | Les appels `Notifications` plantent l'app sur le web | 0,25 | ⟵ **trouvée pendant `D-038`, 18 sept.** : effet 3 de `push.ts` (`getLastNotificationResponseAsync`) non gardé par `Platform.OS` → tout écran authentifié plante sur le harnais web. Garde `Platform.OS !== 'web'` |
+| D-037   | Le jeton push ne s'enregistre qu'au redémarrage    | 0,75 | ✅ **fait le 18 sept.** (PR #120) — **test Android `P2-024`, 18 sept.** : l'effet d'enregistrement (`push.ts`) dépend de `[userId, activeTenantId]`, pas du passage de la préférence push à `true` → jeton posé au prochain démarrage seulement |
+| D-038   | L'en-tête du planning déborde en français          |  0,5 | ✅ **fait le 18 sept.** (PR #120) — **test Android `P2-024`, 18 sept.** : libellés FR plus longs → la date centrale s'écrase et se casse syllabe par syllabe. Correctif = flèches ‹ › + libellé a11y (déjà prévu par le commentaire) |
+| D-039   | Les appels `Notifications` plantent l'app sur le web | 0,25 | ✅ **fait le 18 sept.** (PR #120) — **trouvée pendant `D-038`, 18 sept.** : effet 3 de `push.ts` (`getLastNotificationResponseAsync`) non gardé par `Platform.OS` → tout écran authentifié plante sur le harnais web. Garde `Platform.OS !== 'web'` |
+| D-040   | Sélecteur de langue en session (back-office)       |  0,5 | ⟵ **test back-office, 18 sept.** : le back-office suit navigateur > `users.locale`, jamais la langue de la box → aucun levier pour basculer EN. Débloque la vérif EN de P2-022 |
 |         | **Total ①**                                       | **126,75** | dont **114,5 faits**, **12,25 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
@@ -861,7 +862,7 @@ SHOULD payé en avance, à ne pas recompter.
 
 ---
 
-## ④ Dette convertie en tickets — 10,25 j·h ouverts
+## ④ Dette convertie en tickets — 10,75 j·h ouverts
 
 `CLAUDE.md` dit « ce qui déborde devient un nouveau ticket ». La dette accumulée
 dans les tickets clos y échappait : un ticket clos ne se relit pas.
