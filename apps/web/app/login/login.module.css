@@ -3,11 +3,63 @@
  * <ThemeStyle/>, dérivées du thème de la box (règle 7 de CLAUDE.md).
  */
 
+/*
+ * Deux colonnes (P2-022) : le formulaire sur une surface unie, la photo à côté —
+ * **jamais derrière les champs**. Sous 900 px la photo disparaît : elle est un
+ * décor, pas une information.
+ */
 .page {
   min-height: 100dvh;
   display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+}
+
+.formSide {
+  display: grid;
   place-items: center;
   padding: 24px;
+}
+
+/*
+ * L'image est **toujours** voilée : le dégradé part du token `scrim`, le même
+ * que sur mobile. L'adresse du fichier vient du composant (`--backdrop`), pour
+ * qu'une box puisse un jour fournir la sienne sans toucher à cette feuille.
+ */
+.imageSide {
+  position: relative;
+  background-image:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--rack-color-scrim) 20%, transparent),
+      color-mix(in srgb, var(--rack-color-scrim) 92%, transparent)
+    ),
+    var(--backdrop);
+  background-size: cover;
+  background-position: center;
+  background-color: var(--rack-color-scrim);
+  display: flex;
+  align-items: flex-end;
+  padding: 48px;
+}
+
+.imageCaption {
+  margin: 0;
+  max-width: 22ch;
+  color: var(--rack-color-on-image);
+  font-size: var(--rack-text-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .imageSide {
+    display: none;
+  }
 }
 
 .card {
@@ -23,9 +75,7 @@
 }
 
 .title {
-  margin: 0;
-  font-size: var(--rack-text-display);
-  font-weight: 700;
+  composes: pageTitle from '../ui.module.css';
 }
 
 .subtitle {
@@ -51,13 +101,7 @@
 }
 
 .input {
-  padding: 12px;
-  min-height: var(--rack-touch-target);
-  border: 1px solid var(--rack-color-border);
-  border-radius: var(--rack-radius-md);
-  background: var(--rack-color-surface);
-  color: var(--rack-color-text);
-  font: inherit;
+  composes: input from '../ui.module.css';
 }
 
 .hint {
@@ -67,24 +111,12 @@
 }
 
 .primary {
+  composes: primary from '../ui.module.css';
   margin-top: 8px;
-  border: none;
-  padding: 12px 16px;
-  background: var(--rack-color-primary);
-  color: var(--rack-color-on-primary);
-  font-weight: 600;
-}
-
-.primary:disabled {
-  opacity: 0.6;
-  cursor: default;
 }
 
 .ghost {
-  border: 1px solid var(--rack-color-border);
-  background: transparent;
-  color: var(--rack-color-text);
-  padding: 12px 16px;
+  composes: ghost from '../ui.module.css';
 }
 
 /*

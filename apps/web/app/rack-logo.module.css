@@ -1,0 +1,27 @@
+/* Aucune couleur littérale : variables de <ThemeStyle/> uniquement (règle 7). */
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 900;
+  font-style: italic;
+  font-size: var(--rack-text-display);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  user-select: none;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--rack-radius-sm);
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
+}
+
+.word {
+  color: var(--rack-color-text);
+}

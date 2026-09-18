@@ -79,65 +79,76 @@ export function LoginForm({
 
   return (
     <main className={styles.page}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>{t('login.title')}</h1>
+      <div className={styles.formSide}>
+        <div className={styles.card}>
+          <h1 className={styles.title}>{t('login.title')}</h1>
 
-        {errorKey === null ? null : (
-          <p className={styles.error} role="alert">
-            {t(errorKey)}
-          </p>
-        )}
+          {errorKey === null ? null : (
+            <p className={styles.error} role="alert">
+              {t(errorKey)}
+            </p>
+          )}
 
-        {envoye ? (
-          <>
-            <h2 className={styles.subtitle}>{t('login.sent_title')}</h2>
-            {/* Le vérificateur PKCE est propre à ce navigateur : un lien ouvert
+          {envoye ? (
+            <>
+              <h2 className={styles.subtitle}>{t('login.sent_title')}</h2>
+              {/* Le vérificateur PKCE est propre à ce navigateur : un lien ouvert
                 ailleurs échouera, et c'est mieux de le dire avant. */}
-            <p className={styles.muted}>{t('login.sent_body', { email })}</p>
-            <button
-              type="button"
-              className={styles.ghost}
-              onClick={() => {
-                setEnvoye(false);
-                setErrorKey(null);
-              }}
-            >
-              {t('login.another_email')}
-            </button>
-          </>
-        ) : (
-          <>
-            <p className={styles.muted}>{t('login.intro')}</p>
-
-            <form
-              className={styles.form}
-              onSubmit={(event) => {
-                event.preventDefault();
-                void envoyer();
-              }}
-            >
-              <label className={styles.label} htmlFor="email">
-                {t('auth.email_label')}
-              </label>
-              <input
-                id="email"
-                className={styles.input}
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                placeholder={t('auth.email_placeholder')}
-                onChange={(event) => setEmail(event.target.value)}
-                disabled={busy}
-              />
-              <p className={styles.hint}>{t('login.hint')}</p>
-
-              <button type="submit" className={styles.primary} disabled={busy}>
-                {busy ? t('common.loading') : t('login.submit')}
+              <p className={styles.muted}>{t('login.sent_body', { email })}</p>
+              <button
+                type="button"
+                className={styles.ghost}
+                onClick={() => {
+                  setEnvoye(false);
+                  setErrorKey(null);
+                }}
+              >
+                {t('login.another_email')}
               </button>
-            </form>
-          </>
-        )}
+            </>
+          ) : (
+            <>
+              <p className={styles.muted}>{t('login.intro')}</p>
+
+              <form
+                className={styles.form}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void envoyer();
+                }}
+              >
+                <label className={styles.label} htmlFor="email">
+                  {t('auth.email_label')}
+                </label>
+                <input
+                  id="email"
+                  className={styles.input}
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  placeholder={t('auth.email_placeholder')}
+                  onChange={(event) => setEmail(event.target.value)}
+                  disabled={busy}
+                />
+                <p className={styles.hint}>{t('login.hint')}</p>
+
+                <button type="submit" className={styles.primary} disabled={busy}>
+                  {busy ? t('common.loading') : t('login.submit')}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+      {/* Décor : masqué aux lecteurs d'écran, et la phrase qu'il porte est déjà
+          dite par l'introduction du formulaire. */}
+      <div
+        className={styles.imageSide}
+        aria-hidden="true"
+        style={{ ['--backdrop' as string]: 'url(/backdrops/login.jpg)' }}
+      >
+        <p className={styles.imageCaption}>{t('home.tagline')}</p>
       </div>
     </main>
   );

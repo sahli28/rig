@@ -66,7 +66,11 @@ export function WeekGrid({
         <thead>
           <tr>
             {colonnes.map((colonne, index) => (
-              <th key={colonne.date} scope="col">
+              <th
+                key={colonne.date}
+                scope="col"
+                aria-current={colonne.date === today ? 'date' : undefined}
+              >
                 {t(DAY_LABELS[dayOfWeekday(index)])}
                 <span className={colonne.date === today ? styles.today : styles.dayDate}>
                   {colonne.date.slice(8)}/{colonne.date.slice(5, 7)}
@@ -152,7 +156,10 @@ function OccurrenceCard({
       <span className={styles.slotMeta}>
         {occurrence.roomName} · {occurrence.coachName}
       </span>
-      <span className={styles.slotMeta}>
+      {/* §12.4 : le compteur de places s'annonce quand il change — après une
+          modification de capacité, la grille est revalidée sous le lecteur
+          d'écran sans qu'il ait bougé. `atomic` : « 7 / 12 places », pas « 7 ». */}
+      <span className={styles.slotMeta} aria-live="polite" aria-atomic="true">
         {t('planning.places', {
           booked: occurrence.booked_count,
           capacity: occurrence.capacity,
