@@ -13,6 +13,9 @@
     },
     "preview": {
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://llakbulflemibnfagnyh.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable__WWJM0F1OlzdtTaBherM8Q_fWKWqQ7L"

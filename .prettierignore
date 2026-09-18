@@ -16,3 +16,8 @@ docs/
 
 # Exports du bureau Claude — même raison que le .gitignore.
 Claude outputs/
+
+# Config client Firebase (P2-024) : fichier généré par Firebase, versionné
+# (public par construction, décision D-031). On le laisse tel que Firebase le
+# rend — Prettier ne le réaligne pas.
+apps/mobile/google-services.json
