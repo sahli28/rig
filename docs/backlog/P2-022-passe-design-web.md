@@ -20,6 +20,15 @@ piloter au clavier, sur la même direction visuelle que le mobile.
 - Reprise visuelle des écrans back-office clés, **clavier d'abord** (§12.4 :
   navigation clavier complète, `aria-live` sur les compteurs de places).
 - Cohérence avec la direction mobile (mêmes tokens, même langage).
+- **Cas nommé — l'écran Équipe** (relevé en test le 18 sept. 2026, captures) : la
+  ligne membre empile **deux concepts** (le rôle ET l'accès) et **deux boutons
+  rouges** aux libellés proches — « Retirer » = *exclure de la box*, « Retirer
+  l'accès » = *retirer l'abonnement*. À reprendre : séparer le rôle (rare →
+  discret, auto-appliqué sans bouton « Appliquer ») de l'accès (fréquent → durée
+  + un seul bouton « Donner l'accès » qui devient « Prolonger » si un accès est
+  actif) ; mettre les actions destructives derrière un menu « … » avec
+  confirmation ; libellés distincts (« Exclure de la box » ≠ « Retirer l'accès »),
+  jamais deux « Retirer ».
 
 ## Hors périmètre
 
@@ -36,3 +45,10 @@ piloter au clavier, sur la même direction visuelle que le mobile.
 ## Notes
 
 Après `P2-021` : la direction se décide une fois, pour les deux surfaces.
+
+**Retour de test du 18 septembre 2026.** L'écran Équipe (staff) est le premier
+jugé « brouillon, trop de boutons » par la commanditaire — c'est le cas d'usage
+concret qui guide cette passe (détaillé dans Périmètre). Vérifié à cette
+occasion : **aucun** de ces boutons n'envoie d'e-mail ni de notification ;
+prévenir le membre à l'attribution ou au retrait de son accès reste hors
+périmètre (motif laissé ouvert par `P2-018`), à rouvrir si l'usage le demande.
