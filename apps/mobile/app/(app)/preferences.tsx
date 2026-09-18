@@ -16,6 +16,7 @@ import {
 } from '@rack/core/supabase';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
+import { ensurePushDeviceRegistered } from '../../lib/push';
 
 /**
  * Mes préférences — **et d'abord la réparation d'un trou**.
@@ -144,6 +145,14 @@ export default function PreferencesScreen() {
         });
         // `me()` porte les actions requises : un retrait peut en rouvrir une.
         await reload();
+        // `D-037` : activer les notifications enregistre le jeton **tout de
+        // suite** (permission OS demandée dans la foulée), sans attendre un
+        // redémarrage. Best-effort et idempotent — lancé sans l'attendre pour ne
+        // pas bloquer le toast sur la boîte de dialogue système, et sans jamais
+        // faire échouer l'écriture du consentement.
+        if (purpose === 'PUSH' && granted) {
+          void ensurePushDeviceRegistered({ tenantId: activeTenantId, userId });
+        }
       });
     },
     [activeTenantId, userId, appliquer, reload],

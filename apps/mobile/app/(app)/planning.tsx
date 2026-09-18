@@ -4,7 +4,16 @@ import { Stack, useRouter } from 'expo-router';
 import { useNetworkState } from 'expo-network';
 import { useTheme } from '@rack/ui/theme';
 import { useI18n } from '@rack/ui/i18n';
-import { Badge, Banner, Button, EmptyState, ListRow, Select, Skeleton } from '@rack/ui/native';
+import {
+  Badge,
+  Banner,
+  Button,
+  EmptyState,
+  IconButton,
+  ListRow,
+  Select,
+  Skeleton,
+} from '@rack/ui/native';
 import {
   appliqueChangementDeCours,
   fetchBookedDays,
@@ -419,14 +428,26 @@ export default function PlanningScreen() {
           non plus, et le ticket le dit des deux côtés. */}
       <Stack.Screen options={{ headerShown: true, title: t('planning.title') }} />
 
-      {/* Le jour. Les deux flèches disent où elles vont : à l'oreille, « ‹ » et
-          « › » ne sont pas des mots (§12.4). */}
+      {/* Le jour. Les flèches ‹ / › libèrent la largeur pour la date : les
+          libellés texte « Jour précédent » / « Jour suivant » mangeaient le
+          centre et cassaient la date syllabe par syllabe en français (`D-038`).
+          À l'oreille, « ‹ » et « › » ne sont pas des mots : le libellé accessible
+          les dit (§12.4). */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.space(2) }}>
-        <Button
-          label={t('planning.previous_day')}
-          variant="ghost"
+        <IconButton
+          accessibilityLabel={t('planning.previous_day')}
           onPress={() => allerAu(shiftDays(date, -1))}
-        />
+        >
+          <Text
+            style={{
+              color: theme.colors.text,
+              fontSize: theme.typography.title,
+              fontFamily: theme.fontFamily,
+            }}
+          >
+            ‹
+          </Text>
+        </IconButton>
         <Text
           style={{
             flex: 1,
@@ -439,11 +460,20 @@ export default function PlanningScreen() {
         >
           {formatDate(`${date}T12:00:00Z`, { style: 'long' })}
         </Text>
-        <Button
-          label={t('planning.next_day')}
-          variant="ghost"
+        <IconButton
+          accessibilityLabel={t('planning.next_day')}
           onPress={() => allerAu(shiftDays(date, 1))}
-        />
+        >
+          <Text
+            style={{
+              color: theme.colors.text,
+              fontSize: theme.typography.title,
+              fontFamily: theme.fontFamily,
+            }}
+          >
+            ›
+          </Text>
+        </IconButton>
       </View>
 
       {/* **La grille du mois, sous la date et au-dessus de tout le reste**

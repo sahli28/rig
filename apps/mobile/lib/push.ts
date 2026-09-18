@@ -26,16 +26,29 @@ import { supabase } from './supabase';
 import { useSession } from './session';
 import { rememberPushToken } from './push-registration';
 
+/**
+ * `expo-notifications` n'existe pas sur le web (`D-039`). Le moindre appel y lève,
+ * et comme `useDeviceSync` est monté à la racine (`app/_layout.tsx`), ce throw
+ * fait tomber **tout écran authentifié** dans le harnais web — au point de rendre
+ * l'arbre d'accessibilité illisible (`ui.md`). Le web est le back-office, pas une
+ * cible push : on n'y fait donc **aucun** appel `Notifications`. Chaque accès à
+ * `Notifications` passe par cette garde ; sur web, tout est neutre, sans crash.
+ * Sur iOS et Android, `PUSH_SUPPORTED` est vrai : comportement inchangé.
+ */
+const PUSH_SUPPORTED = Platform.OS !== 'web';
+
 // Premier plan : afficher la notification même quand l'app est ouverte. Posé au
-// chargement du module (une seule fois), pas dans le hook.
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+// chargement du module (une seule fois), pas dans le hook. Muet sur web (D-039).
+if (PUSH_SUPPORTED) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 function currentPlatform(): DevicePlatform {
   if (Platform.OS === 'ios') return 'ios';
@@ -59,6 +72,63 @@ function openFromResponse(response: Notifications.NotificationResponse | null): 
   }
 }
 
+/**
+ * Enregistre le jeton push de cet appareil — **si** la box active a le
+ * consentement `PUSH` et **si** la permission OS est accordée (demandée si on
+ * peut encore le faire). Best-effort : ne **lève jamais** (invariant de `push.ts`).
+ *
+ * Extrait de l'effet 2 pour être appelable **hors montage** (`D-037`). L'effet a
+ * pour deps `[userId, activeTenantId]` : il ne voit donc ni le passage de la
+ * préférence à `true`, ni une permission nouvellement accordée, et le jeton
+ * n'était posé qu'au prochain redémarrage. Le toggle des Réglages appelle
+ * désormais cette fonction dès qu'on active les notifications.
+ *
+ * Idempotent, donc sûr à rappeler : `getExpoPushTokenAsync` rend le **même**
+ * jeton pour l'appareil, et `register_device` réassigne sur conflit de jeton
+ * (`security definer`) au lieu d'insérer une seconde ligne — pas de double
+ * enregistrement. On ne l'ajoute surtout **pas** aux deps de l'effet, ce qui
+ * rouvrirait une boucle d'enregistrement.
+ *
+ * No-op sur web (`D-039`) : la garde vit **ici** et pas seulement dans l'effet,
+ * parce que le toggle des Réglages appelle aussi cette fonction — et cet écran
+ * est atteignable sur le harnais web, où le moindre appel `Notifications` lève.
+ */
+export async function ensurePushDeviceRegistered(params: {
+  tenantId: string;
+  userId: string;
+}): Promise<void> {
+  if (!PUSH_SUPPORTED) return;
+  try {
+    const prefs = await fetchMyPreferences(supabase, {
+      tenantId: params.tenantId,
+      userId: params.userId,
+    });
+    if (prefs.push !== true) return;
+
+    const projectId = easProjectId();
+    if (projectId === null) return;
+
+    const permission = await Notifications.getPermissionsAsync();
+    let granted = permission.granted;
+    if (!granted && permission.canAskAgain) {
+      granted = (await Notifications.requestPermissionsAsync()).granted;
+    }
+    if (!granted) return;
+
+    const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
+    if (!token) return;
+
+    await registerDevice(supabase, {
+      pushToken: token,
+      platform: currentPlatform(),
+      appVersion: Constants.expoConfig?.version ?? null,
+    });
+    await rememberPushToken(token);
+  } catch {
+    // best-effort : l'absence de push ne casse pas la session
+  }
+}
+
 export function useDeviceSync(): void {
   const { me, activeTenantId } = useSession();
   const userId = me?.user.id ?? null;
@@ -72,45 +142,21 @@ export function useDeviceSync(): void {
   }, [userId]);
 
   // 2. Le jeton — conditionné au consentement PUSH de la box active et à la
-  //    permission OS.
+  //    permission OS. La fonction est best-effort et idempotente ; elle est aussi
+  //    appelée par le toggle des Réglages (`D-037`), pour ne pas attendre le
+  //    prochain montage quand on active les notifications en cours de session.
   useEffect(() => {
     if (userId === null || activeTenantId === null) return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const prefs = await fetchMyPreferences(supabase, { tenantId: activeTenantId, userId });
-        if (cancelled || prefs.push !== true) return;
-
-        const projectId = easProjectId();
-        if (projectId === null) return;
-
-        const permission = await Notifications.getPermissionsAsync();
-        let granted = permission.granted;
-        if (!granted && permission.canAskAgain) {
-          granted = (await Notifications.requestPermissionsAsync()).granted;
-        }
-        if (cancelled || !granted) return;
-
-        const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
-        if (cancelled || !token) return;
-
-        await registerDevice(supabase, {
-          pushToken: token,
-          platform: currentPlatform(),
-          appVersion: Constants.expoConfig?.version ?? null,
-        });
-        await rememberPushToken(token);
-      } catch {
-        // best-effort : l'absence de push ne casse pas la session
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    // Web : `ensurePushDeviceRegistered` est un no-op (garde `PUSH_SUPPORTED`
+    // à l'intérieur, D-039), donc rien à garder ici en plus.
+    void ensurePushDeviceRegistered({ tenantId: activeTenantId, userId });
   }, [userId, activeTenantId]);
 
   // 3. Le lien profond — au démarrage à froid (ouvert via la notif) et app ouverte.
+  //    Gardé sur web (D-039) : ces deux appels n'existent pas sous `expo-notifications`
+  //    web et faisaient tomber tout écran authentifié du harnais.
   useEffect(() => {
+    if (!PUSH_SUPPORTED) return;
     void Notifications.getLastNotificationResponseAsync().then(openFromResponse);
     const sub = Notifications.addNotificationResponseReceivedListener(openFromResponse);
     return () => sub.remove();

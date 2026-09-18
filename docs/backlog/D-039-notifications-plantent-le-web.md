@@ -29,9 +29,15 @@ pas, donc plus de plantage.
 
 ## Critères d'acceptation
 
-- [ ] Un écran authentifié s'affiche sur le harnais web sans planter — l'arbre
-      d'accessibilité redevient lisible (étape de livraison de `ui.md`)
-- [ ] Aucun changement de comportement sur iOS / Android (push inchangé)
+- [x] Un écran authentifié s'affiche sur le harnais web sans planter — l'arbre
+      d'accessibilité redevient lisible (étape de livraison de `ui.md`). **Vérifié
+      le 18 sept. 2026** : connexion OTP (`julie@example.com`, code lu dans
+      Mailpit), puis consentements → accueil → accueil de box → **planning** →
+      préférences, tous rendus sans plantage, `read_page` lisible à chaque écran
+- [x] Aucun changement de comportement sur iOS / Android (push inchangé) — **par
+      construction** : la garde est `Platform.OS !== 'web'`, donc sur natif
+      `PUSH_SUPPORTED` vaut `true` et chaque bloc gardé s'exécute exactement comme
+      avant (handler, effet 2, effet 3). Le court-circuit ne mord que sur web
 
 ## Notes
 
@@ -39,3 +45,29 @@ Pré-existant (`P1-007`), révélé pendant `D-038` en voulant lire le rendu FR/
 le harnais web (le bundle lui-même est propre : l'accueil s'affiche). Débloque la
 vérification web — celle de `D-038` comme celle des futures passes design web
 (`P2-022`).
+
+## Journal
+
+**18 sept. 2026 — corrigé sur `fix/D-039-notifications-plantent-le-web` (un commit).**
+Une constante module `PUSH_SUPPORTED = Platform.OS !== 'web'` garde **les trois**
+sites `expo-notifications` de `push.ts` : `setNotificationHandler` (chargement du
+module), l'effet 2 (`getPermissionsAsync`/`getExpoPushTokenAsync`) et l'effet 3
+(`getLastNotificationResponseAsync` + `addNotificationResponseReceivedListener`).
+Sur web : aucun appel, aucun crash. Sur natif : inchangé.
+
+**Débloqué, et utilisé dans la foulée** : avec cette branche + le `planning.tsx`
+de `D-038` posé en local (non committé), le rendu **FR et EN** de l'en-tête du
+planning a enfin pu être lu sur le web — `‹ vendredi 18 septembre 2026 ›` et
+`‹ Friday, 18 September 2026 ›`, la date tient sur une ligne dans les deux
+langues, et les flèches s'annoncent « Jour précédent » / « Jour suivant » dans
+l'arbre. C'est la vérification que `D-038` devait à l'appareil ; elle est
+désormais faisable sur le harnais.
+
+**À la fusion** : `D-039` et `D-037` modifient tous deux l'effet 2 de `push.ts`.
+Cette branche part de `main` (l'effet inline), `D-037` le remplace par un appel à
+`ensurePushDeviceRegistered`. Fusionner l'une puis l'autre lèvera un conflit sur
+l'effet 2 — la résolution juste met la garde `Platform.OS !== 'web'` **dans**
+`ensurePushDeviceRegistered`. À signaler pour ne pas la découvrir au merge.
+
+`/check` vert : typecheck, format, lint, 18 sondes, `test`. `test:db` non exercé
+(aucun diff `supabase/`).
