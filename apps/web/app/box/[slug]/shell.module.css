@@ -1,91 +1,272 @@
 /* Aucune couleur littérale : variables de <ThemeStyle/> uniquement (règle 7). */
 
+/*
+ * Navigation latérale sur grand écran (le back-office est web-first, §12.1
+ * principe 6), barre haute en dessous de 900 px — consultation seulement.
+ */
 .layout {
   min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 256px minmax(0, 1fr);
+  transition: grid-template-columns var(--rack-motion-base);
 }
 
-.header {
+/* Volet replié : la largeur d'une icône et de sa cible, rien de plus. */
+.layout[data-replie='oui'] {
+  grid-template-columns: 80px minmax(0, 1fr);
+}
+
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -64px;
+  z-index: 40;
+  padding: 12px 16px;
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skip:focus {
+  top: 16px;
+}
+
+.side {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 16px;
+  border-right: 1px solid var(--rack-color-border);
+  background: var(--rack-color-surface-2);
+}
+
+.top {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
-  padding: 12px 24px;
-  border-bottom: 1px solid var(--rack-color-border);
+  min-height: var(--rack-touch-target);
+  padding: 0 4px;
+}
+
+/*
+ * La poignée du volet, à cheval sur son bord — là où l'œil cherche ce qui
+ * sépare le volet du contenu. 32 px à l'œil, 48 à la main : le pseudo-élément
+ * agrandit la cible sans agrandir le dessin.
+ */
+.toggle {
+  position: absolute;
+  right: -32px;
+  top: 50%;
+  translate: 0 -50%;
+  min-width: 0;
+  min-height: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-full);
   background: var(--rack-color-surface-2);
+  color: var(--rack-color-text);
+  z-index: 5;
+  transition:
+    background var(--rack-motion-fast),
+    rotate var(--rack-motion-base);
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+.toggle:hover {
+  background: var(--rack-color-surface-3);
+}
+
+.layout[data-replie='oui'] .toggle {
+  rotate: 180deg;
 }
 
 .box {
   font-weight: 700;
-  font-size: var(--rack-text-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role {
+  font-size: var(--rack-text-caption);
+  color: var(--rack-color-text-muted);
+}
+
+.avatar {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--rack-radius-full);
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
+  font-size: var(--rack-text-small);
+  font-weight: 800;
+}
+
+.accountText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.25;
+}
+
+.accountChevron {
+  flex: none;
+  color: var(--rack-color-text-muted);
+}
+
+/*
+ * Replié : les libellés quittent l'œil, **pas l'arbre d'accessibilité** — un
+ * `display: none` rendrait chaque lien muet pour un lecteur d'écran.
+ */
+.layout[data-replie='oui'] .linkLabel,
+.layout[data-replie='oui'] .accountText,
+.layout[data-replie='oui'] .accountChevron {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.layout[data-replie='oui'] .link,
+.layout[data-replie='oui'] .account {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .nav {
   display: flex;
+  flex-direction: column;
   gap: 4px;
   flex: 1;
-  flex-wrap: wrap;
 }
 
 .link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--rack-touch-target);
   padding: 8px 12px;
   border-radius: var(--rack-radius-md);
   color: var(--rack-color-text-muted);
+  font-weight: 600;
   text-decoration: none;
-  min-height: var(--rack-touch-target);
-  display: inline-flex;
-  align-items: center;
+  transition:
+    background var(--rack-motion-fast),
+    transform var(--rack-motion-fast);
 }
 
 .link:hover {
-  background: var(--rack-color-surface);
+  background: var(--rack-color-surface-3);
+  color: var(--rack-color-text);
+}
+
+/* Retour immédiat au clic, avant que la page suivante n'arrive. */
+.link:active {
+  transform: scale(0.98);
+  background: var(--rack-color-surface-3);
 }
 
 /*
- * L'état actif ne repose pas sur la seule couleur : le soulignement le double,
- * et `aria-current` le dit aux lecteurs d'écran.
+ * L'état actif ne repose pas sur la seule couleur : le fond et la graisse le
+ * doublent, et `aria-current` le dit aux lecteurs d'écran.
  */
-.linkActive {
-  color: var(--rack-color-text);
-  font-weight: 600;
-  box-shadow: inset 0 -2px 0 var(--rack-color-primary);
+.linkActive,
+.linkActive:hover {
+  color: var(--rack-color-primary);
+  font-weight: 700;
+  background: color-mix(in srgb, var(--rack-color-primary) 12%, var(--rack-color-surface-2));
 }
 
 .account {
-  border: 1px solid var(--rack-color-border);
-  background: var(--rack-color-surface);
-  color: var(--rack-color-text);
-  padding: 8px 12px;
-}
-
-.menu {
-  min-width: 200px;
-  padding: 4px;
-  background: var(--rack-color-surface-2);
-  border: 1px solid var(--rack-color-border);
-  border-radius: var(--rack-radius-md);
-}
-
-.menuItem {
-  padding: 10px 12px;
-  border-radius: var(--rack-radius-sm);
-  cursor: pointer;
-  outline: none;
-  min-height: var(--rack-touch-target);
   display: flex;
   align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--rack-color-text);
+  padding: 8px;
+  transition: background var(--rack-motion-fast);
 }
 
-.menuItem[data-highlighted] {
-  background: var(--rack-color-primary);
-  color: var(--rack-color-on-primary);
+.account:hover,
+.account[data-state='open'] {
+  background: var(--rack-color-surface-3);
 }
 
 .main {
-  flex: 1;
-  padding: 24px;
+  padding: 32px;
   max-width: 1100px;
   width: 100%;
   margin: 0 auto;
+  outline: none;
+}
+
+@media (max-width: 900px) {
+  .layout,
+  .layout[data-replie='oui'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--rack-color-border);
+  }
+
+  .top {
+    flex: 1;
+  }
+
+  .toggle {
+    display: none;
+  }
+
+  .account {
+    width: auto;
+  }
+
+  .nav {
+    order: 3;
+    flex: 1 0 100%;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .link {
+    white-space: nowrap;
+  }
+
+  .main {
+    padding: 16px;
+  }
 }

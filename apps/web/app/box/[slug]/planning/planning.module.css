@@ -7,21 +7,15 @@
 }
 
 .card {
-  border: 1px solid var(--rack-color-border);
-  border-radius: var(--rack-radius-lg);
-  background: var(--rack-color-surface-2);
-  padding: 20px;
+  composes: card from '../../../ui.module.css';
 }
 
 .cardTitle {
-  font-size: var(--rack-text-title);
-  margin: 0 0 4px;
+  composes: cardTitle from '../../../ui.module.css';
 }
 
 .help {
-  color: var(--rack-color-text-muted);
-  font-size: var(--rack-text-caption);
-  margin: 0 0 16px;
+  composes: help from '../../../ui.module.css';
 }
 
 /* Barre de semaine ------------------------------------------------------- */
@@ -198,21 +192,13 @@
 }
 
 .label {
-  font-size: var(--rack-text-caption);
-  color: var(--rack-color-text-muted);
+  composes: label from '../../../ui.module.css';
 }
 
 .input,
 .select,
 .textarea {
-  font-family: var(--rack-font-family);
-  font-size: var(--rack-text-body);
-  color: var(--rack-color-text);
-  background: var(--rack-color-surface);
-  border: 1px solid var(--rack-color-border);
-  border-radius: var(--rack-radius-md);
-  padding: 10px 12px;
-  min-height: var(--rack-touch-target);
+  composes: input from '../../../ui.module.css';
 }
 
 .textarea {
@@ -260,38 +246,15 @@
 }
 
 .primary {
-  background: var(--rack-color-primary);
-  color: var(--rack-color-on-primary);
-  border: 0;
-  border-radius: var(--rack-radius-md);
-  padding: 10px 16px;
-  font-family: var(--rack-font-family);
-  font-size: var(--rack-text-body);
-  min-height: var(--rack-touch-target);
-  cursor: pointer;
-}
-
-.primary:disabled {
-  opacity: 0.6;
-  cursor: progress;
+  composes: primary from '../../../ui.module.css';
 }
 
 .secondary {
-  background: transparent;
-  color: var(--rack-color-text);
-  border: 1px solid var(--rack-color-border);
-  border-radius: var(--rack-radius-md);
-  padding: 10px 16px;
-  font-family: var(--rack-font-family);
-  font-size: var(--rack-text-body);
-  min-height: var(--rack-touch-target);
-  cursor: pointer;
+  composes: ghost from '../../../ui.module.css';
 }
 
 .danger {
-  composes: secondary;
-  color: var(--rack-color-danger);
-  border-color: var(--rack-color-danger);
+  composes: danger from '../../../ui.module.css';
 }
 
 .feedback {
@@ -329,28 +292,20 @@
 /* Boîtes de dialogue ----------------------------------------------------- */
 
 .overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--rack-color-overlay);
+  composes: overlay from '../../../ui.module.css';
 }
 
 .dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  composes: dialog from '../../../ui.module.css';
+  /* Les formulaires de cours sont plus larges et peuvent dépasser l'écran. */
   width: min(560px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
   overflow-y: auto;
-  background: var(--rack-color-surface-2);
-  border: 1px solid var(--rack-color-border);
-  border-radius: var(--rack-radius-lg);
-  padding: 20px;
 }
 
 .dialogTitle {
-  font-size: var(--rack-text-title);
-  margin: 0 0 12px;
+  composes: cardTitle from '../../../ui.module.css';
+  margin-bottom: 12px;
 }
 
 /*

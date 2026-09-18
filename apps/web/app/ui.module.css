@@ -1,0 +1,272 @@
+/*
+ * Le langage commun du back-office (P2-022) — direction « Craie & acier »,
+ * la même que le mobile.
+ *
+ * Chaque écran gardait sa copie de `.card`, `.primary`, `.input`… : cinq
+ * définitions du même bouton, donc cinq endroits où il pouvait diverger. Les
+ * modules d'écran **composent** désormais ces classes (`composes: … from`) et
+ * ne gardent que ce qui leur est propre.
+ *
+ * Aucune couleur littérale : variables de <ThemeStyle/> uniquement (règle 7).
+ * Les espacements suivent l'échelle de 4 du thème.
+ */
+
+/* ── surfaces ─────────────────────────────────────────────────────────── */
+
+.card {
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-lg);
+  background: var(--rack-color-surface-2);
+  padding: 24px;
+}
+
+.cardTitle {
+  font-size: var(--rack-text-title);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+}
+
+.pageTitle {
+  font-size: var(--rack-text-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.help {
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-small);
+  margin: 0 0 16px;
+}
+
+/* ── champs ───────────────────────────────────────────────────────────── */
+
+.label {
+  font-size: var(--rack-text-small);
+  font-weight: 600;
+  color: var(--rack-color-text-muted);
+}
+
+.input {
+  min-height: var(--rack-touch-target);
+  padding: 8px 12px;
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
+  background: var(--rack-color-surface);
+  color: var(--rack-color-text);
+  font-family: inherit;
+  font-size: var(--rack-text-body);
+  width: 100%;
+  transition: border-color var(--rack-motion-fast);
+}
+
+.input:hover {
+  border-color: var(--rack-color-text-muted);
+}
+
+/* ── boutons ──────────────────────────────────────────────────────────── */
+
+/*
+ * Retour **immédiat** au clic (zéro tap mort) : l'échelle se voit même quand la
+ * couleur du bouton est proche du fond. `prefers-reduced-motion` la coupe dans
+ * `globals.css`.
+ */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-weight: 700;
+  transition:
+    transform var(--rack-motion-fast),
+    background var(--rack-motion-fast),
+    opacity var(--rack-motion-fast);
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.button:disabled,
+.button[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primary {
+  composes: button;
+  border: 0;
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
+}
+
+.primary:hover {
+  opacity: 0.9;
+}
+
+.ghost {
+  composes: button;
+  border: 1px solid var(--rack-color-border);
+  background: transparent;
+  color: var(--rack-color-text);
+}
+
+.ghost:hover {
+  background: var(--rack-color-surface-3);
+}
+
+.danger {
+  composes: button;
+  border: 1px solid var(--rack-color-danger);
+  background: transparent;
+  color: var(--rack-color-danger);
+}
+
+.danger:hover {
+  background: var(--rack-color-danger);
+  color: var(--rack-color-on-danger);
+}
+
+/* Bouton icône : toujours avec un `aria-label`. */
+.iconButton {
+  composes: button;
+  padding: 0;
+  width: var(--rack-touch-target);
+  height: var(--rack-touch-target);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-full);
+  background: var(--rack-color-surface-2);
+  color: var(--rack-color-text);
+}
+
+.iconButton:hover,
+.iconButton[data-state='open'] {
+  background: var(--rack-color-surface-3);
+}
+
+/* ── pastilles : le statut est un mot, la couleur ne fait que l'accélérer ── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  border-radius: var(--rack-radius-full);
+  padding: 4px 12px;
+  font-size: var(--rack-text-caption);
+  font-weight: 700;
+  color: var(--rack-color-text-muted);
+  background: var(--rack-color-surface-3);
+}
+
+.badgeSuccess {
+  composes: badge;
+  color: var(--rack-color-success);
+  background: color-mix(in srgb, var(--rack-color-success) 14%, var(--rack-color-surface-2));
+}
+
+.badgeWarning {
+  composes: badge;
+  color: var(--rack-color-warning);
+  background: color-mix(in srgb, var(--rack-color-warning) 14%, var(--rack-color-surface-2));
+}
+
+/* ── menu et dialogue Radix : style seulement, le comportement est le leur ── */
+
+.menu {
+  min-width: 220px;
+  padding: 6px;
+  background: var(--rack-color-surface-2);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-md);
+  box-shadow: 0 12px 32px var(--rack-color-overlay);
+  z-index: 20;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  min-height: var(--rack-touch-target);
+  border-radius: var(--rack-radius-sm);
+  cursor: pointer;
+  outline: none;
+}
+
+.menuItem[data-highlighted] {
+  background: var(--rack-color-surface-3);
+}
+
+.menuItemDanger {
+  composes: menuItem;
+  color: var(--rack-color-danger);
+}
+
+.menuItemDanger[data-highlighted] {
+  background: var(--rack-color-danger);
+  color: var(--rack-color-on-danger);
+}
+
+.menuSeparator {
+  height: 1px;
+  margin: 6px;
+  background: var(--rack-color-border);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--rack-color-overlay);
+  z-index: 30;
+}
+
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(460px, calc(100vw - 32px));
+  padding: 24px;
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-lg);
+  background: var(--rack-color-surface-2);
+  z-index: 31;
+}
+
+.dialogActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ── chargement ───────────────────────────────────────────────────────── */
+
+.skeleton {
+  border-radius: var(--rack-radius-lg);
+  background: var(--rack-color-surface-3);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Visible pour les lecteurs d'écran, invisible à l'œil. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
