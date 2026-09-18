@@ -30,7 +30,7 @@ Android laissé ouvert par `P1-007` se ferme ici.
 
 - Profil de build Android dans `eas.json`, avec `env` (parité avec iOS/preview).
 - Configuration des identifiants FCM sur EAS (à partir du projet Firebase).
-- Premier build Android (`eas build -p android`), installé sur un appareil réel.
+- Premier build Android (`eas build -p android --profile preview` — APK sideloadable, pas le défaut AAB), installé sur un appareil réel.
 - Preuve : réception d'un push sur Android + ouverture du schéma `rack://` (deep
   link) depuis la notification.
 
