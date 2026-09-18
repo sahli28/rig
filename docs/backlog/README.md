@@ -807,7 +807,7 @@ existe déjà.
 | P2-002  | Droits RGPD en self-service                   |   5 | exigé pour les vrais membres + Apple |
 | P2-017  | Identité de la box partout, zéro « Rack »     |   2 | ✅ **fait le 18 sept.** (PR #115) — audit white-label N0, deux fuites fermées |
 | P2-021  | Passe design mobile (+ direction visuelle)    |   4 | **codé, passe iPhone en attente** — direction « Craie & acier », onglets, accueil + planning + réservations + bienvenue/connexion. WOD et carte membre sortis (voir fiche) |
-| P2-022  | Passe design web (back-office)                |   3 | **codé, vérification en session réelle en attente** — coquille repliable, écran Équipe repris, langage CSS commun. Vu sur une page de démo sans session (voir fiche) |
+| P2-022  | Passe design web (back-office)                |   3 | **codé et vu en session** (FR, clair/sombre) — coquille repliable, écran Équipe repris, langage CSS commun. Reste : rendu EN, menus à la souris, SVG du logo |
 | P2-003  | Sign in with Apple                            |   3 | bloquant de publication |
 | P2-023  | Soumission App Store                          |   2 | **neuf** — fiche, captures, notes de revue 3.1.3, labels |
 | P2-020  | Open gym qui chevauche un cours               | 1,5 | ✅ **fait le 18 sept.** (PR #113) — `is_open_access`, chevauchement signalé, jamais bloqué |

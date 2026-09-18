@@ -38,14 +38,35 @@ piloter au clavier, sur la même direction visuelle que le mobile.
 
 ## Critères d'acceptation
 
-- [~] Les écrans back-office clés suivent la direction visuelle et §12.4 (clavier,
-      contraste, focus) — coquille, Équipe et connexion **vus** ; planning, membres,
-      réglages et apparence **harmonisés par composition CSS mais pas regardés** :
-      ils demandent une session. Ne pas cocher avant.
-- [~] Rendu web vérifié dans un navigateur (Playwright ou manuel) — fait sur
-      `/login` et sur `/design-system/coquille` (dev seulement, fausses données) :
-      volet replié/déplié, menu « … », confirmation, clair/sombre, arbre
-      d'accessibilité. **Reste : les vrais écrans, en session OWNER, FR et EN.**
+- [x] Les écrans back-office clés suivent la direction visuelle et §12.4 (clavier,
+      contraste, focus) — planning, membres, réglages, apparence et Équipe
+      regardés en session OWNER sur CrossFit Rueil le 18 sept. 2026, clair et
+      sombre. Le tableau de bord n'existe pas (voir plus haut).
+- [~] Rendu web vérifié dans un navigateur (Playwright ou manuel) — fait, **en
+      français seulement** : le back-office suit la langue par défaut de la box et
+      n'a pas de sélecteur en session ; passer en EN aurait demandé d'écrire dans
+      les réglages de la box. Parité des clés vérifiée, rendu EN **non vu**. Et les
+      menus Radix n'ont été ouverts qu'au clavier et par événement (le harnais
+      n'envoie pas de `pointerdown`) : la souris réelle reste à confirmer.
+
+### Ce que la session réelle a trouvé, et que la page de démo ne montrait pas
+
+Quatre défauts, tous invisibles sur `/design-system/coquille` — un écran de
+démonstration ne prouve que ce qu'il montre :
+
+- les créneaux du planning étaient **en Times** : deux règles portaient
+  `font-family: var(--rack-font-family)` sans repli, et `Inter` n'est chargée
+  nulle part → `inherit` ;
+- « Semaine précédente / suivante » sont des **liens** habillés en boutons :
+  carrés et soulignés, parce que `globals.css` ne donne rayon et hauteur qu'aux
+  `<button>` → `.button` les redit ;
+- « Vendredi18/09 » : `.today` n'avait pas de `display: block` (antérieur), et
+  « aujourd'hui » n'était porté que par la couleur → pastille + `aria-current` ;
+- « Prolonger » **débordait de son fond** sur l'Équipe réelle, comprimé par le
+  flex de la ligne → `flex-shrink: 0`.
+
+Plus deux titres de carte passés par erreur en taille de page (membres,
+apparence), et le bouton natif du champ fichier, resté gris système.
 
 ## Ce qui a été livré (18 septembre 2026)
 

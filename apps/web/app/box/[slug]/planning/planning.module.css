@@ -73,8 +73,19 @@
   color: var(--rack-color-text-muted);
 }
 
+/*
+ * Aujourd'hui : une pastille, pas seulement une couleur — et `aria-current="date"`
+ * sur la colonne le dit aux lecteurs d'écran. Il manquait aussi `display: block` :
+ * la date se collait au nom du jour (« Vendredi18/09 »).
+ */
 .today {
-  color: var(--rack-color-primary);
+  display: block;
+  width: fit-content;
+  margin-top: 2px;
+  padding: 0 8px;
+  border-radius: var(--rack-radius-full);
+  background: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
   font-weight: 700;
 }
 
@@ -89,7 +100,7 @@
   margin-bottom: 8px;
   text-align: left;
   width: 100%;
-  font-family: var(--rack-font-family);
+  font-family: inherit;
   font-size: var(--rack-text-small);
   color: var(--rack-color-text);
   cursor: pointer;
@@ -378,7 +389,7 @@
   padding: 10px 4px;
   min-height: var(--rack-touch-target);
   color: var(--rack-color-text-muted);
-  font-family: var(--rack-font-family);
+  font-family: inherit;
   font-size: var(--rack-text-body);
   text-decoration: underline;
   cursor: pointer;

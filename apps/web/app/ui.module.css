@@ -62,6 +62,20 @@
   transition: border-color var(--rack-motion-fast);
 }
 
+/* Le bouton natif d'un champ fichier : sans ceci, il arrive gris système au
+   milieu d'un écran thémé. */
+.input::file-selector-button {
+  margin-right: 12px;
+  padding: 6px 14px;
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-full);
+  background: var(--rack-color-surface-3);
+  color: var(--rack-color-text);
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .input:hover {
   border-color: var(--rack-color-text-muted);
 }
@@ -74,10 +88,22 @@
  * `globals.css`.
  */
 .button {
+  /* Un lien peut porter ces classes (« Semaine suivante ») : `globals.css` ne
+     donne rayon et hauteur qu'aux `<button>`, donc on les redit ici. */
+  min-height: var(--rack-touch-target);
+  border-radius: var(--rack-radius-md);
+  text-decoration: none;
+  font-family: inherit;
+  font-size: var(--rack-text-body);
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  /* Un bouton ne se laisse pas écraser par sa ligne : vu sur l'Équipe réelle, où
+     « Prolonger » débordait de son fond parce que le flex le comprimait. */
+  flex-shrink: 0;
+  white-space: nowrap;
   padding: 10px 18px;
   font-weight: 700;
   transition:

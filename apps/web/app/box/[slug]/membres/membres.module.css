@@ -111,8 +111,8 @@
 
 /* Le titre de l'écran, et le lien que la box communiquera à ses membres. */
 .title {
-  composes: pageTitle from '../../../ui.module.css';
-  margin-bottom: 8px;
+  /* Dans une carte : un titre de carte, pas un titre de page. */
+  composes: cardTitle from '../../../ui.module.css';
 }
 
 .code {

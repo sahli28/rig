@@ -16,8 +16,7 @@
 }
 
 .title {
-  composes: pageTitle from '../../../ui.module.css';
-  margin-bottom: 8px;
+  composes: cardTitle from '../../../ui.module.css';
 }
 
 .cardTitle {

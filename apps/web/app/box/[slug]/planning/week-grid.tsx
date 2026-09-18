@@ -66,7 +66,11 @@ export function WeekGrid({
         <thead>
           <tr>
             {colonnes.map((colonne, index) => (
-              <th key={colonne.date} scope="col">
+              <th
+                key={colonne.date}
+                scope="col"
+                aria-current={colonne.date === today ? 'date' : undefined}
+              >
                 {t(DAY_LABELS[dayOfWeekday(index)])}
                 <span className={colonne.date === today ? styles.today : styles.dayDate}>
                   {colonne.date.slice(8)}/{colonne.date.slice(5, 7)}
