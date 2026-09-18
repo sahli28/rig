@@ -163,6 +163,10 @@ export function IdentityForm({
               </option>
             ))}
           </select>
+          {/* D-040 : ce reglage ne pilote **pas** l'UI du staff, il sert aux
+              e-mails d'invitation et aux messages membres. Le back-office suit le
+              choix personnel de chacun (menu du compte). */}
+          <span className={styles.rowMeta}>{t('settings.identity_locale_help')}</span>
         </div>
       </div>
 

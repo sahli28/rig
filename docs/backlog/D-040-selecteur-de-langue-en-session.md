@@ -33,10 +33,15 @@ de son navigateur ni à son profil — le choix l'emporte et se mémorise.
 
 ## Critères d'acceptation
 
-- [ ] Un bouton FR/EN bascule l'UI du back-office **sans recharger** ni toucher au
-      navigateur ; le choix **survit au rechargement**
-- [ ] Débloque la vérification du rendu **EN** de `P2-022`
-- [ ] `/check` vert
+- [x] Un bouton FR/EN bascule l'UI du back-office **sans recharger** ni toucher au
+      navigateur ; le choix **survit au rechargement** — sélecteur FR/EN dans le
+      menu de compte (bas du volet), écrit via `setLocale` → `useLocaleStorage`
+      (rang 1) + `users.locale`. Vérifié en session le 19 sept. 2026 : bascule
+      immédiate, `rack.locale` persisté, langue restaurée au rechargement.
+- [x] Débloque la vérification du rendu **EN** de `P2-022` — back-office parcouru
+      en anglais (coquille, planning, réglages) : nav, titres, « spots », jours et
+      libellés traduits, données (noms de salle/coach) inchangées comme attendu.
+- [x] `/check` vert — plus `pnpm i18n:check` (absent de `/check`, présent en CI).
 
 ## Notes
 
@@ -44,3 +49,15 @@ Trouvé en test le 18 sept. 2026 : la langue par défaut de la box passée en EN
 changeait pas l'UI (elle suit navigateur > `users.locale`), et même le navigateur
 en anglais ne suffisait pas. L'agent avait cru à tort que le back-office suivait
 la langue de la box.
+
+**Fait le 19 sept. 2026.** Le sélecteur vit dans le menu de compte de la coquille
+(`shell.tsx`, `DropdownMenu.RadioGroup`). Rien n'a été touché au moteur de
+résolution : `setLocale` faisait déjà tout (bascule immédiate + écriture rang 1 +
+remontée `users.locale`), il ne manquait que le contrôle. Le libellé du réglage
+box est passé de « Langue par défaut » à « Langue des membres », avec une aide qui
+renvoie au menu de compte pour l'UI du staff.
+
+**Laissé ouvert, comme prévu (Hors périmètre) :** faire piloter l'UI par le
+`default_locale` de la box. Le rang « choix explicite » l'emporte désormais ; la
+question « rang box vs navigateur » reste une décision de design à trancher à
+part, elle ne bloque plus rien.

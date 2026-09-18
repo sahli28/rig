@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import {
   CalendarDays,
+  Check,
   ChevronLeft,
   ChevronsUpDown,
   LayoutDashboard,
@@ -17,6 +18,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useI18n } from '@rack/ui/i18n';
+import { LOCALES, type Locale } from '@rack/core';
 import type { TranslationKey } from '@rack/core';
 import { can, type BackOfficeRight, type MembershipRole } from '@rack/core/supabase';
 import { browserClient } from '../../../lib/supabase/client';
@@ -78,7 +80,7 @@ export function Shell({
   role: MembershipRole;
   children: ReactNode;
 }) {
-  const { t } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -191,6 +193,30 @@ export function Shell({
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
             <DropdownMenu.Content className={ui.menu} sideOffset={8} side="top" align="start">
+              {/* D-040 — la langue **en session**, écrite dans le rang le plus
+                  fort (`useLocaleStorage`, via `setLocale`) : l'UI bascule
+                  aussitôt, le choix survit au rechargement et remonte dans
+                  `users.locale`. Le `default_locale` de la box, lui, ne concerne
+                  que les e-mails aux membres — autre décision, autre endroit. */}
+              <DropdownMenu.Label className={styles.menuLabel}>
+                {t('language.label')}
+              </DropdownMenu.Label>
+              <DropdownMenu.RadioGroup
+                value={locale}
+                onValueChange={(valeur) => setLocale(valeur as Locale)}
+              >
+                {LOCALES.map((valeur) => (
+                  <DropdownMenu.RadioItem key={valeur} value={valeur} className={ui.menuItem}>
+                    <span className={styles.menuCheck}>
+                      <DropdownMenu.ItemIndicator>
+                        <Check size={16} aria-hidden="true" />
+                      </DropdownMenu.ItemIndicator>
+                    </span>
+                    {t(valeur === 'fr' ? 'language.fr' : 'language.en')}
+                  </DropdownMenu.RadioItem>
+                ))}
+              </DropdownMenu.RadioGroup>
+              <DropdownMenu.Separator className={ui.menuSeparator} />
               <DropdownMenu.Item className={ui.menuItem} onSelect={() => void seDeconnecter()}>
                 <LogOut size={16} aria-hidden="true" />
                 {t('shell.sign_out')}
