@@ -632,5 +632,11 @@
   "dashboard.check_schedules": "Des cours au planning",
   "dashboard.check_members": "Un premier membre",
   "dashboard.check_payment_link": "Un lien de paiement",
-  "dashboard.check_configure": "Configurer"
+  "dashboard.check_configure": "Configurer",
+  "assistant.title": "Mise en route",
+  "assistant.intro": "Configure ta box en cinq étapes. Tu peux t'arrêter et reprendre quand tu veux.",
+  "assistant.step": "Étape {current} sur {total}",
+  "assistant.prev": "Précédent",
+  "assistant.next": "Suivant",
+  "assistant.finish": "Terminer"
 }

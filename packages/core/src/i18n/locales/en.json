@@ -632,5 +632,11 @@
   "dashboard.check_schedules": "Classes on the schedule",
   "dashboard.check_members": "A first member",
   "dashboard.check_payment_link": "A payment link",
-  "dashboard.check_configure": "Set up"
+  "dashboard.check_configure": "Set up",
+  "assistant.title": "Getting started",
+  "assistant.intro": "Set up your box in five steps. You can stop and pick up where you left off.",
+  "assistant.step": "Step {current} of {total}",
+  "assistant.prev": "Back",
+  "assistant.next": "Next",
+  "assistant.finish": "Finish"
 }
