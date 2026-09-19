@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useI18n } from '@rack/ui/i18n';
 import type { TranslationKey } from '@rack/core';
-import ui from '../../ui.module.css';
+import ui from '../../../ui.module.css';
 import styles from './mise-en-route.module.css';
 
 interface Step {
