@@ -9,6 +9,34 @@
 > actifs ; le chiffre d'affaires se lit dans le Stripe de la box. `revenue_report()`
 > et `P2-016` restent différés avec l'entité juridique.
 
+> **Revue du 19 septembre 2026 — trois décisions gravées, et la fiche rattrape le réel.**
+>
+> **1. La création de box n'est plus dans ce ticket.** `P1-020` (PR #88, 12 sept.)
+> a livré `/creer-une-box` + l'action serveur : `create_tenant()` a enfin un
+> appelant. La section « Ce ticket porte le seul appelant manquant de
+> `create_tenant()` » est donc **périmée** — le périmètre restant est
+> l'**assistant 5 étapes**, le **dashboard** et la **checklist**, pas l'écran de
+> création.
+>
+> **2. Graphique 30 jours : aucune bibliothèque.** Une bande de barres CSS
+> maison, **réservations par jour** (donnée automatique et toujours peuplée,
+> contrairement aux présences qui dépendent du geste du coach), dans le langage
+> « Craie & acier » posé en P2-021/022. Tout ajout de dépendance se justifie
+> dans le message de commit — l'arbitrage par défaut est : pas de lib.
+>
+> **3. Pas de « taux de churn ».** Sans visibilité sur les paiements (règlement
+> hors app, `P2-019`), un churn serait un chiffre faux. Remplacé par une tuile
+> **« abonnements expirant sous 30 j »** — actionnable, dérivée de
+> `member_subscriptions.ends_on` (`P2-018`), en excluant les révoqués
+> (`deleted_at`, `P2-026`). La tuile « CA du mois » reste dehors (déjà tranché le
+> 16 sept.).
+>
+> **4. Nettoyer le faux constat.** `apps/web/app/box/[slug]/page.tsx` rend un
+> `<Notice kind="coming_soon" />` avec un commentaire périmé « Vide jusqu'à
+> P1-001 » (ticket clos). C'est ce qui fait dire à la relecture « écran à venir,
+> aucun ticket ». Ce ticket **remplace ce Notice par le vrai dashboard** ; il ne
+> reste ni coquille ni référence morte.
+
 ## Pourquoi ce ticket existe
 
 Il recueille **deux critères orphelins** de P1-001, qui pointaient vers un écran
@@ -78,6 +106,23 @@ n'avait aucune source de données.**
 - Assistant en cinq étapes qui enchaîne les sections de l'écran Réglages :
   infos, horaires, salles, types de cours, règles de réservation.
 
+## Les briques affichées (arrêtées le 19 sept. 2026)
+
+Chaque brique a une source livrée ; aucune n'invente de donnée.
+
+| Brique | Ce qu'elle montre | Source (livrée) | État vide |
+| --- | --- | --- | --- |
+| **Mise en route** | Checklist dérivée de l'état réel + taux de complétion | `locations`/`rooms`/`class_types`/`opening_hours` (P1-001b), un plan (P2-018), un premier membre (P1-001c/D-001) | c'est l'état de départ ; elle guide, elle ne fait pas honte |
+| **Membres actifs** | Compte des appartenances actives | `memberships` ACTIVE (P1-001c, D-001) | « aucun membre encore » + action inviter |
+| **Taux de remplissage** | Réservations confirmées / capacité, sur 30 j | `classes` (P1-002) + `bookings` (P1-003) | « pas encore de cours au planning » |
+| **Présences** | Réservations pointées présentes par le coach, sur 30 j — **distinct du remplissage** | horodatage de présence sur `bookings` (P1-008a) | « pas encore de pointage » |
+| **Abonnements expirant sous 30 j** | Liste courte / compteur actionnable | `member_subscriptions.ends_on` (P2-018), hors révoqués (P2-026) | « aucune échéance proche » |
+| **Activité 30 jours** | Bande de barres CSS maison, réservations/jour | `bookings` (P1-003) | barres à zéro lisibles, pas d'erreur |
+
+**Hors périmètre, et pourquoi :** tuile CA (l'app ne voit aucun encaissement),
+taux de churn (faux sans visibilité paiement). Le CA se lit dans le Stripe de la
+box ; `revenue_report()` / `P2-016` restent différés avec l'entité juridique.
+
 ## Critères d'acceptation
 
 - [ ] Une box se configure entièrement en moins de 45 minutes sans aide
@@ -85,3 +130,8 @@ n'avait aucune source de données.**
       d'une donnée déjà cochée
 - [ ] Le dashboard ne montre aucun KPI faux quand la box n'a encore rien : un
       état vide qui explique quoi faire, pas des zéros
+- [ ] Le `<Notice coming_soon>` du dashboard est remplacé par l'écran réel ;
+      aucune référence morte à P1-001 ne subsiste dans `page.tsx`
+- [ ] Le graphique 30 j n'ajoute aucune bibliothèque (barres CSS maison)
+- [ ] Présences (pointées) et taux de remplissage (réservations) sont affichés
+      comme deux mesures distinctes, jamais confondues
