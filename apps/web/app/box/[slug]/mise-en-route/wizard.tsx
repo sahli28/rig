@@ -20,10 +20,19 @@ interface Step {
  * poste sa propre action et affiche son propre retour). « Suivant / Précédent »
  * bornés, « Terminer » ramène au dashboard.
  */
-export function Wizard({ slug, steps }: { slug: string; steps: Step[] }) {
+export function Wizard({
+  slug,
+  steps,
+  initialStep = 0,
+}: {
+  slug: string;
+  steps: Step[];
+  /** Étape d'ouverture (D-042) : la checklist dépose l'utilisateur sur la sienne. */
+  initialStep?: number;
+}) {
   const { t } = useI18n();
   const router = useRouter();
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(() => Math.min(Math.max(0, initialStep), steps.length - 1));
   const total = steps.length;
   const step = steps[index];
   if (step === undefined) return null;
