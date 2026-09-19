@@ -1600,6 +1600,7 @@ export type Database = {
         };
         Returns: string;
       };
+      box_dashboard: { Args: { p_tenant_id: string }; Returns: Json };
       cancel_booking: { Args: { p_booking_id: string }; Returns: string };
       cancel_class_bookings: { Args: { p_class_id: string }; Returns: number };
       claim_invitation: { Args: { p_invitation_id: string }; Returns: string };
