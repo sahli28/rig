@@ -47,11 +47,21 @@ symétrie checklist ↔ assistant. Le paiement reste réglable dans les Réglage
 
 ## Critères d'acceptation
 
-- [ ] Depuis la checklist, « Un lien de paiement » → « Configurer » mène à un
-      endroit où l'on **peut réellement poser le lien**
-- [ ] Chaque item « Configurer » ouvre **l'étape correspondante** de l'assistant,
-      pas l'étape 1
-- [ ] Poser le lien **coche l'item** (dérivation d'état déjà en place, `P2-004`)
-- [ ] L'étape paiement est **optionnelle** : « Terminer » l'assistant ne l'exige
-      pas
-- [ ] `pnpm i18n:check` vert (libellé de la nouvelle étape en FR + EN)
+- [x] Depuis la checklist, « Un lien de paiement » → « Configurer » mène à un
+      endroit où l'on **peut réellement poser le lien** — `PaymentLinkForm`, 6e
+      étape de l'assistant (`?step=paiement`). Vérifié en session le 19 sept. 2026.
+- [x] Chaque item « Configurer » ouvre **sa** destination, pas l'étape 1 — les
+      quatre items-étapes ciblent `?step=<id>` (wizard `initialStep`) ; les deux
+      qui ne sont pas des réglages pointent vers leur écran (« au planning » →
+      /planning, « premier membre » → /staff). Six hrefs vérifiés.
+- [x] Poser le lien **coche l'item** — dérivation déjà en place
+      (`box_dashboard.checklist.payment_link`, prouvée en pgTAP) ; l'étape rend le
+      `PaymentLinkForm` de P2-019, inchangé.
+- [x] L'étape paiement est **optionnelle** : « Terminer » (6/6) ne l'exige pas.
+- [x] `pnpm i18n:check` vert — la 6e étape réutilise `settings.tab_payment`
+      (FR « Paiement » / EN « Payment »), aucune clé nouvelle.
+
+**Note (hors périmètre, signalée) :** la checklist reste visible à un COACH (droit
+`dashboard`) alors que l'assistant exige `settings` — un coach qui clique
+« Configurer » verrait le Notice `role_forbidden`. Pré-existant à P2-004, non
+élargi ici ; à rouvrir si l'usage le demande. Réglages → Paiement : inchangé.
