@@ -29,6 +29,7 @@ export {
 export { buildTheme } from './build-theme';
 export { softTone, type SoftTone } from './soft-tone';
 export { scrimBands, type ScrimBand } from './scrim';
+export { progressRing, type ProgressRingGeometry, type ProgressRingOptions } from './progress-ring';
 export {
   brandFromPublicProfile,
   brandFromTheme,

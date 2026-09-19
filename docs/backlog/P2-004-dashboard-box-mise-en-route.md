@@ -141,19 +141,39 @@ box ; `revenue_report()` / `P2-016` restent différés avec l'entité juridique.
 
 ## Critères d'acceptation
 
-- [ ] Une box se configure entièrement en moins de 45 minutes sans aide
-- [ ] La checklist reflète l'état réel de la base, y compris après suppression
-      d'une donnée déjà cochée
-- [ ] Le dashboard ne montre aucun KPI faux quand la box n'a encore rien : un
-      état vide qui explique quoi faire, pas des zéros
-- [ ] Le `<Notice coming_soon>` du dashboard est remplacé par l'écran réel ;
+- [~] Une box se configure entièrement en moins de 45 minutes sans aide —
+      assistant 5 étapes livré (`/box/[slug]/mise-en-route`, réutilise les formes
+      de Réglages) ; la **mesure du temps** reste une passe manuelle.
+- [x] La checklist reflète l'état réel de la base, y compris après suppression
+      d'une donnée déjà cochée — dérivée en SQL de la présence réelle ; pgTAP
+      `box_dashboard_test.sql` prouve « salle supprimée → item décoché ».
+- [x] Le dashboard ne montre aucun KPI faux quand la box n'a encore rien : héros
+      « — » + amorçage (jamais un 0 % faux), tuiles en états vides, graphe plat —
+      vérifié sur l'aperçu `?empty`, `fillRate`/`attendanceRate` rendent `null`
+      (tests core).
+- [x] Le `<Notice coming_soon>` du dashboard est remplacé par l'écran réel ;
       aucune référence morte à P1-001 ne subsiste dans `page.tsx`
-- [ ] Le graphe 30 j est en SVG fait main, une seule teinte (primaire de la
-      box), tooltip au survol, sombre recalculé (pas une inversion) — aucune
-      bibliothèque de graphes ajoutée
-- [ ] Présences (pointées) et taux de remplissage (réservations) sont affichés
-      comme deux mesures distinctes, jamais confondues
-- [ ] Le dashboard se lit comme une élévation des autres écrans : un chiffre
-      héros, hiérarchie et espace — un mockup est validé avant l'implémentation
-- [ ] Le taux de complétion de la checklist utilise un `ProgressRing` versé
-      dans `packages/ui`
+- [x] Le graphe 30 j est en SVG fait main, une seule teinte (primaire de la
+      box), tooltip au survol **+ clavier (←/→, Origine/Fin) + tableau AT +
+      `aria-live`**, sombre recalculé par tokens — aucune bibliothèque de graphes.
+- [x] Présences (pointées, `attended_at`) et taux de remplissage (réservations)
+      sont deux tuiles distinctes, jamais confondues.
+- [x] Le dashboard se lit comme une élévation : chiffre héros, hiérarchie,
+      espace — mockup validé avant l'implémentation (`docs/design/`).
+- [x] Le taux de complétion utilise un `ProgressRing` : géométrie pure et testée
+      versée dans `packages/ui/theme`, rendue en SVG web (le composant RN partagé
+      est interdit — ADR 0003 — et sans appelant mobile, règle 7).
+
+**Vérifié sur l'aperçu dev `/design-system/dashboard`** (composants réels,
+données factices) : clair/sombre, box active/neuve, coach (tuile expirations
+absente), survol **et** clavier du graphe, anneau. `rls-auditor` : SAFE.
+
+**Passe en session réelle jouée le 19 sept. 2026** (`/box/crossfit-rueil`,
+OWNER, console propre) : teinte de box (orange Rueil) appliquée partout ;
+`box_dashboard` sur données seed — **2 membres actifs** (exact), checklist
+**5/6** (seul le lien de paiement manque → réel), remplissage **0 %** (vrai 0 :
+124 places, 0 réservation, distinct du « — » d'amorçage), présences et
+expirations en états vides. **FR et EN** (via `rack.locale`, D-040). Assistant :
+les 5 étapes s'enchaînent, formulaires de Réglages réutilisés, coches d'état
+correctes. Un défaut trouvé et corrigé en séance : chemin CSS du wizard.
+Reste seul `[~]` la **mesure des 45 minutes**, qui est une passe chronométrée.

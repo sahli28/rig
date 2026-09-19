@@ -1,0 +1,325 @@
+/*
+ * Dashboard box (P2-004) — « Craie & acier » étendu. Aucune couleur littérale :
+ * variables de <ThemeStyle/> uniquement (règle 7).
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* `composes` n'est permis que sur une classe simple, pas sur `.head h1` : on
+   reprend donc les valeurs de `pageTitle` (toutes tokenées) en clair. */
+.head h1 {
+  font-size: var(--rack-text-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.head p {
+  color: var(--rack-color-text-muted);
+  margin: 4px 0 0;
+}
+
+/* Rangée haute : héros large + carte mise en route. */
+.grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 20px;
+}
+
+.card {
+  composes: card from '../../ui.module.css';
+}
+
+.eyebrow {
+  font-size: var(--rack-text-caption);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rack-color-text-muted);
+  margin: 0;
+}
+
+/* ── héros ── */
+.heroTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.heroNum {
+  /* Le héros = l'échelle `display` doublée : une emphase de présentation, pas
+     une sixième taille de type (la spec §12.2 en fixe cinq). Reste tokené. */
+  font-size: calc(var(--rack-text-display) * 2);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 8px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.heroNumBrand {
+  color: var(--rack-color-primary);
+}
+
+.ctx {
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-small);
+  margin: 8px 0 0;
+}
+
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--rack-radius-full);
+  font-size: var(--rack-text-small);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.deltaUp {
+  color: var(--rack-color-success);
+  background: color-mix(in srgb, var(--rack-color-success) 15%, var(--rack-color-surface-2));
+}
+
+.deltaDown {
+  color: var(--rack-color-danger);
+  background: color-mix(in srgb, var(--rack-color-danger) 15%, var(--rack-color-surface-2));
+}
+
+.heroCta {
+  margin-top: 16px;
+}
+
+/* ── tuiles KPI ── */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.tile {
+  composes: card from '../../ui.module.css';
+  position: relative;
+}
+
+.tileIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--rack-radius-md);
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+  color: var(--rack-color-primary);
+  background: color-mix(in srgb, var(--rack-color-primary) 14%, var(--rack-color-surface-2));
+}
+
+.tileValue {
+  font-size: var(--rack-text-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tileKey {
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-small);
+  margin-top: 2px;
+}
+
+.tileSub {
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-small);
+  margin-top: 2px;
+}
+
+.tileEmpty {
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-small);
+  margin-top: 8px;
+}
+
+.tileRole {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--rack-color-text-muted);
+  border: 1px solid var(--rack-color-border);
+  border-radius: var(--rack-radius-full);
+  padding: 2px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tileLink {
+  color: var(--rack-color-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tileLink:hover {
+  text-decoration: underline;
+}
+
+/* ── mise en route : anneau + checklist ── */
+.ring {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0 20px;
+}
+
+.ringSvg {
+  width: 104px;
+  height: 104px;
+  flex: none;
+}
+
+.ringPct {
+  font-size: var(--rack-text-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ringSub {
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-small);
+}
+
+.checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--rack-radius-md);
+  text-decoration: none;
+  color: inherit;
+  min-height: var(--rack-touch-target);
+}
+
+a.check:hover {
+  background: var(--rack-color-surface-3);
+}
+
+.checkBox {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--rack-color-border);
+  color: transparent;
+}
+
+.checkDone .checkBox {
+  background: var(--rack-color-primary);
+  border-color: var(--rack-color-primary);
+  color: var(--rack-color-on-primary);
+}
+
+.checkLabel {
+  flex: 1;
+  font-weight: 600;
+}
+
+.checkDone .checkLabel {
+  color: var(--rack-color-text-muted);
+  font-weight: 500;
+}
+
+.checkGo {
+  color: var(--rack-color-primary);
+  font-size: var(--rack-text-small);
+  font-weight: 700;
+}
+
+.setupCta {
+  margin-top: 20px;
+}
+
+/* ── graphe ── */
+.chartWrap {
+  margin-top: 20px;
+  position: relative;
+}
+
+.chart {
+  display: block;
+  width: 100%;
+  height: 180px;
+  overflow: visible;
+  /* Le tracé se laisse focaliser au clavier ; le focus se voit. */
+  border-radius: var(--rack-radius-sm);
+}
+
+.chart:focus-visible {
+  outline: 2px solid var(--rack-color-primary);
+  outline-offset: 4px;
+}
+
+.axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  color: var(--rack-color-text-muted);
+  font-size: var(--rack-text-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.tip {
+  position: absolute;
+  transform: translate(-50%, -125%);
+  pointer-events: none;
+  background: var(--rack-color-text);
+  color: var(--rack-color-surface);
+  padding: 6px 10px;
+  border-radius: var(--rack-radius-sm);
+  font-size: var(--rack-text-caption);
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px var(--rack-color-overlay);
+}
+
+.srOnly {
+  composes: srOnly from '../../ui.module.css';
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .tiles {
+    grid-template-columns: 1fr;
+  }
+  .heroNum {
+    font-size: var(--rack-text-display);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ringArc,
+  .chartLine,
+  .chartArea {
+    transition: none !important;
+  }
+}

@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="fr" data-scheme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rack — dashboard box (P2-004)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   MAQUETTE P2-004 — dashboard back-office. Socle « Craie & acier » (P2-021/022).
+   Seules couleurs littérales : les deux socles, comme SCHEME_BASE. Le reste =
+   var(). --primary (plein, 3:1) / --primary-text (texte, 4,5:1) sont calculées
+   depuis la teinte de la box, correction de contraste comme ensureContrast().
+   ─────────────────────────────────────────────────────────────────────────── */
+:root{
+  --radius-sm:8px; --radius-md:16px; --radius-lg:24px; --radius-full:999px;
+  --t-caption:12px; --t-small:14px; --t-body:16px; --t-title:20px; --t-display:32px; --t-hero:64px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s10:40px;
+  --touch:48px;
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1); --fast:120ms; --base:220ms;
+}
+[data-scheme="dark"]{
+  --surface:#11100f; --surface2:#1b1a18; --surface3:#262421;
+  --text:#f6f3ef; --text-muted:#aaa49b; --border:#33302c;
+  --success:#56d68b; --warning:#f5c04a; --danger:#f98080;
+  --page:#080807; --shadow:0 1px 0 #ffffff0a inset; --card-shadow:0 18px 40px -28px #000000cc;
+}
+[data-scheme="light"]{
+  --surface:#f8f5f0; --surface2:#ffffff; --surface3:#efeae2;
+  --text:#16140f; --text-muted:#625c52; --border:#e2dbd0;
+  --success:#1b7f4b; --warning:#8a5a00; --danger:#b93226;
+  --page:#e9e4db; --shadow:0 1px 2px #16140f0f; --card-shadow:0 10px 30px -20px #16140f26;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--page);color:var(--text);font-family:var(--font);font-size:var(--t-body);
+  line-height:1.45;-webkit-font-smoothing:antialiased;transition:background var(--base) var(--ease)}
+.wrap{max-width:1180px;margin:0 auto;padding:var(--s6) var(--s5) 80px}
+code{font-family:ui-monospace,monospace;font-size:.9em;color:var(--primary-text)}
+
+/* ── barre de contrôle de la maquette ── */
+.bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:var(--s3) var(--s5);align-items:center;
+  margin-bottom:var(--s8);padding:var(--s3) var(--s4);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.bar .grp{display:flex;align-items:center;gap:var(--s2)}
+.bar label{font-size:var(--t-caption);font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)}
+.seg{display:flex;background:var(--surface3);border-radius:var(--radius-full);padding:3px}
+.seg button{all:unset;cursor:pointer;padding:7px 14px;border-radius:var(--radius-full);font-size:var(--t-small);font-weight:600;color:var(--text-muted)}
+.seg button[aria-pressed="true"]{background:var(--surface2);color:var(--text);box-shadow:var(--shadow)}
+.sw{all:unset;cursor:pointer;width:26px;height:26px;border-radius:50%;border:2px solid var(--surface2);outline:2px solid transparent}
+.sw[aria-pressed="true"]{outline-color:var(--text)}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+/* ── page ── */
+.head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:var(--s3);margin-bottom:var(--s6)}
+.head h1{font-size:var(--t-display);font-weight:800;letter-spacing:-.03em}
+.head p{color:var(--text-muted)}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-full);
+  background:var(--surface2);border:1px solid var(--border);font-size:var(--t-small);font-weight:600}
+.tag .dot{width:8px;height:8px;border-radius:50%;background:var(--primary)}
+
+.grid{display:grid;grid-template-columns:1.7fr 1fr;gap:var(--s5)}
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  box-shadow:var(--card-shadow);padding:var(--s6)}
+.eyebrow{font-size:var(--t-caption);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+
+/* héros */
+.hero{position:relative;overflow:hidden}
+.hero .top{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s4)}
+.hero .num{font-size:var(--t-hero);font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:var(--s2);
+  font-variant-numeric:tabular-nums;color:var(--text)}
+.hero .num.brand{color:var(--primary-text)}
+.delta{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--radius-full);
+  font-size:var(--t-small);font-weight:700;white-space:nowrap}
+.delta.up{color:var(--success);background:color-mix(in srgb,var(--success) 15%,transparent)}
+.delta.down{color:var(--danger);background:color-mix(in srgb,var(--danger) 15%,transparent)}
+.delta svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ctx{color:var(--text-muted);font-size:var(--t-small);margin-top:var(--s2)}
+.chartwrap{margin-top:var(--s5);position:relative}
+.chart{display:block;width:100%;height:180px;overflow:visible}
+.chart .axis{font-size:11px;fill:var(--text-muted)}
+.tip{position:absolute;transform:translate(-50%,-120%);pointer-events:none;opacity:0;transition:opacity var(--fast);
+  background:var(--text);color:var(--surface);padding:6px 10px;border-radius:var(--radius-sm);
+  font-size:var(--t-caption);font-weight:700;white-space:nowrap;box-shadow:var(--card-shadow)}
+
+/* mise en route : anneau + checklist */
+.ring{display:flex;align-items:center;gap:var(--s4)}
+.ring svg{width:104px;height:104px;flex:none}
+.ring .rlab .p{font-size:var(--t-display);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.ring .rlab .s{color:var(--text-muted);font-size:var(--t-small)}
+.checks{list-style:none;margin:var(--s5) 0 0;padding:0;display:flex;flex-direction:column;gap:var(--s1)}
+.check{display:flex;align-items:center;gap:var(--s3);padding:var(--s3);border-radius:var(--radius-md);text-decoration:none;color:inherit}
+.check:hover{background:var(--surface3)}
+.check .box{width:22px;height:22px;flex:none;border-radius:7px;display:grid;place-items:center;border:2px solid var(--border);color:transparent}
+.check.done .box{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.check .box svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.check .t{flex:1;font-weight:600}
+.check.done .t{color:var(--text-muted);font-weight:500}
+.check .go{color:var(--primary-text);font-size:var(--t-small);font-weight:700}
+.check.done .go{display:none}
+
+/* tuiles KPI */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s5);margin-top:var(--s5)}
+.tile{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--s5);box-shadow:var(--card-shadow)}
+.tile .icn{width:40px;height:40px;border-radius:var(--radius-md);display:grid;place-items:center;margin-bottom:var(--s4);
+  color:var(--primary-text);background:color-mix(in srgb,var(--primary-text) 14%,transparent)}
+.tile .icn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tile .v{font-size:var(--t-display);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tile .k{color:var(--text-muted);font-size:var(--t-small);margin-top:2px}
+.tile .empty{color:var(--text-muted);font-size:var(--t-small);margin-top:var(--s2)}
+.tile .rolebadge{float:right;font-size:11px;font-weight:700;color:var(--text-muted);border:1px solid var(--border);
+  border-radius:var(--radius-full);padding:2px 8px;text-transform:uppercase;letter-spacing:.05em}
+.btn{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);
+  min-height:44px;padding:0 var(--s4);border-radius:var(--radius-md);font-weight:700;cursor:pointer}
+.btn.primary{background:var(--primary);color:var(--on-primary)}
+.btn.soft{background:color-mix(in srgb,var(--primary-text) 12%,transparent);color:var(--primary-text)}
+.note{margin-top:var(--s8);color:var(--text-muted);font-size:var(--t-small);max-width:80ch}
+.note b{color:var(--text)}
+@media (max-width:900px){.grid{grid-template-columns:1fr}.tiles{grid-template-columns:1fr}.hero .num{font-size:48px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-up" viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-check-circle" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+</svg>
+
+<div class="wrap">
+  <div class="bar" role="toolbar" aria-label="Réglages de la maquette">
+    <div class="grp"><label>Thème</label><div class="seg" id="scheme"><button aria-pressed="true" data-v="dark">Sombre</button><button aria-pressed="false" data-v="light">Clair</button></div></div>
+    <div class="grp"><label>Couleur box</label>
+      <button class="sw" aria-pressed="true" data-c="#E4572E" style="background:#E4572E" title="CF Rueil"></button>
+      <button class="sw" aria-pressed="false" data-c="#16457A" style="background:#16457A" title="CF Nanterre"></button>
+      <button class="sw" aria-pressed="false" data-c="#2F9E6E" style="background:#2F9E6E" title="vert"></button>
+      <button class="sw" aria-pressed="false" data-c="#7A5AF8" style="background:#7A5AF8" title="violet"></button>
+      <input type="color" id="pick" value="#E4572E" aria-label="Autre couleur">
+    </div>
+    <div class="grp"><label>Rôle</label><div class="seg" id="role"><button aria-pressed="true" data-v="owner">Owner / Manager</button><button aria-pressed="false" data-v="coach">Coach</button></div></div>
+    <div class="grp"><label>État</label><div class="seg" id="state"><button aria-pressed="true" data-v="full">Box active</button><button aria-pressed="false" data-v="empty">Box neuve</button></div></div>
+  </div>
+
+  <div class="head">
+    <div>
+      <h1 id="hi">Bonjour Camille</h1>
+      <p id="sub">Voici ta box en un coup d'œil.</p>
+    </div>
+    <span class="tag"><span class="dot"></span><span>CF Rueil</span></span>
+  </div>
+
+  <div class="grid">
+    <!-- HÉROS : taux de remplissage 30 j + graphe activité -->
+    <section class="card hero" aria-labelledby="hero-lab">
+      <div class="top">
+        <div>
+          <div class="eyebrow" id="hero-lab">Taux de remplissage</div>
+          <div class="num brand"><span id="fill">78 %</span></div>
+          <div class="ctx" id="fillctx">sur les 30 derniers jours · 412 places réservées / 528</div>
+        </div>
+        <span class="delta up" id="filldelta"><svg><use href="#i-up"/></svg><span>+6 pts</span></span>
+      </div>
+      <div class="chartwrap">
+        <div class="eyebrow" style="margin-bottom:var(--s2)">Activité — réservations / jour</div>
+        <svg class="chart" id="chart" viewBox="0 0 720 180" preserveAspectRatio="none" role="img" aria-label="Réservations par jour sur 30 jours"></svg>
+        <div class="tip" id="tip"></div>
+      </div>
+    </section>
+
+    <!-- MISE EN ROUTE : anneau + checklist -->
+    <section class="card" aria-labelledby="mer-lab">
+      <div class="eyebrow" id="mer-lab" style="margin-bottom:var(--s4)">Mise en route</div>
+      <div class="ring">
+        <svg id="ring" viewBox="0 0 120 120" role="img" aria-label="Complétion de la mise en route"></svg>
+        <div class="rlab"><div class="p" id="ringp">67 %</div><div class="s" id="rings">4 / 6 faits</div></div>
+      </div>
+      <ul class="checks" id="checks"></ul>
+      <a class="btn soft" id="mercta" href="#" style="margin-top:var(--s5)"><span>Continuer la mise en route</span><svg style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><use href="#i-arrow"/></svg></a>
+    </section>
+  </div>
+
+  <!-- TUILES KPI -->
+  <div class="tiles" id="tiles"></div>
+
+  <p class="note" id="note"></p>
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+let lang='fr', brand='#E4572E', role='owner', state='full';
+
+/* contrast.ts porté : luminance, ratio, correction par la clarté vers clair/sombre */
+const hex=h=>{h=h.replace('#','');if(h.length===3)h=[...h].map(c=>c+c).join('');return[0,2,4].map(i=>parseInt(h.slice(i,i+2),16))};
+const toHex=a=>'#'+a.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');
+const lum=a=>{const[r,g,b]=a.map(v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4});return .2126*r+.7152*g+.0722*b};
+const ratio=(a,b)=>{const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+function ensure(c,bg,min){const t0=lum(bg)<.5?[255,255,255]:[0,0,0];let t=0,o=c;while(ratio(o,bg)<min&&t<1){t+=.02;o=mix(c,t0,t)}return o}
+function paint(){
+  const cs=getComputedStyle(document.documentElement),surf=hex(cs.getPropertyValue('--surface').trim());
+  const b=hex(brand),fill=ensure(b,surf,3),text=ensure(b,surf,4.5);
+  const on=ratio([255,255,255],fill)>=4.5?[255,255,255]:hex('#16140f');
+  const r=document.documentElement.style;
+  r.setProperty('--primary',toHex(fill));r.setProperty('--on-primary',toHex(on));r.setProperty('--primary-text',toHex(text));
+  drawChart();drawRing();
+}
+
+/* ── données d'exemple ── */
+const SERIES=[14,18,12,22,26,31,9,16,24,28,33,30,19,12,27,35,38,29,21,15,33,41,44,36,25,18,39,45,43,30];
+function series(){return state==='empty'?SERIES.map(()=>0):SERIES}
+
+/* ── graphe SVG fait main : aire à dégradé + ligne, bouts arrondis, survol ── */
+function drawChart(){
+  const svg=$('#chart'),W=720,H=180,pad=10,data=series(),n=data.length;
+  const max=Math.max(1,...data),X=i=>pad+i*(W-2*pad)/(n-1),Y=v=>H-pad-(v/max)*(H-2*pad);
+  const primary=getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+  let line='',area='';
+  data.forEach((v,i)=>{const x=X(i).toFixed(1),y=Y(v).toFixed(1);line+=(i?'L':'M')+x+' '+y+' ';});
+  area='M'+X(0).toFixed(1)+' '+(H-pad)+' '+data.map((v,i)=>'L'+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(' ')+' L'+X(n-1).toFixed(1)+' '+(H-pad)+' Z';
+  const flat=state==='empty';
+  svg.innerHTML=`
+    <defs><linearGradient id="ag" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="${primary}" stop-opacity="${flat?0:.34}"/>
+      <stop offset="1" stop-color="${primary}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#ag)"/>
+    <path d="${line}" fill="none" stroke="${primary}" stroke-width="${flat?2:3}" stroke-linecap="round" stroke-linejoin="round" ${flat?'stroke-dasharray="2 6" opacity=".6"':''}/>
+    <circle id="cdot" r="5" fill="${primary}" stroke="var(--surface2)" stroke-width="2" opacity="0"/>`;
+  const dot=$('#cdot',svg),tip=$('#tip');
+  svg.onpointermove=e=>{
+    if(flat){return}
+    const rect=svg.getBoundingClientRect();const rel=(e.clientX-rect.left)/rect.width*W;
+    let i=Math.round((rel-pad)/((W-2*pad)/(n-1)));i=Math.max(0,Math.min(n-1,i));
+    dot.setAttribute('cx',X(i));dot.setAttribute('cy',Y(data[i]));dot.setAttribute('opacity','1');
+    tip.style.opacity='1';tip.style.left=(X(i)/W*rect.width)+'px';tip.style.top=(Y(data[i])/H*rect.height)+'px';
+    tip.textContent=`J-${n-1-i} · ${data[i]} réservations`;
+  };
+  svg.onpointerleave=()=>{dot.setAttribute('opacity','0');tip.style.opacity='0'};
+}
+
+/* ── anneau de progression ── */
+function drawRing(){
+  const svg=$('#ring'),done=state==='empty'?0:4,total=6,pct=Math.round(done/total*100);
+  const R=52,C=2*Math.PI*R,off=C*(1-done/total);
+  svg.innerHTML=`
+    <circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--surface3)" stroke-width="12"/>
+    <circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--primary)" stroke-width="12" stroke-linecap="round"
+      stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 60 60)"/>`;
+  $('#ringp').textContent=pct+' %';$('#rings').textContent=`${done} / ${total} faits`;
+}
+
+/* ── checklist ── */
+const CHECKS=[
+  ['Une salle',true],['Un type de cours',true],['Des horaires d\'ouverture',true],
+  ['Des cours au planning',true],['Un premier membre',false],['Un lien de paiement',false]];
+function drawChecks(){
+  const done=state!=='empty';
+  $('#checks').innerHTML=CHECKS.map(([t,d])=>{
+    const ok=done&&d;
+    return `<li><a class="check ${ok?'done':''}" href="#"><span class="box"><svg><use href="#i-check"/></svg></span>
+      <span class="t">${t}</span><span class="go">Configurer</span></a></li>`;
+  }).join('');
+}
+
+/* ── tuiles KPI ── */
+function drawTiles(){
+  const empty=state==='empty';
+  const tiles=[
+    {icn:'i-users',v:empty?null:'142',k:'Membres actifs',emptyMsg:'Aucun membre encore',cta:'Inviter'},
+    {icn:'i-check-circle',v:empty?null:'86 %',k:'Présences · 30 j',sub:'318 pointées / 371',delta:empty?null:'+3 pts',emptyMsg:'Pas encore de pointage'},
+    {icn:'i-clock',v:empty?null:'7',k:'Abonnements expirant sous 30 j',owner:true,emptyMsg:'Aucune échéance proche'},
+  ];
+  $('#tiles').innerHTML=tiles.filter(t=>!(t.owner&&role==='coach')).map(t=>`
+    <div class="tile">
+      ${t.owner?'<span class="rolebadge">Owner / Manager</span>':''}
+      <div class="icn"><svg><use href="#${t.icn}"/></svg></div>
+      ${t.v===null
+        ? `<div class="k">${t.k}</div><div class="empty">${t.emptyMsg}${t.cta?` · <a href="#" style="color:var(--primary-text);font-weight:700">${t.cta}</a>`:''}</div>`
+        : `<div class="v">${t.v}</div><div class="k">${t.k}${t.delta?` · <span style="color:var(--success);font-weight:700">${t.delta}</span>`:''}</div>${t.sub?`<div class="empty">${t.sub}</div>`:''}`}
+    </div>`).join('');
+}
+
+function applyState(){
+  const empty=state==='empty';
+  $('#hi').textContent=empty?'Bienvenue, Camille':'Bonjour Camille';
+  $('#sub').textContent=empty?'Ta box est presque prête — finissons la mise en route.':'Voici ta box en un coup d\'œil.';
+  $('#hero-lab').textContent='Taux de remplissage';
+  if(empty){
+    $('#fill').textContent='—';$('#fill').parentElement.classList.remove('brand');
+    $('#fillctx').textContent='Ton planning est vide. Ajoute des cours pour suivre le remplissage.';
+    $('#filldelta').style.display='none';
+  }else{
+    $('#fill').textContent='78 %';$('#fill').parentElement.classList.add('brand');
+    $('#fillctx').textContent='sur les 30 derniers jours · 412 places réservées / 528';
+    $('#filldelta').style.display='';
+  }
+  $('#mercta').style.display=(state==='empty'||true)?'inline-flex':'none';
+  drawChart();drawRing();drawChecks();drawTiles();
+}
+
+/* contrôles */
+function seg(id,fn){$$('#'+id+' button').forEach(b=>b.onclick=()=>{$$('#'+id+' button').forEach(x=>x.setAttribute('aria-pressed',x===b));fn(b.dataset.v)})}
+seg('scheme',v=>{document.documentElement.dataset.scheme=v;paint()});
+seg('role',v=>{role=v;drawTiles()});
+seg('state',v=>{state=v;applyState()});
+$$('.sw').forEach(s=>s.onclick=()=>{$$('.sw').forEach(x=>x.setAttribute('aria-pressed',x===s));brand=s.dataset.c;$('#pick').value=brand;paint()});
+$('#pick').oninput=e=>{brand=e.target.value;$$('.sw').forEach(x=>x.setAttribute('aria-pressed',false));paint()};
+
+$('#note').innerHTML='<b>Maquette P2-004.</b> Chiffre héros = taux de remplissage sur les 30 derniers jours écoulés (delta réel vs les 30 j précédents). Fenêtres remplissage / présences / activité alignées sur la même période passée. La tuile « abonnements expirant » est réservée à Owner / Manager (bascule le rôle). « Box neuve » montre les états vides honnêtes — aucun 0 % mensonger. Une seule teinte par box, tout par tokens.';
+paint();applyState();
+</script>
+</body>
+</html>
