@@ -607,7 +607,8 @@ sait pas lui répondre.
 | D-039   | Les appels `Notifications` plantent l'app sur le web | 0,25 | ✅ **fait le 18 sept.** (PR #120) — **trouvée pendant `D-038`, 18 sept.** : effet 3 de `push.ts` (`getLastNotificationResponseAsync`) non gardé par `Platform.OS` → tout écran authentifié plante sur le harnais web. Garde `Platform.OS !== 'web'` |
 | D-040   | Sélecteur de langue en session (back-office)       |  0,5 | ✅ **fait le 18 sept.** (PR #125) — ⟵ test back-office : : le back-office suit navigateur > `users.locale`, jamais la langue de la box → aucun levier pour basculer EN. Débloque la vérif EN de P2-022 |
 | D-041   | La porte `/check` ne lance pas `i18n:check`        | 0,25 | ⟵ **18 sept.** : `main` passé rouge i18n (clés orphelines) sans alerte car la porte n'inclut pas `i18n:check`. Faux vert |
-|         | **Total ①**                                       | **126,75** | dont **114,5 faits**, **12,25 restants** |
+| D-042   | La checklist renvoie le lien de paiement dans le vide | 0,5 | ⟵ **P2-004, session réelle 19 sept.** : l'assistant a 5 étapes, la checklist 6 items ; « Configurer » sur le lien de paiement mène à un assistant qui ne le contient pas. Fix : paiement en 6e étape + chaque « Configurer » ouvre son étape |
+|         | **Total ①**                                       | **127,25** | dont **114,5 faits**, **12,75 restants** |
 
 **Les restants sont montés de 20,75 à 23,5 le 8 septembre, et c'était une bonne
 nouvelle.** Un chiffre qui monte se relit comme une dérive s'il ne porte pas sa
