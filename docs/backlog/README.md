@@ -782,7 +782,7 @@ en ce sens depuis P1-003).
 
 ```
 P2-009 → P2-013b → P2-010 → P2-012 → P2-013 → P2-011 → P2-014   (programmation, puis scores)
-P2-017 → P2-018 → P2-019 → P2-020 → P2-004                      (identité, accès, planning, dashboard)
+P2-017 → P2-018 → P2-019 → P2-020 → P2-027 → P2-004        (identité, accès, planning, identité back-office, dashboard)
 P2-021 → P2-022                                                 (design mobile, puis web)
 P2-024                                                         (canal Android : Firebase + build + preuve push — PRIORITAIRE, tôt)
 P2-002 → P2-003 → P2-023 ∥ P2-025                               (RGPD, Apple, puis soumission App Store ET Play Store)
@@ -808,6 +808,7 @@ existe déjà.
 | P2-019  | Lien externe de paiement                      |   2 | ✅ **fait le 17 sept.** (PR #110) — payment_link_url (CHECK https), bouton mobile conditionnel |
 | P2-002  | Droits RGPD en self-service                   |   5 | exigé pour les vrais membres + Apple |
 | P2-017  | Identité de la box partout, zéro « Rack »     |   2 | ✅ **fait le 18 sept.** (PR #115) — audit white-label N0, deux fuites fermées |
+| P2-027  | Identité de la box dans le back-office (shell) |   1 | **neuf** — étend P2-017 au côté opérateur : le shell sert `logo_url`, logo/nom de la box sur chaque écran, co-brand « propulsé par Rack ». **Avant P2-004** |
 | P2-021  | Passe design mobile (+ direction visuelle)    |   4 | **codé, passe iPhone en attente** — direction « Craie & acier », onglets, accueil + planning + réservations + bienvenue/connexion. WOD et carte membre sortis (voir fiche) |
 | P2-022  | Passe design web (back-office)                |   3 | **codé et vu en session** (FR, clair/sombre) — coquille repliable, écran Équipe repris, langage CSS commun. Reste : rendu EN, menus à la souris, SVG du logo |
 | P2-003  | Sign in with Apple                            |   3 | bloquant de publication |
@@ -816,7 +817,7 @@ existe déjà.
 | P2-024  | Canal Android : Firebase, build, preuve push  | 2,5 | ⏳ **config faite le 18 sept.** (PR #116) — profil `preview` APK + env, `google-services.json` committé (projet `rack-b6a4a`) ; **preuve appareil (push + `rack://`) en attente** [~] |
 | P2-025  | Soumission Play Store                         |   2 | **neuf** — fiche, Data safety ; dépend de P2-024 |
 | P2-026  | Retrait d'accès (bouton) + filtre deleted_at  |   1 | ✅ **fait le 17 sept.** (PR #109) — revoke_member_subscription (seul chemin), lecture filtre deleted_at |
-|         | **Total ②**                                   | **69** | dont 45,5 déjà ticketés ; **10 faits** (P2-018/019/026/017/020) + P2-024 config (preuve appareil en attente) |
+|         | **Total ②**                                   | **70** | dont 46,5 déjà ticketés ; **10 faits** (P2-018/019/026/017/020) + P2-024 config (preuve appareil en attente) |
 
 ### Différé — attend l'entité juridique (35 j·h)
 
