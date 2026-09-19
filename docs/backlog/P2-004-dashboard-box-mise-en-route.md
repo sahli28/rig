@@ -18,11 +18,18 @@
 > l'**assistant 5 étapes**, le **dashboard** et la **checklist**, pas l'écran de
 > création.
 >
-> **2. Graphique 30 jours : aucune bibliothèque.** Une bande de barres CSS
-> maison, **réservations par jour** (donnée automatique et toujours peuplée,
-> contrairement aux présences qui dépendent du geste du coach), dans le langage
-> « Craie & acier » posé en P2-021/022. Tout ajout de dépendance se justifie
-> dans le message de commit — l'arbitrage par défaut est : pas de lib.
+> **2. Graphique 30 jours : SVG fait main, pas de bibliothèque — et rien de
+> basique.** L'app est en marque blanche : **une seule couleur par box**. Une
+> bibliothèque de graphes trimballe une machinerie de palettes multi-séries
+> inutile ici, pèse ~100 ko et se bat contre « Craie & acier ». Le bon rendu vient
+> de la méthode, pas de la lib. Donc : un graphe **SVG fait main**, **une seule
+> teinte** (la primaire de la box), **réservations par jour** (donnée automatique
+> et toujours peuplée, contrairement aux présences qui dépendent du coach),
+> **tooltip au survol** (la couche interactive est par défaut sur un graphe
+> HTML/SVG), marques travaillées (bouts arrondis 4 px ou aire à dégradé, 2 px de
+> respiration), et **sombre recalculé depuis les tokens, pas une inversion**.
+> Réf. : compétence `dataviz` (forme d'abord, couleur calculée, survol, passe
+> accessibilité). Toute dépendance ajoutée se justifie dans le commit.
 >
 > **3. Pas de « taux de churn ».** Sans visibilité sur les paiements (règlement
 > hors app, `P2-019`), un churn serait un chiffre faux. Remplacé par une tuile
@@ -36,6 +43,15 @@
 > P1-001 » (ticket clos). C'est ce qui fait dire à la relecture « écran à venir,
 > aucun ticket ». Ce ticket **remplace ce Notice par le vrai dashboard** ; il ne
 > reste ni coquille ni référence morte.
+
+> **5. C'est l'écran phare — il doit être une élévation, pas un écran de plus.**
+> Le dashboard est le premier écran à l'ouverture. Il doit se lire *au-dessus*
+> des autres écrans du back-office : un **chiffre héros** (le KPI qui compte le
+> plus, en grand), une hiérarchie nette, de l'espace, la texture « Craie & acier »
+> utilisée avec parcimonie, et le taux de complétion de la checklist en **anneau
+> de progression** (`ProgressRing` — prévu au kit, **jamais construit** ; il naît
+> ici et rejoint `packages/ui`). **Un mockup viewable est validé avant toute
+> implémentation**, comme pour P2-021/022.
 
 ## Pourquoi ce ticket existe
 
@@ -117,7 +133,7 @@ Chaque brique a une source livrée ; aucune n'invente de donnée.
 | **Taux de remplissage** | Réservations confirmées / capacité, sur 30 j | `classes` (P1-002) + `bookings` (P1-003) | « pas encore de cours au planning » |
 | **Présences** | Réservations pointées présentes par le coach, sur 30 j — **distinct du remplissage** | horodatage de présence sur `bookings` (P1-008a) | « pas encore de pointage » |
 | **Abonnements expirant sous 30 j** | Liste courte / compteur actionnable | `member_subscriptions.ends_on` (P2-018), hors révoqués (P2-026) | « aucune échéance proche » |
-| **Activité 30 jours** | Bande de barres CSS maison, réservations/jour | `bookings` (P1-003) | barres à zéro lisibles, pas d'erreur |
+| **Activité 30 jours** | Graphe SVG fait main, une teinte (primaire), réservations/jour, tooltip au survol | `bookings` (P1-003) | tracé à plat lisible, pas d'erreur |
 
 **Hors périmètre, et pourquoi :** tuile CA (l'app ne voit aucun encaissement),
 taux de churn (faux sans visibilité paiement). Le CA se lit dans le Stripe de la
@@ -132,6 +148,12 @@ box ; `revenue_report()` / `P2-016` restent différés avec l'entité juridique.
       état vide qui explique quoi faire, pas des zéros
 - [ ] Le `<Notice coming_soon>` du dashboard est remplacé par l'écran réel ;
       aucune référence morte à P1-001 ne subsiste dans `page.tsx`
-- [ ] Le graphique 30 j n'ajoute aucune bibliothèque (barres CSS maison)
+- [ ] Le graphe 30 j est en SVG fait main, une seule teinte (primaire de la
+      box), tooltip au survol, sombre recalculé (pas une inversion) — aucune
+      bibliothèque de graphes ajoutée
 - [ ] Présences (pointées) et taux de remplissage (réservations) sont affichés
       comme deux mesures distinctes, jamais confondues
+- [ ] Le dashboard se lit comme une élévation des autres écrans : un chiffre
+      héros, hiérarchie et espace — un mockup est validé avant l'implémentation
+- [ ] Le taux de complétion de la checklist utilise un `ProgressRing` versé
+      dans `packages/ui`
