@@ -46,6 +46,21 @@ export function DashboardScreen({
   const base = `/box/${slug}`;
   const setupHref = `${base}/mise-en-route`;
 
+  /**
+   * Chaque item « Configurer » mène à SA destination (D-042), pas au début de
+   * l'assistant. Quatre items sont des étapes de l'assistant (on cible l'étape
+   * par `?step=`) ; deux vivent ailleurs — « des cours au planning » sur le
+   * planning, « un premier membre » sur l'équipe — et pointent vers leur écran.
+   */
+  const checkHref: Record<(typeof CHECKLIST_ORDER)[number], string> = {
+    rooms: `${setupHref}?step=lieux`,
+    class_types: `${setupHref}?step=cours`,
+    opening_hours: `${setupHref}?step=horaires`,
+    schedules: `${base}/planning`,
+    members: `${base}/staff`,
+    payment_link: `${setupHref}?step=paiement`,
+  };
+
   const fill = fillRate(data.fill);
   const fillDelta = pointsDelta(data.fill, data.fill_prev);
   const attend = attendanceRate(data.attendance);
@@ -132,7 +147,7 @@ export function DashboardScreen({
                   ) : (
                     <Link
                       className={styles.check}
-                      href={setupHref}
+                      href={checkHref[key]}
                       aria-label={`${label} — ${t('dashboard.check_configure')}`}
                     >
                       {body}

@@ -7,6 +7,7 @@ import { OpeningHoursForm } from '../reglages/opening-hours-form';
 import { PlacesForm } from '../reglages/places-form';
 import { ClassTypesForm } from '../reglages/class-types-form';
 import { BookingRulesForm } from '../reglages/booking-rules-form';
+import { PaymentLinkForm } from '../reglages/payment-link-form';
 
 /**
  * Assistant de mise en route (P2-004) — cinq étapes qui **enchaînent** les
@@ -17,7 +18,13 @@ import { BookingRulesForm } from '../reglages/booking-rules-form';
  * Config, pas création : la box existe déjà (P1-020). Réservé au staff qui
  * configure (`settings`) ; un coach n'a rien à régler ici.
  */
-export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ step?: string }>;
+}) {
   const { slug } = await params;
 
   const client = await serverClient();
@@ -53,10 +60,22 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const salles = rooms.data ?? [];
   const creneaux = openingHours.data ?? [];
   const types = classTypes.data ?? [];
+  const paymentLink = settings.data?.payment_link_url ?? null;
+
+  // Ouverture directe sur une étape (D-042) : la checklist du dashboard cible
+  // `?step=<id>` pour déposer l'utilisateur sur le réglage qu'il visait, jamais à
+  // l'étape 1. Un id absent ou inconnu retombe sur la première étape.
+  const requested = (await searchParams).step;
+  const stepIds = ['identite', 'horaires', 'lieux', 'cours', 'regles', 'paiement'] as const;
+  const initialStep = Math.max(
+    0,
+    stepIds.findIndex((id) => id === requested),
+  );
 
   return (
     <Wizard
       slug={slug}
+      initialStep={initialStep}
       steps={[
         {
           id: 'identite',
@@ -95,6 +114,15 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           // Les règles ont toujours une valeur (défaut à la création).
           done: true,
           content: <BookingRulesForm slug={slug} regles={regles} />,
+        },
+        {
+          // 6e étape, **optionnelle** (D-042) : le règlement se fait hors app, une
+          // box tourne sans. « Terminer » ne l'exige pas. C'est la destination du
+          // 6e item de checklist, qui menait jusqu'ici à un assistant sans elle.
+          id: 'paiement',
+          labelKey: 'settings.tab_payment',
+          done: paymentLink !== null,
+          content: <PaymentLinkForm slug={slug} lien={paymentLink} />,
         },
       ]}
     />
