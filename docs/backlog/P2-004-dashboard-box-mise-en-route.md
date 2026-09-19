@@ -167,6 +167,13 @@ box ; `revenue_report()` / `P2-016` restent différés avec l'entité juridique.
 **Vérifié sur l'aperçu dev `/design-system/dashboard`** (composants réels,
 données factices) : clair/sombre, box active/neuve, coach (tuile expirations
 absente), survol **et** clavier du graphe, anneau. `rls-auditor` : SAFE.
-**Reste la passe en session réelle** (`/box/[slug]` avec la vraie teinte de box
-et les données du seed, + soumission de l'assistant) : demande une connexion,
-que les `db:reset` de la CI/tests invalident — à jouer et dater ici.
+
+**Passe en session réelle jouée le 19 sept. 2026** (`/box/crossfit-rueil`,
+OWNER, console propre) : teinte de box (orange Rueil) appliquée partout ;
+`box_dashboard` sur données seed — **2 membres actifs** (exact), checklist
+**5/6** (seul le lien de paiement manque → réel), remplissage **0 %** (vrai 0 :
+124 places, 0 réservation, distinct du « — » d'amorçage), présences et
+expirations en états vides. **FR et EN** (via `rack.locale`, D-040). Assistant :
+les 5 étapes s'enchaînent, formulaires de Réglages réutilisés, coches d'état
+correctes. Un défaut trouvé et corrigé en séance : chemin CSS du wizard.
+Reste seul `[~]` la **mesure des 45 minutes**, qui est une passe chronométrée.
